@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd/util"
 	"go.flipt.io/flipt/internal/config"
+	"golang.org/x/term"
 	"gopkg.in/yaml.v2"
 )
 
@@ -117,6 +118,7 @@ const (
 	DefaultDirectory = "flipt"
 	DefaultStorage   = "default"
 	DefaultEnv       = "default"
+	minContentWidth  = 48
 
 	// File permissions
 	ConfigDirPerm  = 0700
@@ -179,61 +181,158 @@ func (c *quickstart) validateToken(token string) error {
 	return nil
 }
 
+func (c *quickstart) availableWidth() int {
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil || width == 0 {
+		return contentWidth
+	}
+
+	usable := width - 4
+	if usable < minContentWidth {
+		if usable < 1 {
+			return 1
+		}
+		return usable
+	}
+	if usable > contentWidth {
+		return contentWidth
+	}
+	return usable
+}
+
+func (c *quickstart) heroHeader(title, subtitle string) string {
+	width := c.availableWidth()
+
+	lines := []string{
+		TitleStyle.Copy().Width(width).Render(title),
+		DividerStyle.Render(strings.Repeat("─", width)),
+	}
+
+	if subtitle != "" {
+		lines = append(lines, SubtitleStyle.Copy().Width(width).Render(subtitle))
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, lines...)
+}
+
+type quickstartLayout struct {
+	quickstart *quickstart
+	base       huh.Layout
+}
+
+func (l *quickstartLayout) View(f *huh.Form) string {
+	body := l.base.View(f)
+	return stack(l.quickstart.renderHeader(), body)
+}
+
+func (l *quickstartLayout) GroupWidth(f *huh.Form, g *huh.Group, w int) int {
+	return l.base.GroupWidth(f, g, w)
+}
+
+func (c *quickstart) newForm(groups ...*huh.Group) *huh.Form {
+	form := huh.NewForm(groups...).WithTheme(huh.ThemeCharm())
+	form = form.WithLayout(&quickstartLayout{
+		quickstart: c,
+		base:       huh.LayoutDefault,
+	})
+	form = form.WithProgramOptions(
+		tea.WithOutput(os.Stdout),
+		tea.WithAltScreen(),
+		tea.WithReportFocus(),
+	)
+	return form
+}
+
+func (c *quickstart) noteFor(content string) *huh.Note {
+	return huh.NewNote().
+		Description(content).
+		Height(lipgloss.Height(content))
+}
+
+func (c *quickstart) cardStyle() lipgloss.Style {
+	return CardStyle.Copy().Width(c.availableWidth())
+}
+
 // renderProgressIndicator creates a visual progress bar for the wizard
 func (c *quickstart) renderProgressIndicator() string {
 	steps := []string{"Welcome", "Repository", "Provider", "Storage", "Auth", "Review", "Complete"}
-	var indicators []string
-
+	var chips []string
 	for i, step := range steps {
-		var style lipgloss.Style
-		var symbol string
+		var chipStyle lipgloss.Style
+		var prefix string
 
-		if WizardStep(i) < c.currentStep {
-			style = ProgressCompleteStyle
-			symbol = "✓"
-		} else if WizardStep(i) == c.currentStep {
-			style = ProgressActiveStyle
-			symbol = "●"
-		} else {
-			style = ProgressInactiveStyle
-			symbol = "○"
+		switch {
+		case WizardStep(i) < c.currentStep:
+			chipStyle = StepChipCompleteStyle
+			prefix = "✓"
+		case WizardStep(i) == c.currentStep:
+			chipStyle = StepChipActiveStyle
+			prefix = fmt.Sprintf("%d", i+1)
+		default:
+			chipStyle = StepChipInactiveStyle
+			prefix = fmt.Sprintf("%d", i+1)
 		}
 
-		// Add the indicator with proper spacing
-		indicator := style.Render(fmt.Sprintf("%s %s", symbol, step))
-		indicators = append(indicators, indicator)
-
-		// Add spacing between items (except after the last one)
-		if i < len(steps)-1 {
-			indicators = append(indicators, " ")
-		}
+		chips = append(chips, chipStyle.Render(fmt.Sprintf("%s %s", prefix, step)))
 	}
 
-	progressLine := lipgloss.JoinHorizontal(lipgloss.Left, indicators...)
+	availableWidth := c.availableWidth()
+	if availableWidth <= 0 {
+		availableWidth = contentWidth
+	}
 
-	return CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Center,
-			SectionHeaderStyle.Render("Setup Progress"),
-			progressLine,
-		),
+	var (
+		rows     [][]string
+		current  []string
+		rowWidth int
+		flushRow = func() {
+			if len(current) == 0 {
+				return
+			}
+			rows = append(rows, current)
+			current = nil
+			rowWidth = 0
+		}
 	)
+
+	for _, chip := range chips {
+		chipWidth := lipgloss.Width(chip)
+		if len(current) > 0 && rowWidth+chipWidth > availableWidth {
+			flushRow()
+		}
+		current = append(current, chip)
+		rowWidth += chipWidth
+	}
+
+	flushRow()
+
+	if len(rows) == 0 {
+		return ""
+	}
+
+	renderedRows := make([]string, 0, len(rows))
+	for _, row := range rows {
+		renderedRows = append(renderedRows, lipgloss.JoinHorizontal(lipgloss.Left, row...))
+	}
+
+	indicator := lipgloss.JoinVertical(lipgloss.Left, renderedRows...)
+	return lipgloss.NewStyle().PaddingBottom(0).Render(indicator)
 }
 
 // renderHeader creates the header with title and progress
 func (c *quickstart) renderHeader() string {
-	title := TitleStyle.Render("Flipt v2 Quickstart")
-	subtitle := SubtitleStyle.Render("Configure Git storage syncing with a remote repository")
+	hero := c.heroHeader("Flipt v2 Quickstart", "Configure Git storage syncing with a remote repository")
 
-	headerContent := lipgloss.JoinVertical(lipgloss.Center, title, subtitle)
-
-	if c.currentStep != StepComplete {
-		headerContent = lipgloss.JoinVertical(lipgloss.Center,
-			headerContent,
-			lipgloss.NewStyle().MarginTop(1).Render(c.renderProgressIndicator()),
-		)
+	if c.currentStep == StepComplete {
+		return hero
 	}
 
-	return headerContent
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		hero,
+		lipgloss.NewStyle().MarginTop(1).Render(c.renderProgressIndicator()),
+		"",
+	)
 }
 
 func (c *quickstart) run() error {
@@ -258,13 +357,9 @@ func (c *quickstart) run() error {
 	c.currentStep = StepConfirmation
 	c.totalSteps = 7
 
-	fmt.Println()
-	fmt.Println(c.renderHeader())
-	fmt.Println()
-
 	// Check for existing config
 	if _, err := os.Stat(c.configFile); err == nil {
-		warningCard := CardStyle.Copy().
+		warningCard := applySectionSpacing(c.cardStyle().
 			BorderForeground(Amber).
 			Render(
 				lipgloss.JoinVertical(lipgloss.Left,
@@ -272,9 +367,8 @@ func (c *quickstart) run() error {
 					HelperTextStyle.Render("\nThis will overwrite your existing config file at:"),
 					ValueStyle.Render(c.configFile),
 				),
-			)
+			))
 		fmt.Println(warningCard)
-		fmt.Println()
 	}
 
 	// Step 1: Confirmation
@@ -286,7 +380,6 @@ func (c *quickstart) run() error {
 	// Step 2: Repository Configuration
 	c.currentStep = StepRepository
 	fmt.Print("\033[H\033[2J")
-	fmt.Println(c.renderHeader())
 	if err := c.runRepositoryStep(); err != nil {
 		return err
 	}
@@ -294,7 +387,6 @@ func (c *quickstart) run() error {
 	// Step 3: Provider Configuration
 	c.currentStep = StepProvider
 	fmt.Print("\033[H\033[2J")
-	fmt.Println(c.renderHeader())
 	if err := c.runProviderStep(); err != nil {
 		return err
 	}
@@ -302,7 +394,6 @@ func (c *quickstart) run() error {
 	// Step 4: Branch and Directory
 	c.currentStep = StepBranchDirectory
 	fmt.Print("\033[H\033[2J")
-	fmt.Println(c.renderHeader())
 	if err := c.runBranchDirectoryStep(); err != nil {
 		return err
 	}
@@ -310,7 +401,6 @@ func (c *quickstart) run() error {
 	// Step 5: Authentication (if needed)
 	c.currentStep = StepAuthentication
 	fmt.Print("\033[H\033[2J")
-	fmt.Println(c.renderHeader())
 	if err := c.runAuthenticationStep(); err != nil {
 		return err
 	}
@@ -318,7 +408,6 @@ func (c *quickstart) run() error {
 	// Step 6: Review and Confirm
 	c.currentStep = StepReview
 	fmt.Print("\033[H\033[2J")
-	fmt.Println(c.renderHeader())
 	if err := c.runReviewStep(); err != nil {
 		return err
 	}
@@ -334,16 +423,16 @@ func (c *quickstart) run() error {
 func (c *quickstart) runConfirmationStep() error {
 	var proceed bool
 
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewConfirm().
-				Title("Ready to begin?").
-				Description("This setup will take about 2 minutes").
-				Value(&proceed).
-				Affirmative("Yes, let's start").
-				Negative("No, maybe later"),
-		),
-	).WithTheme(huh.ThemeCharm())
+	group := huh.NewGroup(
+		huh.NewConfirm().
+			Title("Ready to begin?").
+			Description("This setup will take about 2 minutes").
+			Value(&proceed).
+			Affirmative("Yes, let's start").
+			Negative("No, maybe later"),
+	)
+
+	form := c.newForm(group)
 
 	if err := form.Run(); err != nil {
 		return fmt.Errorf("running confirmation form: %w", err)
@@ -358,25 +447,31 @@ func (c *quickstart) runConfirmationStep() error {
 }
 
 func (c *quickstart) runRepositoryStep() error {
-	// Show examples without card
-	fmt.Println(HelperTextStyle.Render("We'll store your feature flags in a Git repository."))
-	fmt.Println()
-	fmt.Println(InputLabelStyle.Render("Examples:"))
-	fmt.Println(lipgloss.NewStyle().Foreground(MutedGray).Render("  • https://github.com/your-org/feature-flags.git"))
-	fmt.Println(lipgloss.NewStyle().Foreground(MutedGray).Render("  • https://gitlab.com/team/config-repo.git"))
-	fmt.Println(lipgloss.NewStyle().Foreground(MutedGray).Render("  • git@github.com:company/flipt-config.git"))
-	fmt.Println()
-
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title(InputLabelStyle.Render("Git Repository URL")).
-				Description("Enter the URL of your Git repository (HTTPS or SSH)").
-				Placeholder("https://github.com/owner/repo.git").
-				Value(&c.repo.url).
-				Validate(c.validateRepositoryURL),
+	guidanceCard := applySectionSpacing(c.cardStyle().Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "REPOSITORY", "Connect your Git source"),
+			HelperTextStyle.Render("Flipt stores feature flags in Git. Provide an HTTPS or SSH URL."),
+			ConfigItemStyle.Render(renderBulletList([]string{
+				"https://github.com/your-org/feature-flags.git",
+				"https://gitlab.com/team/config-repo.git",
+				"git@github.com:company/flipt-config.git",
+			})),
 		),
-	).WithTheme(huh.ThemeCharm())
+	))
+
+	note := c.noteFor(guidanceCard)
+
+	group := huh.NewGroup(
+		note,
+		huh.NewInput().
+			Title(InputLabelStyle.Render("Git Repository URL")).
+			Description("Enter the URL of your Git repository (HTTPS or SSH)").
+			Placeholder("https://github.com/owner/repo.git").
+			Value(&c.repo.url).
+			Validate(c.validateRepositoryURL),
+	)
+
+	form := c.newForm(group)
 
 	if err := form.Run(); err != nil {
 		return fmt.Errorf("running repository configuration form: %w", err)
@@ -394,11 +489,16 @@ func (c *quickstart) runRepositoryStep() error {
 	c.repo.name = name
 
 	// Show detected information
-	fmt.Println()
-	fmt.Println(SuccessStyle.Render("✓ Repository detected!"))
-	fmt.Println(fmt.Sprintf("%s %s", LabelStyle.Render("Provider:"), ValueStyle.Render(c.provider.name)))
-	fmt.Println(fmt.Sprintf("%s %s/%s", LabelStyle.Render("Repository:"), ValueStyle.Render(owner), ValueStyle.Render(name)))
-	fmt.Println()
+	detectedCard := applySectionSpacing(c.cardStyle().Render(
+		stack(
+			renderSectionBadge(BadgeSuccessStyle, "DETECTED", "Repository Details"),
+			ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left,
+				renderKeyValue("Provider", ValueStyle.Render(c.provider.name)),
+				renderKeyValue("Repository", ValueStyle.Render(fmt.Sprintf("%s/%s", owner, name))),
+			)),
+		),
+	))
+	fmt.Println(detectedCard)
 
 	return nil
 }
@@ -406,22 +506,30 @@ func (c *quickstart) runRepositoryStep() error {
 func (c *quickstart) runProviderStep() error {
 	var correctProvider bool
 
-	// Show provider detection result without card
-	fmt.Println(fmt.Sprintf("%s %s", LabelStyle.Render("Detected:"), ValueStyle.Render(c.provider.name)))
-	fmt.Println(fmt.Sprintf("%s %s", LabelStyle.Render("Repository:"), ValueStyle.Render(fmt.Sprintf("%s/%s", c.repo.owner, c.repo.name))))
-	fmt.Println()
+	providerOverview := applySectionSpacing(c.cardStyle().Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "PROVIDER", "Detected settings"),
+			ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left,
+				renderKeyValue("Provider", ValueStyle.Render(c.provider.name)),
+				renderKeyValue("Repository", ValueStyle.Render(fmt.Sprintf("%s/%s", c.repo.owner, c.repo.name))),
+			)),
+		),
+	))
+
+	note := c.noteFor(providerOverview)
 
 	// Confirm detected provider
-	confirmForm := huh.NewForm(
-		huh.NewGroup(
-			huh.NewConfirm().
-				Title("Is this correct?").
-				Description(fmt.Sprintf("We detected %s as your Git provider", c.provider.name)).
-				Value(&correctProvider).
-				Affirmative("Yes, that's correct").
-				Negative("No, let me choose"),
-		),
-	).WithTheme(huh.ThemeCharm())
+	confirmGroup := huh.NewGroup(
+		note,
+		huh.NewConfirm().
+			Title("Is this correct?").
+			Description(fmt.Sprintf("We detected %s as your Git provider", c.provider.name)).
+			Value(&correctProvider).
+			Affirmative("Yes, that's correct").
+			Negative("No, let me choose"),
+	)
+
+	confirmForm := c.newForm(confirmGroup)
 
 	if err := confirmForm.Run(); err != nil {
 		return fmt.Errorf("running provider confirmation form: %w", err)
@@ -438,15 +546,15 @@ func (c *quickstart) runProviderStep() error {
 			huh.NewOption("Generic Git", "Git"),
 		}
 
-		selectForm := huh.NewForm(
-			huh.NewGroup(
-				huh.NewSelect[string]().
-					Title("Select SCM Provider").
-					Description("Choose your source control management provider").
-					Options(providerOptions...).
-					Value(&c.provider.name),
-			),
-		).WithTheme(huh.ThemeCharm())
+		selectGroup := huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select SCM Provider").
+				Description("Choose your source control management provider").
+				Options(providerOptions...).
+				Value(&c.provider.name),
+		)
+
+		selectForm := c.newForm(selectGroup)
 
 		if err := selectForm.Run(); err != nil {
 			return fmt.Errorf("running provider selection form: %w", err)
@@ -463,31 +571,31 @@ func (c *quickstart) runProviderStep() error {
 
 	// Handle custom API URL for hosted providers
 	if c.provider.typ.IsHosted() {
-		customForm := huh.NewForm(
-			huh.NewGroup(
-				huh.NewConfirm().
-					Title(fmt.Sprintf("Are you using a self-hosted/enterprise %s instance?", c.provider.name)).
-					Value(&c.provider.isCustom).
-					Affirmative("Yes, self-hosted").
-					Negative("No, cloud version"),
-			),
-		).WithTheme(huh.ThemeCharm())
+		customGroup := huh.NewGroup(
+			huh.NewConfirm().
+				Title(fmt.Sprintf("Are you using a self-hosted/enterprise %s instance?", c.provider.name)).
+				Value(&c.provider.isCustom).
+				Affirmative("Yes, self-hosted").
+				Negative("No, cloud version"),
+		)
+
+		customForm := c.newForm(customGroup)
 
 		if err := customForm.Run(); err != nil {
 			return fmt.Errorf("running custom API configuration form: %w", err)
 		}
 
 		if c.provider.isCustom {
-			apiForm := huh.NewForm(
-				huh.NewGroup(
-					huh.NewInput().
-						Title(fmt.Sprintf("%s API URL", AccentStyle.Render(c.provider.name))).
-						Description("Enter the API URL for your instance").
-						Placeholder("https://git.example.com/api/v4").
-						Value(&c.provider.apiURL).
-						Validate(c.validateAPIURL),
-				),
-			).WithTheme(huh.ThemeCharm())
+			apiGroup := huh.NewGroup(
+				huh.NewInput().
+					Title(fmt.Sprintf("%s API URL", AccentStyle.Render(c.provider.name))).
+					Description("Enter the API URL for your instance").
+					Placeholder("https://git.example.com/api/v4").
+					Value(&c.provider.apiURL).
+					Validate(c.validateAPIURL),
+			)
+
+			apiForm := c.newForm(apiGroup)
 
 			if err := apiForm.Run(); err != nil {
 				return fmt.Errorf("running API URL configuration form: %w", err)
@@ -495,24 +603,24 @@ func (c *quickstart) runProviderStep() error {
 		}
 	} else if c.provider.typ == ProviderGitea {
 		// Gitea always needs API URL
-		apiForm := huh.NewForm(
-			huh.NewGroup(
-				huh.NewInput().
-					Title(AccentStyle.Render("Gitea") + " API URL").
-					Description("Enter the API URL for your Gitea instance").
-					Placeholder("https://gitea.example.com/api/v1").
-					Value(&c.provider.apiURL).
-					Validate(func(s string) error {
-						if err := c.validateAPIURL(s); err != nil {
-							if s == "" {
-								return ValidationError{Field: "api_url", Message: "API URL is required for Gitea"}
-							}
-							return err
+		apiGroup := huh.NewGroup(
+			huh.NewInput().
+				Title(AccentStyle.Render("Gitea") + " API URL").
+				Description("Enter the API URL for your Gitea instance").
+				Placeholder("https://gitea.example.com/api/v1").
+				Value(&c.provider.apiURL).
+				Validate(func(s string) error {
+					if err := c.validateAPIURL(s); err != nil {
+						if s == "" {
+							return ValidationError{Field: "api_url", Message: "API URL is required for Gitea"}
 						}
-						return nil
-					}),
-			),
-		).WithTheme(huh.ThemeCharm())
+						return err
+					}
+					return nil
+				}),
+		)
+
+		apiForm := c.newForm(apiGroup)
 
 		if err := apiForm.Run(); err != nil {
 			return fmt.Errorf("running Gitea API URL configuration form: %w", err)
@@ -527,29 +635,35 @@ func (c *quickstart) runBranchDirectoryStep() error {
 	c.repo.branch = DefaultBranch
 	c.repo.directory = DefaultDirectory
 
-	// Show organization tips without card
-	fmt.Println(HelperTextStyle.Render("Configure how your feature flags will be organized in the repository."))
-	fmt.Println()
-	fmt.Println(InputLabelStyle.Render("Organization patterns:"))
-	fmt.Println(lipgloss.NewStyle().Foreground(MutedGray).Render("  • By environment: /dev, /staging, /production"))
-	fmt.Println(lipgloss.NewStyle().Foreground(MutedGray).Render("  • By service: /auth-service, /payment-service"))
-	fmt.Println(lipgloss.NewStyle().Foreground(MutedGray).Render("  • By team: /team-platform, /team-product"))
-	fmt.Println()
-
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title(InputLabelStyle.Render("Branch Name")).
-				Description("The Git branch to sync configuration from").
-				Value(&c.repo.branch).
-				Placeholder(DefaultBranch),
-			huh.NewInput().
-				Title(InputLabelStyle.Render("Storage Directory")).
-				Description("Directory path in the repository (e.g., 'flipt' or 'config/features')").
-				Value(&c.repo.directory).
-				Placeholder(DefaultDirectory),
+	organizationCard := applySectionSpacing(c.cardStyle().Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "STORAGE", "Organize your configuration"),
+			HelperTextStyle.Render("Choose the branch and directory structure Flipt should sync."),
+			ConfigItemStyle.Render(renderBulletList([]string{
+				"By environment: /dev, /staging, /production",
+				"By service: /auth-service, /payment-service",
+				"By team: /team-platform, /team-product",
+			})),
 		),
-	).WithTheme(huh.ThemeCharm())
+	))
+
+	note := c.noteFor(organizationCard)
+
+	group := huh.NewGroup(
+		note,
+		huh.NewInput().
+			Title(InputLabelStyle.Render("Branch Name")).
+			Description("The Git branch to sync configuration from").
+			Value(&c.repo.branch).
+			Placeholder(DefaultBranch),
+		huh.NewInput().
+			Title(InputLabelStyle.Render("Storage Directory")).
+			Description("Directory path in the repository (e.g., 'flipt' or 'config/features')").
+			Value(&c.repo.directory).
+			Placeholder(DefaultDirectory),
+	)
+
+	form := c.newForm(group)
 
 	if err := form.Run(); err != nil {
 		return fmt.Errorf("running branch and directory configuration form: %w", err)
@@ -569,31 +683,39 @@ func (c *quickstart) runBranchDirectoryStep() error {
 func (c *quickstart) runAuthenticationStep() error {
 	// Skip auth for plain Git provider
 	if c.provider.typ == ProviderGit {
-		fmt.Println(HelperTextStyle.Render("No authentication needed for generic Git repositories"))
+		fmt.Println(applySectionSpacing(renderInlineStatus(BadgeInfoStyle, "SKIP", "No authentication needed for generic Git repositories")))
 		return nil
 	}
 
-	// Authentication info without card
-	fmt.Println(HelperTextStyle.Render(fmt.Sprintf("To access your %s repository, you'll need a Personal Access Token.", c.provider.name)))
-	fmt.Println()
-	fmt.Println(InputLabelStyle.Render("Required permissions:"))
-	fmt.Println(c.getRequiredPermissions())
-	fmt.Println()
+	permissionsBlock := lipgloss.JoinVertical(lipgloss.Left,
+		LabelStyle.Render("Required permissions:"),
+		ConfigItemStyle.Render(renderBulletList(c.getRequiredPermissions())),
+	)
+
+	authCard := applySectionSpacing(c.cardStyle().Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "AUTH", fmt.Sprintf("%s access token", c.provider.name)),
+			HelperTextStyle.Render(fmt.Sprintf("Generate a Personal Access Token so Flipt can sync with %s.", c.provider.name)),
+			permissionsBlock,
+		),
+	))
+	contextNote := c.noteFor(authCard)
 
 	// Offer to open browser for PAT creation (if not custom API)
 	if !c.provider.isCustom && c.provider.typ != ProviderGitea {
 		var openBrowser bool
 
-		browserForm := huh.NewForm(
-			huh.NewGroup(
-				huh.NewConfirm().
-					Title("Open browser to create token?").
-					Description("We'll open the correct page for creating a Personal Access Token").
-					Value(&openBrowser).
-					Affirmative("Yes, open browser").
-					Negative("No, I have a token"),
-			),
-		).WithTheme(huh.ThemeCharm())
+		browserGroup := huh.NewGroup(
+			contextNote,
+			huh.NewConfirm().
+				Title("Open browser to create token?").
+				Description("We'll open the correct page for creating a Personal Access Token").
+				Value(&openBrowser).
+				Affirmative("Yes, open browser").
+				Negative("No, I have a token"),
+		)
+
+		browserForm := c.newForm(browserGroup)
 
 		if err := browserForm.Run(); err != nil {
 			return fmt.Errorf("running browser confirmation form: %w", err)
@@ -603,154 +725,110 @@ func (c *quickstart) runAuthenticationStep() error {
 			patURL := c.getPATCreationURL()
 			if patURL != "" {
 				if err := util.OpenBrowser(patURL); err != nil {
-					fmt.Println(WarningStyle.Render("⚠  Couldn't open browser automatically."))
+					failureMessage := stack(
+						renderInlineStatus(BadgeWarnStyle, "BROWSER", "Couldn't open the browser automatically"),
+						lipgloss.JoinHorizontal(lipgloss.Left,
+							LabelStyle.Render("Visit:"),
+							lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render(patURL)),
+						),
+					)
+					fmt.Println(applySectionSpacing(failureMessage))
 					fmt.Println()
-					fmt.Println(InputLabelStyle.Render("Please visit this URL:"))
-					fmt.Println(AccentStyle.Render(patURL))
 				}
-				fmt.Println()
 			}
 		}
 	}
 
 	// Get token
-	tokenForm := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title(InputLabelStyle.Render("Personal Access Token")).
-				Description("Paste your access token here (it will be hidden)").
-				Value(&c.provider.token).
-				EchoMode(huh.EchoModePassword).
-				Validate(c.validateToken),
-		),
-	).WithTheme(huh.ThemeCharm())
+	tokenGroup := huh.NewGroup(
+		c.noteFor(authCard),
+		huh.NewInput().
+			Title(InputLabelStyle.Render("Personal Access Token")).
+			Description("Paste your access token here (it will be hidden)").
+			Value(&c.provider.token).
+			EchoMode(huh.EchoModePassword).
+			Validate(c.validateToken),
+	)
+
+	tokenForm := c.newForm(tokenGroup)
 
 	if err := tokenForm.Run(); err != nil {
 		return fmt.Errorf("running token input form: %w", err)
 	}
 
-	fmt.Println(SuccessStyle.Render("✓ Authentication configured successfully!"))
-	fmt.Println()
+	fmt.Println(applySectionSpacing(renderInlineStatus(BadgeSuccessStyle, "READY", "Authentication configured")))
 
 	return nil
 }
 
 // getRequiredPermissions returns the required permissions for each provider
-func (c *quickstart) getRequiredPermissions() string {
-	var permissions []string
-
+func (c *quickstart) getRequiredPermissions() []string {
 	switch c.provider.typ {
 	case ProviderGitHub:
-		permissions = []string{
-			"  • repo (Full control of private repositories)",
-			"  • read:org (Read org and team membership)",
+		return []string{
+			"repo: full control of private repositories",
+			"read:org: read org and team membership",
 		}
 	case ProviderGitLab:
-		permissions = []string{
-			"  • api (Complete read/write access)",
-			"  • read_repository (Read access to repositories)",
+		return []string{
+			"api: complete read/write access",
+			"read_repository: read access to repositories",
 		}
 	case ProviderBitBucket:
-		permissions = []string{
-			"  • repository:read (Read repository)",
-			"  • repository:write (Write to repository)",
+		return []string{
+			"repository:read",
+			"repository:write",
 		}
 	case ProviderAzure:
-		permissions = []string{
-			"  • Code (Read & Write)",
-			"  • Project and Team (Read)",
+		return []string{
+			"Code (Read & Write)",
+			"Project and Team (Read)",
 		}
 	default:
-		permissions = []string{
-			"  • Read access to repository",
-			"  • Write access to repository",
+		return []string{
+			"Read access to repository",
+			"Write access to repository",
 		}
 	}
-
-	return lipgloss.NewStyle().Foreground(MutedGray).Render(strings.Join(permissions, "\n"))
 }
 
 func (c *quickstart) runReviewStep() error {
-	// Create comprehensive review sections
-	var sections []string
-
-	// Repository section with single card
-	repoSection := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left,
-			SectionHeaderStyle.Render("Repository Configuration"),
-			ConfigItemStyle.Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", LabelStyle.Render("URL:"), ValueStyle.Render(c.repo.url)),
-					fmt.Sprintf("%s %s", LabelStyle.Render("Provider:"), ValueStyle.Render(c.provider.name)),
-					fmt.Sprintf("%s %s", LabelStyle.Render("Branch:"), ValueStyle.Render(c.repo.branch)),
-					fmt.Sprintf("%s %s", LabelStyle.Render("Directory:"), ValueStyle.Render(c.repo.directory)),
-				),
-			),
-		),
-	)
-	sections = append(sections, repoSection)
-
-	// Add API URL to main section if custom
-	if c.provider.isCustom && c.provider.apiURL != "" {
-		// Include in the main repository section instead of separate card
-		sections[0] = CardStyle.Render(
-			lipgloss.JoinVertical(lipgloss.Left,
-				SectionHeaderStyle.Render("Repository Configuration"),
-				ConfigItemStyle.Render(
-					lipgloss.JoinVertical(lipgloss.Left,
-						fmt.Sprintf("%s %s", LabelStyle.Render("URL:"), ValueStyle.Render(c.repo.url)),
-						fmt.Sprintf("%s %s", LabelStyle.Render("Provider:"), ValueStyle.Render(c.provider.name)),
-						fmt.Sprintf("%s %s", LabelStyle.Render("API URL:"), ValueStyle.Render(c.provider.apiURL)),
-						fmt.Sprintf("%s %s", LabelStyle.Render("Branch:"), ValueStyle.Render(c.repo.branch)),
-						fmt.Sprintf("%s %s", LabelStyle.Render("Directory:"), ValueStyle.Render(c.repo.directory)),
-					),
-				),
-			),
-		)
-	}
-
-	// Authentication section combined with save location
-	var authAndSaveContent []string
+	// Authentication + save location summary
+	var outputLines []string
 	if c.provider.token != "" {
-		authAndSaveContent = append(authAndSaveContent,
-			SectionHeaderStyle.Render("Authentication"),
-			ConfigItemStyle.Render(SuccessStyle.Render("✓ Personal Access Token configured")),
-			"",
-		)
+		outputLines = append(outputLines, HelperTextStyle.Copy().Foreground(White).Render("Personal access token stored securely."))
 	}
-	authAndSaveContent = append(authAndSaveContent,
-		SectionHeaderStyle.Render("Save Location"),
-		ConfigItemStyle.Render(ValueStyle.Render(c.configFile)),
-	)
+	outputLines = append(outputLines, renderKeyValue("Config", AccentStyle.Render(c.configFile)))
 
-	configSection := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left, authAndSaveContent...),
-	)
-	sections = append(sections, configSection)
+	outputSection := applySectionSpacing(c.cardStyle().Render(
+		lipgloss.JoinVertical(lipgloss.Left,
+			renderSectionBadge(BadgeInfoStyle, "Output", "What we'll create"),
+			lipgloss.JoinVertical(lipgloss.Left, outputLines...),
+		),
+	))
 
-	// Display all sections
-	fmt.Println(lipgloss.JoinVertical(lipgloss.Left, sections...))
-	fmt.Println()
+	summaryNote := c.noteFor(outputSection)
 
 	// Confirmation prompt
 	var confirm bool
-	confirmForm := huh.NewForm(
-		huh.NewGroup(
-			huh.NewConfirm().
-				Title("Ready to save configuration?").
-				Description("Your Flipt configuration will be created with the settings above").
-				Value(&confirm).
-				Affirmative("Yes, create configuration").
-				Negative("No, cancel setup"),
-		),
-	).WithTheme(huh.ThemeCharm())
+	confirmGroup := huh.NewGroup(
+		summaryNote,
+		huh.NewConfirm().
+			Title("Ready to save configuration?").
+			Description("Your Flipt configuration will be created with the settings above").
+			Value(&confirm).
+			Affirmative("Yes, create configuration").
+			Negative("No, cancel setup"),
+	)
+
+	confirmForm := c.newForm(confirmGroup)
 
 	if err := confirmForm.Run(); err != nil {
 		return fmt.Errorf("running configuration review form: %w", err)
 	}
 
 	if !confirm {
-		fmt.Println(WarningStyle.Render("⚠ Setup cancelled. No changes were made."))
+		fmt.Println(applySectionSpacing(renderInlineStatus(BadgeWarnStyle, "CANCELLED", "Setup cancelled. No changes were made.")))
 		return tea.ErrInterrupted
 	}
 
@@ -931,91 +1009,87 @@ func (c *quickstart) convertConfigToYAML() map[string]any {
 
 // renderSuccessScreen creates a celebratory success screen
 func (c *quickstart) renderSuccessScreen() {
-	// Success header
-	successHeader := lipgloss.NewStyle().
-		Foreground(Green).
-		Bold(true).
-		Padding(1, 3).
-		Border(lipgloss.DoubleBorder()).
+	fmt.Println(c.heroHeader("Setup complete!", "Your Flipt configuration is ready to sync."))
+
+	summaryRows := []string{
+		renderKeyValue("Config file", AccentStyle.Render(c.configFile)),
+		renderKeyValue("Repository", AccentStyle.Render(c.repo.url)),
+		renderKeyValue("Branch", ValueStyle.Render(c.repo.branch)),
+	}
+
+	configSummary := applySectionSpacing(c.cardStyle().
 		BorderForeground(Green).
-		Align(lipgloss.Center).
-		Render("Setup Complete!")
-
-	fmt.Println(lipgloss.NewStyle().Width(80).Align(lipgloss.Center).Render(successHeader))
-	fmt.Println()
-
-	// Configuration summary
-	configSummary := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left,
-			SectionHeaderStyle.Render("Configuration Created"),
-			ConfigItemStyle.Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", LabelStyle.Render("File:"), ValueStyle.Render(c.configFile)),
-					fmt.Sprintf("%s %s", LabelStyle.Render("Repository:"), ValueStyle.Render(c.repo.url)),
-					fmt.Sprintf("%s %s", LabelStyle.Render("Branch:"), ValueStyle.Render(c.repo.branch)),
-				),
+		Background(SurfaceMuted).
+		Render(
+			stack(
+				renderSectionBadge(BadgeSuccessStyle, "CONFIG", "Configuration created"),
+				ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left, summaryRows...)),
 			),
-		),
-	)
+		))
 	fmt.Println(configSummary)
 
-	// Quick start commands
-	commandsCard := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left,
-			SectionHeaderStyle.Render("Start Server"),
-			ConfigItemStyle.Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					lipgloss.NewStyle().
-						Background(CodeBlockBg).
-						Foreground(Green).
-						Padding(0, 1).
-						Render("flipt server"),
-					HelperTextStyle.Render("Start the Flipt server with your new configuration"),
-				),
-			),
+	command := fmt.Sprintf("flipt server --config %q", c.configFile)
+	commandLine := lipgloss.NewStyle().
+		Background(CodeBlockBg).
+		Foreground(Green).
+		Padding(0, 1).
+		Render(command)
+
+	commandsCard := applySectionSpacing(c.cardStyle().Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "RUN", "Start the server"),
+			ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left,
+				commandLine,
+				HelperTextStyle.Render("Start the Flipt server with your new configuration"),
+			)),
 		),
-	)
+	))
 	fmt.Println(commandsCard)
 
-	// Next steps
-	nextStepsCard := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left,
-			SectionHeaderStyle.Render("Next Steps"),
-			ConfigItemStyle.Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", SuccessStyle.Render("1."), "Access the Flipt UI at "+AccentStyle.Render("http://localhost:8080")),
-					fmt.Sprintf("%s %s", SuccessStyle.Render("2."), "Create your first feature flag"),
-					fmt.Sprintf("%s %s", SuccessStyle.Render("3."), "Integrate with your application using our SDKs"),
-					fmt.Sprintf("%s %s", SuccessStyle.Render("4."), "Set up your team's workflow with pull requests"),
-				),
-			),
+	nextSteps := renderBulletList([]string{
+		"Access the Flipt UI at " + AccentStyle.Render("http://localhost:8080"),
+		"Create your first feature flag",
+		"Integrate with your application using our SDKs",
+		"Set up your team's workflow with pull requests",
+	})
+
+	nextStepsCard := applySectionSpacing(c.cardStyle().Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "NEXT", "What to do next"),
+			ConfigItemStyle.Render(nextSteps),
 		),
-	)
+	))
 	fmt.Println(nextStepsCard)
 
-	// Resources
-	resourcesCard := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left,
-			SectionHeaderStyle.Render("Resources"),
-			ConfigItemStyle.Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", LabelStyle.Render("Documentation:"), AccentStyle.Render("https://docs.flipt.io/v2")),
-					fmt.Sprintf("%s %s", LabelStyle.Render("Discord:"), AccentStyle.Render("https://flipt.io/discord")),
-					fmt.Sprintf("%s %s", LabelStyle.Render("GitHub:"), AccentStyle.Render("https://github.com/flipt-io/flipt")),
-				),
-			),
+	resourcesRows := []string{
+		lipgloss.JoinHorizontal(lipgloss.Left,
+			LabelStyle.Render("Documentation:"),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("https://docs.flipt.io/v2")),
 		),
-	)
+		lipgloss.JoinHorizontal(lipgloss.Left,
+			LabelStyle.Render("Discord:"),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("https://flipt.io/discord")),
+		),
+		lipgloss.JoinHorizontal(lipgloss.Left,
+			LabelStyle.Render("GitHub:"),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("https://github.com/flipt-io/flipt")),
+		),
+	}
+
+	resourcesCard := applySectionSpacing(c.cardStyle().Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "RESOURCES", "Keep exploring"),
+			ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left, resourcesRows...)),
+		),
+	))
 	fmt.Println(resourcesCard)
 
-	// Footer
-	fmt.Println()
-	fmt.Println(lipgloss.NewStyle().
+	fmt.Println(applySectionSpacing(lipgloss.NewStyle().
 		Foreground(Purple).
 		Bold(true).
 		Align(lipgloss.Center).
-		Width(80).
-		Render("Thank you for choosing Flipt!"))
+		Width(c.availableWidth()).
+		Render("Thank you for choosing Flipt!")))
 	fmt.Println()
 }
 

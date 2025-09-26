@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -39,9 +40,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	fmt.Print("\033[H\033[2J")
 
 	// Header
-	fmt.Println(TitleStyle.Render("Flipt License Check"))
-	fmt.Println(SubtitleStyle.Render("Checking your license status"))
-	fmt.Println()
+	fmt.Println(renderHeroHeader("Flipt License Center", "Review your subscription configuration"))
 
 	// Load configuration
 	path, _ := determineConfig(providedConfigFile)
@@ -58,39 +57,46 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 
 	// Check if license is configured
 	if cfg.License.Key == "" {
-		noLicenseCard := CardStyle.Copy().
+		callToAction := lipgloss.JoinVertical(lipgloss.Left,
+			LabelStyle.Render("To activate Pro features, run:"),
+			lipgloss.NewStyle().MarginLeft(2).Render(AccentStyle.Render("flipt license activate")),
+		)
+
+		noLicenseCard := applySectionSpacing(CardStyle.Copy().
 			BorderForeground(Amber).
+			Background(SurfaceMuted).
 			Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					WarningStyle.Render("⚠  No License Configured"),
-					HelperTextStyle.Render("\nYou are currently using the OSS version of Flipt."),
-					HelperTextStyle.Render("Enterprise GitOps integrations and advanced features require a Pro license."),
-					"",
-					LabelStyle.Render("To activate Pro features, run:"),
-					AccentStyle.Render("  flipt license activate"),
+				stack(
+					renderSectionBadge(BadgeWarnStyle, "ACTION REQUIRED", "No License Configured"),
+					HelperTextStyle.Render("You are currently using the OSS edition of Flipt."),
+					HelperTextStyle.Render("Enterprise GitOps, secrets, and automation require a Flipt Pro license."),
+					callToAction,
 				),
-			)
+			))
 		fmt.Println(noLicenseCard)
 		return nil
 	}
 
 	// Display current license configuration
-	configCard := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left,
-			SectionHeaderStyle.Render("License Configuration"),
-			ConfigItemStyle.Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", LabelStyle.Render("License Key:"), ValueStyle.Render("*** (configured)")),
-					func() string {
-						if cfg.License.File != "" {
-							return fmt.Sprintf("%s %s", LabelStyle.Render("License File:"), ValueStyle.Render(cfg.License.File))
-						}
-						return fmt.Sprintf("%s %s", LabelStyle.Render("License Type:"), ValueStyle.Render("Online"))
-					}(),
-				),
-			),
+	configDetails := []string{
+		renderKeyValue("License Key", ValueStyle.Render("*** (configured)")),
+	}
+
+	if cfg.License.File != "" {
+		configDetails = append(configDetails,
+			renderKeyValue("License Source", ValueStyle.Render("Offline file")),
+			renderKeyValue("File Path", AccentStyle.Render(cfg.License.File)),
+		)
+	} else {
+		configDetails = append(configDetails, renderKeyValue("License Source", ValueStyle.Render("Online (Keygen)")))
+	}
+
+	configCard := applySectionSpacing(CardStyle.Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "CONFIG", "License Configuration"),
+			ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left, configDetails...)),
 		),
-	)
+	))
 	fmt.Println(configCard)
 
 	// Initialize license manager to check validity
@@ -102,8 +108,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Show checking status
-	fmt.Println(HelperTextStyle.Render("Checking license validity..."))
-	fmt.Println()
+	fmt.Println(applySectionSpacing(renderInlineStatus(BadgeInfoStyle, "CHECKING", "Validating license with Flipt services...")))
 
 	// Create license manager
 	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, &cfg.License, licenseManagerOpts...)
@@ -118,62 +123,59 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	product := licenseManager.Product()
 
 	if product == "pro" {
-		validCard := CardStyle.Copy().
+		statusDetails := []string{
+			renderKeyValue("Product", ValueStyle.Render("Flipt Pro")),
+			renderKeyValue("Status", SuccessStyle.Render("Active")),
+			renderKeyValue("Features", ValueStyle.Render("All Pro capabilities available")),
+		}
+
+		validCard := applySectionSpacing(CardStyle.Copy().
 			BorderForeground(Green).
+			Background(SurfaceMuted).
 			Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					SuccessStyle.Render("✓ License Valid"),
-					"",
-					SectionHeaderStyle.Render("License Status"),
-					ConfigItemStyle.Render(
-						lipgloss.JoinVertical(lipgloss.Left,
-							fmt.Sprintf("%s %s", LabelStyle.Render("Product:"), ValueStyle.Render("Flipt Pro")),
-							fmt.Sprintf("%s %s", LabelStyle.Render("Status:"), SuccessStyle.Render("Active")),
-							fmt.Sprintf("%s %s", LabelStyle.Render("Features:"), ValueStyle.Render("All Pro features enabled")),
-						),
-					),
+				stack(
+					renderSectionBadge(BadgeSuccessStyle, "ACTIVE", "License Status"),
+					ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left, statusDetails...)),
 				),
-			)
+			))
 		fmt.Println(validCard)
 
-		// Next steps
-		nextStepsCard := CardStyle.Render(
-			lipgloss.JoinVertical(lipgloss.Left,
-				SectionHeaderStyle.Render("Pro Features Available"),
-				ConfigItemStyle.Render(
-					lipgloss.JoinVertical(lipgloss.Left,
-						"• Enterprise GitOps Integration (GitHub, GitLab, Bitbucket, Azure DevOps)",
-						"• Create merge proposals directly from Flipt UI",
-						"• Secrets management",
-						"• GPG commit signing for security and auditability",
-						"• Air-gapped environment support (annual license)",
-						"• Dedicated Slack support channel",
-					),
-				),
+		featuresCard := applySectionSpacing(CardStyle.Render(
+			stack(
+				renderSectionBadge(BadgeInfoStyle, "UNLOCKED", "Pro Feature Highlights"),
+				ConfigItemStyle.Render(renderBulletList([]string{
+					"Enterprise GitOps integration (GitHub, GitLab, Bitbucket, Azure DevOps)",
+					"Merge proposals directly from the Flipt UI",
+					"Integrated secrets management",
+					"GPG commit signing for security and auditability",
+					"Air-gapped environment support (annual license)",
+					"Dedicated Slack support channel",
+				})),
 			),
-		)
-		fmt.Println(nextStepsCard)
+		))
+		fmt.Println(featuresCard)
 	} else {
-		invalidCard := CardStyle.Copy().
+		guidance := lipgloss.JoinVertical(lipgloss.Left,
+			LabelStyle.Render("To activate a new license, run:"),
+			lipgloss.NewStyle().MarginLeft(2).Render(AccentStyle.Render("flipt license activate")),
+		)
+
+		invalidCard := applySectionSpacing(CardStyle.Copy().
 			BorderForeground(Red).
+			Background(SurfaceMuted).
 			Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					ErrorStyle.Render("✗ License Invalid or Expired"),
-					"",
+				stack(
+					renderSectionBadge(BadgeErrorStyle, "ATTENTION", "License Invalid or Expired"),
 					HelperTextStyle.Render("Your license could not be validated. This may be due to:"),
-					ConfigItemStyle.Render(
-						lipgloss.JoinVertical(lipgloss.Left,
-							"• Invalid license key",
-							"• Expired license",
-							"• Network connectivity issues",
-							"• License not activated for this machine",
-						),
-					),
-					"",
-					LabelStyle.Render("To activate a new license, run:"),
-					AccentStyle.Render("  flipt license activate"),
+					ConfigItemStyle.Render(renderBulletList([]string{
+						"Invalid or malformed license key",
+						"Expired subscription",
+						"Network connectivity issues",
+						"License not activated for this machine",
+					})),
+					guidance,
 				),
-			)
+			))
 		fmt.Println(invalidCard)
 	}
 
@@ -196,8 +198,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	fmt.Print("\033[H\033[2J")
 
 	// Header
-	fmt.Println(TitleStyle.Render("Flipt License Activation"))
-	fmt.Println(SubtitleStyle.Render("Activate your Flipt Pro license"))
+	fmt.Println(renderHeroHeader("Flipt License Activation", "Secure your Pro subscription in a few guided steps"))
 	fmt.Println()
 
 	// Step 1: Choose license type
@@ -306,7 +307,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 
 	// Step 4: Validate the license
 	fmt.Println()
-	fmt.Println(HelperTextStyle.Render("Validating license..."))
+	fmt.Println(applySectionSpacing(renderInlineStatus(BadgeInfoStyle, "VALIDATING", "Checking your license details...")))
 
 	// Configure Keygen client
 	keygen.Account = keygenAccountID
@@ -327,28 +328,34 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		// Check if license needs activation
 		if errors.Is(err, keygen.ErrLicenseNotActivated) {
-			fmt.Println(HelperTextStyle.Render("Activating license for this machine..."))
+			fmt.Println(applySectionSpacing(renderInlineStatus(BadgeInfoStyle, "ACTIVATING", "Linking the license to this machine...")))
 
 			// Activate the license
 			if _, err := lic.Activate(ctx, fingerprint); err != nil {
-				fmt.Println(ErrorStyle.Render("✗ License activation failed"))
-				fmt.Println(LabelStyle.Render("Error: ") + ValueStyle.Render(err.Error()))
+				fmt.Println(applySectionSpacing(renderInlineStatus(BadgeErrorStyle, "FAILED", "License activation failed")))
+				fmt.Println(lipgloss.JoinHorizontal(lipgloss.Left,
+					LabelStyle.Render("Error:"),
+					lipgloss.NewStyle().MarginLeft(1).Render(ErrorStyle.Render(err.Error())),
+				))
 				fmt.Println()
 				fmt.Println(HelperTextStyle.Render("Please check your license key and try again."))
 				fmt.Println(HelperTextStyle.Render("If you continue to have issues, contact support@flipt.io"))
 				return nil
 			}
-			fmt.Println(SuccessStyle.Render("✓ License activated successfully!"))
+			fmt.Println(applySectionSpacing(renderInlineStatus(BadgeSuccessStyle, "ACTIVATED", "License bound to this machine")))
 		} else {
-			fmt.Println(ErrorStyle.Render("✗ License validation failed"))
-			fmt.Println(LabelStyle.Render("Error: ") + ValueStyle.Render(err.Error()))
+			fmt.Println(applySectionSpacing(renderInlineStatus(BadgeErrorStyle, "FAILED", "License validation failed")))
+			fmt.Println(lipgloss.JoinHorizontal(lipgloss.Left,
+				LabelStyle.Render("Error:"),
+				lipgloss.NewStyle().MarginLeft(1).Render(ErrorStyle.Render(err.Error())),
+			))
 			fmt.Println()
 			fmt.Println(HelperTextStyle.Render("Please verify your license key is correct."))
 			fmt.Println(HelperTextStyle.Render("If you need assistance, contact support@flipt.io"))
 			return nil
 		}
 	} else {
-		fmt.Println(SuccessStyle.Render("✓ License validated successfully!"))
+		fmt.Println(applySectionSpacing(renderInlineStatus(BadgeSuccessStyle, "VALID", "License validated successfully")))
 	}
 
 	// Step 5: Update configuration file
@@ -399,51 +406,55 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 
 	// Success message
 	fmt.Println()
-	successCard := CardStyle.Copy().
+
+	licenseSummary := []string{
+		renderKeyValue("Type", ValueStyle.Render(licenseType)),
+		renderKeyValue("Status", SuccessStyle.Render("Active")),
+		renderKeyValue("Config", AccentStyle.Render(configFile)),
+	}
+
+	successCard := applySectionSpacing(CardStyle.Copy().
 		BorderForeground(Green).
+		Background(SurfaceMuted).
 		Render(
-			lipgloss.JoinVertical(lipgloss.Left,
-				SuccessStyle.Render("✓ License Activation Complete!"),
-				"",
-				SectionHeaderStyle.Render("License Details"),
-				ConfigItemStyle.Render(
-					lipgloss.JoinVertical(lipgloss.Left,
-						fmt.Sprintf("%s %s", LabelStyle.Render("Type:"), ValueStyle.Render(licenseType)),
-						fmt.Sprintf("%s %s", LabelStyle.Render("Status:"), SuccessStyle.Render("Active")),
-						fmt.Sprintf("%s %s", LabelStyle.Render("Config:"), ValueStyle.Render(configFile)),
-					),
-				),
+			stack(
+				renderSectionBadge(BadgeSuccessStyle, "COMPLETE", "License Activation"),
+				ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left, licenseSummary...)),
 			),
-		)
+		))
 	fmt.Println(successCard)
 
 	// Next steps
-	nextStepsCard := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left,
-			SectionHeaderStyle.Render("Next Steps"),
-			ConfigItemStyle.Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", SuccessStyle.Render("1."), "Restart Flipt server to apply the license"),
-					fmt.Sprintf("%s %s", SuccessStyle.Render("2."), "Run "+AccentStyle.Render("flipt license check")+" to verify status"),
-					fmt.Sprintf("%s %s", SuccessStyle.Render("3."), "Explore Pro features in the documentation"),
-				),
-			),
+	nextStepsCard := applySectionSpacing(CardStyle.Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "NEXT", "Post-Activation Checklist"),
+			ConfigItemStyle.Render(renderBulletList([]string{
+				"Restart the Flipt server to apply the license",
+				"Run " + AccentStyle.Render("flipt license check") + " to verify status",
+				"Explore Pro features in the documentation",
+			})),
 		),
-	)
+	))
 	fmt.Println(nextStepsCard)
 
 	// Resources
-	resourcesCard := CardStyle.Render(
-		lipgloss.JoinVertical(lipgloss.Left,
-			SectionHeaderStyle.Render("Resources"),
-			ConfigItemStyle.Render(
-				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", LabelStyle.Render("Documentation:"), AccentStyle.Render("https://docs.flipt.io/v2/configuration/licensing")),
-					fmt.Sprintf("%s %s", LabelStyle.Render("Support:"), AccentStyle.Render("support@flipt.io")),
-				),
-			),
+	resourcesRows := []string{
+		lipgloss.JoinHorizontal(lipgloss.Left,
+			LabelStyle.Render("Documentation:"),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("https://docs.flipt.io/v2/configuration/licensing")),
 		),
-	)
+		lipgloss.JoinHorizontal(lipgloss.Left,
+			LabelStyle.Render("Support:"),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("support@flipt.io")),
+		),
+	}
+
+	resourcesCard := applySectionSpacing(CardStyle.Render(
+		stack(
+			renderSectionBadge(BadgeInfoStyle, "RESOURCES", "Helpful Links"),
+			ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left, resourcesRows...)),
+		),
+	))
 	fmt.Println(resourcesCard)
 
 	return nil
@@ -452,6 +463,75 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 // Helper function to check if the error is a user interrupt for license commands
 func isLicenseInterruptError(err error) bool {
 	return errors.Is(err, tea.ErrInterrupted) || errors.Is(err, huh.ErrUserAborted)
+}
+
+func renderHeroHeader(title, subtitle string) string {
+	lines := []string{
+		TitleStyle.Render(title),
+		DividerStyle.Render(strings.Repeat("─", contentWidth)),
+	}
+
+	if subtitle != "" {
+		lines = append(lines, SubtitleStyle.Render(subtitle))
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, lines...)
+}
+
+func stack(lines ...string) string {
+	if len(lines) == 0 {
+		return ""
+	}
+
+	var stacked []string
+	for _, line := range lines {
+		if line == "" {
+			stacked = append(stacked, "")
+			continue
+		}
+		if len(stacked) == 0 {
+			stacked = append(stacked, line)
+			continue
+		}
+		stacked = append(stacked, lipgloss.NewStyle().Render(line))
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, stacked...)
+}
+
+func renderSectionBadge(badge lipgloss.Style, badgeText, heading string) string {
+	return lipgloss.JoinHorizontal(lipgloss.Left,
+		badge.Render(badgeText),
+		lipgloss.NewStyle().MarginLeft(1).Render(SectionHeaderStyle.Render(heading)),
+	)
+}
+
+func renderKeyValue(label, value string) string {
+	return lipgloss.JoinHorizontal(lipgloss.Left,
+		LabelStyle.Render(fmt.Sprintf("%s:", label)),
+		lipgloss.NewStyle().MarginLeft(1).Render(value),
+	)
+}
+
+func renderBulletList(items []string) string {
+	if len(items) == 0 {
+		return ""
+	}
+
+	lineStyle := lipgloss.NewStyle().Foreground(SoftGray).PaddingLeft(2)
+	bullets := make([]string, len(items))
+	for i, item := range items {
+		bullets[i] = lineStyle.Render("› " + item)
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, bullets...)
+}
+
+func renderInlineStatus(badge lipgloss.Style, badgeText, message string) string {
+	return lipgloss.JoinHorizontal(lipgloss.Left,
+		badge.Render(badgeText),
+		HelperTextStyle.Copy().MarginLeft(1).Render(message),
+	)
 }
 
 func newLicenseCommand() *cobra.Command {
