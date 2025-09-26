@@ -280,8 +280,27 @@ func (c *activateCommand) availableWidth() int {
 	return usable
 }
 
+type licenseLayout struct {
+	activateCommand *activateCommand
+	base            huh.Layout
+}
+
+func (l *licenseLayout) View(f *huh.Form) string {
+	body := l.base.View(f)
+	header := l.activateCommand.renderHeader()
+	return stack(header, body)
+}
+
+func (l *licenseLayout) GroupWidth(f *huh.Form, g *huh.Group, w int) int {
+	return l.base.GroupWidth(f, g, w)
+}
+
 func (c *activateCommand) newForm(groups ...*huh.Group) *huh.Form {
 	form := huh.NewForm(groups...).WithTheme(huh.ThemeCharm())
+	form = form.WithLayout(&licenseLayout{
+		activateCommand: c,
+		base:            huh.LayoutDefault,
+	})
 	form = form.WithProgramOptions(
 		tea.WithOutput(os.Stdout),
 		tea.WithAltScreen(),
@@ -290,10 +309,44 @@ func (c *activateCommand) newForm(groups ...*huh.Group) *huh.Form {
 	return form
 }
 
-func (c *activateCommand) runWelcomeStep() error {
-	fmt.Println(c.heroHeader("Flipt License Activation", "Secure your Pro subscription in a few guided steps"))
-	fmt.Println()
+func (c *activateCommand) noteFor(content string) *huh.Note {
+	return huh.NewNote().
+		Description(content).
+		Height(lipgloss.Height(content))
+}
 
+func (c *activateCommand) renderHeader() string {
+	// Determine title and subtitle based on current step
+	var title, subtitle string
+	
+	switch c.currentStep {
+	case LicenseStepWelcome:
+		title = "Flipt License Activation"
+		subtitle = "Secure your Pro subscription in a few guided steps"
+	case LicenseStepType:
+		title = "License Type Selection"
+		subtitle = "Choose your Flipt Pro subscription plan"
+	case LicenseStepKey:
+		title = "License Key"
+		subtitle = "Enter your Flipt Pro license key"
+	case LicenseStepOffline:
+		title = "Offline Configuration"
+		subtitle = "Configure offline license validation"
+	case LicenseStepValidation:
+		title = "License Validation"
+		subtitle = "Verifying your license with Flipt services"
+	case LicenseStepComplete:
+		title = "Activation Complete!"
+		subtitle = "Your Flipt Pro license is ready to use."
+	default:
+		title = "Flipt License Activation"
+		subtitle = ""
+	}
+	
+	return c.heroHeader(title, subtitle)
+}
+
+func (c *activateCommand) runWelcomeStep() error {
 	// Welcome content section
 	welcomeSection := &contentSection{
 		badge:     BadgeInfoStyle,
@@ -308,10 +361,12 @@ func (c *activateCommand) runWelcomeStep() error {
 		},
 	}
 
-	fmt.Println(applySectionSpacing(InfoCardStyle.Render(welcomeSection.render())))
+	welcomeContent := welcomeSection.render()
+	note := c.noteFor(welcomeContent)
 
 	var proceed bool
 	confirmGroup := huh.NewGroup(
+		note,
 		huh.NewConfirm().
 			Title("Ready to begin?").
 			Description("This process will take about 2 minutes").
@@ -333,9 +388,6 @@ func (c *activateCommand) runWelcomeStep() error {
 }
 
 func (c *activateCommand) runLicenseTypeStep() error {
-	fmt.Println(c.heroHeader("License Type Selection", "Choose your Flipt Pro subscription plan"))
-	fmt.Println()
-
 	// License type comparison section
 	comparisonSection := &contentSection{
 		badge:     BadgeInfoStyle,
@@ -354,9 +406,11 @@ func (c *activateCommand) runLicenseTypeStep() error {
 		},
 	}
 
-	fmt.Println(applySectionSpacing(InfoCardStyle.Render(comparisonSection.render())))
+	comparisonContent := comparisonSection.render()
+	note := c.noteFor(comparisonContent)
 
 	licenseTypeGroup := huh.NewGroup(
+		note,
 		huh.NewSelect[string]().
 			Title("Select License Type").
 			Description("Choose the type of license you want to activate").
@@ -372,9 +426,6 @@ func (c *activateCommand) runLicenseTypeStep() error {
 }
 
 func (c *activateCommand) runLicenseKeyStep() error {
-	fmt.Println(c.heroHeader("License Key", "Enter your Flipt Pro license key"))
-	fmt.Println()
-
 	// Key format guidance section
 	guidanceSection := &contentSection{
 		badge:      BadgeInfoStyle,
@@ -388,9 +439,11 @@ func (c *activateCommand) runLicenseKeyStep() error {
 		},
 	}
 
-	fmt.Println(applySectionSpacing(InfoCardStyle.Render(guidanceSection.render())))
+	guidanceContent := guidanceSection.render()
+	note := c.noteFor(guidanceContent)
 
 	keyGroup := huh.NewGroup(
+		note,
 		huh.NewInput().
 			Title(InputLabelStyle.Render("License Key")).
 			Description("Enter your Flipt Pro license key").
@@ -413,9 +466,6 @@ func (c *activateCommand) runLicenseKeyStep() error {
 }
 
 func (c *activateCommand) runOfflineStep() error {
-	fmt.Println(c.heroHeader("Offline Configuration", "Configure offline license validation"))
-	fmt.Println()
-
 	// Offline benefits section
 	offlineSection := &contentSection{
 		badge:     BadgeInfoStyle,
@@ -429,9 +479,11 @@ func (c *activateCommand) runOfflineStep() error {
 		},
 	}
 
-	fmt.Println(applySectionSpacing(InfoCardStyle.Render(offlineSection.render())))
+	offlineContent := offlineSection.render()
+	note := c.noteFor(offlineContent)
 
 	offlineGroup := huh.NewGroup(
+		note,
 		huh.NewConfirm().
 			Title("Use Offline License File?").
 			Description("Annual licenses support offline validation using a license file").
