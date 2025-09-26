@@ -167,22 +167,22 @@ func (cs *contentSection) render() string {
 
 	// Add section badge and heading
 	elements = append(elements, renderSectionBadge(cs.badge, cs.badgeText, cs.heading))
-	elements = append(elements, "")
-
-	// Add helper text if provided
+	
+	// Add helper text if provided (with spacing before it)
 	if cs.helperText != "" {
+		elements = append(elements, "") // Space before helper text
 		elements = append(elements, HelperTextStyle.Render(cs.helperText))
-		elements = append(elements, "")
 	}
 
-	// Add config items or bullet list
-	if len(cs.configItems) > 0 {
-		elements = append(elements, ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left, cs.configItems...)))
-	} else if len(cs.bulletItems) > 0 {
-		elements = append(elements, ConfigItemStyle.Render(renderBulletList(cs.bulletItems)))
+	// Add config items or bullet list (with spacing before it)
+	if len(cs.configItems) > 0 || len(cs.bulletItems) > 0 {
+		elements = append(elements, "") // Space before content
+		if len(cs.configItems) > 0 {
+			elements = append(elements, ConfigItemStyle.Render(lipgloss.JoinVertical(lipgloss.Left, cs.configItems...)))
+		} else {
+			elements = append(elements, ConfigItemStyle.Render(renderBulletList(cs.bulletItems)))
+		}
 	}
-
-	elements = append(elements, "")
 
 	return stack(elements...)
 }
