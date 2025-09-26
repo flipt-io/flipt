@@ -129,6 +129,7 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 				tracing.AttributeFlag.String(r.Key),
 				tracing.AttributeValue.Bool(resp.Enabled),
 				tracing.AttributeReason.String(resp.Reason.String()),
+				tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 				tracing.AttributeFlagTypeBoolean,
 			))
 		}
