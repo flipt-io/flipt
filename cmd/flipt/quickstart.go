@@ -489,7 +489,7 @@ func (c *quickstart) renderCompactProgressBar(progress progressInfo) string {
 func (c *quickstart) headerTitleAndSubtitle() (string, string) {
 	switch c.currentStep {
 	case StepConfirmation:
-		return "Flipt v2 Quickstart", "Configure Git storage syncing with a remote repository"
+		return "Flipt Quickstart", "Configure Git storage syncing with a remote repository"
 	case StepRepository:
 		return "Repository Setup", "Connect Flipt to your Git repository"
 	case StepProvider:
@@ -507,7 +507,7 @@ func (c *quickstart) headerTitleAndSubtitle() (string, string) {
 	case StepComplete:
 		return "Setup Complete!", "Your Flipt configuration is ready to sync."
 	default:
-		return "Flipt v2 Quickstart", ""
+		return "Flipt Quickstart", ""
 	}
 }
 
@@ -1306,7 +1306,7 @@ func (c *quickstart) getPATCreationURL() string {
 func (c *quickstart) convertConfigToYAML() map[string]any {
 	result := make(map[string]any)
 
-	if c.cfg.Storage != nil && len(c.cfg.Storage) > 0 {
+	if len(c.cfg.Storage) > 0 {
 		storage := make(map[string]any)
 		for name, s := range c.cfg.Storage {
 			storageMap := map[string]any{
@@ -1330,7 +1330,7 @@ func (c *quickstart) convertConfigToYAML() map[string]any {
 		result["storage"] = storage
 	}
 
-	if c.cfg.Environments != nil && len(c.cfg.Environments) > 0 {
+	if len(c.cfg.Environments) > 0 {
 		environments := make(map[string]any)
 		for name, env := range c.cfg.Environments {
 			envMap := map[string]any{
@@ -1469,7 +1469,7 @@ func (c *quickstart) renderSuccessScreen() {
 // prepareConfigOutput prepares the configuration for YAML output
 func (c *quickstart) prepareConfigOutput() ([]byte, error) {
 	yamlConfig := c.convertConfigToYAML()
-	if c.pendingCredentials != nil && len(c.pendingCredentials) > 0 {
+	if len(c.pendingCredentials) > 0 {
 		yamlConfig["credentials"] = c.pendingCredentials
 	}
 
