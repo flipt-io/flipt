@@ -1,12 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
-const contentWidth = 76
+const (
+	contentWidth = 76
+	clearScreen  = "\033[H\033[2J"
+)
 
 // Common color palette used across CLI commands
 var (
@@ -223,4 +227,67 @@ func applySectionSpacing(content string) string {
 	}
 
 	return SectionStyle.Render(content)
+}
+
+func renderIndented(content string) string {
+	return applySectionSpacing(ContentIndentStyle.Render(content))
+}
+
+func renderIndentedStatus(badge lipgloss.Style, badgeText, message string) string {
+	return renderIndented(renderInlineStatus(badge, badgeText, message))
+}
+
+func renderInlineStatus(badge lipgloss.Style, badgeText, message string) string {
+	return lipgloss.JoinHorizontal(lipgloss.Left,
+		badge.Render(badgeText),
+		HelperTextStyle.Copy().MarginLeft(1).Render(message),
+	)
+}
+
+func renderSectionBadge(badge lipgloss.Style, badgeText, heading string) string {
+	return lipgloss.JoinHorizontal(lipgloss.Left,
+		badge.Render(badgeText),
+		lipgloss.NewStyle().MarginLeft(1).Render(SectionHeaderStyle.Render(heading)),
+	)
+}
+
+func renderKeyValue(label, value string) string {
+	return lipgloss.JoinHorizontal(lipgloss.Left,
+		LabelStyle.Render(fmt.Sprintf("%s:", label)),
+		lipgloss.NewStyle().MarginLeft(1).Render(value),
+	)
+}
+
+func renderBulletList(items []string) string {
+	if len(items) == 0 {
+		return ""
+	}
+
+	lineStyle := lipgloss.NewStyle().Foreground(SoftGray).PaddingLeft(2)
+	bullets := make([]string, len(items))
+	for i, item := range items {
+		bullets[i] = lineStyle.Render("› " + item)
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, bullets...)
+}
+
+func stack(lines ...string) string {
+	if len(lines) == 0 {
+		return ""
+	}
+
+	var stacked []string
+	for _, line := range lines {
+		switch {
+		case line == "":
+			stacked = append(stacked, "")
+		case len(stacked) == 0:
+			stacked = append(stacked, line)
+		default:
+			stacked = append(stacked, lipgloss.NewStyle().Render(line))
+		}
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, stacked...)
 }

@@ -30,7 +30,7 @@ const (
 	LicenseTypeProAnnual  = "Pro Annual"
 )
 
-// License activation steps
+// LicenseStep activation steps
 type LicenseStep int
 
 const (
@@ -88,7 +88,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
 	// Clear screen for better UX
-	fmt.Print("\033[H\033[2J")
+	fmt.Print(clearScreen)
 
 	// Header with responsive width
 	width := c.availableWidth()
@@ -132,7 +132,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			callToAction,
 		)
 
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(content)))
+		fmt.Println(renderIndented(content))
 		return nil
 	}
 
@@ -157,7 +157,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 		configItems: configDetails,
 	}
 
-	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(configSection.render())))
+	fmt.Println(renderIndented(configSection.render()))
 
 	// Initialize license manager to check validity
 	logger := zap.NewNop() // Use a no-op logger for cleaner output
@@ -168,7 +168,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Show checking status with animation feel
-	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeInfoStyle, "CHECKING", "Validating license..."))))
+	fmt.Println(renderIndentedStatus(BadgeInfoStyle, "CHECKING", "Validating license..."))
 
 	// Create license manager
 	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, &cfg.License, licenseManagerOpts...)
@@ -196,7 +196,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			},
 		}
 
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(statusSection.render())))
+		fmt.Println(renderIndented(statusSection.render()))
 
 		// Pro features highlights section
 		featuresSection := &contentSection{
@@ -213,7 +213,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			},
 		}
 
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(featuresSection.render())))
+		fmt.Println(renderIndented(featuresSection.render()))
 	} else {
 		// Invalid license section
 		invalidSection := &contentSection{
@@ -240,7 +240,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			callToAction,
 		)
 
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(content)))
+		fmt.Println(renderIndented(content))
 	}
 
 	return nil
@@ -580,7 +580,7 @@ func (c *activateCommand) renderSuccessScreen() {
 
 	sections := c.createSuccessScreenSections()
 	for _, section := range sections {
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(section.render())))
+		fmt.Println(renderIndented(section.render()))
 	}
 
 	fmt.Println(applySectionSpacing(lipgloss.NewStyle().
@@ -602,7 +602,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Clear screen for better UX
-	fmt.Print("\033[H\033[2J")
+	fmt.Print(clearScreen)
 
 	// Initialize wizard state
 	c.currentStep = LicenseStepWelcome
@@ -622,7 +622,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Clear screen for next step
-	fmt.Print("\033[H\033[2J")
+	fmt.Print(clearScreen)
 	c.currentStep = LicenseStepType
 
 	// Step 2: Choose license type
@@ -635,7 +635,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Clear screen for next step
-	fmt.Print("\033[H\033[2J")
+	fmt.Print(clearScreen)
 	c.currentStep = LicenseStepKey
 
 	// Step 3: Get license key
@@ -650,7 +650,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	// Step 4: For annual license, optionally get offline license file path
 	if c.licenseType == LicenseTypeProAnnual {
 		// Clear screen for offline step
-		fmt.Print("\033[H\033[2J")
+		fmt.Print(clearScreen)
 		c.currentStep = LicenseStepOffline
 
 		if err := c.runOfflineStep(); err != nil {
@@ -663,11 +663,11 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Step 5: Validate the license
-	fmt.Print("\033[H\033[2J")
+	fmt.Print(clearScreen)
 	c.currentStep = LicenseStepValidation
 	fmt.Println(c.heroHeader("License Validation", "Verifying your license with Flipt services"))
 	fmt.Println()
-	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeInfoStyle, "VALIDATING", "Checking your license details..."))))
+	fmt.Println(renderIndentedStatus(BadgeInfoStyle, "VALIDATING", "Checking your license details..."))
 
 	// Configure Keygen client
 	keygen.Account = keygenAccountID
@@ -688,7 +688,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		// Check if license needs activation
 		if errors.Is(err, keygen.ErrLicenseNotActivated) {
-			fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeInfoStyle, "ACTIVATING", "Linking the license to this machine..."))))
+			fmt.Println(renderIndentedStatus(BadgeInfoStyle, "ACTIVATING", "Linking the license to this machine..."))
 
 			// Activate the license
 			if _, err := lic.Activate(ctx, fingerprint); err != nil {
@@ -702,10 +702,10 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 					HelperTextStyle.Render("Please check your license key and try again."),
 					HelperTextStyle.Render("If you continue to have issues, contact support@flipt.io"),
 				)
-				fmt.Println(applySectionSpacing(ContentIndentStyle.Render(failureContent)))
+				fmt.Println(renderIndented(failureContent))
 				return nil
 			}
-			fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeSuccessStyle, "ACTIVATED", "License bound to this machine"))))
+			fmt.Println(renderIndentedStatus(BadgeSuccessStyle, "ACTIVATED", "License bound to this machine"))
 		} else {
 			failureContent := stack(
 				renderInlineStatus(BadgeErrorStyle, "FAILED", "License validation failed"),
@@ -717,11 +717,11 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 				HelperTextStyle.Render("Please verify your license key is correct."),
 				HelperTextStyle.Render("If you need assistance, contact support@flipt.io"),
 			)
-			fmt.Println(applySectionSpacing(ContentIndentStyle.Render(failureContent)))
+			fmt.Println(renderIndented(failureContent))
 			return nil
 		}
 	} else {
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeSuccessStyle, "VALID", "License validated successfully"))))
+		fmt.Println(renderIndentedStatus(BadgeSuccessStyle, "VALID", "License validated successfully"))
 	}
 
 	// Step 6: Update configuration file
@@ -765,7 +765,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Step 7: Show success screen
-	fmt.Print("\033[H\033[2J")
+	fmt.Print(clearScreen)
 	c.currentStep = LicenseStepComplete
 	c.renderSuccessScreen()
 
@@ -898,62 +898,6 @@ func (c *checkCommand) heroHeader(title, subtitle string, width int) string {
 	lines = append(lines, "")
 
 	return lipgloss.JoinVertical(lipgloss.Left, lines...)
-}
-
-func stack(lines ...string) string {
-	if len(lines) == 0 {
-		return ""
-	}
-
-	var stacked []string
-	for _, line := range lines {
-		if line == "" {
-			stacked = append(stacked, "")
-			continue
-		}
-		if len(stacked) == 0 {
-			stacked = append(stacked, line)
-			continue
-		}
-		stacked = append(stacked, lipgloss.NewStyle().Render(line))
-	}
-
-	return lipgloss.JoinVertical(lipgloss.Left, stacked...)
-}
-
-func renderSectionBadge(badge lipgloss.Style, badgeText, heading string) string {
-	return lipgloss.JoinHorizontal(lipgloss.Left,
-		badge.Render(badgeText),
-		lipgloss.NewStyle().MarginLeft(1).Render(SectionHeaderStyle.Render(heading)),
-	)
-}
-
-func renderKeyValue(label, value string) string {
-	return lipgloss.JoinHorizontal(lipgloss.Left,
-		LabelStyle.Render(fmt.Sprintf("%s:", label)),
-		lipgloss.NewStyle().MarginLeft(1).Render(value),
-	)
-}
-
-func renderBulletList(items []string) string {
-	if len(items) == 0 {
-		return ""
-	}
-
-	lineStyle := lipgloss.NewStyle().Foreground(SoftGray).PaddingLeft(2)
-	bullets := make([]string, len(items))
-	for i, item := range items {
-		bullets[i] = lineStyle.Render("› " + item)
-	}
-
-	return lipgloss.JoinVertical(lipgloss.Left, bullets...)
-}
-
-func renderInlineStatus(badge lipgloss.Style, badgeText, message string) string {
-	return lipgloss.JoinHorizontal(lipgloss.Left,
-		badge.Render(badgeText),
-		HelperTextStyle.Copy().MarginLeft(1).Render(message),
-	)
 }
 
 func newLicenseCommand() *cobra.Command {

@@ -532,7 +532,7 @@ func (c *quickstart) initializeQuickstart() error {
 	}
 
 	// Clear screen for better UX
-	fmt.Print("\033[H\033[2J")
+	fmt.Print(clearScreen)
 
 	defaultFile := providedConfigFile
 	if defaultFile == "" {
@@ -562,7 +562,7 @@ func (c *quickstart) showExistingConfigWarning() {
 			HintStyle.Render("💡 Consider backing up your current configuration before proceeding."),
 			"",
 		)
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(warningContent)))
+		fmt.Println(renderIndented(warningContent))
 	}
 }
 
@@ -585,7 +585,7 @@ func (c *quickstart) executeWizardSteps() error {
 	for _, step := range steps {
 		c.currentStep = step.step
 		if step.needsClear {
-			fmt.Print("\033[H\033[2J")
+			fmt.Print(clearScreen)
 		}
 		if err := step.runFunc(); err != nil {
 			return err
@@ -609,7 +609,7 @@ func (c *quickstart) run() error {
 
 	// Final step: Complete and write configuration
 	c.currentStep = StepComplete
-	fmt.Print("\033[H\033[2J")
+	fmt.Print(clearScreen)
 
 	return c.writeConfig()
 }
@@ -699,7 +699,7 @@ func (c *quickstart) runRepositoryStep() error {
 
 	// Show detected information
 	detectedInfo := c.createRepositoryDetectedContent(c.repo.owner, c.repo.name)
-	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(detectedInfo)))
+	fmt.Println(renderIndented(detectedInfo))
 
 	return nil
 }
@@ -1032,7 +1032,7 @@ func (c *quickstart) openTokenCreationURL() error {
 				lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render(patURL)),
 			),
 		)
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(failureMessage)))
+		fmt.Println(renderIndented(failureMessage))
 	}
 
 	return nil
@@ -1062,7 +1062,7 @@ func (c *quickstart) collectAccessToken(authContent string) error {
 func (c *quickstart) runAuthenticationStep() error {
 	// Skip auth for plain Git provider
 	if c.provider.typ == ProviderGit {
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeInfoStyle, "SKIP", "No authentication needed for generic Git repositories"))))
+		fmt.Println(renderIndentedStatus(BadgeInfoStyle, "SKIP", "No authentication needed for generic Git repositories"))
 		return nil
 	}
 
@@ -1080,7 +1080,7 @@ func (c *quickstart) runAuthenticationStep() error {
 		return err
 	}
 
-	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeSuccessStyle, "READY", "Authentication configured"))))
+	fmt.Println(renderIndentedStatus(BadgeSuccessStyle, "READY", "Authentication configured"))
 	return nil
 }
 
@@ -1157,7 +1157,7 @@ func (c *quickstart) runReviewStep() error {
 			HelperTextStyle.Render("Setup cancelled. No changes were made."),
 			HelperTextStyle.Render("Run 'flipt quickstart' anytime to continue."),
 		)
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(message)))
+		fmt.Println(renderIndented(message))
 		return tea.ErrInterrupted
 	}
 
@@ -1454,7 +1454,7 @@ func (c *quickstart) renderSuccessScreen() {
 
 	sections := c.createSuccessScreenSections()
 	for _, section := range sections {
-		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(section.render())))
+		fmt.Println(renderIndented(section.render()))
 	}
 
 	fmt.Println(applySectionSpacing(lipgloss.NewStyle().
