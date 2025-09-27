@@ -220,16 +220,15 @@ func (e *EnvironmentStore) Get(ctx context.Context, key string) (Environment, er
 }
 
 // GetFromContext returns the environment identified by name from the context or the default environment if no name is provided.
-func (e *EnvironmentStore) GetFromContext(ctx context.Context) Environment {
+func (e *EnvironmentStore) GetFromContext(ctx context.Context) (Environment, error) {
 	env, ok := common.FliptEnvironmentFromContext(ctx)
 	if ok {
 		ee, err := e.Get(ctx, env)
 		if err != nil {
-			e.logger.Error("failed to get environment from context", zap.String("environment", env), zap.Error(err))
-			return e.defaultEnv
+			return nil, fmt.Errorf("failed to get environment %q from context: %w", env, err)
 		}
-		return ee
+		return ee, nil
 	}
 
-	return e.defaultEnv
+	return e.defaultEnv, nil
 }

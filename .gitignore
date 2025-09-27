@@ -55,6 +55,7 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 build/mage_output_file.go
+mage_output_file.go
 
 *.rego
 !**/**/testdata/*.rego

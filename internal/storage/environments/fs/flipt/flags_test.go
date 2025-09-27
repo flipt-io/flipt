@@ -301,6 +301,207 @@ func TestFlagStorage_PutResource(t *testing.T) {
 		assert.Equal(t, flag.Enabled, updated.Enabled)
 		assert.Equal(t, flag.Type, updated.Type)
 	})
+
+	t.Run("reject flag with non-existent segment in rules", func(t *testing.T) {
+		namespaceWithSegment := `version: "1.5"
+namespace:
+  key: default
+  name: Default
+  description: The default namespace
+segments:
+  - key: segment1
+    name: Segment 1
+    match_type: ANY_MATCH_TYPE
+    description: Test segment
+    constraints:
+      - property: email
+        operator: prefix
+        type: STRING_COMPARISON_TYPE
+        value: admin
+`
+		fs := fstesting.NewFilesystem(
+			t,
+			fstesting.WithDirectory(
+				"default",
+				fstesting.WithFile("features.yaml", namespaceWithSegment),
+			),
+		)
+
+		flag := &core.Flag{
+			Key:         "new_flag",
+			Name:        "New Flag",
+			Type:        core.FlagType_BOOLEAN_FLAG_TYPE,
+			Description: "A new test flag",
+			Enabled:     true,
+			Rules: []*core.Rule{
+				{
+					Segments:        []string{"segment1", "non_existent_segment"},
+					SegmentOperator: core.SegmentOperator_AND_SEGMENT_OPERATOR,
+					Distributions: []*core.Distribution{
+						{
+							Rollout: 100,
+							Variant: "variant1",
+						},
+					},
+				},
+			},
+			Variants: []*core.Variant{
+				{
+					Key:  "variant1",
+					Name: "Variant 1",
+				},
+			},
+		}
+
+		any, err := newAny(flag)
+		require.NoError(t, err)
+
+		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          flag.Key,
+			Payload:      any,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "references unknown segment \"non_existent_segment\"")
+	})
+
+	t.Run("reject flag with non-existent segment in rollouts", func(t *testing.T) {
+		namespaceWithSegment := `version: "1.5"
+namespace:
+  key: default
+  name: Default
+  description: The default namespace
+segments:
+  - key: segment1
+    name: Segment 1
+    match_type: ANY_MATCH_TYPE
+    description: Test segment
+    constraints:
+      - property: email
+        operator: prefix
+        type: STRING_COMPARISON_TYPE
+        value: admin
+`
+		fs := fstesting.NewFilesystem(
+			t,
+			fstesting.WithDirectory(
+				"default",
+				fstesting.WithFile("features.yaml", namespaceWithSegment),
+			),
+		)
+
+		flag := &core.Flag{
+			Key:         "new_flag",
+			Name:        "New Flag",
+			Type:        core.FlagType_BOOLEAN_FLAG_TYPE,
+			Description: "A new test flag",
+			Enabled:     true,
+			Rollouts: []*core.Rollout{
+				{
+					Type:        core.RolloutType_SEGMENT_ROLLOUT_TYPE,
+					Description: "Test rollout",
+					Rule: &core.Rollout_Segment{
+						Segment: &core.RolloutSegment{
+							Segments:        []string{"buzz"},
+							SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
+							Value:           true,
+						},
+					},
+				},
+			},
+		}
+
+		any, err := newAny(flag)
+		require.NoError(t, err)
+
+		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          flag.Key,
+			Payload:      any,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "references unknown segment \"buzz\"")
+	})
+
+	t.Run("accept flag with existing segments", func(t *testing.T) {
+		namespaceWithSegment := `version: "1.5"
+namespace:
+  key: default
+  name: Default
+  description: The default namespace
+segments:
+  - key: segment1
+    name: Segment 1
+    match_type: ANY_MATCH_TYPE
+    description: Test segment
+    constraints:
+      - property: email
+        operator: prefix
+        type: STRING_COMPARISON_TYPE
+        value: admin
+`
+		fs := fstesting.NewFilesystem(
+			t,
+			fstesting.WithDirectory(
+				"default",
+				fstesting.WithFile("features.yaml", namespaceWithSegment),
+			),
+		)
+
+		flag := &core.Flag{
+			Key:         "new_flag",
+			Name:        "New Flag",
+			Type:        core.FlagType_BOOLEAN_FLAG_TYPE,
+			Description: "A new test flag",
+			Enabled:     true,
+			Rules: []*core.Rule{
+				{
+					Segments:        []string{"segment1"},
+					SegmentOperator: core.SegmentOperator_AND_SEGMENT_OPERATOR,
+					Distributions: []*core.Distribution{
+						{
+							Rollout: 100,
+							Variant: "variant1",
+						},
+					},
+				},
+			},
+			Rollouts: []*core.Rollout{
+				{
+					Type:        core.RolloutType_SEGMENT_ROLLOUT_TYPE,
+					Description: "Test rollout",
+					Rule: &core.Rollout_Segment{
+						Segment: &core.RolloutSegment{
+							Segments:        []string{"segment1"},
+							SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
+							Value:           true,
+						},
+					},
+				},
+			},
+			Variants: []*core.Variant{
+				{
+					Key:  "variant1",
+					Name: "Variant 1",
+				},
+			},
+		}
+
+		any, err := newAny(flag)
+		require.NoError(t, err)
+
+		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          flag.Key,
+			Payload:      any,
+		})
+		require.NoError(t, err)
+
+		// verify flag was created
+		resource, err := storage.GetResource(ctx, fs, "default", flag.Key)
+		require.NoError(t, err)
+		assert.Equal(t, flag.Key, resource.Key)
+	})
 }
 
 func TestFlagStorage_DeleteResource(t *testing.T) {

@@ -132,6 +132,38 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 		return err
 	}
 
+	// Validate that all referenced segments exist
+	existingSegments := make(map[string]bool)
+	for _, doc := range docs {
+		if doc.Namespace.GetKey() == rs.NamespaceKey {
+			for _, segment := range doc.Segments {
+				existingSegments[segment.Key] = true
+			}
+		}
+	}
+
+	// Check segments in rules
+	for ruleIdx, rule := range flag.Rules {
+		if rule.Segment != nil {
+			for _, segmentKey := range rule.Segment.Keys {
+				if !existingSegments[segmentKey] {
+					return errors.ErrInvalidf("flag %s/%s rule %d references unknown segment %q", rs.NamespaceKey, flag.Key, ruleIdx+1, segmentKey)
+				}
+			}
+		}
+	}
+
+	// Check segments in rollouts
+	for rolloutIdx, rollout := range flag.Rollouts {
+		if rollout.Segment != nil {
+			for _, segmentKey := range rollout.Segment.Keys {
+				if !existingSegments[segmentKey] {
+					return errors.ErrInvalidf("flag %s/%s rollout %d references unknown segment %q", rs.NamespaceKey, flag.Key, rolloutIdx+1, segmentKey)
+				}
+			}
+		}
+	}
+
 	var found bool
 	for i, f := range docs[idx].Flags {
 		// replace the flag if located

@@ -243,7 +243,7 @@ func NewGRPCServer(
 	var (
 		// legacy services
 		metasrv    = metadata.New(cfg, info)
-		evalsrv    = evaluation.New(logger, environmentStore)
+		evalsrv    = evaluation.New(logger, environmentStore, evaluation.WithTracing(cfg.Tracing.Enabled || cfg.Analytics.Storage.Clickhouse.Enabled))
 		fliptv1srv = serverfliptv1.New(logger, environmentStore)
 		ofrepsrv   = ofrep.New(logger, evalsrv, environmentStore)
 
@@ -273,6 +273,7 @@ func NewGRPCServer(
 
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(clientevalsrv, cfg.Authentication.Exclude.Evaluation)
+	skipAuthnIfExcluded(ofrepsrv, cfg.Authentication.Exclude.OFREP)
 
 	authUnaryInterceptors, authStreamInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
@@ -334,7 +335,7 @@ func NewGRPCServer(
 	unaryInterceptors = append(unaryInterceptors,
 		append(authUnaryInterceptors,
 			middlewaregrpc.FliptHeadersUnaryInterceptor(logger),
-			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
+			middlewaregrpc.EvaluationUnaryInterceptor(),
 		)...,
 	)
 

@@ -29,7 +29,10 @@ const (
 )
 
 func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagRequest) (*ofrep.EvaluationResponse, error) {
-	env := s.store.GetFromContext(ctx)
+	env, err := s.store.GetFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	store, err := env.EvaluationStore()
 	if err != nil {
@@ -49,13 +52,6 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 	if err != nil {
 		return nil, transformError(r.Key, err)
 	}
-	span := trace.SpanFromContext(ctx)
-	span.SetAttributes(
-		tracing.AttributeEnvironment.String(env.Key()),
-		tracing.AttributeNamespace.String(namespaceKey),
-		tracing.AttributeFlag.String(r.Key),
-		tracing.AttributeProviderName,
-	)
 
 	req := &rpcevaluation.EvaluationRequest{
 		EnvironmentKey: env.Key(),
@@ -72,15 +68,24 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 			return nil, transformError(r.Key, err)
 		}
 
-		span.SetAttributes(
-			tracing.AttributeMatch.Bool(resp.Match),
-			tracing.AttributeValue.String(resp.VariantKey),
-			tracing.AttributeReason.String(resp.Reason.String()),
-			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
-			tracing.AttributeFlagKey(resp.FlagKey),
-			tracing.AttributeFlagVariant(resp.VariantKey),
-		)
-
+		if s.tracingEnabled {
+			span := trace.SpanFromContext(ctx)
+			span.SetAttributes(
+				tracing.AttributeProviderName,
+				tracing.AttributeFlagKey(r.Key),
+				tracing.AttributeFlagVariant(resp.VariantKey),
+			)
+			span.AddEvent(tracing.Event, trace.WithAttributes(
+				tracing.AttributeEnvironment.String(env.Key()),
+				tracing.AttributeNamespace.String(namespaceKey),
+				tracing.AttributeFlag.String(r.Key),
+				tracing.AttributeMatch.Bool(resp.Match),
+				tracing.AttributeValue.String(resp.VariantKey),
+				tracing.AttributeReason.String(resp.Reason.String()),
+				tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
+				tracing.AttributeFlagTypeVariant,
+			))
+		}
 		mm := map[string]any{}
 		if len(resp.SegmentKeys) > 0 {
 			mm[metaKeySegments] = strings.Join(resp.SegmentKeys, ",")
@@ -111,11 +116,23 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 			return nil, transformError(r.Key, err)
 		}
 
-		span.SetAttributes(
-			tracing.AttributeValue.Bool(resp.Enabled),
-			tracing.AttributeReason.String(resp.Reason.String()),
-			tracing.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
-		)
+		if s.tracingEnabled {
+			span := trace.SpanFromContext(ctx)
+			span.SetAttributes(
+				tracing.AttributeProviderName,
+				tracing.AttributeFlagKey(r.Key),
+				tracing.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
+			)
+			span.AddEvent(tracing.Event, trace.WithAttributes(
+				tracing.AttributeEnvironment.String(env.Key()),
+				tracing.AttributeNamespace.String(namespaceKey),
+				tracing.AttributeFlag.String(r.Key),
+				tracing.AttributeValue.Bool(resp.Enabled),
+				tracing.AttributeReason.String(resp.Reason.String()),
+				tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
+				tracing.AttributeFlagTypeBoolean,
+			))
+		}
 
 		value, err := structpb.NewValue(resp.Enabled)
 		if err != nil {
@@ -134,7 +151,10 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 }
 
 func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest) (*ofrep.BulkEvaluationResponse, error) {
-	env := s.store.GetFromContext(ctx)
+	env, err := s.store.GetFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	store, err := env.EvaluationStore()
 	if err != nil {

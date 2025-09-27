@@ -32,7 +32,10 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	if err != nil {
 		// try to get the environment from the context
 		// this is for backwards compatibility with v1
-		env = s.store.GetFromContext(ctx)
+		env, err = s.store.GetFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	store, err := env.EvaluationStore()
@@ -54,24 +57,27 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, err
 	}
 
-	spanAttrs := []attribute.KeyValue{
-		tracing.AttributeEnvironment.String(env.Key()),
-		tracing.AttributeNamespace.String(r.NamespaceKey),
-		tracing.AttributeFlag.String(r.FlagKey),
-		tracing.AttributeEntityID.String(r.EntityId),
-		tracing.AttributeRequestID.String(r.RequestId),
-		tracing.AttributeMatch.Bool(resp.Match),
-		tracing.AttributeValue.String(resp.VariantKey),
-		tracing.AttributeReason.String(resp.Reason.String()),
-		tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
-		tracing.AttributeFlagKey(resp.FlagKey),
-		tracing.AttributeProviderName,
-		tracing.AttributeFlagVariant(resp.VariantKey),
+	if s.tracingEnabled {
+		// add otel attributes to span
+		span := trace.SpanFromContext(ctx)
+		span.SetAttributes(
+			tracing.AttributeProviderName,
+			tracing.AttributeFlagKey(r.FlagKey),
+			tracing.AttributeFlagVariant(resp.VariantKey),
+		)
+		span.AddEvent(tracing.Event, trace.WithAttributes(
+			tracing.AttributeEnvironment.String(env.Key()),
+			tracing.AttributeNamespace.String(r.NamespaceKey),
+			tracing.AttributeFlag.String(r.FlagKey),
+			tracing.AttributeEntityID.String(r.EntityId),
+			tracing.AttributeRequestID.String(r.RequestId),
+			tracing.AttributeMatch.Bool(resp.Match),
+			tracing.AttributeValue.String(resp.VariantKey),
+			tracing.AttributeReason.String(resp.Reason.String()),
+			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
+			tracing.AttributeFlagTypeVariant,
+		))
 	}
-
-	// add otel attributes to span
-	span := trace.SpanFromContext(ctx)
-	span.SetAttributes(spanAttrs...)
 
 	return resp, nil
 }
@@ -272,7 +278,10 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	if err != nil {
 		// try to get the environment from the context
 		// this is for backwards compatibility with v1
-		env = s.store.GetFromContext(ctx)
+		env, err = s.store.GetFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	store, err := env.EvaluationStore()
@@ -294,22 +303,26 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, err
 	}
 
-	spanAttrs := []attribute.KeyValue{
-		tracing.AttributeEnvironment.String(env.Key()),
-		tracing.AttributeNamespace.String(r.NamespaceKey),
-		tracing.AttributeFlag.String(r.FlagKey),
-		tracing.AttributeEntityID.String(r.EntityId),
-		tracing.AttributeRequestID.String(r.RequestId),
-		tracing.AttributeValue.Bool(resp.Enabled),
-		tracing.AttributeReason.String(resp.Reason.String()),
-		tracing.AttributeFlagKey(r.FlagKey),
-		tracing.AttributeProviderName,
-		tracing.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
+	if s.tracingEnabled {
+		// add otel attributes to span
+		span := trace.SpanFromContext(ctx)
+		span.SetAttributes(
+			tracing.AttributeProviderName,
+			tracing.AttributeFlagKey(r.FlagKey),
+			tracing.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
+		)
+		span.AddEvent(tracing.Event, trace.WithAttributes(
+			tracing.AttributeEnvironment.String(env.Key()),
+			tracing.AttributeNamespace.String(r.NamespaceKey),
+			tracing.AttributeFlag.String(r.FlagKey),
+			tracing.AttributeEntityID.String(r.EntityId),
+			tracing.AttributeRequestID.String(r.RequestId),
+			tracing.AttributeValue.Bool(resp.Enabled),
+			tracing.AttributeReason.String(resp.Reason.String()),
+			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
+			tracing.AttributeFlagTypeBoolean,
+		))
 	}
-
-	// add otel attributes to span
-	span := trace.SpanFromContext(ctx)
-	span.SetAttributes(spanAttrs...)
 
 	return resp, nil
 }
@@ -347,6 +360,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 						metrics.AttributeValue.Bool(resp.Enabled),
 						metrics.AttributeReason.String(resp.Reason.String()),
 						metrics.AttributeFlagType.String("boolean"),
+						metrics.AttributeSegments.StringSlice(resp.SegmentKeys),
 					),
 				),
 			)
@@ -396,7 +410,6 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 			)
 
 			for k, v := range rollout.Segment.Segments {
-				segmentKeys = append(segmentKeys, k)
 				matched, reason, err := s.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 				if err != nil {
 					return nil, err
@@ -405,6 +418,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 				// if we don't match the segment, fall through to the next rollout.
 				if matched {
 					s.logger.Debug(reason)
+					segmentKeys = append(segmentKeys, k)
 					segmentMatches++
 				}
 			}
@@ -425,6 +439,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 			resp.Enabled = rollout.Segment.Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 			resp.FlagKey = flag.Key
+			resp.SegmentKeys = segmentKeys
 
 			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.Strings("segments", segmentKeys))
 			return resp, nil
@@ -454,7 +469,10 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 		if err != nil {
 			// try to get the environment from the context
 			// this is for backwards compatibility with v1
-			env = s.store.GetFromContext(ctx)
+			env, err = s.store.GetFromContext(ctx)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		store, err := env.EvaluationStore()

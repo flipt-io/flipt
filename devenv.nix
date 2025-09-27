@@ -16,8 +16,14 @@
 
   # https://devenv.sh/processes/
   processes = {
-    backend.exec = "mage dev";
-    frontend.exec = "mage ui:dev";
+    backend.exec = "mage -keep dev";
+    frontend.exec = "mage -keep ui:dev";
+  };
+
+  # https://devenv.sh/tasks/
+  tasks."app:cleanup" = {
+    exec = "rm mage_output_file.go";
+    after = [ "devenv:processes:backend" ];
   };
 
   # See full reference at https://devenv.sh/reference/options/

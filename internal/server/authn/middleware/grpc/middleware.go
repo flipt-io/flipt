@@ -434,14 +434,15 @@ func EmailMatchingUnaryInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o 
 
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
-		if skipped(ctx, info, opts) {
+		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
 
 		auth := GetAuthenticationFrom(ctx)
 		if auth == nil {
-			panic("authentication not found in context, middleware installed incorrectly")
+			logger.Error("unauthenticated", zap.String("reason", "authentication required for email matching"))
+			return nil, errUnauthenticated
 		}
 
 		// this mechanism only applies to authentications created using OIDC

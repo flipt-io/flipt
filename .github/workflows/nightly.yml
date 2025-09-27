@@ -60,10 +60,6 @@ jobs:
       - name: Prep Build
         run: mage prep
 
-      # - name: Git Tag
-      #   run: |
-      #     echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match='v[0-9]*' `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
-
       - name: GoReleaser (Nightly) Build
         uses: goreleaser/goreleaser-action@v6
         with:
