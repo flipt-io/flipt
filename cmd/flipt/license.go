@@ -16,6 +16,7 @@ import (
 	"github.com/keygen-sh/machineid"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
+	"go.flipt.io/flipt/internal/cmd/util"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/license"
 	"go.flipt.io/flipt/internal/product"
@@ -84,6 +85,46 @@ func (c *checkCommand) availableWidth() int {
 	return usable
 }
 
+func (c *checkCommand) offerPurchase() {
+	fmt.Println()
+	fmt.Print("Would you like to purchase a Flipt Pro license? (y/N): ")
+
+	var response string
+	_, _ = fmt.Scanln(&response)
+
+	if strings.ToLower(strings.TrimSpace(response)) == "y" {
+		fmt.Println()
+		fmt.Println("Choose a plan:")
+		fmt.Println("  1) Monthly (includes 14-day trial)")
+		fmt.Println("  2) Annual (save compared to monthly)")
+		fmt.Print("Enter your choice (1/2): ")
+
+		var choice string
+		_, _ = fmt.Scanln(&choice)
+
+		var url string
+		switch strings.TrimSpace(choice) {
+		case "1":
+			url = "https://getflipt.co/pro/monthly"
+		case "2":
+			url = "https://getflipt.co/pro/annual"
+		default:
+			fmt.Println(HelperTextStyle.Render("Invalid choice. Visit https://getflipt.co/pro to learn more."))
+			return
+		}
+
+		if err := util.OpenBrowser(url); err != nil {
+			fmt.Println(renderIndentedStatus(BadgeWarnStyle, "WARNING", "Couldn't open browser automatically"))
+			fmt.Println(renderIndented(lipgloss.JoinHorizontal(lipgloss.Left,
+				LabelStyle.Render("Please visit:"),
+				lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render(url)),
+			)))
+		} else {
+			fmt.Println(renderIndentedStatus(BadgeSuccessStyle, "SUCCESS", "Opening browser to purchase page..."))
+		}
+	}
+}
+
 func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
@@ -126,13 +167,25 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("flipt license activate")),
 		)
 
+		purchaseOption := lipgloss.JoinHorizontal(lipgloss.Left,
+			LabelStyle.Render("To purchase a license, visit:"),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("https://getflipt.co/pro")),
+		)
+
 		content := stack(
 			section.render(),
 			"",
 			callToAction,
+			purchaseOption,
 		)
 
 		fmt.Println(renderIndented(content))
+
+		// Offer to open browser for purchase
+		if isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+			c.offerPurchase()
+		}
+
 		return nil
 	}
 
@@ -234,13 +287,24 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("flipt license activate")),
 		)
 
+		purchaseOption := lipgloss.JoinHorizontal(lipgloss.Left,
+			LabelStyle.Render("To purchase a new license, visit:"),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("https://getflipt.co/pro")),
+		)
+
 		content := stack(
 			invalidSection.render(),
 			"",
 			callToAction,
+			purchaseOption,
 		)
 
 		fmt.Println(renderIndented(content))
+
+		// Offer to open browser for purchase if in interactive terminal
+		if isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+			c.offerPurchase()
+		}
 	}
 
 	return nil
@@ -349,6 +413,28 @@ func (c *activateCommand) renderHeader() string {
 }
 
 func (c *activateCommand) runWelcomeStep() error {
+	// First check if user has an existing license
+	var hasLicense bool
+	licenseCheckGroup := huh.NewGroup(
+		huh.NewConfirm().
+			Title("Do you have a Flipt Pro license key?").
+			Description("We'll help you activate it or purchase a new one").
+			Value(&hasLicense).
+			Affirmative("Yes, I have a license key").
+			Negative("No, I need to purchase one"),
+	)
+
+	form := c.newForm(licenseCheckGroup)
+	if err := form.Run(); err != nil {
+		return err
+	}
+
+	if !hasLicense {
+		// User needs to purchase a license
+		return c.runPurchaseFlow()
+	}
+
+	// Continue with normal activation flow
 	// Welcome content section
 	welcomeSection := &contentSection{
 		badge:     BadgeInfoStyle,
@@ -377,7 +463,7 @@ func (c *activateCommand) runWelcomeStep() error {
 			Negative("No, maybe later"),
 	)
 
-	form := c.newForm(confirmGroup)
+	form = c.newForm(confirmGroup)
 	if err := form.Run(); err != nil {
 		return err
 	}
@@ -387,6 +473,123 @@ func (c *activateCommand) runWelcomeStep() error {
 	}
 
 	return nil
+}
+
+func (c *activateCommand) runPurchaseFlow() error {
+	// Clear screen for purchase flow
+	fmt.Print(clearScreen)
+	fmt.Println(c.heroHeader("Purchase Flipt Pro", "Choose the plan that works best for you"))
+
+	// Plan comparison section
+	comparisonSection := &contentSection{
+		badge:     BadgeInfoStyle,
+		badgeText: "PLANS",
+		heading:   "Available Subscription Options",
+		configItems: []string{
+			SectionHeaderStyle.Render("Pro Monthly"),
+			ConfigItemStyle.Render("✓ 14-day free trial included"),
+			ConfigItemStyle.Render("✓ Cancel anytime"),
+			ConfigItemStyle.Render("✓ Requires internet connectivity"),
+			ConfigItemStyle.Render("✓ Perfect for getting started"),
+			"",
+			SectionHeaderStyle.Render("Pro Annual"),
+			ConfigItemStyle.Render("✓ Save compared to monthly pricing"),
+			ConfigItemStyle.Render("✓ Offline license support"),
+			ConfigItemStyle.Render("✓ Air-gapped environment compatible"),
+			ConfigItemStyle.Render("✓ Best for production deployments"),
+		},
+	}
+
+	fmt.Println(renderIndented(comparisonSection.render()))
+
+	// Let user choose a plan
+	var planChoice string
+	planGroup := huh.NewGroup(
+		huh.NewSelect[string]().
+			Title("Select a subscription plan").
+			Description("Choose the plan that best fits your needs").
+			Options(
+				huh.NewOption("Pro Monthly (14-day trial)", "monthly"),
+				huh.NewOption("Pro Annual", "annual"),
+				huh.NewOption("Cancel - I'll get a license later", "cancel"),
+			).
+			Value(&planChoice),
+	)
+
+	form := c.newForm(planGroup)
+	if err := form.Run(); err != nil {
+		return err
+	}
+
+	if planChoice == "cancel" {
+		return tea.ErrInterrupted
+	}
+
+	// Prepare to open browser
+	var purchaseURL string
+	if planChoice == "monthly" {
+		purchaseURL = "https://getflipt.co/pro/monthly"
+	} else {
+		purchaseURL = "https://getflipt.co/pro/annual"
+	}
+
+	// Confirm browser opening
+	var openBrowser bool
+	browserGroup := huh.NewGroup(
+		huh.NewConfirm().
+			Title("Open browser to complete purchase?").
+			Description(fmt.Sprintf("We'll open %s in your browser", purchaseURL)).
+			Value(&openBrowser).
+			Affirmative("Yes, open browser").
+			Negative("No, I'll visit manually"),
+	)
+
+	form = c.newForm(browserGroup)
+	if err := form.Run(); err != nil {
+		return err
+	}
+
+	if openBrowser {
+		if err := util.OpenBrowser(purchaseURL); err != nil {
+			fmt.Println(renderIndentedStatus(BadgeWarnStyle, "WARNING", "Couldn't open browser automatically"))
+			fmt.Println(renderIndented(lipgloss.JoinHorizontal(lipgloss.Left,
+				LabelStyle.Render("Please visit:"),
+				lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render(purchaseURL)),
+			)))
+		} else {
+			fmt.Println(renderIndentedStatus(BadgeSuccessStyle, "SUCCESS", "Browser opened"))
+		}
+	} else {
+		fmt.Println()
+		fmt.Println(renderIndented(lipgloss.JoinHorizontal(lipgloss.Left,
+			LabelStyle.Render("Visit this URL to purchase:"),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render(purchaseURL)),
+		)))
+	}
+
+	// Instructions after purchase
+	instructionsSection := &contentSection{
+		badge:     BadgeInfoStyle,
+		badgeText: "NEXT STEPS",
+		heading:   "After Purchasing",
+		bulletItems: []string{
+			"Complete your purchase on the website",
+			"Check your email for the license key",
+			"Run 'flipt license activate' again with your key",
+			"Contact support@flipt.io if you need assistance",
+		},
+	}
+
+	fmt.Println()
+	fmt.Println(renderIndented(instructionsSection.render()))
+	fmt.Println()
+	fmt.Println(HelperTextStyle.Render("Press any key to exit..."))
+
+	// Wait for user input before exiting
+	var dummy string
+	_, _ = fmt.Scanln(&dummy)
+
+	return tea.ErrInterrupted
 }
 
 func (c *activateCommand) runLicenseTypeStep() error {
