@@ -335,7 +335,7 @@ func (lm *ManagerImpl) Product() product.Product {
 	return lm.product
 }
 
-// Close stops the background revalidation goroutine.
+// Shutdown stops the background revalidation goroutine.
 func (lm *ManagerImpl) Shutdown(ctx context.Context) error {
 	lm.cancel()
 	// wait for existing revalidation goroutine to finish

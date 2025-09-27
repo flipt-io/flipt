@@ -76,23 +76,8 @@ var (
 	BadgeErrorStyle = BadgeBaseStyle.Copy().
 			Background(Red)
 
-	// Card container style
-	CardStyle = lipgloss.NewStyle().
-			Width(contentWidth).
-			Padding(1, 3).
-			MarginTop(0).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(PurpleDark)
-
-	// Enhanced card styles for different contexts
-	InfoCardStyle = CardStyle.Copy().
-			BorderForeground(PurpleAccent)
-
-	SuccessCardStyle = CardStyle.Copy().
-				BorderForeground(Green)
-
-	WarningCardStyle = CardStyle.Copy().
-				BorderForeground(Amber)
+	ContentIndentStyle = lipgloss.NewStyle().
+				PaddingLeft(2)
 
 	// Section header style
 	SectionHeaderStyle = lipgloss.NewStyle().

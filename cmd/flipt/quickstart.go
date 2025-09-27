@@ -167,7 +167,7 @@ func (cs *contentSection) render() string {
 
 	// Add section badge and heading
 	elements = append(elements, renderSectionBadge(cs.badge, cs.badgeText, cs.heading))
-	
+
 	// Add helper text if provided (with spacing before it)
 	if cs.helperText != "" {
 		elements = append(elements, "") // Space before helper text
@@ -270,10 +270,7 @@ func (c *quickstart) heroHeader(title, subtitle string) string {
 		titleLine = TitleStyle.Copy().Width(width).Align(lipgloss.Center).Render(title)
 
 		// Create a thin progress bar using thinner Unicode characters
-		progressFilled := int(float64(width) * progressPercent / 100.0)
-		if progressFilled > width {
-			progressFilled = width
-		}
+		progressFilled := min(int(float64(width)*progressPercent/100.0), width)
 
 		// Build progress bar with filled and remaining sections using thin blocks
 		filledSection := strings.Repeat("▬", progressFilled)
@@ -356,10 +353,6 @@ func (c *quickstart) noteFor(content string) *huh.Note {
 	return huh.NewNote().
 		Description(content).
 		Height(lipgloss.Height(content))
-}
-
-func (c *quickstart) cardStyle() lipgloss.Style {
-	return CardStyle.Copy().Width(c.availableWidth())
 }
 
 // renderProgressIndicator creates a stylish progress bar for the wizard
@@ -471,7 +464,7 @@ func (c *quickstart) renderCompactProgressBar(progress progressInfo) string {
 	filledBlocks := int(progress.progressPct * float64(compactBarWidth))
 
 	var barElements []string
-	for i := 0; i < compactBarWidth; i++ {
+	for i := range compactBarWidth {
 		var element string
 		switch {
 		case i < filledBlocks:
@@ -493,13 +486,34 @@ func (c *quickstart) renderCompactProgressBar(progress progressInfo) string {
 }
 
 // renderHeader creates the header with title and step counter
-func (c *quickstart) renderHeader() string {
-	// Only show subtitle on first screen
-	var subtitle string
-	if c.currentStep == StepConfirmation {
-		subtitle = "Configure Git storage syncing with a remote repository"
+func (c *quickstart) headerTitleAndSubtitle() (string, string) {
+	switch c.currentStep {
+	case StepConfirmation:
+		return "Flipt v2 Quickstart", "Configure Git storage syncing with a remote repository"
+	case StepRepository:
+		return "Repository Setup", "Connect Flipt to your Git repository"
+	case StepProvider:
+		return "Confirm Your Provider", "Verify or select your source control platform"
+	case StepBranchDirectory:
+		return "Organize Storage", "Choose the branch and directory for your configuration"
+	case StepAuthentication:
+		providerName := c.provider.name
+		if providerName == "" {
+			providerName = "your provider"
+		}
+		return "Configure Access", fmt.Sprintf("Authorize Flipt to sync with %s", providerName)
+	case StepReview:
+		return "Review & Save", "Confirm your settings before generating the configuration"
+	case StepComplete:
+		return "Setup Complete!", "Your Flipt configuration is ready to sync."
+	default:
+		return "Flipt v2 Quickstart", ""
 	}
-	return c.heroHeader("Flipt v2 Quickstart", subtitle)
+}
+
+func (c *quickstart) renderHeader() string {
+	title, subtitle := c.headerTitleAndSubtitle()
+	return c.heroHeader(title, subtitle)
 }
 
 // wizardStep represents a step in the wizard with its execution function
@@ -548,7 +562,7 @@ func (c *quickstart) showExistingConfigWarning() {
 			HintStyle.Render("💡 Consider backing up your current configuration before proceeding."),
 			"",
 		)
-		fmt.Println(applySectionSpacing(warningContent))
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(warningContent)))
 	}
 }
 
@@ -685,7 +699,7 @@ func (c *quickstart) runRepositoryStep() error {
 
 	// Show detected information
 	detectedInfo := c.createRepositoryDetectedContent(c.repo.owner, c.repo.name)
-	fmt.Println(applySectionSpacing(detectedInfo))
+	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(detectedInfo)))
 
 	return nil
 }
@@ -1018,7 +1032,7 @@ func (c *quickstart) openTokenCreationURL() error {
 				lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render(patURL)),
 			),
 		)
-		fmt.Println(applySectionSpacing(failureMessage))
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(failureMessage)))
 	}
 
 	return nil
@@ -1048,7 +1062,7 @@ func (c *quickstart) collectAccessToken(authContent string) error {
 func (c *quickstart) runAuthenticationStep() error {
 	// Skip auth for plain Git provider
 	if c.provider.typ == ProviderGit {
-		fmt.Println(applySectionSpacing(renderInlineStatus(BadgeInfoStyle, "SKIP", "No authentication needed for generic Git repositories")))
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeInfoStyle, "SKIP", "No authentication needed for generic Git repositories"))))
 		return nil
 	}
 
@@ -1066,7 +1080,7 @@ func (c *quickstart) runAuthenticationStep() error {
 		return err
 	}
 
-	fmt.Println(applySectionSpacing(renderInlineStatus(BadgeSuccessStyle, "READY", "Authentication configured")))
+	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeSuccessStyle, "READY", "Authentication configured"))))
 	return nil
 }
 
@@ -1139,7 +1153,11 @@ func (c *quickstart) runReviewStep() error {
 	}
 
 	if !confirm {
-		fmt.Println(applySectionSpacing(renderInlineStatus(BadgeWarnStyle, "CANCELLED", "Setup cancelled. No changes were made.")))
+		message := stack(
+			HelperTextStyle.Render("Setup cancelled. No changes were made."),
+			HelperTextStyle.Render("Run 'flipt quickstart' anytime to continue."),
+		)
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(message)))
 		return tea.ErrInterrupted
 	}
 
@@ -1431,11 +1449,12 @@ func (c *quickstart) createSuccessScreenSections() []successScreenSection {
 
 // renderSuccessScreen creates a celebratory success screen
 func (c *quickstart) renderSuccessScreen() {
-	fmt.Println(c.heroHeader("Setup complete!", "Your Flipt configuration is ready to sync."))
+	title, subtitle := c.headerTitleAndSubtitle()
+	fmt.Println(c.heroHeader(title, subtitle))
 
 	sections := c.createSuccessScreenSections()
 	for _, section := range sections {
-		fmt.Println(applySectionSpacing(section.render()))
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(section.render())))
 	}
 
 	fmt.Println(applySectionSpacing(lipgloss.NewStyle().

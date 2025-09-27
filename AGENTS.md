@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI Agents when working with code in this repository.
 
 All of our documentation is at <https://docs.flipt.io>. Weigh the v2 docs heavily when answering questions over the v1 docs.
 
@@ -382,7 +382,7 @@ mage ui:lint
 
 ```bash
 # Format specific markdown files (replace with actual filename)
-npx prettier -w CLAUDE.md
+npx prettier -w README.md
 ```
 
 ## Configuration

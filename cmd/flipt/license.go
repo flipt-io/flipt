@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/license"
+	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v2"
@@ -91,7 +92,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 
 	// Header with responsive width
 	width := c.availableWidth()
-	fmt.Println(c.heroHeader("Flipt License Center", "Review your subscription configuration", width))
+	fmt.Println(c.heroHeader("Flipt License Check", "Review your subscription configuration", width))
 
 	// Load configuration
 	path, _ := determineConfig(providedConfigFile)
@@ -120,16 +121,18 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			},
 		}
 
-		callToAction := lipgloss.JoinVertical(lipgloss.Left,
-			"",
+		callToAction := lipgloss.JoinHorizontal(lipgloss.Left,
 			LabelStyle.Render("To activate Pro features, run:"),
-			lipgloss.NewStyle().MarginLeft(2).Render(AccentStyle.Render("flipt license activate")),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("flipt license activate")),
 		)
 
-		noLicenseCard := applySectionSpacing(WarningCardStyle.Render(
-			section.render() + callToAction,
-		))
-		fmt.Println(noLicenseCard)
+		content := stack(
+			section.render(),
+			"",
+			callToAction,
+		)
+
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(content)))
 		return nil
 	}
 
@@ -154,8 +157,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 		configItems: configDetails,
 	}
 
-	configCard := applySectionSpacing(InfoCardStyle.Render(configSection.render()))
-	fmt.Println(configCard)
+	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(configSection.render())))
 
 	// Initialize license manager to check validity
 	logger := zap.NewNop() // Use a no-op logger for cleaner output
@@ -166,7 +168,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Show checking status with animation feel
-	fmt.Println(applySectionSpacing(renderInlineStatus(BadgeInfoStyle, "CHECKING", "Validating license...")))
+	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeInfoStyle, "CHECKING", "Validating license..."))))
 
 	// Create license manager
 	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, &cfg.License, licenseManagerOpts...)
@@ -178,9 +180,9 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	}()
 
 	// Check the license status
-	product := licenseManager.Product()
+	pro := licenseManager.Product()
 
-	if product == "pro" {
+	if pro == product.Pro {
 		// Valid license status section
 		statusSection := &contentSection{
 			badge:     BadgeSuccessStyle,
@@ -194,8 +196,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			},
 		}
 
-		validCard := applySectionSpacing(SuccessCardStyle.Render(statusSection.render()))
-		fmt.Println(validCard)
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(statusSection.render())))
 
 		// Pro features highlights section
 		featuresSection := &contentSection{
@@ -212,8 +213,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			},
 		}
 
-		featuresCard := applySectionSpacing(InfoCardStyle.Render(featuresSection.render()))
-		fmt.Println(featuresCard)
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(featuresSection.render())))
 	} else {
 		// Invalid license section
 		invalidSection := &contentSection{
@@ -229,16 +229,18 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 			},
 		}
 
-		guidance := lipgloss.JoinVertical(lipgloss.Left,
-			"",
+		callToAction := lipgloss.JoinHorizontal(lipgloss.Left,
 			LabelStyle.Render("To activate a new license, run:"),
-			lipgloss.NewStyle().MarginLeft(2).Render(AccentStyle.Render("flipt license activate")),
+			lipgloss.NewStyle().MarginLeft(1).Render(AccentStyle.Render("flipt license activate")),
 		)
 
-		invalidCard := applySectionSpacing(CardStyle.Copy().
-			BorderForeground(Red).
-			Render(invalidSection.render() + guidance))
-		fmt.Println(invalidCard)
+		content := stack(
+			invalidSection.render(),
+			"",
+			callToAction,
+		)
+
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(content)))
 	}
 
 	return nil
@@ -318,7 +320,7 @@ func (c *activateCommand) noteFor(content string) *huh.Note {
 func (c *activateCommand) renderHeader() string {
 	// Determine title and subtitle based on current step
 	var title, subtitle string
-	
+
 	switch c.currentStep {
 	case LicenseStepWelcome:
 		title = "Flipt License Activation"
@@ -342,7 +344,7 @@ func (c *activateCommand) renderHeader() string {
 		title = "Flipt License Activation"
 		subtitle = ""
 	}
-	
+
 	return c.heroHeader(title, subtitle)
 }
 
@@ -523,8 +525,6 @@ func (c *activateCommand) runOfflineStep() error {
 	return nil
 }
 
-// Note: successScreenSection type is imported from quickstart.go
-
 func (c *activateCommand) createSuccessScreenSections() []successScreenSection {
 	// License summary
 	licenseSummary := []string{
@@ -580,9 +580,7 @@ func (c *activateCommand) renderSuccessScreen() {
 
 	sections := c.createSuccessScreenSections()
 	for _, section := range sections {
-		// Note: section.render() already returns properly formatted content
-		// Don't double-wrap in cards as that adds extra padding
-		fmt.Println(applySectionSpacing(section.render()))
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(section.render())))
 	}
 
 	fmt.Println(applySectionSpacing(lipgloss.NewStyle().
@@ -669,7 +667,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	c.currentStep = LicenseStepValidation
 	fmt.Println(c.heroHeader("License Validation", "Verifying your license with Flipt services"))
 	fmt.Println()
-	fmt.Println(applySectionSpacing(renderInlineStatus(BadgeInfoStyle, "VALIDATING", "Checking your license details...")))
+	fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeInfoStyle, "VALIDATING", "Checking your license details..."))))
 
 	// Configure Keygen client
 	keygen.Account = keygenAccountID
@@ -690,34 +688,40 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		// Check if license needs activation
 		if errors.Is(err, keygen.ErrLicenseNotActivated) {
-			fmt.Println(applySectionSpacing(renderInlineStatus(BadgeInfoStyle, "ACTIVATING", "Linking the license to this machine...")))
+			fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeInfoStyle, "ACTIVATING", "Linking the license to this machine..."))))
 
 			// Activate the license
 			if _, err := lic.Activate(ctx, fingerprint); err != nil {
-				fmt.Println(applySectionSpacing(renderInlineStatus(BadgeErrorStyle, "FAILED", "License activation failed")))
-				fmt.Println(lipgloss.JoinHorizontal(lipgloss.Left,
-					LabelStyle.Render("Error:"),
-					lipgloss.NewStyle().MarginLeft(1).Render(ErrorStyle.Render(err.Error())),
-				))
-				fmt.Println()
-				fmt.Println(HelperTextStyle.Render("Please check your license key and try again."))
-				fmt.Println(HelperTextStyle.Render("If you continue to have issues, contact support@flipt.io"))
+				failureContent := stack(
+					renderInlineStatus(BadgeErrorStyle, "FAILED", "License activation failed"),
+					lipgloss.JoinHorizontal(lipgloss.Left,
+						LabelStyle.Render("Error:"),
+						lipgloss.NewStyle().MarginLeft(1).Render(ErrorStyle.Render(err.Error())),
+					),
+					"",
+					HelperTextStyle.Render("Please check your license key and try again."),
+					HelperTextStyle.Render("If you continue to have issues, contact support@flipt.io"),
+				)
+				fmt.Println(applySectionSpacing(ContentIndentStyle.Render(failureContent)))
 				return nil
 			}
-			fmt.Println(applySectionSpacing(renderInlineStatus(BadgeSuccessStyle, "ACTIVATED", "License bound to this machine")))
+			fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeSuccessStyle, "ACTIVATED", "License bound to this machine"))))
 		} else {
-			fmt.Println(applySectionSpacing(renderInlineStatus(BadgeErrorStyle, "FAILED", "License validation failed")))
-			fmt.Println(lipgloss.JoinHorizontal(lipgloss.Left,
-				LabelStyle.Render("Error:"),
-				lipgloss.NewStyle().MarginLeft(1).Render(ErrorStyle.Render(err.Error())),
-			))
-			fmt.Println()
-			fmt.Println(HelperTextStyle.Render("Please verify your license key is correct."))
-			fmt.Println(HelperTextStyle.Render("If you need assistance, contact support@flipt.io"))
+			failureContent := stack(
+				renderInlineStatus(BadgeErrorStyle, "FAILED", "License validation failed"),
+				lipgloss.JoinHorizontal(lipgloss.Left,
+					LabelStyle.Render("Error:"),
+					lipgloss.NewStyle().MarginLeft(1).Render(ErrorStyle.Render(err.Error())),
+				),
+				"",
+				HelperTextStyle.Render("Please verify your license key is correct."),
+				HelperTextStyle.Render("If you need assistance, contact support@flipt.io"),
+			)
+			fmt.Println(applySectionSpacing(ContentIndentStyle.Render(failureContent)))
 			return nil
 		}
 	} else {
-		fmt.Println(applySectionSpacing(renderInlineStatus(BadgeSuccessStyle, "VALID", "License validated successfully")))
+		fmt.Println(applySectionSpacing(ContentIndentStyle.Render(renderInlineStatus(BadgeSuccessStyle, "VALID", "License validated successfully"))))
 	}
 
 	// Step 6: Update configuration file
@@ -749,14 +753,14 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Ensure directory exists
-	if err := os.MkdirAll(filepath.Dir(c.configFile), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(c.configFile), 0o700); err != nil {
 		return fmt.Errorf("creating config directory: %w", err)
 	}
 
 	// Add schema comment
 	content := yamlSchemaComment + string(out)
 
-	if err := os.WriteFile(c.configFile, []byte(content), 0600); err != nil {
+	if err := os.WriteFile(c.configFile, []byte(content), 0o600); err != nil {
 		return fmt.Errorf("writing configuration file: %w", err)
 	}
 
@@ -815,10 +819,7 @@ func (c *activateCommand) heroHeader(title, subtitle string) string {
 		titleLine = TitleStyle.Copy().Width(width).Align(lipgloss.Center).Render(title)
 
 		// Create a thin progress bar
-		progressFilled := int(float64(width) * progress.progressPct)
-		if progressFilled > width {
-			progressFilled = width
-		}
+		progressFilled := min(int(float64(width)*progress.progressPct), width)
 
 		// Build progress bar with filled and remaining sections
 		filledSection := strings.Repeat("▬", progressFilled)
