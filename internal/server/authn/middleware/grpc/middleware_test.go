@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/containers"
 	authjwt "go.flipt.io/flipt/internal/server/authn/method/jwt"
 	"go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/internal/storage/authn/memory"
@@ -101,6 +102,84 @@ func TestAuthenticationRequiredUnaryInterceptor(t *testing.T) {
 	}
 }
 
+func TestAuthenticationRequiredUnaryInterceptorWithSkippedOption(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	tests := []struct {
+		name          string
+		hasAuth       bool
+		skipServer    bool
+		useSkipOption bool
+		expectHandled bool
+		expectErr     error
+	}{
+		{
+			name:          "server skips authentication via interface",
+			hasAuth:       false,
+			skipServer:    true,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "server skips authentication via option",
+			hasAuth:       false,
+			skipServer:    false,
+			useSkipOption: true,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "authenticated without skip",
+			hasAuth:       true,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "unauthenticated without skip",
+			hasAuth:       false,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			called := false
+			handler := func(ctx context.Context, req any) (any, error) {
+				called = true
+				return "success", nil
+			}
+
+			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
+			info := &grpc.UnaryServerInfo{Server: mockSrv}
+
+			ctx := context.Background()
+			if tt.hasAuth {
+				ctx = ContextWithAuthentication(ctx, &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN})
+			}
+
+			var opts []containers.Option[InterceptorOptions]
+			if tt.useSkipOption {
+				opts = append(opts, WithServerSkipsAuthentication(mockSrv))
+			}
+
+			interceptor := AuthenticationRequiredUnaryInterceptor(logger, opts...)
+			result, err := interceptor(ctx, nil, info, handler)
+
+			assert.Equal(t, tt.expectErr, err)
+			assert.Equal(t, tt.expectHandled, called)
+			if tt.expectHandled {
+				assert.Equal(t, "success", result)
+			}
+		})
+	}
+}
+
 func TestAuthenticationRequiredStreamInterceptor(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 
@@ -142,6 +221,82 @@ func TestAuthenticationRequiredStreamInterceptor(t *testing.T) {
 			err := AuthenticationRequiredStreamInterceptor(logger)(tt.server, stream, info, handler)
 			assert.Equal(t, tt.expectErr, err)
 			assert.Equal(t, tt.expectCalled, called)
+		})
+	}
+}
+
+func TestAuthenticationRequiredStreamInterceptorWithSkippedOption(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	tests := []struct {
+		name          string
+		hasAuth       bool
+		skipServer    bool
+		useSkipOption bool
+		expectHandled bool
+		expectErr     error
+	}{
+		{
+			name:          "server skips authentication via interface",
+			hasAuth:       false,
+			skipServer:    true,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "server skips authentication via option",
+			hasAuth:       false,
+			skipServer:    false,
+			useSkipOption: true,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "authenticated without skip",
+			hasAuth:       true,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "unauthenticated without skip",
+			hasAuth:       false,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			called := false
+			handler := func(srv any, stream grpc.ServerStream) error {
+				called = true
+				return nil
+			}
+
+			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
+			info := &grpc.StreamServerInfo{}
+
+			ctx := context.Background()
+			if tt.hasAuth {
+				ctx = ContextWithAuthentication(ctx, &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN})
+			}
+			stream := &mockStream{ctx: ctx}
+
+			var opts []containers.Option[InterceptorOptions]
+			if tt.useSkipOption {
+				opts = append(opts, WithServerSkipsAuthentication(mockSrv))
+			}
+
+			interceptor := AuthenticationRequiredStreamInterceptor(logger, opts...)
+			err := interceptor(mockSrv, stream, info, handler)
+
+			assert.Equal(t, tt.expectErr, err)
+			assert.Equal(t, tt.expectHandled, called)
 		})
 	}
 }
@@ -550,6 +705,262 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 	}
 }
 
+func TestJWTAuthenticationUnaryInterceptorWithSkippedOption(t *testing.T) {
+	var (
+		logger     = zaptest.NewLogger(t)
+		now        = time.Now()
+		nowUnix    = float64(now.Unix())
+		futureUnix = float64(now.Add(2 * jjwt.DefaultLeeway).Unix())
+		pub        = []crypto.PublicKey{priv.Public()}
+	)
+
+	// Create a valid JWT token
+	validClaims := map[string]any{
+		"iss": "flipt.io",
+		"aud": "flipt",
+		"sub": "test",
+		"iat": nowUnix,
+		"exp": futureUnix,
+	}
+	validToken := oidc.TestSignJWT(t, priv, string(jwt.RS256), validClaims, []byte("test-key"))
+
+	// Create an invalid JWT token (wrong issuer)
+	invalidClaims := map[string]any{
+		"iss": "wrong.io",
+		"aud": "flipt",
+		"sub": "test",
+		"iat": nowUnix,
+		"exp": futureUnix,
+	}
+	invalidToken := oidc.TestSignJWT(t, priv, string(jwt.RS256), invalidClaims, []byte("test-key"))
+
+	tests := []struct {
+		name          string
+		token         string
+		hasToken      bool
+		skipServer    bool
+		useSkipOption bool
+		expectHandled bool
+		expectErr     error
+	}{
+		{
+			name:          "server skips authentication via interface",
+			hasToken:      false,
+			skipServer:    true,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "server skips authentication via option",
+			hasToken:      false,
+			skipServer:    false,
+			useSkipOption: true,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "valid JWT without skip",
+			token:         validToken,
+			hasToken:      true,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "invalid JWT without skip",
+			token:         invalidToken,
+			hasToken:      true,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+		{
+			name:          "no JWT without skip",
+			hasToken:      false,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ks, err := jwt.NewStaticKeySet(pub)
+			require.NoError(t, err)
+
+			validator, err := jwt.NewValidator(ks)
+			require.NoError(t, err)
+
+			jwtValidator := authjwt.NewValidator(validator, jwt.Expected{
+				Issuer:    "flipt.io",
+				Audiences: []string{"flipt"},
+			})
+
+			called := false
+			handler := func(ctx context.Context, req any) (any, error) {
+				called = true
+				return "success", nil
+			}
+
+			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
+			info := &grpc.UnaryServerInfo{Server: mockSrv}
+
+			ctx := context.Background()
+			if tt.hasToken {
+				md := metadata.MD{
+					"Authorization": []string{"JWT " + tt.token},
+				}
+				ctx = metadata.NewIncomingContext(ctx, md)
+			}
+
+			var opts []containers.Option[InterceptorOptions]
+			if tt.useSkipOption {
+				opts = append(opts, WithServerSkipsAuthentication(mockSrv))
+			}
+
+			interceptor := JWTAuthenticationUnaryInterceptor(logger, jwtValidator, nil, opts...)
+			result, err := interceptor(ctx, nil, info, handler)
+
+			assert.Equal(t, tt.expectErr, err)
+			assert.Equal(t, tt.expectHandled, called)
+			if tt.expectHandled {
+				assert.Equal(t, "success", result)
+			}
+		})
+	}
+}
+
+func TestJWTAuthenticationStreamInterceptorWithSkippedOption(t *testing.T) {
+	var (
+		logger     = zaptest.NewLogger(t)
+		now        = time.Now()
+		nowUnix    = float64(now.Unix())
+		futureUnix = float64(now.Add(2 * jjwt.DefaultLeeway).Unix())
+		pub        = []crypto.PublicKey{priv.Public()}
+	)
+
+	// Create a valid JWT token
+	validClaims := map[string]any{
+		"iss": "flipt.io",
+		"aud": "flipt",
+		"sub": "test",
+		"iat": nowUnix,
+		"exp": futureUnix,
+	}
+	validToken := oidc.TestSignJWT(t, priv, string(jwt.RS256), validClaims, []byte("test-key"))
+
+	// Create an invalid JWT token (wrong issuer)
+	invalidClaims := map[string]any{
+		"iss": "wrong.io",
+		"aud": "flipt",
+		"sub": "test",
+		"iat": nowUnix,
+		"exp": futureUnix,
+	}
+	invalidToken := oidc.TestSignJWT(t, priv, string(jwt.RS256), invalidClaims, []byte("test-key"))
+
+	tests := []struct {
+		name          string
+		token         string
+		hasToken      bool
+		skipServer    bool
+		useSkipOption bool
+		expectHandled bool
+		expectErr     error
+	}{
+		{
+			name:          "server skips authentication via interface",
+			hasToken:      false,
+			skipServer:    true,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "server skips authentication via option",
+			hasToken:      false,
+			skipServer:    false,
+			useSkipOption: true,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "valid JWT without skip",
+			token:         validToken,
+			hasToken:      true,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "invalid JWT without skip",
+			token:         invalidToken,
+			hasToken:      true,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+		{
+			name:          "no JWT without skip",
+			hasToken:      false,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ks, err := jwt.NewStaticKeySet(pub)
+			require.NoError(t, err)
+
+			validator, err := jwt.NewValidator(ks)
+			require.NoError(t, err)
+
+			jwtValidator := authjwt.NewValidator(validator, jwt.Expected{
+				Issuer:    "flipt.io",
+				Audiences: []string{"flipt"},
+			})
+
+			called := false
+			handler := func(srv any, stream grpc.ServerStream) error {
+				called = true
+				return nil
+			}
+
+			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
+			info := &grpc.StreamServerInfo{}
+
+			ctx := context.Background()
+			if tt.hasToken {
+				md := metadata.MD{
+					"Authorization": []string{"JWT " + tt.token},
+				}
+				ctx = metadata.NewIncomingContext(ctx, md)
+			}
+			stream := &mockStream{ctx: ctx}
+
+			var opts []containers.Option[InterceptorOptions]
+			if tt.useSkipOption {
+				opts = append(opts, WithServerSkipsAuthentication(mockSrv))
+			}
+
+			interceptor := JWTAuthenticationStreamInterceptor(logger, jwtValidator, nil, opts...)
+			err = interceptor(mockSrv, stream, info, handler)
+
+			assert.Equal(t, tt.expectErr, err)
+			assert.Equal(t, tt.expectHandled, called)
+		})
+	}
+}
+
 func TestClientTokenAuthenticationUnaryInterceptor(t *testing.T) {
 	authenticator := memory.NewStore(zaptest.NewLogger(t))
 
@@ -805,6 +1216,214 @@ func TestClientTokenAuthenticationStreamInterceptor(t *testing.T) {
 	}
 }
 
+func TestClientTokenAuthenticationUnaryInterceptorWithSkippedOption(t *testing.T) {
+	var (
+		logger        = zaptest.NewLogger(t)
+		authenticator = memory.NewStore(logger)
+	)
+
+	clientToken, _, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&authn.CreateAuthenticationRequest{Method: authrpc.Method_METHOD_TOKEN},
+	)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name          string
+		hasToken      bool
+		validToken    bool
+		skipServer    bool
+		useSkipOption bool
+		expectHandled bool
+		expectErr     error
+	}{
+		{
+			name:          "server skips authentication via interface",
+			hasToken:      false,
+			skipServer:    true,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "server skips authentication via option",
+			hasToken:      false,
+			skipServer:    false,
+			useSkipOption: true,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "valid token without skip",
+			hasToken:      true,
+			validToken:    true,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "invalid token without skip",
+			hasToken:      true,
+			validToken:    false,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+		{
+			name:          "no token without skip",
+			hasToken:      false,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			called := false
+			handler := func(ctx context.Context, req any) (any, error) {
+				called = true
+				return "success", nil
+			}
+
+			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
+			info := &grpc.UnaryServerInfo{Server: mockSrv}
+
+			ctx := context.Background()
+			if tt.hasToken {
+				token := clientToken
+				if !tt.validToken {
+					token = "invalid-token"
+				}
+				md := metadata.MD{
+					"Authorization": []string{"Bearer " + token},
+				}
+				ctx = metadata.NewIncomingContext(ctx, md)
+			}
+
+			var opts []containers.Option[InterceptorOptions]
+			if tt.useSkipOption {
+				opts = append(opts, WithServerSkipsAuthentication(mockSrv))
+			}
+
+			interceptor := ClientTokenAuthenticationUnaryInterceptor(logger, authenticator, opts...)
+			result, err := interceptor(ctx, nil, info, handler)
+
+			assert.Equal(t, tt.expectErr, err)
+			assert.Equal(t, tt.expectHandled, called)
+			if tt.expectHandled {
+				assert.Equal(t, "success", result)
+			}
+		})
+	}
+}
+
+func TestClientTokenStreamInterceptorWithSkippedOption(t *testing.T) {
+	var (
+		logger        = zaptest.NewLogger(t)
+		authenticator = memory.NewStore(logger)
+	)
+
+	clientToken, _, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&authn.CreateAuthenticationRequest{Method: authrpc.Method_METHOD_TOKEN},
+	)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name          string
+		hasToken      bool
+		validToken    bool
+		skipServer    bool
+		useSkipOption bool
+		expectHandled bool
+		expectErr     error
+	}{
+		{
+			name:          "server skips authentication via interface",
+			hasToken:      false,
+			skipServer:    true,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "server skips authentication via option",
+			hasToken:      false,
+			skipServer:    false,
+			useSkipOption: true,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "valid token without skip",
+			hasToken:      true,
+			validToken:    true,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: true,
+			expectErr:     nil,
+		},
+		{
+			name:          "invalid token without skip",
+			hasToken:      true,
+			validToken:    false,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+		{
+			name:          "no token without skip",
+			hasToken:      false,
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+			expectErr:     errUnauthenticated,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			called := false
+			handler := func(srv any, stream grpc.ServerStream) error {
+				called = true
+				return nil
+			}
+
+			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
+			info := &grpc.StreamServerInfo{}
+
+			ctx := context.Background()
+			if tt.hasToken {
+				token := clientToken
+				if !tt.validToken {
+					token = "invalid-token"
+				}
+				md := metadata.MD{
+					"Authorization": []string{"Bearer " + token},
+				}
+				ctx = metadata.NewIncomingContext(ctx, md)
+			}
+			stream := &mockStream{ctx: ctx}
+
+			var opts []containers.Option[InterceptorOptions]
+			if tt.useSkipOption {
+				opts = append(opts, WithServerSkipsAuthentication(mockSrv))
+			}
+
+			interceptor := ClientTokenStreamInterceptor(logger, authenticator, opts...)
+			err := interceptor(mockSrv, stream, info, handler)
+
+			assert.Equal(t, tt.expectErr, err)
+			assert.Equal(t, tt.expectHandled, called)
+		})
+	}
+}
+
 func TestEmailMatchingUnaryInterceptorWithNoAuth(t *testing.T) {
 	var (
 		logger = zaptest.NewLogger(t)
@@ -961,6 +1580,95 @@ func TestEmailMatchingUnaryInterceptor(t *testing.T) {
 				handler,
 			)
 			assert.Equal(t, tt.expectedErr, err)
+		})
+	}
+}
+
+func TestEmailMatchingUnaryInterceptorWithSkippedServers(t *testing.T) {
+	var (
+		logger = zaptest.NewLogger(t)
+		called = false
+
+		authenticator = memory.NewStore(logger)
+	)
+
+	clientToken, storedAuth, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&authn.CreateAuthenticationRequest{
+			Method: authrpc.Method_METHOD_OIDC,
+			Metadata: map[string]string{
+				"io.flipt.auth.oidc.email": "foo@example.com", // email that won't match
+			},
+		},
+	)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name          string
+		skipServer    bool
+		useSkipOption bool
+		expectHandled bool
+	}{
+		{
+			name:          "server skips authentication via interface",
+			skipServer:    true,
+			useSkipOption: false,
+			expectHandled: true,
+		},
+		{
+			name:          "server skips authentication via option",
+			skipServer:    false,
+			useSkipOption: true,
+			expectHandled: true,
+		},
+		{
+			name:          "server does not skip authentication",
+			skipServer:    false,
+			useSkipOption: false,
+			expectHandled: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			called = false
+
+			var (
+				mockSrv = &mockServer{skipsAuthn: tt.skipServer}
+				ctx     = ContextWithAuthentication(context.Background(), storedAuth)
+				handler = func(ctx context.Context, req any) (any, error) {
+					called = true
+					return "success", nil
+				}
+				srv = &grpc.UnaryServerInfo{Server: mockSrv}
+			)
+
+			ctx = metadata.NewIncomingContext(ctx, metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			})
+
+			// Create interceptor with option to skip specific servers
+			var opts []containers.Option[InterceptorOptions]
+			if tt.useSkipOption {
+				opts = append(opts, WithServerSkipsAuthentication(mockSrv))
+			}
+
+			interceptor := EmailMatchingUnaryInterceptor(logger, []*regexp.Regexp{
+				regexp.MustCompile("^.*@flipt.io$"), // email pattern that doesn't match
+			}, opts...)
+
+			result, err := interceptor(ctx, nil, srv, handler)
+
+			if tt.expectHandled {
+				// When skipped, handler should be called despite email not matching
+				require.NoError(t, err)
+				require.True(t, called)
+				require.Equal(t, "success", result)
+			} else {
+				// When not skipped, should fail authentication due to email mismatch
+				require.Equal(t, errUnauthenticated, err)
+				require.False(t, called)
+			}
 		})
 	}
 }

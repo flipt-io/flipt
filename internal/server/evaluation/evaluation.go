@@ -319,6 +319,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 			tracing.AttributeRequestID.String(r.RequestId),
 			tracing.AttributeValue.Bool(resp.Enabled),
 			tracing.AttributeReason.String(resp.Reason.String()),
+			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 			tracing.AttributeFlagTypeBoolean,
 		))
 	}
@@ -359,6 +360,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 						metrics.AttributeValue.Bool(resp.Enabled),
 						metrics.AttributeReason.String(resp.Reason.String()),
 						metrics.AttributeFlagType.String("boolean"),
+						metrics.AttributeSegments.StringSlice(resp.SegmentKeys),
 					),
 				),
 			)
@@ -408,7 +410,6 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 			)
 
 			for k, v := range rollout.Segment.Segments {
-				segmentKeys = append(segmentKeys, k)
 				matched, reason, err := s.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 				if err != nil {
 					return nil, err
@@ -417,6 +418,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 				// if we don't match the segment, fall through to the next rollout.
 				if matched {
 					s.logger.Debug(reason)
+					segmentKeys = append(segmentKeys, k)
 					segmentMatches++
 				}
 			}
@@ -437,6 +439,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 			resp.Enabled = rollout.Segment.Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 			resp.FlagKey = flag.Key
+			resp.SegmentKeys = segmentKeys
 
 			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.Strings("segments", segmentKeys))
 			return resp, nil

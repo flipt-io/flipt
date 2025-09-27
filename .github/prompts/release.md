@@ -2,7 +2,9 @@ Extract and format the release notes for this specific release.
 
 ## Instructions
 
-1. Read the CHANGELOG.md file from the project root
+1. IMPORTANT: Read the CHANGELOG.md file from the Git tag being released ({{.Tag}}), NOT from the current branch
+   - Use the command: `git show {{.Tag}}:CHANGELOG.md` to get the CHANGELOG.md content from the tagged commit
+   - This ensures we get the exact changelog content that was part of the release, not any subsequent changes
 2. Find the section that corresponds to version {{.Tag}} (without the 'v' prefix if present)
 3. Extract ONLY the content for that specific version:
    - Start after the version heading line
