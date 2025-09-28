@@ -1,34 +1,46 @@
 package tracing
 
 import (
-	"go.flipt.io/flipt/rpc/v2/evaluation"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
-const Event = "flipt_flag_evaluated"
+const Event = "flipt.flag_evaluation"
 
-// TODO: merge with metrics?
 var (
-	AttributeMatch       = attribute.Key("flipt_match")
-	AttributeFlag        = attribute.Key("flipt_flag")
-	AttributeFlagType    = attribute.Key("flipt_flag_type")
-	AttributeEnvironment = attribute.Key("flipt_environment")
-	AttributeNamespace   = attribute.Key("flipt_namespace")
-	AttributeFlagEnabled = attribute.Key("flipt_flag_enabled")
-	AttributeSegments    = attribute.Key("flipt_segments")
-	AttributeReason      = attribute.Key("flipt_reason")
-	AttributeValue       = attribute.Key("flipt_value")
-	AttributeEntityID    = attribute.Key("flipt_entity_id")
-	AttributeRequestID   = attribute.Key("flipt_request_id")
+	AttributeFlag            = attribute.Key("flipt.key")
+	AttributeFlagType        = attribute.Key("flipt.type")
+	AttributeEnvironment     = attribute.Key("flipt.environment")
+	AttributeNamespace       = attribute.Key("flipt.namespace")
+	AttributeSegments        = attribute.Key("flipt.result.segments")
+	AttributeReason          = attribute.Key("flipt.result.reason")
+	AttributeVariant         = attribute.Key("flipt.result.variant")
+	AttributeMatch           = attribute.Key("flipt.result.match")
+	AttributeEntityID        = attribute.Key("flipt.context.entity_id")
+	AttributeRequestID       = attribute.Key("flipt.context.request_id")
+	AttributeFlagTypeVariant = AttributeFlagType.String("variant")
+	AttributeFlagTypeBoolean = AttributeFlagType.String("boolean")
 )
 
-// Specific attributes for Semantic Conventions for Feature Flags in Spans
-// https://opentelemetry.io/docs/specs/semconv/feature-flags/feature-flags-spans/
 var (
-	AttributeFlagKey         = semconv.FeatureFlagKey
-	AttributeProviderName    = semconv.FeatureFlagProviderName("Flipt")
-	AttributeFlagVariant     = semconv.FeatureFlagResultVariant
-	AttributeFlagTypeVariant = AttributeFlagType.String(evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String())
-	AttributeFlagTypeBoolean = AttributeFlagType.String(evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String())
+	evaluationReasonToValues = map[evaluation.EvaluationReason]string{
+		evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON:       "unknown",
+		evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON: "disabled",
+		evaluation.EvaluationReason_MATCH_EVALUATION_REASON:         "match",
+		evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON:       "default",
+	}
+	evaluationReasonToNames = map[string]evaluation.EvaluationReason{
+		"unknown":  evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON,
+		"disabled": evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON,
+		"match":    evaluation.EvaluationReason_MATCH_EVALUATION_REASON,
+		"default":  evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON,
+	}
 )
+
+func ReasonToValue(reason evaluation.EvaluationReason) string {
+	return evaluationReasonToValues[reason]
+}
+
+func ReasonFromValue(vallue string) evaluation.EvaluationReason {
+	return evaluationReasonToNames[vallue]
+}

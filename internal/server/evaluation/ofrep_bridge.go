@@ -70,18 +70,13 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 
 		if s.tracingEnabled {
 			span := trace.SpanFromContext(ctx)
-			span.SetAttributes(
-				tracing.AttributeProviderName,
-				tracing.AttributeFlagKey(r.Key),
-				tracing.AttributeFlagVariant(resp.VariantKey),
-			)
 			span.AddEvent(tracing.Event, trace.WithAttributes(
 				tracing.AttributeEnvironment.String(env.Key()),
 				tracing.AttributeNamespace.String(namespaceKey),
 				tracing.AttributeFlag.String(r.Key),
 				tracing.AttributeMatch.Bool(resp.Match),
-				tracing.AttributeValue.String(resp.VariantKey),
-				tracing.AttributeReason.String(resp.Reason.String()),
+				tracing.AttributeVariant.String(resp.VariantKey),
+				tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 				tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 				tracing.AttributeFlagTypeVariant,
 			))
@@ -118,17 +113,12 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 
 		if s.tracingEnabled {
 			span := trace.SpanFromContext(ctx)
-			span.SetAttributes(
-				tracing.AttributeProviderName,
-				tracing.AttributeFlagKey(r.Key),
-				tracing.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
-			)
 			span.AddEvent(tracing.Event, trace.WithAttributes(
 				tracing.AttributeEnvironment.String(env.Key()),
 				tracing.AttributeNamespace.String(namespaceKey),
 				tracing.AttributeFlag.String(r.Key),
-				tracing.AttributeValue.Bool(resp.Enabled),
-				tracing.AttributeReason.String(resp.Reason.String()),
+				tracing.AttributeVariant.Bool(resp.Enabled),
+				tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 				tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 				tracing.AttributeFlagTypeBoolean,
 			))
