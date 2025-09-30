@@ -22,7 +22,7 @@ jobs:
         with:
           script: |
             // Get pull requests associated with this workflow run
-            const pullRequests = github.event.workflow_run.pull_requests;
+            const pullRequests = context.payload.workflow_run.pull_requests;
 
             if (!pullRequests || pullRequests.length === 0) {
               console.log('No pull requests associated with this workflow run');
