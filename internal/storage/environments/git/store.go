@@ -618,10 +618,10 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 	}
 
 	// Track which branches still exist in Git
-	existingBranches := make(map[string]bool)
+	existingBranches := make(map[string]struct{})
 
 	for cfg := range iterator.All() {
-		existingBranches[cfg.Name] = true
+		existingBranches[cfg.Name] = struct{}{}
 
 		env, ok := e.branches[cfg.Name]
 		// if we dont have an environment for this branch, create one
