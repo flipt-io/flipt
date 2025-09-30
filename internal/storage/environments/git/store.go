@@ -653,7 +653,15 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 	// Track which branches still exist in Git
 	existingBranches := make(map[string]struct{})
 
+	e.logger.Debug("scanning for branch environments in Git",
+		zap.String("base_environment", e.cfg.Name),
+	)
+
 	for cfg := range iterator.All() {
+		e.logger.Debug("found branch in Git",
+			zap.String("branch_name", cfg.Name),
+			zap.String("git_branch", cfg.branch),
+		)
 		existingBranches[cfg.Name] = struct{}{}
 
 		e.mu.RLock()
@@ -715,6 +723,11 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 
 	// Remove branches that no longer exist in Git
 	e.mu.Lock()
+	e.logger.Debug("checking for deleted branches",
+		zap.String("base_environment", e.cfg.Name),
+		zap.Int("cached_branches", len(e.branches)),
+		zap.Int("git_branches", len(existingBranches)),
+	)
 	for branchName := range e.branches {
 		if _, exists := existingBranches[branchName]; !exists {
 			env := e.branches[branchName]
