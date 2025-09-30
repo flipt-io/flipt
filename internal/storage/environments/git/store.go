@@ -567,16 +567,32 @@ func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, 
 
 // Notify is called whenever the tracked branch is fetched and advances
 func (e *Environment) Notify(ctx context.Context, refs map[string]string) error {
+	e.mu.RLock()
+	needsUpdate := false
 	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash {
-		e.logger.Debug("updating base env snapshot",
-			zap.String("environment", e.cfg.Name),
-			zap.String("from", e.refs[e.currentBranch]),
-			zap.String("to", hash),
-		)
+		needsUpdate = true
+	}
+	e.mu.RUnlock()
 
-		e.refs[e.currentBranch] = hash
-		if err := e.updateSnapshot(ctx); err != nil {
-			return err
+	if needsUpdate {
+		if hash, ok := refs[e.currentBranch]; ok {
+			e.mu.RLock()
+			oldRef := e.refs[e.currentBranch]
+			e.mu.RUnlock()
+
+			e.logger.Debug("updating base env snapshot",
+				zap.String("environment", e.cfg.Name),
+				zap.String("from", oldRef),
+				zap.String("to", hash),
+			)
+
+			e.mu.Lock()
+			e.refs[e.currentBranch] = hash
+			e.mu.Unlock()
+
+			if err := e.updateSnapshot(ctx); err != nil {
+				return err
+			}
 		}
 	}
 
