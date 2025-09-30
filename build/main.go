@@ -21,7 +21,6 @@ import (
 
 	"github.com/containerd/platforms"
 	"go.flipt.io/build/internal"
-	"go.flipt.io/build/internal/dagger"
 	"go.flipt.io/build/testing"
 )
 
