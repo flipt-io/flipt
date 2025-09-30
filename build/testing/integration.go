@@ -58,6 +58,47 @@ var (
 	}
 )
 
+const (
+	// giteaReadyScript waits for Gitea to be ready before initializing repositories.
+	// This prevents race conditions where repository initialization attempts to connect before Gitea is ready.
+	giteaReadyScript = `
+		set -e
+		echo "Waiting for Gitea to be ready..."
+		for i in $(seq 1 60); do
+			if wget -q -O- http://gitea:3000 2>/dev/null | grep -q "gitea"; then
+				echo "Gitea is ready!"
+				sleep 2
+				break
+			fi
+			if [ $i -eq 60 ]; then
+				echo "ERROR: Gitea failed to become ready within 60 seconds"
+				exit 1
+			fi
+			echo "Attempt $i/60: Gitea not ready yet, waiting..."
+			sleep 1
+		done
+	`
+
+	// fliptHealthCheckScript waits for Flipt to be ready by checking the health endpoint.
+	// This prevents race conditions where tests run before the service is fully initialized.
+	fliptHealthCheckScript = `
+		set -e
+		echo "Waiting for Flipt to be ready..."
+		for i in $(seq 1 60); do
+			if wget -q -O- http://flipt:8080/health 2>/dev/null; then
+				echo "Flipt is ready!"
+				break
+			fi
+			if [ $i -eq 60 ]; then
+				echo "ERROR: Flipt failed to become ready within 60 seconds"
+				exit 1
+			fi
+			echo "Attempt $i/60: Flipt not ready yet, waiting..."
+			sleep 1
+		done
+	`
+)
+
 type testConfig struct {
 	name    string
 	address string
@@ -495,25 +536,6 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 		}
 
 		// Wait for Gitea to be ready before initializing repositories
-		// This prevents race conditions where stew tries to connect before Gitea is ready
-		giteaReadyScript := `
-			set -e
-			echo "Waiting for Gitea to be ready..."
-			for i in $(seq 1 60); do
-				if wget -q -O- http://gitea:3000 2>/dev/null | grep -q "gitea"; then
-					echo "Gitea is ready!"
-					sleep 2
-					break
-				fi
-				if [ $i -eq 60 ]; then
-					echo "ERROR: Gitea failed to become ready within 60 seconds"
-					exit 1
-				fi
-				echo "Attempt $i/60: Gitea not ready yet, waiting..."
-				sleep 1
-			done
-		`
-
 		_, err = client.Container().
 			From("alpine:latest").
 			WithExec([]string{"apk", "add", "--no-cache", "wget"}).
@@ -822,27 +844,9 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		}()
 
 		// Wait for Flipt to be ready by checking the health endpoint
-		// This prevents race conditions where tests run before the service is fully initialized
-		healthCheckScript := `
-			set -e
-			echo "Waiting for Flipt to be ready..."
-			for i in $(seq 1 60); do
-				if wget -q -O- http://flipt:8080/health 2>/dev/null; then
-					echo "Flipt is ready!"
-					break
-				fi
-				if [ $i -eq 60 ]; then
-					echo "ERROR: Flipt failed to become ready within 60 seconds"
-					exit 1
-				fi
-				echo "Attempt $i/60: Flipt not ready yet, waiting..."
-				sleep 1
-			done
-		`
-
 		_, err = base.
 			WithServiceBinding("flipt", fliptService).
-			WithExec([]string{"sh", "-c", healthCheckScript}).
+			WithExec([]string{"sh", "-c", fliptHealthCheckScript}).
 			Sync(ctx)
 		if err != nil {
 			return fmt.Errorf("failed waiting for Flipt to be ready: %w", err)

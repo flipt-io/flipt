@@ -47,25 +47,6 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 	}
 
 	// Wait for Gitea to be ready before initializing repositories
-	// This prevents race conditions where stew tries to connect before Gitea is ready
-	giteaReadyScript := `
-		set -e
-		echo "Waiting for Gitea to be ready..."
-		for i in $(seq 1 60); do
-			if wget -q -O- http://gitea:3000 2>/dev/null | grep -q "gitea"; then
-				echo "Gitea is ready!"
-				sleep 2
-				break
-			fi
-			if [ $i -eq 60 ]; then
-				echo "ERROR: Gitea failed to become ready within 60 seconds"
-				exit 1
-			fi
-			echo "Attempt $i/60: Gitea not ready yet, waiting..."
-			sleep 1
-		done
-	`
-
 	_, err = client.Container().
 		From("alpine:latest").
 		WithExec([]string{"apk", "add", "--no-cache", "wget"}).
@@ -146,33 +127,14 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		WithEnvVariable("UNIQUE", time.Now().String()).
 		AsService()
 
-	// Wait for Flipt to be ready by checking the health endpoint
-	// This prevents race conditions where Playwright tests run before the service is fully initialized
-	healthCheckScript := `
-		set -e
-		echo "Waiting for Flipt to be ready..."
-		for i in $(seq 1 60); do
-			if wget -q -O- http://flipt:8080/health 2>/dev/null; then
-				echo "Flipt is ready!"
-				break
-			fi
-			if [ $i -eq 60 ]; then
-				echo "ERROR: Flipt failed to become ready within 60 seconds"
-				exit 1
-			fi
-			echo "Attempt $i/60: Flipt not ready yet, waiting..."
-			sleep 1
-		done
-	`
-
 	test := ui.
 		WithServiceBinding("flipt", fliptService).
 		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
 		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080")
 
-	// Run health check before returning the test container
+	// Wait for Flipt to be ready by checking the health endpoint
 	_, err = test.
-		WithExec([]string{"sh", "-c", healthCheckScript}).
+		WithExec([]string{"sh", "-c", fliptHealthCheckScript}).
 		Sync(ctx)
 	if err != nil {
 		return nil, err
