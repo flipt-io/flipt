@@ -93,7 +93,9 @@ jobs:
               return;
             }
 
-            const commentBody = `👋 Hi @${prInfo.author}!
+            const commentBody = `## Thank you for your contribution! 🎉
+
+            👋 Hi @${prInfo.author}!
 
             The DCO check has failed for this pull request. This means one or more of your commits are missing the required "Signed-off-by" line.
 
