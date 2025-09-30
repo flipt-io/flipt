@@ -1,0 +1,137 @@
+name: Contributing
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  check_suite:
+    types: [completed]
+
+permissions:
+  pull-requests: write
+  checks: read
+
+jobs:
+  dco-check:
+    name: DCO Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'failure'
+    steps:
+      - name: Get PR number and author
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pulls = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${context.payload.check_suite.head_branch}`,
+              state: 'open'
+            });
+
+            if (pulls.data.length === 0) {
+              console.log('No open PR found for this branch');
+              return null;
+            }
+
+            const pr = pulls.data[0];
+            return {
+              number: pr.number,
+              author: pr.user.login
+            };
+
+      - name: Check if DCO failed
+        id: dco-check
+        if: steps.pr.outputs.result != 'null'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const checkSuiteId = context.payload.check_suite.id;
+
+            const checkRuns = await github.rest.checks.listForSuite({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_suite_id: checkSuiteId
+            });
+
+            const dcoCheck = checkRuns.data.check_runs.find(
+              run => run.name.toLowerCase().includes('dco') || run.app.slug === 'dco'
+            );
+
+            if (dcoCheck && dcoCheck.conclusion === 'failure') {
+              console.log('DCO check failed');
+              return {
+                failed: true,
+                url: dcoCheck.html_url,
+                checkRunId: dcoCheck.id
+              };
+            }
+
+            return { failed: false };
+
+      - name: Comment on PR
+        if: steps.pr.outputs.result != 'null' && fromJSON(steps.dco-check.outputs.result).failed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prInfo = ${{ steps.pr.outputs.result }};
+            const checkInfo = ${{ steps.dco-check.outputs.result }};
+
+            // Check if we've already commented
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prInfo.number
+            });
+
+            const botComment = comments.data.find(
+              comment => comment.user.type === 'Bot' &&
+                         comment.body.includes('DCO check has failed')
+            );
+
+            if (botComment) {
+              console.log('Already commented on this PR about DCO');
+              return;
+            }
+
+            const commentBody = `👋 Hi @${prInfo.author}!
+
+            The DCO check has failed for this pull request. This means one or more of your commits are missing the required "Signed-off-by" line.
+
+            ## How to fix this
+
+            You need to sign off your commits to certify that you have the right to submit your code under the project's license. Here's how:
+
+            ### For new commits:
+            \`\`\`bash
+            git commit -s -m "your commit message"
+            \`\`\`
+
+            ### To sign off existing commits:
+            \`\`\`bash
+            # For the last commit
+            git commit --amend --signoff
+
+            # For multiple commits (rebase and sign off each one)
+            git rebase HEAD~<number-of-commits> --signoff
+
+            # Force push to update the PR
+            git push --force-with-lease
+            \`\`\`
+
+            ## What does signing off mean?
+
+            By signing off, you certify that you wrote the code or have the right to submit it under the project's license. See the [Developer Certificate of Origin (DCO)](https://developercertificate.org/) for details.
+
+            ### Failed Check Details
+            - [View the failed DCO check](${checkInfo.url})
+
+            Once you've signed off your commits and pushed the changes, the DCO check will run again automatically.`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prInfo.number,
+              body: commentBody
+            });
+
+            console.log(`Posted DCO help comment on PR #${prInfo.number}`);
