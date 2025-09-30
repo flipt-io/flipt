@@ -599,16 +599,33 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 		DeletedBranchKeys: []string{},
 	}
 
+	// Check if base environment needs updating
+	e.mu.RLock()
+	needsUpdate := false
 	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash {
-		e.logger.Debug("updating base env snapshot",
-			zap.String("environment", e.cfg.Name),
-			zap.String("from", e.refs[e.currentBranch]),
-			zap.String("to", hash),
-		)
+		needsUpdate = true
+	}
+	e.mu.RUnlock()
 
-		e.refs[e.currentBranch] = hash
-		if err := e.updateSnapshot(ctx); err != nil {
-			return nil, err
+	if needsUpdate {
+		if hash, ok := refs[e.currentBranch]; ok {
+			e.mu.RLock()
+			oldRef := e.refs[e.currentBranch]
+			e.mu.RUnlock()
+
+			e.logger.Debug("updating base env snapshot",
+				zap.String("environment", e.cfg.Name),
+				zap.String("from", oldRef),
+				zap.String("to", hash),
+			)
+
+			e.mu.Lock()
+			e.refs[e.currentBranch] = hash
+			e.mu.Unlock()
+
+			if err := e.updateSnapshot(ctx); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -623,7 +640,10 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 	for cfg := range iterator.All() {
 		existingBranches[cfg.Name] = struct{}{}
 
+		e.mu.RLock()
 		env, ok := e.branches[cfg.Name]
+		e.mu.RUnlock()
+
 		// if we dont have an environment for this branch, create one
 		if !ok {
 			env, err = NewEnvironmentFromRepo(
@@ -638,7 +658,10 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				return nil, err
 			}
 
+			e.mu.Lock()
 			e.branches[cfg.Name] = env
+			e.mu.Unlock()
+
 			env.currentBranch = cfg.branch
 			env.base = e.Key()
 			result.NewBranches = append(result.NewBranches, env)
@@ -649,14 +672,21 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 		}
 
 		// otherwise update the snapshot if the branch has advanced
-		if hash, ok := refs[cfg.branch]; ok && e.refs[cfg.branch] != hash {
+		e.mu.RLock()
+		oldRef := e.refs[cfg.branch]
+		e.mu.RUnlock()
+
+		if hash, ok := refs[cfg.branch]; ok && oldRef != hash {
 			e.logger.Debug("updating branch env snapshot",
 				zap.String("environment", cfg.Name),
-				zap.String("from", e.refs[cfg.branch]),
+				zap.String("from", oldRef),
 				zap.String("to", hash),
 			)
 
+			e.mu.Lock()
 			e.refs[cfg.branch] = hash
+			e.mu.Unlock()
+
 			if err := env.updateSnapshot(ctx); err != nil {
 				return nil, err
 			}
@@ -668,6 +698,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 	}
 
 	// Remove branches that no longer exist in Git
+	e.mu.Lock()
 	for branchName := range e.branches {
 		if _, exists := existingBranches[branchName]; !exists {
 			e.logger.Debug("removing deleted branch from cache",
@@ -679,6 +710,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 			result.DeletedBranchKeys = append(result.DeletedBranchKeys, branchName)
 		}
 	}
+	e.mu.Unlock()
 
 	return result, nil
 }
