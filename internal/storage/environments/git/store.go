@@ -586,7 +586,8 @@ func (e *Environment) Notify(ctx context.Context, refs map[string]string) error 
 // RefreshEnvironment refreshes the environment from the remote repository
 // and updates the local environment with the new branches and namespaces
 // it returns the set of newly observed environments to be added to the store
-func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]string) (newBranches []serverenvs.Environment, err error) {
+// and the keys of deleted branches to be removed from the store
+func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]string) (newBranches []serverenvs.Environment, deletedBranchKeys []string, err error) {
 	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash {
 		e.logger.Debug("updating base env snapshot",
 			zap.String("environment", e.cfg.Name),
@@ -596,16 +597,21 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 
 		e.refs[e.currentBranch] = hash
 		if err := e.updateSnapshot(ctx); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	iterator, err := e.listBranchEnvs(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
+	// Track which branches still exist in Git
+	existingBranches := make(map[string]bool)
+
 	for cfg := range iterator.All() {
+		existingBranches[cfg.Name] = true
+
 		env, ok := e.branches[cfg.Name]
 		// if we dont have an environment for this branch, create one
 		if !ok {
@@ -618,7 +624,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
 			)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			e.branches[cfg.Name] = env
@@ -626,7 +632,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 			env.base = e.Key()
 			newBranches = append(newBranches, env)
 			if err := env.updateSnapshot(ctx); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			continue
 		}
@@ -641,16 +647,29 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 
 			e.refs[cfg.branch] = hash
 			if err := env.updateSnapshot(ctx); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 		}
 	}
 
 	if err := iterator.Err(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return newBranches, nil
+	// Remove branches that no longer exist in Git
+	for branchName := range e.branches {
+		if !existingBranches[branchName] {
+			e.logger.Debug("removing deleted branch from cache",
+				zap.String("environment", e.cfg.Name),
+				zap.String("branch", branchName),
+			)
+			delete(e.branches, branchName)
+			delete(e.refs, fmt.Sprintf("flipt/%s/%s", e.cfg.Name, branchName))
+			deletedBranchKeys = append(deletedBranchKeys, branchName)
+		}
+	}
+
+	return newBranches, deletedBranchKeys, nil
 }
 
 func (e *Environment) updateSnapshot(ctx context.Context) error {
