@@ -669,7 +669,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 
 	// Remove branches that no longer exist in Git
 	for branchName := range e.branches {
-		if !existingBranches[branchName] {
+		if _, exists := existingBranches[branchName]; !exists {
 			e.logger.Debug("removing deleted branch from cache",
 				zap.String("environment", e.cfg.Name),
 				zap.String("branch", branchName),
