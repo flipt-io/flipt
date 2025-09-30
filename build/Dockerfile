@@ -1,8 +1,8 @@
 # https://goreleaser.com/docker/
 
-ARG BINARY=flipt
-
 FROM alpine:3.22.1
+
+ARG BINARY=flipt
 
 LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
