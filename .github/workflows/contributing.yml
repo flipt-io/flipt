@@ -118,39 +118,11 @@ jobs:
 
             const commentBody = `## Thank you for your contribution! 🎉
 
-            👋 Hi @${prInfo.author}!
+👋 Hi @${prInfo.author}!
 
-            The DCO check has failed for this pull request. This means one or more of your commits are missing the required "Signed-off-by" line.
+The DCO check has failed for this pull request. This means one or more of your commits are missing the required "Signed-off-by" line.
 
-            ## How to fix this
-
-            You need to sign off your commits to certify that you have the right to submit your code under the project's license. Here's how:
-
-            ### For new commits:
-            \`\`\`bash
-            git commit -s -m "your commit message"
-            \`\`\`
-
-            ### To sign off existing commits:
-            \`\`\`bash
-            # For the last commit
-            git commit --amend --signoff
-
-            # For multiple commits (rebase and sign off each one)
-            git rebase HEAD~<number-of-commits> --signoff
-
-            # Force push to update the PR
-            git push --force-with-lease
-            \`\`\`
-
-            ## What does signing off mean?
-
-            By signing off, you certify that you wrote the code or have the right to submit it under the project's license. See the [Developer Certificate of Origin (DCO)](https://developercertificate.org/) for details.
-
-            ### Failed Check Details
-            - [View the failed DCO check](${checkInfo.url})
-
-            Once you've signed off your commits and pushed the changes, the DCO check will run again automatically.`;
+Please see the [failed DCO check](${checkInfo.url}) for detailed instructions on how to sign your commits.`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
