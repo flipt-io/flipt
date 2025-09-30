@@ -38,6 +38,12 @@ jobs:
               pull_number: prNumber
             });
 
+            // Skip if PR author is a bot
+            if (pr.user.type === 'Bot') {
+              console.log('PR author is a bot, skipping');
+              return null;
+            }
+
             return {
               number: pr.number,
               author: pr.user.login
