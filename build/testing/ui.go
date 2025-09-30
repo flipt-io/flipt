@@ -118,10 +118,9 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		return nil, err
 	}
 
-	flipt, err = flipt.Sync(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// Note: Do not call Sync() on flipt container here as it causes DNS resolution issues
+	// See: https://github.com/dagger/dagger/issues/6493
+	// Calling Sync() on a container with service bindings can break subsequent service networking
 
 	fliptService := flipt.
 		WithEnvVariable("CI", os.Getenv("CI")).
