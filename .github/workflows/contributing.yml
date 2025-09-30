@@ -118,11 +118,11 @@ jobs:
 
             const commentBody = `## Thank you for your contribution! 🎉
 
-👋 Hi @${prInfo.author}!
+            👋 Hi @${prInfo.author}!
 
-The DCO check has failed for this pull request. This means one or more of your commits are missing the required "Signed-off-by" line.
+            The DCO check has failed for this pull request. This means one or more of your commits are missing the required "Signed-off-by" line.
 
-Please see the [failed DCO check](${checkInfo.url}) for detailed instructions on how to sign your commits.`;
+            Please see the [failed DCO check](${checkInfo.url}) for detailed instructions on how to sign your commits.`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
