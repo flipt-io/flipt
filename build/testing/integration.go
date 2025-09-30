@@ -494,6 +494,36 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 			return func() error { return err }
 		}
 
+		// Wait for Gitea to be ready before initializing repositories
+		// This prevents race conditions where stew tries to connect before Gitea is ready
+		giteaReadyScript := `
+			set -e
+			echo "Waiting for Gitea to be ready..."
+			for i in $(seq 1 60); do
+				if wget -q -O- http://gitea:3000 2>/dev/null | grep -q "gitea"; then
+					echo "Gitea is ready!"
+					sleep 2
+					break
+				fi
+				if [ $i -eq 60 ]; then
+					echo "ERROR: Gitea failed to become ready within 60 seconds"
+					exit 1
+				fi
+				echo "Attempt $i/60: Gitea not ready yet, waiting..."
+				sleep 1
+			done
+		`
+
+		_, err = client.Container().
+			From("alpine:latest").
+			WithExec([]string{"apk", "add", "--no-cache", "wget"}).
+			WithServiceBinding("gitea", gitea).
+			WithExec([]string{"sh", "-c", giteaReadyScript}).
+			Sync(ctx)
+		if err != nil {
+			return func() error { return fmt.Errorf("failed waiting for Gitea to be ready: %w", err) }
+		}
+
 		_, err = client.Container().
 			From("ghcr.io/flipt-io/stew:latest").
 			WithWorkdir("/work").
@@ -790,6 +820,33 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			// Explicitly stop the service to trigger graceful shutdown
 			_, _ = fliptService.Stop(ctx)
 		}()
+
+		// Wait for Flipt to be ready by checking the health endpoint
+		// This prevents race conditions where tests run before the service is fully initialized
+		healthCheckScript := `
+			set -e
+			echo "Waiting for Flipt to be ready..."
+			for i in $(seq 1 60); do
+				if wget -q -O- http://flipt:8080/health 2>/dev/null; then
+					echo "Flipt is ready!"
+					break
+				fi
+				if [ $i -eq 60 ]; then
+					echo "ERROR: Flipt failed to become ready within 60 seconds"
+					exit 1
+				fi
+				echo "Attempt $i/60: Flipt not ready yet, waiting..."
+				sleep 1
+			done
+		`
+
+		_, err = base.
+			WithServiceBinding("flipt", fliptService).
+			WithExec([]string{"sh", "-c", healthCheckScript}).
+			Sync(ctx)
+		if err != nil {
+			return fmt.Errorf("failed waiting for Flipt to be ready: %w", err)
+		}
 
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).
