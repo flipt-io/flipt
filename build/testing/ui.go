@@ -46,40 +46,13 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		return nil, err
 	}
 
-	// Get Gitea service endpoint to avoid DNS resolution issues with service bindings
-	giteaEndpoint, err := gitea.Endpoint(ctx, dagger.ServiceEndpointOpts{
-		Scheme: "http",
-		Port:   3000,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	// Wait for Gitea to be ready before initializing repositories
-	// Use the endpoint URL directly to avoid DNS issues
-	giteaHealthCheck := `
-		set -e
-		echo "Waiting for Gitea to be ready at ` + giteaEndpoint + `..."
-		for i in $(seq 1 60); do
-			if wget -q -O- ` + giteaEndpoint + ` 2>/dev/null | grep -q "gitea"; then
-				echo "Gitea is ready!"
-				sleep 2
-				break
-			fi
-			if [ $i -eq 60 ]; then
-				echo "ERROR: Gitea failed to become ready within 60 seconds"
-				exit 1
-			fi
-			echo "Attempt $i/60: Gitea not ready yet, waiting..."
-			sleep 1
-		done
-	`
-
+	// Must use service binding for DNS resolution to work
 	_, err = client.Container().
 		From("alpine:latest").
 		WithExec([]string{"apk", "add", "--no-cache", "wget"}).
 		WithServiceBinding("gitea", gitea).
-		WithExec([]string{"sh", "-c", giteaHealthCheck}).
+		WithExec([]string{"sh", "-c", giteaReadyScript}).
 		Sync(ctx)
 	if err != nil {
 		return nil, err
@@ -155,41 +128,17 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		WithEnvVariable("UNIQUE", time.Now().String()).
 		AsService()
 
-	// Get Flipt service endpoint to avoid DNS resolution issues with service bindings
-	fliptEndpoint, err := fliptService.Endpoint(ctx, dagger.ServiceEndpointOpts{
-		Scheme: "http",
-		Port:   8080,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Wait for Flipt to be ready by checking the health endpoint
-	// Use the endpoint URL directly to avoid DNS issues
-	fliptHealthCheck := `
-		set -e
-		echo "Waiting for Flipt to be ready at ` + fliptEndpoint + `..."
-		for i in $(seq 1 60); do
-			if wget -q -O- ` + fliptEndpoint + `/health 2>/dev/null; then
-				echo "Flipt is ready!"
-				break
-			fi
-			if [ $i -eq 60 ]; then
-				echo "ERROR: Flipt failed to become ready within 60 seconds"
-				exit 1
-			fi
-			echo "Attempt $i/60: Flipt not ready yet, waiting..."
-			sleep 1
-		done
-	`
-
+	// Build test container with service binding and Flipt binary
+	// Then run health check within the same container that has the binding
 	test := ui.
 		WithServiceBinding("flipt", fliptService).
 		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
-		WithEnvVariable("FLIPT_ADDRESS", fliptEndpoint)
+		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080")
 
+	// Wait for Flipt to be ready by checking the health endpoint
+	// Run the health check within the test container that has the service binding
 	_, err = test.
-		WithExec([]string{"sh", "-c", fliptHealthCheck}).
+		WithExec([]string{"sh", "-c", fliptHealthCheckScript}).
 		Sync(ctx)
 	if err != nil {
 		return nil, err
