@@ -442,7 +442,7 @@ func (s *environmentSubscriber) Notify(ctx context.Context, refs map[string]stri
 
 type repoEnv interface {
 	Repository() *storagegit.Repository
-	RefreshEnvironment(context.Context, map[string]string) ([]serverconfig.Environment, error)
+	RefreshEnvironment(context.Context, map[string]string) (*environmentsgit.RefreshResult, error)
 	Branches() []string
 }
 
@@ -490,12 +490,15 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 					return gitEnv.Branches()
 				},
 				notifyFn: func(ctx context.Context, refs map[string]string) error {
-					newEnvs, err := gitEnv.RefreshEnvironment(ctx, refs)
+					result, err := gitEnv.RefreshEnvironment(ctx, refs)
 					if err != nil {
 						return err
 					}
-					for _, e := range newEnvs {
+					for _, e := range result.NewBranches {
 						envStore.Add(e)
+					}
+					for _, key := range result.DeletedBranchKeys {
+						envStore.Remove(key)
 					}
 					return nil
 				},

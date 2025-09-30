@@ -153,6 +153,13 @@ func (e *EnvironmentStore) Add(env Environment) {
 	e.byKey[env.Key()] = env
 }
 
+func (e *EnvironmentStore) Remove(key string) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	delete(e.byKey, key)
+}
+
 func (e *EnvironmentStore) DeleteBranch(ctx context.Context, base, branch string) error {
 	baseEnv, err := e.Get(ctx, base)
 	if err != nil {

@@ -202,16 +202,79 @@ func Test_Environment_RefreshEnvironment(t *testing.T) {
 		return nil
 	})
 
-	newBranches, err := env.RefreshEnvironment(ctx, refs)
+	result, err := env.RefreshEnvironment(ctx, refs)
 	require.NoError(t, err)
-	assert.NotEmpty(t, newBranches)
+	assert.NotEmpty(t, result.NewBranches)
+	assert.Empty(t, result.DeletedBranchKeys)
 	found := false
-	for _, b := range newBranches {
+	for _, b := range result.NewBranches {
 		if b.Key() == "testbranch" {
 			found = true
 		}
 	}
 	assert.True(t, found, "expected to find new branch environment 'testbranch'")
+}
+
+func Test_Environment_RefreshEnvironment_DeletedBranches(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	// Create a branch in the repo
+	branchName := "flipt/production/testbranch"
+	err := env.repo.CreateBranchIfNotExists(ctx, branchName, storagegit.WithBase(env.currentBranch))
+	require.NoError(t, err)
+
+	// First refresh to add the branch to environment
+	references, err := env.repo.References()
+	require.NoError(t, err)
+	refs := map[string]string{}
+	_ = references.ForEach(func(r *plumbing.Reference) error {
+		if r.Name().IsRemote() {
+			refs[strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")] = r.Hash().String()
+		}
+		return nil
+	})
+
+	result, err := env.RefreshEnvironment(ctx, refs)
+	require.NoError(t, err)
+	assert.Len(t, result.NewBranches, 1)
+	assert.Empty(t, result.DeletedBranchKeys)
+	assert.Equal(t, "testbranch", result.NewBranches[0].Key())
+
+	// Verify the branch is in the environment's branches map
+	assert.Contains(t, env.branches, "testbranch")
+
+	// Delete the branch from Git (both local and remote tracking ref)
+	err = env.repo.DeleteBranch(ctx, branchName)
+	require.NoError(t, err)
+
+	// Also need to remove the remote tracking reference since we're using in-memory storage
+	remoteRef := plumbing.NewRemoteReferenceName("origin", branchName)
+	_ = env.repo.Storer.RemoveReference(remoteRef)
+
+	// Refresh references after deletion
+	references, err = env.repo.References()
+	require.NoError(t, err)
+	refs = map[string]string{}
+	_ = references.ForEach(func(r *plumbing.Reference) error {
+		if r.Name().IsRemote() {
+			refs[strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")] = r.Hash().String()
+		}
+		return nil
+	})
+
+	// Verify the branch is not in refs anymore
+	assert.NotContains(t, refs, branchName, "deleted branch should not be in refs")
+
+	// Second refresh should detect the deleted branch
+	result, err = env.RefreshEnvironment(ctx, refs)
+	require.NoError(t, err)
+	assert.Empty(t, result.NewBranches, "should not find any new branches")
+	assert.Len(t, result.DeletedBranchKeys, 1, "should find one deleted branch")
+	assert.Equal(t, "testbranch", result.DeletedBranchKeys[0])
+
+	// Verify the branch is removed from the environment's branches map
+	assert.NotContains(t, env.branches, "testbranch")
 }
 
 func Test_Environment_GetAndListNamespaces(t *testing.T) {

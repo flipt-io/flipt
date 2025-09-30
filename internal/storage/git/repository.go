@@ -338,6 +338,7 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		CABundle:        r.caBundle,
 		InsecureSkipTLS: r.insecureSkipTLS,
 		RefSpecs:        refSpecs,
+		Prune:           true,
 	}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return err
 	}
