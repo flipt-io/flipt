@@ -1,39 +1,43 @@
 name: Contributing
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  check_suite:
+  workflow_run:
+    workflows: ["*"]
     types: [completed]
 
 permissions:
   pull-requests: write
   checks: read
+  actions: read
 
 jobs:
   dco-check:
     name: DCO Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'failure'
+    if: github.event.workflow_run.conclusion == 'failure'
     steps:
       - name: Get PR number and author
         id: pr
         uses: actions/github-script@v7
         with:
           script: |
-            const pulls = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              head: `${context.repo.owner}:${context.payload.check_suite.head_branch}`,
-              state: 'open'
-            });
+            // Get pull requests associated with this workflow run
+            const pullRequests = github.event.workflow_run.pull_requests;
 
-            if (pulls.data.length === 0) {
-              console.log('No open PR found for this branch');
+            if (!pullRequests || pullRequests.length === 0) {
+              console.log('No pull requests associated with this workflow run');
               return null;
             }
 
-            const pr = pulls.data[0];
+            const prNumber = pullRequests[0].number;
+
+            // Get full PR details including author
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
             return {
               number: pr.number,
               author: pr.user.login
@@ -45,17 +49,30 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const checkSuiteId = context.payload.check_suite.id;
+            const workflowRunId = context.payload.workflow_run.id;
 
-            const checkRuns = await github.rest.checks.listForSuite({
+            // Get check suites for this workflow run
+            const { data: checkSuites } = await github.rest.checks.listSuitesForRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              check_suite_id: checkSuiteId
+              ref: context.payload.workflow_run.head_sha
             });
 
-            const dcoCheck = checkRuns.data.check_runs.find(
-              run => run.name.toLowerCase().includes('dco') || run.app.slug === 'dco'
-            );
+            // Find DCO check across all check suites
+            let dcoCheck = null;
+            for (const suite of checkSuites.check_suites) {
+              const { data: checkRuns } = await github.rest.checks.listForSuite({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                check_suite_id: suite.id
+              });
+
+              dcoCheck = checkRuns.check_runs.find(
+                run => run.name.toLowerCase().includes('dco') || run.app?.slug === 'dco'
+              );
+
+              if (dcoCheck) break;
+            }
 
             if (dcoCheck && dcoCheck.conclusion === 'failure') {
               console.log('DCO check failed');
