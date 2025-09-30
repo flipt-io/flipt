@@ -717,9 +717,11 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 	e.mu.Lock()
 	for branchName := range e.branches {
 		if _, exists := existingBranches[branchName]; !exists {
+			env := e.branches[branchName]
 			e.logger.Debug("removing deleted branch from cache",
 				zap.String("environment", e.cfg.Name),
 				zap.String("branch", branchName),
+				zap.String("environment_key", env.Key()),
 			)
 			delete(e.branches, branchName)
 			delete(e.refs, fmt.Sprintf("flipt/%s/%s", e.cfg.Name, branchName))
