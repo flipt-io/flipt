@@ -11,13 +11,13 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Directory, platform platforms.Platform, registryCache ...string) (*dagger.Container, error) {
+func Base(ctx context.Context, client *dagger.Client, source, uiDist *dagger.Directory, platform platforms.Platform, registryCache ...string) (*dagger.Container, error) {
 	var (
 		goBuildCachePath = "/root/.cache/go-build"
 		goModCachePath   = "/go/pkg/mod"
 	)
 
-	golang := dag.Container(dagger.ContainerOpts{
+	golang := client.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(platform)),
 	})
 
@@ -60,7 +60,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 	}
 
 	// infer mod and sum files from the contents of the work file.
-	src := dag.Directory().
+	src := client.Directory().
 		WithFile("go.work", goWork).
 		WithFile("go.work.sum", source.File("go.work.sum"))
 
@@ -74,8 +74,8 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 
 	// Use cache volumes for Go modules
 	var (
-		cacheGoBuild = dag.CacheVolume("go-build-cache")
-		cacheGoMod   = dag.CacheVolume("go-mod-cache")
+		cacheGoBuild = client.CacheVolume("go-build-cache")
+		cacheGoMod   = client.CacheVolume("go-mod-cache")
 	)
 
 	golang = golang.WithEnvVariable("GOOS", platform.OS).
@@ -99,7 +99,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 	golang = golang.WithMountedDirectory(".", project)
 
 	// fetch and add ui/embed.go on its own
-	embed := dag.Directory().WithFiles("./ui", []*dagger.File{
+	embed := client.Directory().WithFiles("./ui", []*dagger.File{
 		source.File("./ui/dev.go"),
 		source.File("./ui/embed.go"),
 		source.File("./ui/index.dev.html"),

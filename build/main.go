@@ -25,6 +25,10 @@ import (
 	"go.flipt.io/build/testing"
 )
 
+// Note: 'dag' is a global variable automatically injected by the Dagger runtime.
+// IDEs may try to auto-import "dagger.io/dagger/dag" when they see dag. in the code.
+// This import is incorrect and should NOT be added. If your IDE adds it, remove it.
+
 type Flipt struct {
 	Source        *dagger.Directory
 	BaseContainer *dagger.Container
