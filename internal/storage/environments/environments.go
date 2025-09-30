@@ -498,9 +498,6 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 						envStore.Add(e)
 					}
 					for _, key := range result.DeletedBranchKeys {
-						logger.Debug("removing environment from store",
-							zap.String("key", key),
-						)
 						envStore.Remove(key)
 					}
 					return nil
