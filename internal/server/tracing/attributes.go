@@ -41,6 +41,6 @@ func ReasonToValue(reason evaluation.EvaluationReason) string {
 	return evaluationReasonToValues[reason]
 }
 
-func ReasonFromValue(vallue string) evaluation.EvaluationReason {
+func ReasonFromValue(value string) evaluation.EvaluationReason {
 	return evaluationReasonToNames[vallue]
 }
