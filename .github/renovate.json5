@@ -2,7 +2,7 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["config:recommended"],
   dependencyDashboardApproval: false,
-  baseBranchPatterns: ["main", "v2"],
+  baseBranchPatterns: ["main"],
   timezone: "America/New_York",
   schedule: [
     "after 10pm every weekday",
@@ -27,14 +27,14 @@
     },
     {
       matchManagers: ["gomod"],
-      matchBaseBranches: ["main", "v2"],
+      matchBaseBranches: ["main"],
       labels: ["dependencies", "go", "automerge"],
       matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
       matchManagers: ["npm"],
-      matchBaseBranches: ["main", "v2"],
+      matchBaseBranches: ["main"],
       matchFileNames: ["/ui/**"],
       labels: ["dependencies", "javascript", "automerge"],
       matchUpdateTypes: ["minor", "patch"],
@@ -42,14 +42,14 @@
     },
     {
       matchManagers: ["github-actions"],
-      matchBaseBranches: ["main", "v2"],
+      matchBaseBranches: ["main"],
       labels: ["dependencies", "github_actions", "automerge"],
       matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
       matchManagers: ["dockerfile"],
-      matchBaseBranches: ["main", "v2"],
+      matchBaseBranches: ["main"],
       matchFileNames: ["/build/**"],
       labels: ["dependencies", "docker", "automerge"],
       matchUpdateTypes: ["minor", "patch"],

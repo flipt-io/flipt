@@ -28,8 +28,8 @@
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.3",
-    "@mui/material": "^7.3.1",
-    "@mui/x-charts": "^8.10.2",
+    "@mui/material": "^7.3.2",
+    "@mui/x-charts": "^8.13.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -66,7 +66,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.26.0",
+    "@babel/preset-typescript": "^7.27.1",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/forms": "^0.5.10",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
@@ -103,7 +103,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "knip": "^5.62.0",
     "package-changed": "^3.0.0",
-    "playwright": "^1.54.2",
+    "playwright": "^1.55.1",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^3.2.4",
