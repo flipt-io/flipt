@@ -60,11 +60,6 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	if s.tracingEnabled {
 		// add otel attributes to span
 		span := trace.SpanFromContext(ctx)
-		span.SetAttributes(
-			tracing.AttributeProviderName,
-			tracing.AttributeFlagKey(r.FlagKey),
-			tracing.AttributeFlagVariant(resp.VariantKey),
-		)
 		span.AddEvent(tracing.Event, trace.WithAttributes(
 			tracing.AttributeEnvironment.String(env.Key()),
 			tracing.AttributeNamespace.String(r.NamespaceKey),
@@ -72,8 +67,8 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 			tracing.AttributeEntityID.String(r.EntityId),
 			tracing.AttributeRequestID.String(r.RequestId),
 			tracing.AttributeMatch.Bool(resp.Match),
-			tracing.AttributeValue.String(resp.VariantKey),
-			tracing.AttributeReason.String(resp.Reason.String()),
+			tracing.AttributeVariant.String(resp.VariantKey),
+			tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 			tracing.AttributeFlagTypeVariant,
 		))
@@ -306,19 +301,14 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	if s.tracingEnabled {
 		// add otel attributes to span
 		span := trace.SpanFromContext(ctx)
-		span.SetAttributes(
-			tracing.AttributeProviderName,
-			tracing.AttributeFlagKey(r.FlagKey),
-			tracing.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
-		)
 		span.AddEvent(tracing.Event, trace.WithAttributes(
 			tracing.AttributeEnvironment.String(env.Key()),
 			tracing.AttributeNamespace.String(r.NamespaceKey),
 			tracing.AttributeFlag.String(r.FlagKey),
 			tracing.AttributeEntityID.String(r.EntityId),
 			tracing.AttributeRequestID.String(r.RequestId),
-			tracing.AttributeValue.Bool(resp.Enabled),
-			tracing.AttributeReason.String(resp.Reason.String()),
+			tracing.AttributeVariant.Bool(resp.Enabled),
+			tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 			tracing.AttributeFlagTypeBoolean,
 		))
