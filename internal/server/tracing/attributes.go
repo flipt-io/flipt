@@ -42,5 +42,5 @@ func ReasonToValue(reason evaluation.EvaluationReason) string {
 }
 
 func ReasonFromValue(value string) evaluation.EvaluationReason {
-	return evaluationReasonToNames[vallue]
+	return evaluationReasonToNames[value]
 }
