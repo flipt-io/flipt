@@ -112,6 +112,8 @@ export const environmentsApi = createApi({
   reducerPath: 'environments-api',
   baseQuery,
   tagTypes: ['Environment', 'BranchEnvironment'],
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
   endpoints: (builder) => ({
     listEnvironments: builder.query<{ environments: IEnvironment[] }, void>({
       query: () => '',

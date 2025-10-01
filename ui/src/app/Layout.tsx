@@ -45,7 +45,10 @@ function InnerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const environments = useListEnvironmentsQuery();
+  const environments = useListEnvironmentsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    pollingInterval: 30000 // Poll every 30 seconds to detect upstream changes
+  });
 
   const currentEnvironment = useSelector(selectCurrentEnvironment);
   const currentNamespace = useSelector(selectCurrentNamespace);
