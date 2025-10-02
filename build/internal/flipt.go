@@ -121,6 +121,9 @@ use (
 		Permissions: 0644,
 	})
 
+	// Sync the workspace to generate go.work.sum and validate the configuration
+	golang = golang.WithExec([]string{"go", "work", "sync"})
+
 	// fetch and add ui/embed.go on its own
 	embed := dag.Directory().WithFiles("./ui", []*dagger.File{
 		source.File("./ui/dev.go"),
