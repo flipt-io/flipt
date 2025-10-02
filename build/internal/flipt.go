@@ -75,6 +75,33 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 	golang = golang.WithEnvVariable("CGO_ENABLED", "1").
 		WithMountedDirectory(".", project)
 
+	// Create go.work file to enable multi-module support for tests
+	// that run commands in submodules (e.g., go run ./build/internal/cmd/...)
+	goWorkContent := `go 1.25.0
+
+use (
+	.
+	./build
+	./core
+	./errors
+	./rpc/flipt
+	./sdk/go
+)
+`
+	golang = golang.WithNewFile("/src/go.work", goWorkContent, dagger.ContainerWithNewFileOpts{
+		Permissions: 0644,
+	})
+
+	// Sync the workspace to generate go.work.sum and validate the configuration
+	golang = golang.WithExec([]string{"go", "work", "sync"})
+
+	// Download dependencies for ALL workspace modules (now that workspace is configured)
+	// This ensures modules like 'build' have their dependencies available
+	golang = golang.WithExec([]string{"go", "mod", "download"})
+	if _, err := golang.Sync(ctx); err != nil {
+		return nil, fmt.Errorf("downloading workspace dependencies: %w", err)
+	}
+
 	// fetch and add ui/embed.go on its own
 	embed := dag.Directory().WithFiles("./ui", []*dagger.File{
 		source.File("./ui/dev.go"),
