@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **CLI license management**: New `flipt license` command with interactive TUI wizard for managing Flipt Pro licenses (#4767)
-- **DCO check automation**: Automated Developer Certificate of Origin (DCO) check workflow for contributor assistance (#4776)
 - **Boolean evaluation**: Include segments in boolean flag evaluation response for consistency (#4767)
 
 ### Fixed
