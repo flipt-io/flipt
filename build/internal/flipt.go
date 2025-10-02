@@ -52,14 +52,16 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		WithFile("go.mod", source.File("go.mod")).
 		WithFile("go.sum", source.File("go.sum"))
 
-	// Mount submodule dependency files referenced in replace directives
+	// Mount submodule dependency files for all modules with replace directives
 	submodules := []string{
+		"build",
 		"core",
 		"errors",
 		"rpc/flipt",
 		"rpc/v2/environments",
 		"rpc/v2/evaluation",
 		"sdk/go",
+		"sdk/go/v2",
 	}
 
 	for _, submodule := range submodules {
