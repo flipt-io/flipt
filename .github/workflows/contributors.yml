@@ -2,7 +2,7 @@ name: Contributor Assistant
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    types: [opened]
   check_run:
     types: [completed]
 
@@ -14,12 +14,13 @@ permissions:
 jobs:
   post-dco-comment:
     runs-on: ubuntu-latest
-    # Only run if triggered by PR events or if a check_run named "DCO" failed
+    # Only run for PR opened events or when DCO check specifically fails
     if: |
       github.event_name == 'pull_request_target' || 
       (github.event_name == 'check_run' && 
        github.event.check_run.name == 'DCO' && 
-       github.event.check_run.conclusion == 'failure')
+       github.event.check_run.conclusion == 'failure' &&
+       github.event.check_run.pull_requests[0] != null)
     steps:
       - name: Get Pull Request and Check DCO Status
         id: check_dco
