@@ -98,24 +98,9 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 
 	golang = golang.WithMountedDirectory(".", project)
 
-	// Create go.work file to enable multi-module support for tests that run commands in submodules
-	goWorkContent := `go 1.25.0
-
-use (
-	.
-	./build
-	./core
-	./errors
-	./rpc/flipt
-	./rpc/v2/environments
-	./rpc/v2/evaluation
-	./sdk/go
-	./sdk/go/v2
-)
-`
-	golang = golang.WithNewFile("/src/go.work", goWorkContent, dagger.ContainerWithNewFileOpts{
-		Permissions: 0644,
-	})
+	// Copy go.work.container to go.work to enable multi-module support for tests
+	// that run commands in submodules (e.g., go run ./build/internal/cmd/gitea/...)
+	golang = golang.WithFile("/src/go.work", source.File("build/go.work.container"))
 
 	// fetch and add ui/embed.go on its own
 	embed := dag.Directory().WithFiles("./ui", []*dagger.File{
