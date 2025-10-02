@@ -71,6 +71,6 @@ _tools
 .claude*
 .cursor*
 
-# Go workspace files
+# Go workspace files (for local development)
 go.work
 go.work.sum
