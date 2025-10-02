@@ -8,7 +8,6 @@ import (
 
 	"github.com/containerd/platforms"
 	"go.flipt.io/build/internal/dagger"
-	"golang.org/x/mod/modfile"
 )
 
 func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Directory, platform platforms.Platform, registryCache ...string) (*dagger.Container, error) {
@@ -48,25 +47,24 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		}
 	}
 
-	goWork := source.File("go.work")
-	work, err := goWork.Contents(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	workFile, err := modfile.ParseWork("go.work", []byte(work), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// infer mod and sum files from the contents of the work file.
+	// Mount the main module's go.mod and go.sum
 	src := dag.Directory().
-		WithFile("go.work", goWork).
-		WithFile("go.work.sum", source.File("go.work.sum"))
+		WithFile("go.mod", source.File("go.mod")).
+		WithFile("go.sum", source.File("go.sum"))
 
-	for _, use := range workFile.Use {
-		mod := path.Join(use.Path, "go.mod")
-		sum := path.Join(use.Path, "go.sum")
+	// Mount submodule dependency files referenced in replace directives
+	submodules := []string{
+		"core",
+		"errors",
+		"rpc/flipt",
+		"rpc/v2/environments",
+		"rpc/v2/evaluation",
+		"sdk/go",
+	}
+
+	for _, submodule := range submodules {
+		mod := path.Join(submodule, "go.mod")
+		sum := path.Join(submodule, "go.sum")
 		src = src.
 			WithFile(mod, source.File(mod)).
 			WithFile(sum, source.File(sum))
