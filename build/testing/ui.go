@@ -2,6 +2,7 @@ package testing
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -12,11 +13,17 @@ import (
 
 func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, ui *dagger.Directory, trace bool) (*dagger.Container, error) {
 	// create unique instance for test case
-	gitea := client.Container().
+	giteaService := client.Container().
 		From("gitea/gitea:1.21.1").
 		WithExposedPort(3000).
 		WithEnvVariable("UNIQUE", time.Now().String()).
 		AsService()
+
+	// Explicitly start the Gitea service
+	giteaService, err := giteaService.Start(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start Gitea service: %w", err)
+	}
 
 	contents, err := yaml.Marshal(&config.Config{
 		URL: "http://gitea:3000",
@@ -51,7 +58,7 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithWorkdir("/work").
 		WithDirectory("/work/base", base.Directory(environmentsTestdataDir)).
 		WithNewFile("/etc/stew/config.yml", string(contents)).
-		WithServiceBinding("gitea", gitea).
+		WithServiceBinding("gitea", giteaService).
 		WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 		Sync(ctx)
 	if err != nil {
@@ -59,7 +66,7 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 	}
 
 	flipt = flipt.
-		WithServiceBinding("gitea", gitea).
+		WithServiceBinding("gitea", giteaService).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_HOST", "flipt").
 		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_ORGANIZATION", "myorg").
@@ -111,11 +118,19 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		return nil, err
 	}
 
+	// Create and explicitly start the Flipt service
+	fliptService := flipt.
+		WithEnvVariable("CI", os.Getenv("CI")).
+		WithEnvVariable("UNIQUE", time.Now().String()).
+		AsService()
+
+	fliptService, err = fliptService.Start(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start Flipt service: %w", err)
+	}
+
 	return ui.
-		WithServiceBinding("flipt", flipt.
-			WithEnvVariable("CI", os.Getenv("CI")).
-			WithEnvVariable("UNIQUE", time.Now().String()).
-			AsService()).
+		WithServiceBinding("flipt", fliptService).
 		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
 		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080"), nil
 }

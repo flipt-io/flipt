@@ -447,11 +447,17 @@ func ofrepAPI() testCaseFn {
 
 func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-		gitea := client.Container().
+		giteaService := client.Container().
 			From("gitea/gitea:1.23.3").
 			WithExposedPort(3000).
 			WithEnvVariable("UNIQUE", time.Now().String()).
 			AsService()
+
+		// Explicitly start the Gitea service
+		giteaService, err := giteaService.Start(ctx)
+		if err != nil {
+			return func() error { return fmt.Errorf("failed to start Gitea service: %w", err) }
+		}
 
 		stew := config.Config{
 			URL: "http://gitea:3000",
@@ -500,7 +506,7 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 			WithDirectory("/work/default", base.Directory(dataDir)).
 			WithDirectory("/work/production", base.Directory(dataDir)).
 			WithNewFile("/etc/stew/config.yml", string(contents)).
-			WithServiceBinding("gitea", gitea).
+			WithServiceBinding("gitea", giteaService).
 			WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 			Sync(ctx)
 		if err != nil {
@@ -511,7 +517,7 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 			ctx,
 			client,
 			base,
-			flipt.WithServiceBinding("gitea", gitea),
+			flipt.WithServiceBinding("gitea", giteaService),
 			conf,
 		)
 	}
