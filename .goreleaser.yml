@@ -75,12 +75,6 @@ changelog:
     - title: "Other"
       order: 3
 
-  ai:
-    use: anthropic
-    prompt:
-      from_file:
-        path: .github/prompts/release.md
-
 dockers:
   - dockerfile: ./build/Dockerfile
     use: buildx

@@ -135,6 +135,29 @@ func (f *Flipt) Test(
 			WithExec([]string{"apk", "add", "--no-cache", "bash", "git"}).
 			WithMountedDirectory("/src", source).
 			WithWorkdir("/src")
+
+		// Setup Go workspace for test execution
+		// This is needed for tests that run commands in submodules (e.g., go run ./build/internal/cmd/gitea/...)
+		goWorkContent := `go 1.25.0
+
+use (
+	.
+	./build
+	./core
+	./errors
+	./rpc/flipt
+	./rpc/v2/environments
+	./rpc/v2/evaluation
+	./sdk/go
+	./sdk/go/v2
+)
+`
+		f.BaseContainer = f.BaseContainer.
+			WithNewFile("/src/go.work", goWorkContent, dagger.ContainerWithNewFileOpts{
+				Permissions: 0644,
+			}).
+			WithExec([]string{"go", "work", "sync"}).
+			WithExec([]string{"go", "mod", "download"})
 	} else {
 		// Fall back to normal build process
 		flipt, err = f.Build(ctx, source, "", "")

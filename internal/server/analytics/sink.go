@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/server/tracing"
+	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
@@ -63,7 +64,12 @@ func transformSpanEventToEvaluationResponses(event sdktrace.Event) ([]*Evaluatio
 		case tracing.AttributeFlag:
 			r.FlagKey = v.Value.AsString()
 		case tracing.AttributeFlagType:
-			r.FlagType = v.Value.AsString()
+			switch v {
+			case tracing.AttributeFlagTypeVariant:
+				r.FlagType = evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String()
+			case tracing.AttributeFlagTypeBoolean:
+				r.FlagType = evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String()
+			}
 		case tracing.AttributeEntityID:
 			r.EntityId = v.Value.AsString()
 		case tracing.AttributeMatch:
@@ -71,8 +77,8 @@ func transformSpanEventToEvaluationResponses(event sdktrace.Event) ([]*Evaluatio
 				r.Match = ptr.To(v.Value.AsBool())
 			}
 		case tracing.AttributeReason:
-			r.Reason = v.Value.AsString()
-		case tracing.AttributeValue:
+			r.Reason = tracing.ReasonFromValue(v.Value.AsString()).String()
+		case tracing.AttributeVariant:
 			r.EvaluationValue = ptr.To(v.Value.AsString())
 		}
 	}
