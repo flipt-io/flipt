@@ -63,6 +63,26 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 	base = base.
 		WithMountedDirectory(".", fliptDir)
 
+	// After mounting the cloned release, we need to recreate the go.work file
+	// and download dependencies for the cloned version's modules
+	goWorkContent := `go 1.25.0
+
+use (
+	.
+	./build
+	./core
+	./errors
+	./rpc/flipt
+	./sdk/go
+)
+`
+	base = base.
+		WithNewFile("/src/go.work", goWorkContent, dagger.ContainerWithNewFileOpts{
+			Permissions: 0644,
+		}).
+		WithExec([]string{"go", "work", "sync"}).
+		WithExec([]string{"go", "mod", "download"})
+
 	for _, namespace := range []string{"default", "production"} {
 		fi, err := base.File(fmt.Sprintf("build/testing/integration/readonly/testdata/main/%s.yaml", namespace)).Sync(ctx)
 		if err != nil {
