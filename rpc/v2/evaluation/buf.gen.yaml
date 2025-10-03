@@ -13,11 +13,11 @@ plugins:
     opt:
       - paths=source_relative
     strategy: all
-  - remote: buf.build/community/google-gnostic-openapi:v0.7.0
+  - local: protoc-gen-openapiv2
     out: .
     opt:
-      - paths=source_relative
-      - fq_schema_naming=false
-      - default_response=false
-      - enum_type=string
-      - description=
+      - logtostderr=true
+      - json_names_for_fields=false
+      - simple_operation_ids=true
+      - visibility_restriction_selectors=flipt:sdk:ignore
+      - output_format=yaml
