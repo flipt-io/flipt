@@ -3,7 +3,7 @@ name: Contributor Assistant
 on:
   pull_request_target:
     types: [opened]
-  check_run:
+  check_suite:
     types: [completed]
 
 permissions:
@@ -14,13 +14,11 @@ permissions:
 jobs:
   post-dco-comment:
     runs-on: ubuntu-latest
-    # Only run for PR opened events or when DCO check specifically fails
+    # Only run for PR opened events or when check suite completes
     if: |
-      github.event_name == 'pull_request_target' || 
-      (github.event_name == 'check_run' && 
-       github.event.check_run.name == 'DCO' && 
-       github.event.check_run.conclusion == 'failure' &&
-       github.event.check_run.pull_requests[0] != null)
+      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'check_suite' &&
+       github.event.check_suite.pull_requests[0] != null)
     steps:
       - name: Get Pull Request and Check DCO Status
         id: check_dco
@@ -29,16 +27,16 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             let prNumber;
-            
+
             // Get PR number based on event type
             if (context.eventName === 'pull_request_target') {
               prNumber = context.issue.number;
-            } else if (context.eventName === 'check_run') {
-              const pulls = context.payload.check_run.pull_requests;
+            } else if (context.eventName === 'check_suite') {
+              const pulls = context.payload.check_suite.pull_requests;
               if (pulls && pulls.length > 0) {
                 prNumber = pulls[0].number;
               } else {
-                console.log('No PR associated with this check run');
+                console.log('No PR associated with this check suite');
                 return;
               }
             }
