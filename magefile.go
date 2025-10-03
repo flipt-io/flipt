@@ -29,6 +29,18 @@ func Bootstrap() error {
 	fmt.Println(" > Bootstrapping tools...")
 
 	for _, tool := range tools {
+		// Handle tools with their own go.mod separately
+		if tool == "./internal/cmd/protoc-gen-go-flipt-sdk/..." {
+			cmd := exec.Command("go", "install", ".")
+			cmd.Dir = "internal/cmd/protoc-gen-go-flipt-sdk"
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("installing tool %q: %w", tool, err)
+			}
+			continue
+		}
+
 		if err := sh.RunV("go", "install", "-v", tool); err != nil {
 			return fmt.Errorf("installing tool %q: %w", tool, err)
 		}
