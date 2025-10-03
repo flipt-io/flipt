@@ -234,9 +234,14 @@ export function EnvironmentNamespaceSwitcher() {
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
 
   // For the selected environment (base or branch), fetch namespaces
+  // Poll when the popover is open to detect changes
   const { data: namespacesData } = useListNamespacesQuery(
     { environmentKey: selectedEnvironment },
-    { skip: !selectedEnvironment, refetchOnMountOrArgChange: true }
+    {
+      skip: !selectedEnvironment,
+      refetchOnMountOrArgChange: true,
+      pollingInterval: open ? 30000 : 0 // Poll every 30 seconds when open
+    }
   );
   const namespaces = useMemo(
     () => namespacesData?.items ?? [],

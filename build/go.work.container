@@ -1,0 +1,20 @@
+go 1.25.0
+
+// This go.work file is used by the Dagger build container to enable
+// multi-module workspace support. It allows commands like
+// 'go run ./build/internal/cmd/gitea/...' to work correctly from the
+// main module directory by making all submodules part of the workspace.
+//
+// This file is copied to go.work in the container during the build process.
+
+use (
+	.
+	./build
+	./core
+	./errors
+	./rpc/flipt
+	./rpc/v2/environments
+	./rpc/v2/evaluation
+	./sdk/go
+	./sdk/go/v2
+)

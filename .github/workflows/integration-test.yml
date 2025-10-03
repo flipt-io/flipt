@@ -53,7 +53,8 @@ jobs:
         id: cache-key
         run: |
           # Create cache key from git commit and relevant source files
-          key="flipt-$(git rev-parse --short HEAD)-$(find . -name '*.go' -o -name 'go.*' -o -name '*.json' | head -20 | sort | xargs sha256sum | sha256sum | cut -d' ' -f1 | head -c 8)"
+          # Suppress SIGPIPE error from find when head closes the pipe early
+          key="flipt-$(git rev-parse --short HEAD)-$(find . -name '*.go' -o -name 'go.*' -o -name '*.json' 2>/dev/null | head -20 | sort | xargs sha256sum | sha256sum | cut -d' ' -f1 | head -c 8)"
           echo "key=$key" >> $GITHUB_OUTPUT
           echo "Cache key: $key"
 
