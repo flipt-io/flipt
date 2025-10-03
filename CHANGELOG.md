@@ -3,6 +3,28 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0](https://github.com/flipt-io/flipt/releases/tag/v2.2.0) - 2025-10-02
+
+### Added
+
+- **CLI license management**: New `flipt license` command with interactive TUI wizard for managing Flipt Pro licenses (#4767)
+- **Boolean evaluation**: Include segments in boolean flag evaluation response for consistency (#4767)
+
+### Fixed
+
+- **UI environment sync**: Refetch environments when window regains focus or network reconnects to ensure UI stays in sync (#4774)
+- **Git branch cleanup**: Remove deleted branches from UI when synced from Git repositories (#4770)
+- **Docker build**: Correct ARG declaration placement in Dockerfile to resolve build issues (#4772)
+- **OpenTelemetry compatibility**: Resolve schema URL conflicts and update to compatible exporter versions
+
+### Changed
+
+- **OpenTelemetry conventions**: Align event and attribute names with OpenTelemetry semantic conventions specification (#4769)
+
+### Dependencies
+
+- Updated various UI dependencies including @mui/material, @mui/x-charts, and development tools
+
 ## [2.1.3](https://github.com/flipt-io/flipt/releases/tag/v2.1.3) - 2025-09-24
 
 ### Fixed
