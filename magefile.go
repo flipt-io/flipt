@@ -27,8 +27,18 @@ var (
 // Installs tools required for development
 func Bootstrap() error {
 	fmt.Println(" > Bootstrapping tools...")
-
 	for _, tool := range tools {
+		if tool == "./internal/cmd/protoc-gen-go-flipt-sdk/..." {
+			cmd := exec.Command("go", "install", ".")
+
+			cmd.Dir = "internal/cmd/protoc-gen-go-flipt-sdk"
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("installing tool %q: %w", tool, err)
+			}
+			continue
+		}
 		if err := sh.RunV("go", "install", "-v", tool); err != nil {
 			return fmt.Errorf("installing tool %q: %w", tool, err)
 		}
@@ -255,7 +265,10 @@ func (g Go) Lint() error {
 // Generates the Go protobuf files and gRPC stubs
 func (g Go) Proto() error {
 	mg.Deps(Bootstrap)
-
+	cmdArgs := []string{"buf", "generate"}
+	if _, err := exec.LookPath("buf"); err != nil {
+		cmdArgs = []string{"go", "tool", "github.com/bufbuild/buf/cmd/buf", "generate"}
+	}
 	fmt.Println(" > Generating proto files...")
 	for _, module := range []string{
 		"rpc/flipt",
@@ -263,7 +276,7 @@ func (g Go) Proto() error {
 		"rpc/v2/analytics",
 		"rpc/v2/evaluation",
 	} {
-		cmd := exec.Command("go", "tool", "github.com/bufbuild/buf/cmd/buf", "generate")
+		cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 		cmd.Dir = module
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr

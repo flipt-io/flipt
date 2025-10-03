@@ -10,7 +10,7 @@ paths:
         get:
             tags:
                 - EnvironmentsService
-            description: environments
+            description: List environments.
             operationId: listEnvironments
             responses:
                 "200":
@@ -19,121 +19,16 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListEnvironmentsResponse'
-    /api/v2/environments/*:
-        get:
-            tags:
-                - EnvironmentsService
-            operationId: listResources
-            parameters:
-                - name: environmentKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: namespaceKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: typeUrl
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListResourcesResponse'
-    /api/v2/environments/*}/{*}}:
-        get:
-            tags:
-                - EnvironmentsService
-            description: resources
-            operationId: getResource
-            parameters:
-                - name: environmentKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: namespaceKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: key
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: '*}'
-                  in: path
-                  description: The *} id.
-                  required: true
-                  schema:
-                    type: string
-                - name: typeUrl
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ResourceResponse'
-        delete:
-            tags:
-                - EnvironmentsService
-            operationId: deleteResource
-            parameters:
-                - name: environmentKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: namespaceKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: key
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: '*}'
-                  in: path
-                  description: The *} id.
-                  required: true
-                  schema:
-                    type: string
-                - name: typeUrl
-                  in: query
-                  schema:
-                    type: string
-                - name: revision
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/DeleteResourceResponse'
     /api/v2/environments/{environmentKey}/branches:
         get:
             tags:
                 - EnvironmentsService
+            description: List all branch environments for a given environment.
             operationId: listEnvironmentBranches
             parameters:
                 - name: environmentKey
                   in: path
+                  description: the environment identifier, e.g. 'production/branch'.
                   required: true
                   schema:
                     type: string
@@ -147,10 +42,12 @@ paths:
         post:
             tags:
                 - EnvironmentsService
-            operationId: branchEnvironment
+            description: Create a branch environment.
+            operationId: createBranchEnvironment
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production/branch'.
                   required: true
                   schema:
                     type: string
@@ -171,15 +68,18 @@ paths:
         post:
             tags:
                 - EnvironmentsService
+            description: Propose changes from a branch environment.
             operationId: proposeEnvironment
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
                 - name: key
                   in: path
+                  description: The branch key.
                   required: true
                   schema:
                     type: string
@@ -199,15 +99,18 @@ paths:
         delete:
             tags:
                 - EnvironmentsService
+            description: Delete a branch environment.
             operationId: deleteBranchEnvironment
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production/branch'.
                   required: true
                   schema:
                     type: string
                 - name: key
                   in: path
+                  description: The branch key.
                   required: true
                   schema:
                     type: string
@@ -219,24 +122,29 @@ paths:
         get:
             tags:
                 - EnvironmentsService
+            description: List changes for a branch environment.
             operationId: listBranchedEnvironmentChanges
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
                 - name: key
                   in: path
+                  description: The branch environment key.
                   required: true
                   schema:
                     type: string
                 - name: from
                   in: query
+                  description: The revision to list changes from (exclusive). If not provided, lists from the beginning.
                   schema:
                     type: string
                 - name: limit
                   in: query
+                  description: The maximum number of changes to return. Defaults to 10.
                   schema:
                     type: integer
                     format: int32
@@ -251,10 +159,12 @@ paths:
         get:
             tags:
                 - EnvironmentsService
+            description: List all namespaces within a given environment.
             operationId: listNamespaces
             parameters:
                 - name: environmentKey
                   in: path
+                  description: the environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
@@ -268,10 +178,12 @@ paths:
         put:
             tags:
                 - EnvironmentsService
+            description: Update an existing namespace.
             operationId: updateNamespace
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
@@ -291,10 +203,12 @@ paths:
         post:
             tags:
                 - EnvironmentsService
+            description: Create a new namespace.
             operationId: createNamespace
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
@@ -315,16 +229,18 @@ paths:
         get:
             tags:
                 - EnvironmentsService
-            description: namespaces
+            description: Get a specific namespace.
             operationId: getNamespace
             parameters:
                 - name: environmentKey
                   in: path
+                  description: environment_key is the environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
                 - name: key
                   in: path
+                  description: key is the namespace key.
                   required: true
                   schema:
                     type: string
@@ -338,20 +254,24 @@ paths:
         delete:
             tags:
                 - EnvironmentsService
+            description: Delete a namespace.
             operationId: deleteNamespace
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
                 - name: key
                   in: path
+                  description: The namespace key.
                   required: true
                   schema:
                     type: string
                 - name: revision
                   in: query
+                  description: The resource revision for optimistic concurrency.
                   schema:
                     type: string
             responses:
@@ -365,15 +285,18 @@ paths:
         put:
             tags:
                 - EnvironmentsService
+            description: Update an existing resource within a given namespace.
             operationId: updateResource
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
                 - name: namespaceKey
                   in: path
+                  description: The namespace key for which to list resources, e.g. 'default'.
                   required: true
                   schema:
                     type: string
@@ -393,15 +316,18 @@ paths:
         post:
             tags:
                 - EnvironmentsService
+            description: Create a new resource within a given namespace.
             operationId: createResource
             parameters:
                 - name: environmentKey
                   in: path
+                  description: The environment identifier, e.g. 'production'.
                   required: true
                   schema:
                     type: string
                 - name: namespaceKey
                   in: path
+                  description: The namespace key for which to list resources, e.g. 'default'.
                   required: true
                   schema:
                     type: string
@@ -418,6 +344,117 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ResourceResponse'
+    /api/v2/environments/{environmentKey}/namespaces/{namespaceKey}/resources/{typeUrl}:
+        get:
+            tags:
+                - EnvironmentsService
+            description: List all resources within a given namespace.
+            operationId: listResources
+            parameters:
+                - name: environmentKey
+                  in: path
+                  description: The environment identifier, e.g. 'production'.
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  description: The namespace key for which to list resources, e.g. 'default'.
+                  required: true
+                  schema:
+                    type: string
+                - name: typeUrl
+                  in: path
+                  description: The resource type - flipt.core.Flag or flipt.core.Segment.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListResourcesResponse'
+    /api/v2/environments/{environmentKey}/namespaces/{namespaceKey}/resources/{typeUrl}/{key}:
+        get:
+            tags:
+                - EnvironmentsService
+            description: Get a specific resource within a given namespace.
+            operationId: getResource
+            parameters:
+                - name: environmentKey
+                  in: path
+                  description: The environment identifier, e.g. 'production'.
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  description: The namespace key for which to list resources, e.g. 'default'.
+                  required: true
+                  schema:
+                    type: string
+                - name: typeUrl
+                  in: path
+                  description: The resource type - flipt.core.Flag or flipt.core.Segment.
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  description: The resource key.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResourceResponse'
+        delete:
+            tags:
+                - EnvironmentsService
+            description: Delete a resource within a given namespace.
+            operationId: deleteResource
+            parameters:
+                - name: environmentKey
+                  in: path
+                  description: The environment identifier, e.g. 'production'.
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  description: The namespace key for which to list resources, e.g. 'default'.
+                  required: true
+                  schema:
+                    type: string
+                - name: typeUrl
+                  in: path
+                  description: The resource type - flipt.core.Flag or flipt.core.Segment.
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  description: The key of the resource to delete.
+                  required: true
+                  schema:
+                    type: string
+                - name: revision
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteResourceResponse'
 components:
     schemas:
         BranchEnvironment:
@@ -425,66 +462,96 @@ components:
             properties:
                 environmentKey:
                     type: string
+                    description: The environment identifier, e.g. 'production/branch'.
                 key:
                     type: string
+                    description: The branch key.
                 ref:
                     type: string
+                    description: The git reference (branch or tag) for the branch environment.
                 proposal:
-                    $ref: '#/components/schemas/EnvironmentProposalDetails'
+                    allOf:
+                        - $ref: '#/components/schemas/EnvironmentProposalDetails'
+                    description: The proposal details if a proposal has been made from this branch.
+            description: The BranchEnvironment represents a branch environment.
         BranchEnvironmentRequest:
             type: object
             properties:
                 environmentKey:
                     type: string
+                    description: The environment identifier, e.g. 'production/branch'.
                 key:
                     type: string
+                    description: The branch key.
+            description: The request message for creating a branch environment.
         Change:
             type: object
             properties:
                 revision:
                     type: string
+                    description: The revision identifier (e.g. commit SHA).
                 message:
                     type: string
+                    description: The commit message.
                 authorName:
                     type: string
+                    description: The author name.
                 authorEmail:
                     type: string
+                    description: The author email.
                 timestamp:
                     type: string
+                    description: The commit timestamp in RFC3339 format.
                 scmUrl:
                     type: string
+                    description: The URL of the commit in the source control management system.
+            description: The change represents a single commit in the source control management system.
         DeleteNamespaceResponse:
             type: object
             properties:
                 revision:
                     type: string
+                    description: The resource revision for optimistic concurrency.
+            description: The response message for deleting a namespace.
         DeleteResourceResponse:
             type: object
             properties:
                 revision:
                     type: string
+                    description: The resource revision for optimistic concurrency.
+            description: The response message for deleting a resource.
         Environment:
             type: object
             properties:
                 key:
                     type: string
+                    description: The environment key.
                 name:
                     type: string
+                    description: The environment name.
                 default:
                     type: boolean
+                    description: The default indicates if this is the default environment.
                 configuration:
-                    $ref: '#/components/schemas/EnvironmentConfiguration'
+                    allOf:
+                        - $ref: '#/components/schemas/EnvironmentConfiguration'
+                    description: The environment configuration.
+            description: The Environment represents a environment.
         EnvironmentConfiguration:
             type: object
             properties:
                 ref:
                     type: string
+                    description: The git reference (branch or tag) for the environment.
                 directory:
                     type: string
+                    description: The directory within the repository where environment resources are located.
                 remote:
                     type: string
+                    description: The git remote URL for the environment.
                 base:
                     type: string
+                    description: The base branch or tag for the environment.
                 scm:
                     enum:
                         - SCM_UNKNOWN
@@ -494,12 +561,15 @@ components:
                         - SCM_AZURE
                         - SCM_BITBUCKET
                     type: string
+                    description: The source control management system for the environment.
                     format: enum
+            description: The EnvironmentConfiguration represents the configuration for an environment.
         EnvironmentProposalDetails:
             type: object
             properties:
                 url:
                     type: string
+                    description: The URL of the proposal in the source control management system.
                 state:
                     enum:
                         - PROPOSAL_STATE_UNKNOWN
@@ -507,7 +577,9 @@ components:
                         - PROPOSAL_STATE_MERGED
                         - PROPOSAL_STATE_CLOSED
                     type: string
+                    description: The state of the proposal.
                     format: enum
+            description: The details of a proposal.
         GoogleProtobufAny:
             type: object
             properties:
@@ -523,6 +595,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/Change'
+                    description: The list of changes.
+            description: The request message for proposing changes from a branch environment.
         ListEnvironmentBranchesResponse:
             type: object
             properties:
@@ -530,6 +604,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/BranchEnvironment'
+                    description: The list of branch environments.
+            description: The response message for listing branch environments for a given environment.
         ListEnvironmentsResponse:
             type: object
             properties:
@@ -537,6 +613,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/Environment'
+                    description: The list of environments.
+            description: The response message for listing environments.
         ListNamespacesResponse:
             type: object
             properties:
@@ -544,8 +622,11 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/Namespace'
+                    description: The list of namespaces.
                 revision:
                     type: string
+                    description: The resource revision for optimistic concurrency.
+            description: The response message for listing namespaces.
         ListResourcesResponse:
             type: object
             properties:
@@ -553,82 +634,127 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/Resource'
+                    description: The list of resources.
                 revision:
                     type: string
+                    description: The resource revision for optimistic concurrency.
+            description: The response message for listing resources.
         Namespace:
             type: object
             properties:
                 key:
                     type: string
+                    description: The namespace key.
                 name:
                     type: string
+                    description: The namespace name.
                 description:
                     type: string
+                    description: The namespace description.
                 protected:
                     type: boolean
+                    description: The namespace protection status.
+            description: Namespace represents a grouping of related flags and segments.
         NamespaceResponse:
             type: object
             properties:
                 namespace:
-                    $ref: '#/components/schemas/Namespace'
+                    allOf:
+                        - $ref: '#/components/schemas/Namespace'
+                    description: The list of namespaces.
                 revision:
                     type: string
+                    description: The resource revision for optimistic concurrency.
+            description: The response message for getting a namespace.
         ProposeEnvironmentRequest:
             type: object
             properties:
                 environmentKey:
                     type: string
+                    description: The environment identifier, e.g. 'production'.
                 key:
                     type: string
+                    description: The branch key.
                 title:
                     type: string
+                    description: The title of the proposal.
                 body:
                     type: string
+                    description: The body of the proposal.
                 draft:
                     type: boolean
+                    description: The draft status of the proposal.
+            description: The request message for proposing changes from a branch environment.
         Resource:
             type: object
             properties:
                 namespaceKey:
                     type: string
+                    description: The namespace key for which to list resources, e.g. 'default'.
                 key:
                     type: string
+                    description: The resource key.
                 payload:
-                    $ref: '#/components/schemas/GoogleProtobufAny'
+                    allOf:
+                        - $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: |-
+                        The arbitrary typed resource payload (e.g. flipt.core.Flag, flipt.core.Segment).
+                         {"@type": "flipt.core.Flag", "key": "my_flag"}
+            description: The resource message representing an arbitrary typed resource payload.
         ResourceResponse:
             type: object
             properties:
                 resource:
-                    $ref: '#/components/schemas/Resource'
+                    allOf:
+                        - $ref: '#/components/schemas/Resource'
+                    description: The resource.
                 revision:
                     type: string
+                    description: The resource revision for optimistic concurrency.
+            description: The response message for getting a resource.
         UpdateNamespaceRequest:
             type: object
             properties:
                 environmentKey:
                     type: string
+                    description: The environment identifier, e.g. 'production'.
                 key:
                     type: string
+                    description: The namespace key.
                 name:
                     type: string
+                    description: The namespace name.
                 description:
                     type: string
+                    description: The namespace description.
                 protected:
                     type: boolean
+                    description: The namespace protection status.
                 revision:
                     type: string
+                    description: The resource revision for optimistic concurrency.
+            description: The request message for creating or updating a namespace.
         UpdateResourceRequest:
             type: object
             properties:
                 environmentKey:
                     type: string
+                    description: The environment identifier, e.g. 'production'.
                 namespaceKey:
                     type: string
+                    description: The namespace key for which to list resources, e.g. 'default'.
                 key:
                     type: string
+                    description: The resource key.
                 payload:
-                    $ref: '#/components/schemas/GoogleProtobufAny'
+                    allOf:
+                        - $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: |-
+                        The arbitrary typed resource payload (e.g. flipt.core.Flag, flipt.core.Segment).
+                         {"@type": "flipt.core.Flag", "key": "my_flag"}
                 revision:
                     type: string
+                    description: The resource revision for optimistic concurrency.
+            description: The request message for creating or updating a resource.
 tags:
     - name: EnvironmentsService
