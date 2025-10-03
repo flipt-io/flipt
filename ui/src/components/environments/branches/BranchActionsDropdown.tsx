@@ -42,9 +42,12 @@ export default function BranchActionsDropdown({
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
   const { info } = useAppSelector((state) => state.meta);
-  const { data: baseBranches } = useListBranchEnvironmentsQuery({
-    environmentKey: environment.configuration?.base ?? ''
-  });
+  const { data: baseBranches } = useListBranchEnvironmentsQuery(
+    {
+      environmentKey: environment.configuration?.base ?? ''
+    },
+    { refetchOnMountOrArgChange: true }
+  );
   const branch = baseBranches?.branches.find(
     (branch) => branch.key === environment.key
   );
