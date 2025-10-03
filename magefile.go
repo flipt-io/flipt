@@ -269,13 +269,26 @@ func (g Go) Proto() error {
 	mg.Deps(Bootstrap)
 
 	fmt.Println(" > Generating proto files...")
+
+	// Determine which buf command to use
+	bufCmd := "buf"
+	if _, err := exec.LookPath("buf"); err != nil {
+		// If buf is not in PATH, try using it via go tool
+		bufCmd = "go"
+	}
+
 	for _, module := range []string{
 		"rpc/flipt",
 		"rpc/v2/environments",
 		"rpc/v2/analytics",
 		"rpc/v2/evaluation",
 	} {
-		cmd := exec.Command("go", "tool", "github.com/bufbuild/buf/cmd/buf", "generate")
+		var cmd *exec.Cmd
+		if bufCmd == "buf" {
+			cmd = exec.Command("buf", "generate")
+		} else {
+			cmd = exec.Command("go", "tool", "github.com/bufbuild/buf/cmd/buf", "generate")
+		}
 		cmd.Dir = module
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
