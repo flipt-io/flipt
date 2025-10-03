@@ -14,10 +14,11 @@ permissions:
 jobs:
   post-dco-comment:
     runs-on: ubuntu-latest
-    # Only run for PR opened events or when check suite completes
+    # Only run for PR opened events or when check suite completes with failure
     if: |
       github.event_name == 'pull_request_target' ||
       (github.event_name == 'check_suite' &&
+       github.event.check_suite.conclusion == 'failure' &&
        github.event.check_suite.pull_requests[0] != null)
     steps:
       - name: Get Pull Request and Check DCO Status
