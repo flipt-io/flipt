@@ -58,13 +58,14 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 			if ! command -v wget >/dev/null 2>&1; then
 				apk add --no-cache wget >/dev/null 2>&1 || true
 			fi
-			# Wait for Gitea to be ready (up to 60 seconds)
-			for i in $(seq 1 60); do
+			# Give Gitea time to start, then wait for it to be ready
+			sleep 10
+			for i in $(seq 1 30); do
 				if wget -q --spider http://gitea:3000 2>/dev/null || nc -z gitea 3000 2>/dev/null; then
 					echo "Gitea is ready"
 					break
 				fi
-				echo "Waiting for Gitea... ($i/60)"
+				echo "Waiting for Gitea... ($i/30)"
 				sleep 1
 			done
 		`}).
@@ -140,13 +141,14 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 			if ! command -v wget >/dev/null 2>&1 && ! command -v curl >/dev/null 2>&1; then
 				apt-get update -qq && apt-get install -qq -y wget >/dev/null 2>&1 || true
 			fi
-			# Wait for Flipt to be ready (up to 60 seconds)
-			for i in $(seq 1 60); do
+			# Give Flipt time to start, then wait for it to be ready
+			sleep 10
+			for i in $(seq 1 30); do
 				if wget -q --spider http://flipt:8080/health 2>/dev/null || curl -f -s http://flipt:8080/health >/dev/null 2>&1 || wget -q --spider http://flipt:8080 2>/dev/null || curl -f -s http://flipt:8080 >/dev/null 2>&1; then
 					echo "Flipt is ready"
 					break
 				fi
-				echo "Waiting for Flipt... ($i/60)"
+				echo "Waiting for Flipt... ($i/30)"
 				sleep 1
 			done
 		`}), nil

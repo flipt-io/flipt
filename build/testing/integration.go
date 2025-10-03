@@ -507,13 +507,14 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 				if ! command -v wget >/dev/null 2>&1; then
 					apk add --no-cache wget >/dev/null 2>&1 || true
 				fi
-				# Wait for Gitea to be ready (up to 60 seconds)
-				for i in $(seq 1 60); do
+				# Give Gitea time to start, then wait for it to be ready
+				sleep 10
+				for i in $(seq 1 30); do
 					if wget -q --spider http://gitea:3000 2>/dev/null || nc -z gitea 3000 2>/dev/null; then
 						echo "Gitea is ready"
 						break
 					fi
-					echo "Waiting for Gitea... ($i/60)"
+					echo "Waiting for Gitea... ($i/30)"
 					sleep 1
 				done
 			`}).
