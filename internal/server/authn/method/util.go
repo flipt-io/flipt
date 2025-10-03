@@ -18,6 +18,7 @@ func CallbackValidateState(ctx context.Context, state string) error {
 	if !ok {
 		return errors.ErrUnauthenticatedf("missing metadata parameter")
 	}
+
 	fstate, ok := md["flipt_client_state"]
 	if !ok || len(fstate) == 0 {
 		return errors.ErrUnauthenticatedf("missing client state in metadata")
