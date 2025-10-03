@@ -46,12 +46,28 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		return nil, err
 	}
 
+	// Wait for Gitea to be ready before running stew
 	_, err = client.Container().
 		From("ghcr.io/flipt-io/stew:latest").
 		WithWorkdir("/work").
 		WithDirectory("/work/base", base.Directory(environmentsTestdataDir)).
 		WithNewFile("/etc/stew/config.yml", string(contents)).
 		WithServiceBinding("gitea", gitea).
+		WithExec([]string{"sh", "-c", `
+			# Install wget if not available
+			if ! command -v wget >/dev/null 2>&1; then
+				apk add --no-cache wget >/dev/null 2>&1 || true
+			fi
+			# Wait for Gitea to be ready (up to 60 seconds)
+			for i in $(seq 1 60); do
+				if wget -q --spider http://gitea:3000 2>/dev/null || nc -z gitea 3000 2>/dev/null; then
+					echo "Gitea is ready"
+					break
+				fi
+				echo "Waiting for Gitea... ($i/60)"
+				sleep 1
+			done
+		`}).
 		WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 		Sync(ctx)
 	if err != nil {
@@ -117,5 +133,21 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 			WithEnvVariable("UNIQUE", time.Now().String()).
 			AsService()).
 		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
-		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080"), nil
+		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080").
+		// Wait for Flipt service to be ready before running tests
+		WithExec([]string{"sh", "-c", `
+			# Install wget if not available (node container should have it or curl)
+			if ! command -v wget >/dev/null 2>&1 && ! command -v curl >/dev/null 2>&1; then
+				apt-get update -qq && apt-get install -qq -y wget >/dev/null 2>&1 || true
+			fi
+			# Wait for Flipt to be ready (up to 60 seconds)
+			for i in $(seq 1 60); do
+				if wget -q --spider http://flipt:8080/health 2>/dev/null || curl -f -s http://flipt:8080/health >/dev/null 2>&1 || wget -q --spider http://flipt:8080 2>/dev/null || curl -f -s http://flipt:8080 >/dev/null 2>&1; then
+					echo "Flipt is ready"
+					break
+				fi
+				echo "Waiting for Flipt... ($i/60)"
+				sleep 1
+			done
+		`}), nil
 }
