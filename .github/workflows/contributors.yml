@@ -12,7 +12,7 @@ permissions:
   checks: read
 
 jobs:
-  post-dco-comment:
+  check-dco:
     runs-on: ubuntu-latest
     # Only run for PR opened events or when check suite completes with failure
     if: |
