@@ -1,0 +1,773 @@
+swagger: "2.0"
+info:
+  title: environments.proto
+  version: version not set
+tags:
+  - name: EnvironmentsService
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /api/v2/environments:
+    get:
+      summary: environments
+      operationId: ListEnvironments
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsListEnvironmentsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - EnvironmentsService
+  /api/v2/environments/{environment_key}/branches:
+    get:
+      operationId: ListEnvironmentBranches
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsListEnvironmentBranchesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+      tags:
+        - EnvironmentsService
+    post:
+      operationId: BranchEnvironment
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsEnvironment'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/environmentsEnvironmentsServiceBranchEnvironmentBody'
+      tags:
+        - EnvironmentsService
+  /api/v2/environments/{environment_key}/branches/{key}:
+    delete:
+      operationId: DeleteBranchEnvironment
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: key
+          in: path
+          required: true
+          type: string
+      tags:
+        - EnvironmentsService
+    post:
+      operationId: ProposeEnvironment
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsEnvironmentProposalDetails'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: key
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EnvironmentsServiceProposeEnvironmentBody'
+      tags:
+        - EnvironmentsService
+  /api/v2/environments/{environment_key}/branches/{key}/changes:
+    get:
+      operationId: ListBranchedEnvironmentChanges
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsListBranchedEnvironmentChangesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: key
+          in: path
+          required: true
+          type: string
+        - name: from
+          in: query
+          required: false
+          type: string
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          format: int32
+      tags:
+        - EnvironmentsService
+  /api/v2/environments/{environment_key}/namespaces:
+    get:
+      operationId: ListNamespaces
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsListNamespacesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+      tags:
+        - EnvironmentsService
+    post:
+      operationId: CreateNamespace
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsNamespaceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EnvironmentsServiceCreateNamespaceBody'
+      tags:
+        - EnvironmentsService
+    put:
+      operationId: UpdateNamespace
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsNamespaceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EnvironmentsServiceUpdateNamespaceBody'
+      tags:
+        - EnvironmentsService
+  /api/v2/environments/{environment_key}/namespaces/{key}:
+    get:
+      summary: namespaces
+      operationId: GetNamespace
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsNamespaceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: key
+          in: path
+          required: true
+          type: string
+      tags:
+        - EnvironmentsService
+    delete:
+      operationId: DeleteNamespace
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsDeleteNamespaceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: key
+          in: path
+          required: true
+          type: string
+        - name: revision
+          in: query
+          required: false
+          type: string
+      tags:
+        - EnvironmentsService
+  /api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources:
+    post:
+      operationId: CreateResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsResourceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: namespace_key
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EnvironmentsServiceCreateResourceBody'
+      tags:
+        - EnvironmentsService
+    put:
+      operationId: UpdateResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsResourceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: namespace_key
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EnvironmentsServiceUpdateResourceBody'
+      tags:
+        - EnvironmentsService
+  /api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}:
+    get:
+      operationId: ListResources
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsListResourcesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: namespace_key
+          in: path
+          required: true
+          type: string
+        - name: type_url
+          in: path
+          required: true
+          type: string
+          pattern: '[^/]+'
+      tags:
+        - EnvironmentsService
+  /api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}:
+    get:
+      summary: resources
+      operationId: GetResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsResourceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: namespace_key
+          in: path
+          required: true
+          type: string
+        - name: type_url
+          in: path
+          required: true
+          type: string
+          pattern: '[^/]+'
+        - name: key
+          in: path
+          required: true
+          type: string
+      tags:
+        - EnvironmentsService
+    delete:
+      operationId: DeleteResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/environmentsDeleteResourceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: environment_key
+          in: path
+          required: true
+          type: string
+        - name: namespace_key
+          in: path
+          required: true
+          type: string
+        - name: type_url
+          in: path
+          required: true
+          type: string
+          pattern: '[^/]+'
+        - name: key
+          in: path
+          required: true
+          type: string
+        - name: revision
+          in: query
+          required: false
+          type: string
+      tags:
+        - EnvironmentsService
+definitions:
+  EnvironmentsServiceCreateNamespaceBody:
+    type: object
+    properties:
+      key:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      protected:
+        type: boolean
+      revision:
+        type: string
+  EnvironmentsServiceCreateResourceBody:
+    type: object
+    properties:
+      key:
+        type: string
+      payload:
+        $ref: '#/definitions/googleprotobufAny'
+      revision:
+        type: string
+  EnvironmentsServiceProposeEnvironmentBody:
+    type: object
+    properties:
+      title:
+        type: string
+      body:
+        type: string
+      draft:
+        type: boolean
+  EnvironmentsServiceUpdateNamespaceBody:
+    type: object
+    properties:
+      key:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      protected:
+        type: boolean
+      revision:
+        type: string
+  EnvironmentsServiceUpdateResourceBody:
+    type: object
+    properties:
+      key:
+        type: string
+      payload:
+        $ref: '#/definitions/googleprotobufAny'
+      revision:
+        type: string
+  environmentsBranchEnvironment:
+    type: object
+    properties:
+      environment_key:
+        type: string
+      key:
+        type: string
+      ref:
+        type: string
+      proposal:
+        $ref: '#/definitions/environmentsEnvironmentProposalDetails'
+  environmentsChange:
+    type: object
+    properties:
+      revision:
+        type: string
+      message:
+        type: string
+      author_name:
+        type: string
+      author_email:
+        type: string
+      timestamp:
+        type: string
+      scm_url:
+        type: string
+  environmentsDeleteNamespaceResponse:
+    type: object
+    properties:
+      revision:
+        type: string
+  environmentsDeleteResourceResponse:
+    type: object
+    properties:
+      revision:
+        type: string
+  environmentsEnvironment:
+    type: object
+    properties:
+      key:
+        type: string
+      name:
+        type: string
+      default:
+        type: boolean
+      configuration:
+        $ref: '#/definitions/environmentsEnvironmentConfiguration'
+  environmentsEnvironmentConfiguration:
+    type: object
+    properties:
+      ref:
+        type: string
+      directory:
+        type: string
+      remote:
+        type: string
+      base:
+        type: string
+      scm:
+        $ref: '#/definitions/environmentsSCM'
+  environmentsEnvironmentProposalDetails:
+    type: object
+    properties:
+      url:
+        type: string
+      state:
+        $ref: '#/definitions/environmentsProposalState'
+  environmentsEnvironmentsServiceBranchEnvironmentBody:
+    type: object
+    properties:
+      key:
+        type: string
+  environmentsListBranchedEnvironmentChangesResponse:
+    type: object
+    properties:
+      changes:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/environmentsChange'
+  environmentsListEnvironmentBranchesResponse:
+    type: object
+    properties:
+      branches:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/environmentsBranchEnvironment'
+  environmentsListEnvironmentsResponse:
+    type: object
+    properties:
+      environments:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/environmentsEnvironment'
+  environmentsListNamespacesResponse:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/environmentsNamespace'
+      revision:
+        type: string
+  environmentsListResourcesResponse:
+    type: object
+    properties:
+      resources:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/environmentsResource'
+      revision:
+        type: string
+  environmentsNamespace:
+    type: object
+    properties:
+      key:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      protected:
+        type: boolean
+  environmentsNamespaceResponse:
+    type: object
+    properties:
+      namespace:
+        $ref: '#/definitions/environmentsNamespace'
+      revision:
+        type: string
+  environmentsProposalState:
+    type: string
+    enum:
+      - PROPOSAL_STATE_UNKNOWN
+      - PROPOSAL_STATE_OPEN
+      - PROPOSAL_STATE_MERGED
+      - PROPOSAL_STATE_CLOSED
+    default: PROPOSAL_STATE_UNKNOWN
+  environmentsResource:
+    type: object
+    properties:
+      namespace_key:
+        type: string
+      key:
+        type: string
+      payload:
+        $ref: '#/definitions/googleprotobufAny'
+  environmentsResourceResponse:
+    type: object
+    properties:
+      resource:
+        $ref: '#/definitions/environmentsResource'
+      revision:
+        type: string
+  environmentsSCM:
+    type: string
+    enum:
+      - SCM_UNKNOWN
+      - SCM_GITHUB
+      - SCM_GITEA
+      - SCM_GITLAB
+      - SCM_AZURE
+      - SCM_BITBUCKET
+    default: SCM_UNKNOWN
+  googleprotobufAny:
+    type: object
+    properties:
+      '@type':
+        type: string
+        description: |-
+          A URL/resource name that uniquely identifies the type of the serialized
+          protocol buffer message. This string must contain at least
+          one "/" character. The last segment of the URL's path must represent
+          the fully qualified name of the type (as in
+          `path/google.protobuf.Duration`). The name should be in a canonical form
+          (e.g., leading "." is not accepted).
+
+          In practice, teams usually precompile into the binary all types that they
+          expect it to use in the context of Any. However, for URLs which use the
+          scheme `http`, `https`, or no scheme, one can optionally set up a type
+          server that maps type URLs to message definitions as follows:
+
+          * If no scheme is provided, `https` is assumed.
+          * An HTTP GET on the URL must yield a [google.protobuf.Type][]
+            value in binary format, or produce an error.
+          * Applications are allowed to cache lookup results based on the
+            URL, or have them precompiled into a binary to avoid any
+            lookup. Therefore, binary compatibility needs to be preserved
+            on changes to types. (Use versioned type names to manage
+            breaking changes.)
+
+          Note: this functionality is not currently available in the official
+          protobuf release, and it is not used for type URLs beginning with
+          type.googleapis.com. As of May 2023, there are no widely used type server
+          implementations and no plans to implement one.
+
+          Schemes other than `http`, `https` (or the empty scheme) might be
+          used with implementation specific semantics.
+    additionalProperties: {}
+    description: |-
+      `Any` contains an arbitrary serialized protocol buffer message along with a
+      URL that describes the type of the serialized message.
+
+      Protobuf library provides support to pack/unpack Any values in the form
+      of utility functions or additional generated methods of the Any type.
+
+      Example 1: Pack and unpack a message in C++.
+
+          Foo foo = ...;
+          Any any;
+          any.PackFrom(foo);
+          ...
+          if (any.UnpackTo(&foo)) {
+            ...
+          }
+
+      Example 2: Pack and unpack a message in Java.
+
+          Foo foo = ...;
+          Any any = Any.pack(foo);
+          ...
+          if (any.is(Foo.class)) {
+            foo = any.unpack(Foo.class);
+          }
+          // or ...
+          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+            foo = any.unpack(Foo.getDefaultInstance());
+          }
+
+       Example 3: Pack and unpack a message in Python.
+
+          foo = Foo(...)
+          any = Any()
+          any.Pack(foo)
+          ...
+          if any.Is(Foo.DESCRIPTOR):
+            any.Unpack(foo)
+            ...
+
+       Example 4: Pack and unpack a message in Go
+
+           foo := &pb.Foo{...}
+           any, err := anypb.New(foo)
+           if err != nil {
+             ...
+           }
+           ...
+           foo := &pb.Foo{}
+           if err := any.UnmarshalTo(foo); err != nil {
+             ...
+           }
+
+      The pack methods provided by protobuf library will by default use
+      'type.googleapis.com/full.type.name' as the type URL and the unpack
+      methods only use the fully qualified type name after the last '/'
+      in the type URL, for example "foo.bar.com/x/y.z" will yield type
+      name "y.z".
+
+      JSON
+      ====
+      The JSON representation of an `Any` value uses the regular
+      representation of the deserialized, embedded message, with an
+      additional field `@type` which contains the type URL. Example:
+
+          package google.profile;
+          message Person {
+            string first_name = 1;
+            string last_name = 2;
+          }
+
+          {
+            "@type": "type.googleapis.com/google.profile.Person",
+            "firstName": <string>,
+            "lastName": <string>
+          }
+
+      If the embedded message type is well-known and has a custom JSON
+      representation, that representation will be embedded adding a field
+      `value` which holds the custom JSON in addition to the `@type`
+      field. Example (for message [google.protobuf.Duration][]):
+
+          {
+            "@type": "type.googleapis.com/google.protobuf.Duration",
+            "value": "1.212s"
+          }
+  rpcStatus:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/googleprotobufAny'
