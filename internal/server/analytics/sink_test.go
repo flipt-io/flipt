@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/tracing"
+	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -50,10 +51,11 @@ func TestSinkSpanExporter(t *testing.T) {
 	}
 
 	attrs := []attribute.KeyValue{
-		{Key: "flipt_flag", Value: attribute.StringValue("hello")},
-		{Key: "flipt_namespace", Value: attribute.StringValue("default")},
-		{Key: "flipt_reason", Value: attribute.StringValue("MATCH_EVALUATION_REASON")},
-		{Key: "flipt_match", Value: attribute.BoolValue(b)},
+		{Key: "flipt.key", Value: attribute.StringValue("hello")},
+		{Key: "flipt.type", Value: attribute.StringValue("variant")},
+		{Key: "flipt.namespace", Value: attribute.StringValue("default")},
+		{Key: "flipt.result.reason", Value: attribute.StringValue("match")},
+		{Key: "flipt.result.match", Value: attribute.BoolValue(b)},
 	}
 	span.AddEvent(tracing.Event, trace.WithAttributes(attrs...), trace.WithTimestamp(evaluationResponses[0].Timestamp))
 	span.End()
@@ -70,6 +72,7 @@ func TestSinkSpanExporter(t *testing.T) {
 		assert.Equal(t, evaluationResponses[0].Reason, evaluationResponseActual.Reason)
 		assert.Equal(t, *evaluationResponses[0].Match, *evaluationResponseActual.Match)
 		assert.Equal(t, evaluationResponses[0].Timestamp, evaluationResponseActual.Timestamp)
+		assert.Equal(t, evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(), evaluationResponseActual.FlagType)
 	case <-timeoutCtx.Done():
 		require.Fail(t, "message should have been sent on the channel")
 	}

@@ -8,7 +8,6 @@ import (
 
 	"github.com/containerd/platforms"
 	"go.flipt.io/build/internal/dagger"
-	"golang.org/x/mod/modfile"
 )
 
 func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Directory, platform platforms.Platform, registryCache ...string) (*dagger.Container, error) {
@@ -48,25 +47,26 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		}
 	}
 
-	goWork := source.File("go.work")
-	work, err := goWork.Contents(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	workFile, err := modfile.ParseWork("go.work", []byte(work), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// infer mod and sum files from the contents of the work file.
+	// Mount the main module's go.mod and go.sum
 	src := dag.Directory().
-		WithFile("go.work", goWork).
-		WithFile("go.work.sum", source.File("go.work.sum"))
+		WithFile("go.mod", source.File("go.mod")).
+		WithFile("go.sum", source.File("go.sum"))
 
-	for _, use := range workFile.Use {
-		mod := path.Join(use.Path, "go.mod")
-		sum := path.Join(use.Path, "go.sum")
+	// Mount submodule dependency files for all modules with replace directives
+	submodules := []string{
+		"build",
+		"core",
+		"errors",
+		"rpc/flipt",
+		"rpc/v2/environments",
+		"rpc/v2/evaluation",
+		"sdk/go",
+		"sdk/go/v2",
+	}
+
+	for _, submodule := range submodules {
+		mod := path.Join(submodule, "go.mod")
+		sum := path.Join(submodule, "go.sum")
 		src = src.
 			WithFile(mod, source.File(mod)).
 			WithFile(sum, source.File(sum))
@@ -97,6 +97,39 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		WithoutDirectory("./bin/")
 
 	golang = golang.WithMountedDirectory(".", project)
+
+	// Create go.work file to enable multi-module support for tests
+	// that run commands in submodules (e.g., go run ./build/internal/cmd/gitea/...)
+	//
+	// Note: We inline the content here rather than copying from build/go.work.container
+	// to ensure it's always available regardless of mount ordering issues
+	goWorkContent := `go 1.25.0
+
+use (
+	.
+	./build
+	./core
+	./errors
+	./rpc/flipt
+	./rpc/v2/environments
+	./rpc/v2/evaluation
+	./sdk/go
+	./sdk/go/v2
+)
+`
+	golang = golang.WithNewFile("/src/go.work", goWorkContent, dagger.ContainerWithNewFileOpts{
+		Permissions: 0644,
+	})
+
+	// Sync the workspace to generate go.work.sum and validate the configuration
+	golang = golang.WithExec([]string{"go", "work", "sync"})
+
+	// Download dependencies for ALL workspace modules (now that workspace is configured)
+	// This ensures modules like 'build' have their dependencies available
+	golang = golang.WithExec([]string{"go", "mod", "download"})
+	if _, err := golang.Sync(ctx); err != nil {
+		return nil, fmt.Errorf("downloading workspace dependencies: %w", err)
+	}
 
 	// fetch and add ui/embed.go on its own
 	embed := dag.Directory().WithFiles("./ui", []*dagger.File{
