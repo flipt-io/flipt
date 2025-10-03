@@ -447,11 +447,17 @@ func ofrepAPI() testCaseFn {
 
 func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-		gitea := client.Container().
+		giteaService := client.Container().
 			From("gitea/gitea:1.23.3").
 			WithExposedPort(3000).
 			WithEnvVariable("UNIQUE", time.Now().String()).
 			AsService()
+
+		// Explicitly start the Gitea service
+		giteaService, err := giteaService.Start(ctx)
+		if err != nil {
+			return func() error { return fmt.Errorf("failed to start Gitea service: %w", err) }
+		}
 
 		stew := config.Config{
 			URL: "http://gitea:3000",
@@ -494,30 +500,13 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 			return func() error { return err }
 		}
 
-		// Wait for Gitea to be ready before running stew
 		_, err = client.Container().
 			From("ghcr.io/flipt-io/stew:latest").
 			WithWorkdir("/work").
 			WithDirectory("/work/default", base.Directory(dataDir)).
 			WithDirectory("/work/production", base.Directory(dataDir)).
 			WithNewFile("/etc/stew/config.yml", string(contents)).
-			WithServiceBinding("gitea", gitea).
-			WithExec([]string{"sh", "-c", `
-				# Install wget if not available
-				if ! command -v wget >/dev/null 2>&1; then
-					apk add --no-cache wget >/dev/null 2>&1 || true
-				fi
-				# Give Gitea time to start, then wait for it to be ready
-				sleep 10
-				for i in $(seq 1 30); do
-					if wget -q --spider http://gitea:3000 2>/dev/null || nc -z gitea 3000 2>/dev/null; then
-						echo "Gitea is ready"
-						break
-					fi
-					echo "Waiting for Gitea... ($i/30)"
-					sleep 1
-				done
-			`}).
+			WithServiceBinding("gitea", giteaService).
 			WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 			Sync(ctx)
 		if err != nil {
@@ -528,7 +517,7 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 			ctx,
 			client,
 			base,
-			flipt.WithServiceBinding("gitea", gitea),
+			flipt.WithServiceBinding("gitea", giteaService),
 			conf,
 		)
 	}

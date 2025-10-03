@@ -2,6 +2,7 @@ package testing
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -12,11 +13,17 @@ import (
 
 func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, ui *dagger.Directory, trace bool) (*dagger.Container, error) {
 	// create unique instance for test case
-	gitea := client.Container().
+	giteaService := client.Container().
 		From("gitea/gitea:1.21.1").
 		WithExposedPort(3000).
 		WithEnvVariable("UNIQUE", time.Now().String()).
 		AsService()
+
+	// Explicitly start the Gitea service
+	giteaService, err := giteaService.Start(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start Gitea service: %w", err)
+	}
 
 	contents, err := yaml.Marshal(&config.Config{
 		URL: "http://gitea:3000",
@@ -46,29 +53,12 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		return nil, err
 	}
 
-	// Wait for Gitea to be ready before running stew
 	_, err = client.Container().
 		From("ghcr.io/flipt-io/stew:latest").
 		WithWorkdir("/work").
 		WithDirectory("/work/base", base.Directory(environmentsTestdataDir)).
 		WithNewFile("/etc/stew/config.yml", string(contents)).
-		WithServiceBinding("gitea", gitea).
-		WithExec([]string{"sh", "-c", `
-			# Install wget if not available
-			if ! command -v wget >/dev/null 2>&1; then
-				apk add --no-cache wget >/dev/null 2>&1 || true
-			fi
-			# Give Gitea time to start, then wait for it to be ready
-			sleep 10
-			for i in $(seq 1 30); do
-				if wget -q --spider http://gitea:3000 2>/dev/null || nc -z gitea 3000 2>/dev/null; then
-					echo "Gitea is ready"
-					break
-				fi
-				echo "Waiting for Gitea... ($i/30)"
-				sleep 1
-			done
-		`}).
+		WithServiceBinding("gitea", giteaService).
 		WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 		Sync(ctx)
 	if err != nil {
@@ -76,7 +66,7 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 	}
 
 	flipt = flipt.
-		WithServiceBinding("gitea", gitea).
+		WithServiceBinding("gitea", giteaService).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_HOST", "flipt").
 		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_ORGANIZATION", "myorg").
@@ -128,28 +118,19 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		return nil, err
 	}
 
+	// Create and explicitly start the Flipt service
+	fliptService := flipt.
+		WithEnvVariable("CI", os.Getenv("CI")).
+		WithEnvVariable("UNIQUE", time.Now().String()).
+		AsService()
+
+	fliptService, err = fliptService.Start(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start Flipt service: %w", err)
+	}
+
 	return ui.
-		WithServiceBinding("flipt", flipt.
-			WithEnvVariable("CI", os.Getenv("CI")).
-			WithEnvVariable("UNIQUE", time.Now().String()).
-			AsService()).
+		WithServiceBinding("flipt", fliptService).
 		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
-		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080").
-		// Wait for Flipt service to be ready before running tests
-		WithExec([]string{"sh", "-c", `
-			# Install wget if not available (node container should have it or curl)
-			if ! command -v wget >/dev/null 2>&1 && ! command -v curl >/dev/null 2>&1; then
-				apt-get update -qq && apt-get install -qq -y wget >/dev/null 2>&1 || true
-			fi
-			# Give Flipt time to start, then wait for it to be ready
-			sleep 10
-			for i in $(seq 1 30); do
-				if wget -q --spider http://flipt:8080/health 2>/dev/null || curl -f -s http://flipt:8080/health >/dev/null 2>&1 || wget -q --spider http://flipt:8080 2>/dev/null || curl -f -s http://flipt:8080 >/dev/null 2>&1; then
-					echo "Flipt is ready"
-					break
-				fi
-				echo "Waiting for Flipt... ($i/30)"
-				sleep 1
-			done
-		`}), nil
+		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080"), nil
 }
