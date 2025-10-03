@@ -3,7 +3,7 @@ module go.flipt.io/flipt
 go 1.25.0
 
 require (
-	cloud.google.com/go/storage v1.56.1
+	cloud.google.com/go/storage v1.57.0
 	cuelang.org/go v0.14.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.2
