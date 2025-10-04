@@ -176,7 +176,7 @@ message BranchEnvironmentRequest {
   string key = 2;
 }
 
-// The response message for creating a branch environment.
+// The request message for deleting a branch environment.
 message DeleteBranchEnvironmentRequest {
   // The environment identifier, e.g. 'production/branch'.
   string environment_key = 1;
