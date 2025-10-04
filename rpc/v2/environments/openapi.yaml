@@ -596,7 +596,7 @@ components:
                     items:
                         $ref: '#/components/schemas/Change'
                     description: The list of changes.
-            description: The request message for proposing changes from a branch environment.
+            description: The response message for listing changes in a branched environment.
         ListEnvironmentBranchesResponse:
             type: object
             properties:

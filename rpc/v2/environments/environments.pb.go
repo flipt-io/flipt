@@ -441,7 +441,7 @@ func (x *BranchEnvironmentRequest) GetKey() string {
 	return ""
 }
 
-// The response message for creating a branch environment.
+// The request message for deleting a branch environment.
 type DeleteBranchEnvironmentRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The environment identifier, e.g. 'production/branch'.
@@ -962,7 +962,7 @@ func (x *ListBranchedEnvironmentChangesRequest) GetLimit() int32 {
 	return 0
 }
 
-// The request message for proposing changes from a branch environment.
+// The response message for listing changes in a branched environment.
 type ListBranchedEnvironmentChangesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The list of changes.
