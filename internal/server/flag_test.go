@@ -15,6 +15,8 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.uber.org/zap/zaptest"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func TestListFlags_PaginationOffset(t *testing.T) {
@@ -306,4 +308,97 @@ func TestListFlags_WithTypes(t *testing.T) {
 	assert.Equal(t, int32(2), result.TotalCount)
 
 	store.AssertExpectations(t)
+}
+
+func TestListFlags_WithMetadata(t *testing.T) {
+	var (
+		store       = &common.StoreMock{}
+		environment = &environments.MockEnvironment{}
+		envStore    = &evaluation.MockEnvironmentStore{}
+		logger      = zaptest.NewLogger(t)
+		s           = &Server{
+			logger: logger,
+			store:  envStore,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	requestEnvironment := "request-environment"
+	namespaceKey := "test-namespace"
+	ctx := context.Background()
+
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	// Build expected metadata with helpers (cleaner & type-safe).
+	expectedMD, err := structpb.NewStruct(map[string]any{
+		"team":        "backend",
+		"environment": "production",
+	})
+	require.NoError(t, err)
+
+	// The order of returned flags shouldn't matter—test shouldn't rely on it.
+	store.On("ListFlags", mock.MatchedBy(func(ctx context.Context) bool {
+		env, ok := common.FliptEnvironmentFromContext(ctx)
+		return ok && env == requestEnvironment
+	}), storage.ListWithOptions(storage.NewNamespace(namespaceKey))).Return(
+		storage.ResultSet[*core.Flag]{
+			Results: []*core.Flag{
+				{
+					Key:     "test-flag-without-metadata",
+					Name:    "Test Flag without Metadata",
+					Type:    core.FlagType_VARIANT_FLAG_TYPE,
+					Enabled: false,
+					// Metadata intentionally unset
+				},
+				{
+					Key:      "test-flag-with-metadata",
+					Name:     "Test Flag with Metadata",
+					Type:     core.FlagType_BOOLEAN_FLAG_TYPE,
+					Enabled:  true,
+					Metadata: proto.Clone(expectedMD).(*structpb.Struct),
+				},
+			},
+		}, nil)
+
+	store.On("CountFlags", mock.MatchedBy(func(ctx context.Context) bool {
+		env, ok := common.FliptEnvironmentFromContext(ctx)
+		return ok && env == requestEnvironment
+	}), mock.Anything).Return(uint64(2), nil)
+
+	req := &flipt.ListFlagRequest{
+		EnvironmentKey: requestEnvironment,
+		NamespaceKey:   namespaceKey,
+	}
+
+	result, err := s.ListFlags(ctx, req)
+	require.NoError(t, err)
+	require.Len(t, result.Flags, 2)
+
+	// Build an index so we don't depend on slice order.
+	byKey := map[string]*flipt.Flag{}
+	for _, f := range result.Flags {
+		byKey[f.Key] = f
+	}
+
+	// Validate flag WITH metadata
+	fWith, ok := byKey["test-flag-with-metadata"]
+	require.True(t, ok, "expected flag with metadata to be present")
+	require.NotNil(t, fWith.Metadata, "metadata should not be nil")
+	assert.True(t, proto.Equal(expectedMD, fWith.Metadata), "metadata should match expected")
+	// Spot-check fields as well (nice guard if equality ever loosens)
+	assert.Equal(t, "backend", fWith.Metadata.Fields["team"].GetStringValue())
+	assert.Equal(t, "production", fWith.Metadata.Fields["environment"].GetStringValue())
+
+	// Validate flag WITHOUT metadata (allow nil OR empty struct)
+	fWithout, ok := byKey["test-flag-without-metadata"]
+	require.True(t, ok, "expected flag without metadata to be present")
+	if fWithout.Metadata != nil {
+		assert.Empty(t, fWithout.Metadata.Fields, "metadata present but should be empty")
+	} else {
+		assert.Nil(t, fWithout.Metadata)
+	}
+
+	assert.Equal(t, int32(2), result.TotalCount)
 }
