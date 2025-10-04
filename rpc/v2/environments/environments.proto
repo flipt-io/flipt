@@ -286,7 +286,7 @@ message ListBranchedEnvironmentChangesRequest {
   optional int32 limit = 4;
 }
 
-// The request message for proposing changes from a branch environment.
+// The response message for listing changes in a branched environment.
 message ListBranchedEnvironmentChangesResponse {
   // The list of changes.
   repeated Change changes = 1;
