@@ -42,24 +42,37 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EnvironmentsServiceClient interface {
-	// environments
+	// List environments.
 	ListEnvironments(ctx context.Context, in *ListEnvironmentsRequest, opts ...grpc.CallOption) (*ListEnvironmentsResponse, error)
+	// Create a branch environment.
 	BranchEnvironment(ctx context.Context, in *BranchEnvironmentRequest, opts ...grpc.CallOption) (*Environment, error)
+	// Delete a branch environment.
 	DeleteBranchEnvironment(ctx context.Context, in *DeleteBranchEnvironmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// List all branch environments for a given environment.
 	ListEnvironmentBranches(ctx context.Context, in *ListEnvironmentBranchesRequest, opts ...grpc.CallOption) (*ListEnvironmentBranchesResponse, error)
+	// List changes for a branch environment.
 	ListBranchedEnvironmentChanges(ctx context.Context, in *ListBranchedEnvironmentChangesRequest, opts ...grpc.CallOption) (*ListBranchedEnvironmentChangesResponse, error)
+	// Propose changes from a branch environment.
 	ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*EnvironmentProposalDetails, error)
-	// namespaces
+	// Get a specific namespace.
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
+	// List all namespaces within a given environment.
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
+	// Create a new namespace.
 	CreateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
+	// Update an existing namespace.
 	UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
+	// Delete a namespace.
 	DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...grpc.CallOption) (*DeleteNamespaceResponse, error)
-	// resources
+	// Get a specific resource within a given namespace.
 	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
+	// List all resources within a given namespace.
 	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
+	// Create a new resource within a given namespace.
 	CreateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
+	// Update an existing resource within a given namespace.
 	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
+	// Delete a resource within a given namespace.
 	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
 }
 
@@ -235,24 +248,37 @@ func (c *environmentsServiceClient) DeleteResource(ctx context.Context, in *Dele
 // All implementations must embed UnimplementedEnvironmentsServiceServer
 // for forward compatibility.
 type EnvironmentsServiceServer interface {
-	// environments
+	// List environments.
 	ListEnvironments(context.Context, *ListEnvironmentsRequest) (*ListEnvironmentsResponse, error)
+	// Create a branch environment.
 	BranchEnvironment(context.Context, *BranchEnvironmentRequest) (*Environment, error)
+	// Delete a branch environment.
 	DeleteBranchEnvironment(context.Context, *DeleteBranchEnvironmentRequest) (*emptypb.Empty, error)
+	// List all branch environments for a given environment.
 	ListEnvironmentBranches(context.Context, *ListEnvironmentBranchesRequest) (*ListEnvironmentBranchesResponse, error)
+	// List changes for a branch environment.
 	ListBranchedEnvironmentChanges(context.Context, *ListBranchedEnvironmentChangesRequest) (*ListBranchedEnvironmentChangesResponse, error)
+	// Propose changes from a branch environment.
 	ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*EnvironmentProposalDetails, error)
-	// namespaces
+	// Get a specific namespace.
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error)
+	// List all namespaces within a given environment.
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
+	// Create a new namespace.
 	CreateNamespace(context.Context, *UpdateNamespaceRequest) (*NamespaceResponse, error)
+	// Update an existing namespace.
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*NamespaceResponse, error)
+	// Delete a namespace.
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*DeleteNamespaceResponse, error)
-	// resources
+	// Get a specific resource within a given namespace.
 	GetResource(context.Context, *GetResourceRequest) (*ResourceResponse, error)
+	// List all resources within a given namespace.
 	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)
+	// Create a new resource within a given namespace.
 	CreateResource(context.Context, *UpdateResourceRequest) (*ResourceResponse, error)
+	// Update an existing resource within a given namespace.
 	UpdateResource(context.Context, *UpdateResourceRequest) (*ResourceResponse, error)
+	// Delete a resource within a given namespace.
 	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
 	mustEmbedUnimplementedEnvironmentsServiceServer()
 }

@@ -1153,7 +1153,7 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/GetResource", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/GetResource", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1173,7 +1173,7 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/ListResources", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/ListResources", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1233,7 +1233,7 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteResource", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteResource", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1478,7 +1478,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/GetResource", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/GetResource", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1495,7 +1495,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/ListResources", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/ListResources", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1546,7 +1546,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteResource", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteResource", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

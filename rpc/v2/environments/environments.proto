@@ -11,39 +11,44 @@ import "google/protobuf/empty.proto";
 option go_package = "go.flipt.io/flipt/rpc/v2/environments";
 
 service EnvironmentsService {
-  // environments
+  // List environments.
   rpc ListEnvironments(ListEnvironmentsRequest) returns (ListEnvironmentsResponse) {
     option (google.api.http) = {get: "/api/v2/environments"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listEnvironments"};
   }
 
+  // Create a branch environment.
   rpc BranchEnvironment(BranchEnvironmentRequest) returns (Environment) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {
       post: "/api/v2/environments/{environment_key}/branches"
       body: "*"
     };
-    option (gnostic.openapi.v3.operation) = {operation_id: "branchEnvironment"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createBranchEnvironment"};
   }
 
+  // Delete a branch environment.
   rpc DeleteBranchEnvironment(DeleteBranchEnvironmentRequest) returns (google.protobuf.Empty) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/branches/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteBranchEnvironment"};
   }
 
+  // List all branch environments for a given environment.
   rpc ListEnvironmentBranches(ListEnvironmentBranchesRequest) returns (ListEnvironmentBranchesResponse) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {get: "/api/v2/environments/{environment_key}/branches"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listEnvironmentBranches"};
   }
 
+  // List changes for a branch environment.
   rpc ListBranchedEnvironmentChanges(ListBranchedEnvironmentChangesRequest) returns (ListBranchedEnvironmentChangesResponse) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {get: "/api/v2/environments/{environment_key}/branches/{key}/changes"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listBranchedEnvironmentChanges"};
   }
 
+  // Propose changes from a branch environment.
   rpc ProposeEnvironment(ProposeEnvironmentRequest) returns (EnvironmentProposalDetails) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {
@@ -53,17 +58,19 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "proposeEnvironment"};
   }
 
-  // namespaces
+  // Get a specific namespace.
   rpc GetNamespace(GetNamespaceRequest) returns (NamespaceResponse) {
     option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getNamespace"};
   }
 
+  // List all namespaces within a given environment.
   rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
     option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listNamespaces"};
   }
 
+  // Create a new namespace.
   rpc CreateNamespace(UpdateNamespaceRequest) returns (NamespaceResponse) {
     option (google.api.http) = {
       post: "/api/v2/environments/{environment_key}/namespaces"
@@ -72,6 +79,7 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "createNamespace"};
   }
 
+  // Update an existing namespace.
   rpc UpdateNamespace(UpdateNamespaceRequest) returns (NamespaceResponse) {
     option (google.api.http) = {
       put: "/api/v2/environments/{environment_key}/namespaces"
@@ -80,22 +88,25 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "updateNamespace"};
   }
 
+  // Delete a namespace.
   rpc DeleteNamespace(DeleteNamespaceRequest) returns (DeleteNamespaceResponse) {
     option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/namespaces/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteNamespace"};
   }
 
-  // resources
+  // Get a specific resource within a given namespace.
   rpc GetResource(GetResourceRequest) returns (ResourceResponse) {
-    option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}"};
+    option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getResource"};
   }
 
+  // List all resources within a given namespace.
   rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {
-    option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}"};
+    option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listResources"};
   }
 
+  // Create a new resource within a given namespace.
   rpc CreateResource(UpdateResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
       post: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources"
@@ -104,6 +115,7 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "createResource"};
   }
 
+  // Update an existing resource within a given namespace.
   rpc UpdateResource(UpdateResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
       put: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources"
@@ -112,203 +124,331 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "updateResource"};
   }
 
+  // Delete a resource within a given namespace.
   rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {
-    option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}"};
+    option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteResource"};
   }
 }
 
 /* Environments */
 
+// The Environment represents a environment.
 message Environment {
+  // The environment key.
   string key = 1;
+  // The environment name.
   string name = 2;
+  // The default indicates if this is the default environment.
   optional bool default = 3;
+  // The environment configuration.
   optional EnvironmentConfiguration configuration = 4;
 }
 
+// The EnvironmentConfiguration represents the configuration for an environment.
 message EnvironmentConfiguration {
+  // The git reference (branch or tag) for the environment.
   string ref = 1;
+  // The directory within the repository where environment resources are located.
   optional string directory = 2;
+  // The git remote URL for the environment.
   optional string remote = 3;
+  // The base branch or tag for the environment.
   optional string base = 4;
+  // The source control management system for the environment.
   optional SCM scm = 5;
 }
 
+// The request message for listing environments.
 message ListEnvironmentsRequest {}
 
+// The response message for listing environments.
 message ListEnvironmentsResponse {
+  // The list of environments.
   repeated Environment environments = 1;
 }
 
+// The request message for creating a branch environment.
 message BranchEnvironmentRequest {
+  // The environment identifier, e.g. 'production/branch'.
   string environment_key = 1;
+  // The branch key.
   string key = 2;
 }
 
+// The request message for deleting a branch environment.
 message DeleteBranchEnvironmentRequest {
+  // The environment identifier, e.g. 'production/branch'.
   string environment_key = 1;
+  // The branch key.
   string key = 2;
 }
 
+// The BranchEnvironment represents a branch environment.
 message BranchEnvironment {
+  // The environment identifier, e.g. 'production/branch'.
   string environment_key = 1;
+  // The branch key.
   string key = 2;
+  // The git reference (branch or tag) for the branch environment.
   string ref = 3;
+  // The proposal details if a proposal has been made from this branch.
   optional EnvironmentProposalDetails proposal = 4;
 }
 
+// The request message for listing branch environments for a given environment.
 message ListEnvironmentBranchesRequest {
+  // the environment identifier, e.g. 'production/branch'.
   string environment_key = 1;
 }
 
+// The response message for listing branch environments for a given environment.
 message ListEnvironmentBranchesResponse {
+  // The list of branch environments.
   repeated BranchEnvironment branches = 1;
 }
 
+// The request message for proposing changes from a branch environment.
 message ProposeEnvironmentRequest {
+  // The environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // The branch key.
   string key = 2;
+  // The title of the proposal.
   optional string title = 3;
+  // The body of the proposal.
   optional string body = 4;
+  // The draft status of the proposal.
   optional bool draft = 5;
 }
 
+// SCM represents the source control management system.
 enum SCM {
+  // Unknown SCM.
   SCM_UNKNOWN = 0;
+  // GitHub SCM.
   SCM_GITHUB = 1;
+  // Gitea SCM.
   SCM_GITEA = 2;
+  // GitLab SCM.
   SCM_GITLAB = 3;
+  // Azure DevOps SCM.
   SCM_AZURE = 4;
+  // Bitbucket SCM.
   SCM_BITBUCKET = 5;
 }
 
+// The proposal state.
 enum ProposalState {
+  // Unknown state.
   PROPOSAL_STATE_UNKNOWN = 0;
+  // Open state.
   PROPOSAL_STATE_OPEN = 1;
+  // Merged state.
   PROPOSAL_STATE_MERGED = 2;
+  // Closed state.
   PROPOSAL_STATE_CLOSED = 3;
 }
 
+// The details of a proposal.
 message EnvironmentProposalDetails {
+  // The URL of the proposal in the source control management system.
   string url = 1;
+  // The state of the proposal.
   ProposalState state = 2;
 }
 
+// The change represents a single commit in the source control management system.
 message Change {
+  // The revision identifier (e.g. commit SHA).
   string revision = 1;
+  // The commit message.
   string message = 2;
+  // The author name.
   optional string author_name = 3;
+  // The author email.
   optional string author_email = 4;
+  // The commit timestamp in RFC3339 format.
   string timestamp = 5;
+  // The URL of the commit in the source control management system.
   optional string scm_url = 6;
 }
 
+// The request message for listing changes in a branch environment.
 message ListBranchedEnvironmentChangesRequest {
+  // The environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // The branch environment key.
   string key = 2;
+  // The revision to list changes from (exclusive). If not provided, lists from the beginning.
   optional string from = 3;
+  // The maximum number of changes to return. Defaults to 10.
   optional int32 limit = 4;
 }
 
+// The response message for listing changes in a branched environment.
 message ListBranchedEnvironmentChangesResponse {
+  // The list of changes.
   repeated Change changes = 1;
 }
 
 /* Namespace */
 
+// Namespace represents a grouping of related flags and segments.
 message Namespace {
+  // The namespace key.
   string key = 1;
+  // The namespace name.
   string name = 2;
+  // The namespace description.
   optional string description = 3;
+  // The namespace protection status.
   optional bool protected = 4;
 }
 
+// The request message for getting a namespace.
 message GetNamespaceRequest {
+  // environment_key is the environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // key is the namespace key.
   string key = 2;
 }
 
+// The response message for getting a namespace.
 message NamespaceResponse {
+  // The list of namespaces.
   Namespace namespace = 1;
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
 
+// The request message for listing namespaces.
 message ListNamespacesRequest {
+  // the environment identifier, e.g. 'production'.
   string environment_key = 1;
 }
 
+// The response message for listing namespaces.
 message ListNamespacesResponse {
+  // The list of namespaces.
   repeated Namespace items = 1;
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
 
+// The request message for creating or updating a namespace.
 message UpdateNamespaceRequest {
+  // The environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // The namespace key.
   string key = 2;
+  // The namespace name.
   string name = 3;
+  // The namespace description.
   optional string description = 4;
+  // The namespace protection status.
   optional bool protected = 5;
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
 
+// The request message for deleting a namespace.
 message DeleteNamespaceRequest {
+  // The environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // The namespace key.
   string key = 2;
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
 
+// The response message for deleting a namespace.
 message DeleteNamespaceResponse {
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
 
 /* Resource */
 
+// The request message for getting a resource.
 message GetResourceRequest {
+  // The environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // The namespace key for which to list resources, e.g. 'default'.
   string namespace_key = 2;
+  // The resource type - flipt.core.Flag or flipt.core.Segment.
   string type_url = 3;
+  // The resource key.
   string key = 4;
 }
 
+// The resource message representing an arbitrary typed resource payload.
 message Resource {
+  // The namespace key for which to list resources, e.g. 'default'.
   string namespace_key = 1;
+  // The resource key.
   string key = 2;
+  // The arbitrary typed resource payload (e.g. flipt.core.Flag, flipt.core.Segment).
+  // {"@type": "flipt.core.Flag", "key": "my_flag"}
   google.protobuf.Any payload = 3;
 }
 
+// The response message for getting a resource.
 message ResourceResponse {
+  // The resource.
   Resource resource = 1;
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
 
+// The request message for listing resources.
 message ListResourcesRequest {
+  // The environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // The namespace key for which to list resources, e.g. 'default'.
   string namespace_key = 2;
+  // The resource type - flipt.core.Flag or flipt.core.Segment.
   string type_url = 3;
 }
 
+// The response message for listing resources.
 message ListResourcesResponse {
+  // The list of resources.
   repeated Resource resources = 1;
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
 
+// The request message for creating or updating a resource.
 message UpdateResourceRequest {
+  // The environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // The namespace key for which to list resources, e.g. 'default'.
   string namespace_key = 2;
+  // The resource key.
   string key = 3;
+  // The arbitrary typed resource payload (e.g. flipt.core.Flag, flipt.core.Segment).
+  // {"@type": "flipt.core.Flag", "key": "my_flag"}
   google.protobuf.Any payload = 4;
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
 
+// The request message for deleting a resource.
 message DeleteResourceRequest {
+  // The environment identifier, e.g. 'production'.
   string environment_key = 1;
+  // The namespace key for which to list resources, e.g. 'default'.
   string namespace_key = 2;
+  // The resource type - flipt.core.Flag or flipt.core.Segment.
   string type_url = 3;
+  // The key of the resource to delete.
   string key = 4;
   string revision = 100;
 }
 
+// The response message for deleting a resource.
 message DeleteResourceResponse {
+  // The resource revision for optimistic concurrency.
   string revision = 100;
 }
