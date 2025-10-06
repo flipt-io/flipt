@@ -28,7 +28,6 @@ var (
 		"github.com/rakyll/gotest",
 		"google.golang.org/grpc/cmd/protoc-gen-go-grpc",
 		"google.golang.org/protobuf/cmd/protoc-gen-go",
-		"../internal/cmd/protoc-gen-go-flipt-sdk/...",
 	}
 
 	Default = Build
@@ -37,7 +36,7 @@ var (
 // Installs tools required for development
 func Bootstrap() error {
 	fmt.Println("Bootstrapping tools...")
-	if err := os.MkdirAll("_tools", 0755); err != nil {
+	if err := os.MkdirAll("_tools", 0o755); err != nil {
 		return fmt.Errorf("creating dir: %w", err)
 	}
 
@@ -59,7 +58,19 @@ func Bootstrap() error {
 	cmd.Dir = "_tools"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("installing tools: %w", err)
+	}
+
+	cmd = exec.Command("go", "install", ".")
+	cmd.Dir = "internal/cmd/protoc-gen-go-flipt-sdk"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("installing tool protoc-gen-go-flipt-sdk: %w", err)
+	}
+	return nil
 }
 
 // Builds the project similar to a release build

@@ -5,7 +5,7 @@ go 1.24.0
 toolchain go1.25.1
 
 require (
-	github.com/google/gnostic-models v0.6.9
+	github.com/google/gnostic-models v0.7.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
 	github.com/stretchr/testify v1.11.1
 	go.flipt.io/flipt/errors v1.45.0
