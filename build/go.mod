@@ -28,7 +28,7 @@ require (
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 	gopkg.in/yaml.v3 v3.0.1
-	sigs.k8s.io/kind v0.23.0
+	sigs.k8s.io/kind v0.30.0
 )
 
 require (
