@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v66/github"
+	"github.com/google/go-github/v75/github"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
 	"go.flipt.io/flipt/internal/credentials"
@@ -128,11 +128,11 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
 
 	pr, _, err := s.prs.Create(ctx, s.owner, s.repository, &github.NewPullRequest{
-		Base:  github.String(req.Base),
-		Head:  github.String(req.Head),
-		Title: github.String(req.Title),
-		Body:  github.String(req.Body),
-		Draft: github.Bool(req.Draft),
+		Base:  github.Ptr(req.Base),
+		Head:  github.Ptr(req.Head),
+		Title: github.Ptr(req.Title),
+		Body:  github.Ptr(req.Body),
+		Draft: github.Ptr(req.Draft),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
@@ -173,12 +173,12 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		change := &environments.Change{
 			Revision: commit.GetSHA(),
 			Message:  commit.GetCommit().GetMessage(),
-			ScmUrl:   github.String(commit.GetHTMLURL()),
+			ScmUrl:   github.Ptr(commit.GetHTMLURL()),
 		}
 
 		if commit.GetCommit().GetAuthor() != nil {
-			change.AuthorName = github.String(commit.GetCommit().GetAuthor().GetName())
-			change.AuthorEmail = github.String(commit.GetCommit().GetAuthor().GetEmail())
+			change.AuthorName = github.Ptr(commit.GetCommit().GetAuthor().GetName())
+			change.AuthorEmail = github.Ptr(commit.GetCommit().GetAuthor().GetEmail())
 			change.Timestamp = commit.GetCommit().GetAuthor().GetDate().Format(time.RFC3339)
 		}
 
