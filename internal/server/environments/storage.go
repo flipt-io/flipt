@@ -232,6 +232,13 @@ func (e *EnvironmentStore) GetFromContext(ctx context.Context) (Environment, err
 	if ok {
 		ee, err := e.Get(ctx, env)
 		if err != nil {
+			// If the requested environment is "default" and it doesn't exist,
+			// fall back to the default environment instead of returning an error.
+			// This ensures compatibility with SDKs that explicitly set environment="default"
+			// when the actual default environment has a different key.
+			if env == flipt.DefaultEnvironment {
+				return e.defaultEnv, nil
+			}
 			return nil, fmt.Errorf("failed to get environment %q from context: %w", env, err)
 		}
 		return ee, nil
