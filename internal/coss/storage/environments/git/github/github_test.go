@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-github/v66/github"
+	"github.com/google/go-github/v75/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -37,14 +37,14 @@ func TestSCM_Propose(t *testing.T) {
 	}
 
 	expectedPR := &github.PullRequest{}
-	expectedPR.HTMLURL = github.String("http://example.com/pr")
+	expectedPR.HTMLURL = github.Ptr("http://example.com/pr")
 	mockPR.EXPECT().
 		Create(ctx, "owner", "repo", &github.NewPullRequest{
-			Base:  github.String("main"),
-			Head:  github.String("feature"),
-			Title: github.String("Test PR"),
-			Body:  github.String("This is a test"),
-			Draft: github.Bool(false),
+			Base:  github.Ptr("main"),
+			Head:  github.Ptr("feature"),
+			Title: github.Ptr("Test PR"),
+			Body:  github.Ptr("This is a test"),
+			Draft: github.Ptr(false),
 		}).
 		Return(expectedPR, nil, nil)
 
@@ -68,11 +68,11 @@ func TestSCM_Propose_Error(t *testing.T) {
 	req := git.ProposalRequest{}
 	mockPR.EXPECT().
 		Create(ctx, "owner", "repo", &github.NewPullRequest{
-			Base:  github.String(""),
-			Head:  github.String(""),
-			Title: github.String(""),
-			Body:  github.String(""),
-			Draft: github.Bool(false),
+			Base:  github.Ptr(""),
+			Head:  github.Ptr(""),
+			Title: github.Ptr(""),
+			Body:  github.Ptr(""),
+			Draft: github.Ptr(false),
 		}).
 		Return(nil, nil, errors.New("create error"))
 
@@ -97,16 +97,16 @@ func TestSCM_ListChanges(t *testing.T) {
 	commitTime := time.Now()
 	commit := &github.Commit{
 		Author: &github.CommitAuthor{
-			Name:  github.String("author"),
-			Email: github.String("author@example.com"),
+			Name:  github.Ptr("author"),
+			Email: github.Ptr("author@example.com"),
 			Date:  &github.Timestamp{Time: commitTime},
 		},
-		Message: github.String("commit message"),
+		Message: github.Ptr("commit message"),
 	}
 	prCommit := &github.RepositoryCommit{
-		SHA:     github.String("sha"),
+		SHA:     github.Ptr("sha"),
 		Commit:  commit,
-		HTMLURL: github.String("http://example.com/commit"),
+		HTMLURL: github.Ptr("http://example.com/commit"),
 	}
 	comparison := &github.CommitsComparison{
 		Commits: []*github.RepositoryCommit{prCommit},
@@ -164,9 +164,9 @@ func TestSCM_ListProposals(t *testing.T) {
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	pr := &github.PullRequest{
-		Head:    &github.PullRequestBranch{Ref: github.String("flipt/testenv/feature")},
-		HTMLURL: github.String("http://example.com/pr"),
-		State:   github.String("open"),
+		Head:    &github.PullRequestBranch{Ref: github.Ptr("flipt/testenv/feature")},
+		HTMLURL: github.Ptr("http://example.com/pr"),
+		State:   github.Ptr("open"),
 	}
 	prsList := []*github.PullRequest{pr}
 	mockPR.EXPECT().
@@ -198,9 +198,9 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	pr := &github.PullRequest{
-		Head:    &github.PullRequestBranch{Ref: github.String("otherprefix/testenv/feature")},
-		HTMLURL: github.String("http://example.com/pr"),
-		State:   github.String("open"),
+		Head:    &github.PullRequestBranch{Ref: github.Ptr("otherprefix/testenv/feature")},
+		HTMLURL: github.Ptr("http://example.com/pr"),
+		State:   github.Ptr("open"),
 	}
 	prsList := []*github.PullRequest{pr}
 	mockPR.EXPECT().
@@ -229,14 +229,14 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 
 	branch := "flipt/testenv/feature"
 	prOpen := &github.PullRequest{
-		Head:    &github.PullRequestBranch{Ref: github.String(branch)},
-		HTMLURL: github.String("http://example.com/pr-open"),
-		State:   github.String("open"),
+		Head:    &github.PullRequestBranch{Ref: github.Ptr(branch)},
+		HTMLURL: github.Ptr("http://example.com/pr-open"),
+		State:   github.Ptr("open"),
 	}
 	prClosed := &github.PullRequest{
-		Head:    &github.PullRequestBranch{Ref: github.String(branch)},
-		HTMLURL: github.String("http://example.com/pr-closed"),
-		State:   github.String("closed"),
+		Head:    &github.PullRequestBranch{Ref: github.Ptr(branch)},
+		HTMLURL: github.Ptr("http://example.com/pr-closed"),
+		State:   github.Ptr("closed"),
 	}
 	prsList := []*github.PullRequest{prClosed, prOpen}
 	mockPR.EXPECT().
@@ -267,11 +267,11 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 
 	branch := "flipt/testenv/feature"
 	prClosedMerged := &github.PullRequest{
-		Head:           &github.PullRequestBranch{Ref: github.String(branch)},
-		HTMLURL:        github.String("http://example.com/pr-merged"),
-		State:          github.String("closed"),
-		Merged:         github.Bool(true),
-		MergeCommitSHA: github.String("sha123"),
+		Head:           &github.PullRequestBranch{Ref: github.Ptr(branch)},
+		HTMLURL:        github.Ptr("http://example.com/pr-merged"),
+		State:          github.Ptr("closed"),
+		Merged:         github.Ptr(true),
+		MergeCommitSHA: github.Ptr("sha123"),
 	}
 	prsList := []*github.PullRequest{prClosedMerged}
 	mockPR.EXPECT().
@@ -302,10 +302,10 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 
 	branch := "flipt/testenv/feature"
 	prClosed := &github.PullRequest{
-		Head:    &github.PullRequestBranch{Ref: github.String(branch)},
-		HTMLURL: github.String("http://example.com/pr-closed"),
-		State:   github.String("closed"),
-		Merged:  github.Bool(false),
+		Head:    &github.PullRequestBranch{Ref: github.Ptr(branch)},
+		HTMLURL: github.Ptr("http://example.com/pr-closed"),
+		State:   github.Ptr("closed"),
+		Merged:  github.Ptr(false),
 	}
 	prsList := []*github.PullRequest{prClosed}
 	mockPR.EXPECT().

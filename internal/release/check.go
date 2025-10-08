@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/blang/semver/v4"
-	"github.com/google/go-github/v66/github"
+	"github.com/google/go-github/v75/github"
 )
 
 type Info struct {

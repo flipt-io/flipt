@@ -3,10 +3,10 @@
     "devenv": {
       "locked": {
         "dir": "src/modules",
-        "lastModified": 1758198228,
+        "lastModified": 1759871026,
         "owner": "cachix",
         "repo": "devenv",
-        "rev": "dec691c410560fea341939f9872d41eb811c2600",
+        "rev": "79171b23a81519709d056140a112f596a2555517",
         "type": "github"
       },
       "original": {
@@ -40,10 +40,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1758108966,
+        "lastModified": 1759523803,
         "owner": "cachix",
         "repo": "git-hooks.nix",
-        "rev": "54df955a695a84cd47d4a43e08e1feaf90b1fd9b",
+        "rev": "cfc9f7bb163ad8542029d303e599c0f7eee09835",
         "type": "github"
       },
       "original": {
@@ -74,10 +74,10 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1758029226,
+        "lastModified": 1759826507,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "08b8f92ac6354983f5382124fef6006cade4a1c1",
+        "rev": "bce5fe2bb998488d8e7e7856315f90496723793c",
         "type": "github"
       },
       "original": {
