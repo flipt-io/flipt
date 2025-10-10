@@ -16,7 +16,6 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
-	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -69,18 +68,15 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 		}
 
 		if s.tracingEnabled {
-			span := trace.SpanFromContext(ctx)
-			span.AddEvent(tracing.Event, trace.WithAttributes(
-				tracing.AttributeEnvironment.String(env.Key()),
-				tracing.AttributeNamespace.String(namespaceKey),
-				tracing.AttributeFlag.String(r.Key),
+			s.addEvaluationEvent(ctx, env, namespaceKey, r.Key, entityId, "",
 				tracing.AttributeMatch.Bool(resp.Match),
 				tracing.AttributeVariant.String(resp.VariantKey),
 				tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 				tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 				tracing.AttributeFlagTypeVariant,
-			))
+			)
 		}
+
 		mm := map[string]any{}
 		if len(resp.SegmentKeys) > 0 {
 			mm[metaKeySegments] = strings.Join(resp.SegmentKeys, ",")
@@ -112,16 +108,12 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 		}
 
 		if s.tracingEnabled {
-			span := trace.SpanFromContext(ctx)
-			span.AddEvent(tracing.Event, trace.WithAttributes(
-				tracing.AttributeEnvironment.String(env.Key()),
-				tracing.AttributeNamespace.String(namespaceKey),
-				tracing.AttributeFlag.String(r.Key),
+			s.addEvaluationEvent(ctx, env, namespaceKey, r.Key, entityId, "",
 				tracing.AttributeVariant.Bool(resp.Enabled),
 				tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 				tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 				tracing.AttributeFlagTypeBoolean,
-			))
+			)
 		}
 
 		value, err := structpb.NewValue(resp.Enabled)
