@@ -1,7 +1,7 @@
 cuelabs.dev/go/oci/ociregistry v0.0.0-20250715075730-49cab49c8e9d h1:lX0EawyoAu4kgMJJfy7MmNkIHioBcdBGFRSKDZ+CWo0=
 cuelabs.dev/go/oci/ociregistry v0.0.0-20250715075730-49cab49c8e9d/go.mod h1:4WWeZNxUO1vRoZWAHIG0KZOd6dA25ypyWuwD3ti0Tdc=
-cuelang.org/go v0.14.1 h1:kxFAHr7bvrCikbtVps2chPIARazVdnRmlz65dAzKyWg=
-cuelang.org/go v0.14.1/go.mod h1:aSP9UZUM5m2izHAHUvqtq0wTlWn5oLjuv2iBMQZBLLs=
+cuelang.org/go v0.14.2 h1:LDlMXbfp0/AHjNbmuDYSGBbHDekaXei/RhAOCihpSgg=
+cuelang.org/go v0.14.2/go.mod h1:53oOiowh5oAlniD+ynbHPaHxHFO5qc3QkzlUiB/9kps=
 github.com/cockroachdb/apd/v3 v3.2.1 h1:U+8j7t0axsIgvQUqthuNm82HIrYXodOV2iWLWtEaIwg=
 github.com/cockroachdb/apd/v3 v3.2.1/go.mod h1:klXJcjp+FffLTHlhIG69tezTDvdP065naDsHzKhYSqc=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
