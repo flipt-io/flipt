@@ -318,3 +318,144 @@ func TestSegmentStorage_DeleteResource(t *testing.T) {
 		})
 	}
 }
+
+func TestSegmentStorage_DeleteResource_InUse(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	storage := NewSegmentStorage(logger)
+
+	segmentInUseByRule := `version: "1.5"
+namespace:
+  key: default
+  name: Default
+segments:
+  - key: segment1
+    name: Segment 1
+    match_type: ALL
+flags:
+  - key: flag1
+    name: Flag 1
+    type: VARIANT
+    enabled: true
+    variants:
+      - key: var1
+        name: Variant 1
+    rules:
+      - segment:
+          keys:
+            - segment1
+          operator: OR
+        distributions:
+          - variant: var1
+            rollout: 100
+`
+
+	segmentInUseByRollout := `version: "1.5"
+namespace:
+  key: default
+  name: Default
+segments:
+  - key: segment1
+    name: Segment 1
+    match_type: ALL
+flags:
+  - key: flag1
+    name: Flag 1
+    type: BOOLEAN
+    enabled: true
+    rollouts:
+      - description: Test rollout
+        segment:
+          keys:
+            - segment1
+          operator: OR
+          value: true
+`
+
+	segmentInUseByMultipleFlags := `version: "1.5"
+namespace:
+  key: default
+  name: Default
+segments:
+  - key: segment1
+    name: Segment 1
+    match_type: ALL
+flags:
+  - key: flag1
+    name: Flag 1
+    type: VARIANT
+    enabled: true
+    variants:
+      - key: var1
+        name: Variant 1
+    rules:
+      - segment:
+          keys:
+            - segment1
+          operator: OR
+        distributions:
+          - variant: var1
+            rollout: 100
+  - key: flag2
+    name: Flag 2
+    type: BOOLEAN
+    enabled: true
+    rollouts:
+      - description: Test rollout
+        segment:
+          keys:
+            - segment1
+          operator: OR
+          value: true
+`
+
+	tests := []struct {
+		name        string
+		contents    string
+		segmentKey  string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:        "cannot delete segment in use by rule",
+			contents:    segmentInUseByRule,
+			segmentKey:  "segment1",
+			wantErr:     true,
+			errContains: "segment \"segment1\" is in use by flag \"flag1\" rule 1",
+		},
+		{
+			name:        "cannot delete segment in use by rollout",
+			contents:    segmentInUseByRollout,
+			segmentKey:  "segment1",
+			wantErr:     true,
+			errContains: "segment \"segment1\" is in use by flag \"flag1\" rollout 1",
+		},
+		{
+			name:        "cannot delete segment in use by multiple flags",
+			contents:    segmentInUseByMultipleFlags,
+			segmentKey:  "segment1",
+			wantErr:     true,
+			errContains: "segment \"segment1\" is in use by flag \"flag1\" rule 1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := fstesting.NewFilesystem(
+				t,
+				fstesting.WithDirectory(
+					"default",
+					fstesting.WithFile("features.yaml", tt.contents),
+				),
+			)
+
+			err := storage.DeleteResource(t.Context(), fs, "default", tt.segmentKey)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errContains)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
