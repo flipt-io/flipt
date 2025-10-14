@@ -21,7 +21,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
@@ -458,16 +457,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	// in-process client connection for grpc services
 	ipch := &inprocgrpc.Channel{}
-	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(
-		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
-		otelgrpc.UnaryServerInterceptor(),
-	))
+	ipch = ipch.WithStatsHandler(otelgrpc.NewServerHandler())
 
 	var grpcOptions []cmd.GRPCServerOption
 	if forceMigrate {
 		grpcOptions = append(grpcOptions, cmd.WithForceMigrate())
 	}
-
 	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, licenseManager, secretsManager, grpcOptions...)
 	if err != nil {
 		return err
@@ -501,7 +496,7 @@ func ensureDir(path string) error {
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			// directory doesnt exist, so try to create it
-			return os.MkdirAll(path, 0700)
+			return os.MkdirAll(path, 0o700)
 		}
 		return fmt.Errorf("checking directory: %w", err)
 	}

@@ -215,9 +215,8 @@ func NewGRPCServer(
 			}
 			return true
 		})),
+
 		grpc_prometheus.UnaryServerInterceptor,
-		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
-		otelgrpc.UnaryServerInterceptor(),
 		middlewaregrpc.ErrorUnaryInterceptor,
 	}
 
@@ -235,8 +234,6 @@ func NewGRPCServer(
 			return true
 		})),
 		grpc_prometheus.StreamServerInterceptor,
-		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
-		otelgrpc.StreamServerInterceptor(),
 		middlewaregrpc.ErrorStreamInterceptor,
 	}
 
