@@ -34,7 +34,6 @@ import (
 	"go.flipt.io/flipt/internal/secrets"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.uber.org/zap"
@@ -457,7 +456,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	// in-process client connection for grpc services
 	ipch := &inprocgrpc.Channel{}
-	ipch = ipch.WithStatsHandler(otelgrpc.NewServerHandler())
+	ipch = ipch.WithStatsHandler(otel.NewInprocStatsHandler())
 
 	var grpcOptions []cmd.GRPCServerOption
 	if forceMigrate {
