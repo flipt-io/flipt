@@ -546,6 +546,8 @@ require (
 replace (
 	github.com/codahale/hdrhistogram => github.com/HdrHistogram/hdrhistogram-go v0.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt/v4 v4.2.0
+	// replace with fork while changes are in review
+	// https://github.com/fullstorydev/grpchan/pull/83
 	github.com/fullstorydev/grpchan => github.com/erka/grpchan v0.0.0-20251014172820-9b4242e94974
 )
 
