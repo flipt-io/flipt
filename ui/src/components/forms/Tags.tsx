@@ -61,9 +61,11 @@ export default function Tags(props: TagsProps) {
   };
 
   const inputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.code === 'Enter' && e.currentTarget.value) {
+    if (e.code === 'Enter') {
       e.preventDefault();
-      addTag();
+      if (e.currentTarget.value) {
+        addTag();
+      }
     }
   };
 
