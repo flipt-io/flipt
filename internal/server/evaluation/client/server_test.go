@@ -231,22 +231,21 @@ func TestServer_EvaluationSnapshotNamespaceStream_ContextCancel(t *testing.T) {
 		ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
 		go func() {
 			ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
-			// simulate context cancel before next send
-			wait <- struct{}{}
+			// wait for Send to be called before closing
+			<-wait
 			close(ch)
 		}()
 	})
 
 	ctx, cancel := context.WithCancel(t.Context())
 	stream := &mockStream{ctx: ctx}
-	stream.On("Send", mock.Anything).Return(nil)
+	stream.On("Send", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		// signal that Send was called, then cancel context
+		wait <- struct{}{}
+		cancel()
+	})
 	s := NewServer(logger, envStore)
 	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
-
-	go func() {
-		<-wait
-		cancel()
-	}()
 
 	err := s.EvaluationSnapshotNamespaceStream(req, stream)
 	require.NoError(t, err)
