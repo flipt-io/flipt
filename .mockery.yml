@@ -44,3 +44,9 @@ packages:
     interfaces:
       Provider: {}
       Manager: {}
+  google.golang.org/grpc/stats:
+    interfaces:
+      Handler: {}
+    config:
+      pkgname: otel
+      dir: "./internal/otel/"

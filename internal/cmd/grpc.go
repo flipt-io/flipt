@@ -46,7 +46,6 @@ import (
 	rpcanalytics "go.flipt.io/flipt/rpc/v2/analytics"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	opentelemetry "go.opentelemetry.io/otel"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
@@ -372,7 +371,6 @@ func NewGRPCServer(
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
-		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
 			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
