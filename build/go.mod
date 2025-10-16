@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.39.2
 	github.com/aws/aws-sdk-go-v2/config v1.31.12
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.88.4
-	github.com/docker/docker v28.4.0+incompatible
+	github.com/docker/docker v28.5.1+incompatible
 	github.com/go-git/go-billy/v5 v5.6.2
 	github.com/go-git/go-git/v5 v5.16.3
 	github.com/go-jose/go-jose/v3 v3.0.4
