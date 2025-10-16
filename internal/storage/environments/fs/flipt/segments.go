@@ -176,6 +176,29 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 		return nil
 	}
 
+	// Check if any flags reference this segment before deleting
+	for _, doc := range docs {
+		if doc.Namespace.GetKey() != namespace {
+			continue
+		}
+
+		for _, flag := range doc.Flags {
+			// Check rules
+			for ruleIdx, rule := range flag.Rules {
+				if rule.Segment != nil && slices.Contains(rule.Segment.Keys, key) {
+					return errors.ErrInvalidf("segment %q is in use by flag %q rule %d", key, flag.Key, ruleIdx+1)
+				}
+			}
+
+			// Check rollouts
+			for rolloutIdx, rollout := range flag.Rollouts {
+				if rollout.Segment != nil && slices.Contains(rollout.Segment.Keys, key) {
+					return errors.ErrInvalidf("segment %q is in use by flag %q rollout %d", key, flag.Key, rolloutIdx+1)
+				}
+			}
+		}
+	}
+
 	var found bool
 	for _, doc := range docs {
 		if doc.Namespace.GetKey() != namespace {

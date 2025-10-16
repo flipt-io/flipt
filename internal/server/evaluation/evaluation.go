@@ -26,6 +26,26 @@ import (
 	"go.uber.org/zap"
 )
 
+// addEvaluationEvent adds a tracing event for flag evaluation with the appropriate attributes
+func (s *Server) addEvaluationEvent(ctx context.Context, env environments.Environment, namespaceKey, flagKey, entityID, requestID string, attrs ...attribute.KeyValue) {
+	span := trace.SpanFromContext(ctx)
+	baseAttrs := []attribute.KeyValue{
+		tracing.AttributeEnvironment.String(env.Key()),
+		tracing.AttributeNamespace.String(namespaceKey),
+		tracing.AttributeFlag.String(flagKey),
+	}
+
+	if entityID != "" {
+		baseAttrs = append(baseAttrs, tracing.AttributeEntityID.String(entityID))
+	}
+	if requestID != "" {
+		baseAttrs = append(baseAttrs, tracing.AttributeRequestID.String(requestID))
+	}
+
+	baseAttrs = append(baseAttrs, attrs...)
+	span.AddEvent(tracing.Event, trace.WithAttributes(baseAttrs...))
+}
+
 // Variant evaluates a request for a multi-variate flag and entity.
 func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
 	env, err := s.store.Get(ctx, r.EnvironmentKey)
@@ -58,20 +78,13 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	if s.tracingEnabled {
-		// add otel attributes to span
-		span := trace.SpanFromContext(ctx)
-		span.AddEvent(tracing.Event, trace.WithAttributes(
-			tracing.AttributeEnvironment.String(env.Key()),
-			tracing.AttributeNamespace.String(r.NamespaceKey),
-			tracing.AttributeFlag.String(r.FlagKey),
-			tracing.AttributeEntityID.String(r.EntityId),
-			tracing.AttributeRequestID.String(r.RequestId),
+		s.addEvaluationEvent(ctx, env, r.NamespaceKey, r.FlagKey, r.EntityId, r.RequestId,
 			tracing.AttributeMatch.Bool(resp.Match),
 			tracing.AttributeVariant.String(resp.VariantKey),
 			tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 			tracing.AttributeFlagTypeVariant,
-		))
+		)
 	}
 
 	return resp, nil
@@ -299,19 +312,12 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	if s.tracingEnabled {
-		// add otel attributes to span
-		span := trace.SpanFromContext(ctx)
-		span.AddEvent(tracing.Event, trace.WithAttributes(
-			tracing.AttributeEnvironment.String(env.Key()),
-			tracing.AttributeNamespace.String(r.NamespaceKey),
-			tracing.AttributeFlag.String(r.FlagKey),
-			tracing.AttributeEntityID.String(r.EntityId),
-			tracing.AttributeRequestID.String(r.RequestId),
+		s.addEvaluationEvent(ctx, env, r.NamespaceKey, r.FlagKey, r.EntityId, r.RequestId,
 			tracing.AttributeVariant.Bool(resp.Enabled),
 			tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
 			tracing.AttributeFlagTypeBoolean,
-		))
+		)
 	}
 
 	return resp, nil
@@ -499,6 +505,15 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 				return nil, err
 			}
 
+			if s.tracingEnabled {
+				s.addEvaluationEvent(ctx, env, req.NamespaceKey, req.FlagKey, req.EntityId, req.RequestId,
+					tracing.AttributeVariant.Bool(res.Enabled),
+					tracing.AttributeReason.String(tracing.ReasonToValue(res.Reason)),
+					tracing.AttributeSegments.StringSlice(res.SegmentKeys),
+					tracing.AttributeFlagTypeBoolean,
+				)
+			}
+
 			eresp := &rpcevaluation.EvaluationResponse{
 				Type: rpcevaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE,
 				Response: &rpcevaluation.EvaluationResponse_BooleanResponse{
@@ -511,6 +526,16 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 			res, err := s.variant(ctx, store, env, f, req)
 			if err != nil {
 				return nil, err
+			}
+
+			if s.tracingEnabled {
+				s.addEvaluationEvent(ctx, env, req.NamespaceKey, req.FlagKey, req.EntityId, req.RequestId,
+					tracing.AttributeMatch.Bool(res.Match),
+					tracing.AttributeVariant.String(res.VariantKey),
+					tracing.AttributeReason.String(tracing.ReasonToValue(res.Reason)),
+					tracing.AttributeSegments.StringSlice(res.SegmentKeys),
+					tracing.AttributeFlagTypeVariant,
+				)
 			}
 			eresp := &rpcevaluation.EvaluationResponse{
 				Type: rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE,

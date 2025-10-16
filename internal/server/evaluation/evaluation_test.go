@@ -10,10 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/environments"
+	"go.flipt.io/flipt/internal/server/tracing"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.opentelemetry.io/otel/attribute"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -1866,5 +1870,407 @@ func Test_matchesDateTime(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
+	}
+}
+
+func TestEvaluationWithTracing(t *testing.T) {
+	tests := []struct {
+		name               string
+		tracingEnabled     bool
+		expectedEventCount int
+		setupMocks         func(t *testing.T, envStore *MockEnvironmentStore, environment *environments.MockEnvironment, store *storage.MockReadOnlyStore, namespaceKey string)
+		runEvaluation      func(ctx context.Context, s *Server) error
+		validateEvents     func(t *testing.T, events []sdktrace.Event, environmentKey, namespaceKey string)
+	}{
+		{
+			name:               "variant_flag_with_tracing",
+			tracingEnabled:     true,
+			expectedEventCount: 1,
+			setupMocks: func(t *testing.T, envStore *MockEnvironmentStore, environment *environments.MockEnvironment, store *storage.MockReadOnlyStore, namespaceKey string) {
+				flagKey := "test-flag"
+				environment.On("Key").Return("test-environment")
+				envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+				environment.On("EvaluationStore").Return(store, nil)
+
+				store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+					Key:     flagKey,
+					Enabled: true,
+					Type:    core.FlagType_VARIANT_FLAG_TYPE,
+				}, nil)
+
+				store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
+					[]*storage.EvaluationRule{
+						{
+							ID:      "1",
+							FlagKey: flagKey,
+							Rank:    0,
+							Segments: map[string]*storage.EvaluationSegment{
+								"segment-1": {
+									SegmentKey: "segment-1",
+									MatchType:  core.MatchType_ALL_MATCH_TYPE,
+									Constraints: []storage.EvaluationConstraint{
+										{
+											ID:       "2",
+											Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+											Property: "hello",
+											Operator: flipt.OpEQ,
+											Value:    "world",
+										},
+									},
+								},
+							},
+						},
+					}, nil)
+
+				store.On(
+					"GetEvaluationDistributions",
+					mock.Anything,
+					storage.NewResource(namespaceKey, flagKey),
+					storage.NewID("1"),
+				).Return([]*storage.EvaluationDistribution{
+					{
+						RuleID:     "1",
+						VariantID:  "variant-1",
+						VariantKey: "test-variant",
+						Rollout:    100,
+					},
+				}, nil)
+			},
+			runEvaluation: func(ctx context.Context, s *Server) error {
+				_, err := s.Variant(ctx, &rpcevaluation.EvaluationRequest{
+					FlagKey:        "test-flag",
+					EnvironmentKey: "test-environment",
+					EntityId:       "test-entity",
+					RequestId:      "test-request-id",
+					NamespaceKey:   "test-namespace",
+					Context: map[string]string{
+						"hello": "world",
+					},
+				})
+				return err
+			},
+			validateEvents: func(t *testing.T, events []sdktrace.Event, environmentKey, namespaceKey string) {
+				require.Len(t, events, 1)
+				event := events[0]
+				assert.Equal(t, tracing.Event, event.Name)
+				attrs := event.Attributes
+				assertAttributeValue(t, attrs, tracing.AttributeEnvironment, environmentKey)
+				assertAttributeValue(t, attrs, tracing.AttributeNamespace, namespaceKey)
+				assertAttributeValue(t, attrs, tracing.AttributeFlag, "test-flag")
+				assertAttributeValue(t, attrs, tracing.AttributeEntityID, "test-entity")
+				assertAttributeValue(t, attrs, tracing.AttributeRequestID, "test-request-id")
+				assertAttributeValue(t, attrs, tracing.AttributeMatch, true)
+				assertAttributeValue(t, attrs, tracing.AttributeVariant, "test-variant")
+				assertAttributeValue(t, attrs, tracing.AttributeReason, "match")
+				assertAttributeValue(t, attrs, tracing.AttributeFlagType, "variant")
+			},
+		},
+		{
+			name:               "boolean_flag_with_tracing",
+			tracingEnabled:     true,
+			expectedEventCount: 1,
+			setupMocks: func(t *testing.T, envStore *MockEnvironmentStore, environment *environments.MockEnvironment, store *storage.MockReadOnlyStore, namespaceKey string) {
+				flagKey := "test-flag"
+				environment.On("Key").Return("test-environment")
+				envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+				environment.On("EvaluationStore").Return(store, nil)
+
+				store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+					Key:     flagKey,
+					Enabled: true,
+					Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+				}, nil)
+
+				store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
+					{
+						NamespaceKey: namespaceKey,
+						Rank:         1,
+						RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+						Threshold: &storage.RolloutThreshold{
+							Percentage: 100,
+							Value:      true,
+						},
+					},
+				}, nil)
+			},
+			runEvaluation: func(ctx context.Context, s *Server) error {
+				_, err := s.Boolean(ctx, &rpcevaluation.EvaluationRequest{
+					FlagKey:        "test-flag",
+					EnvironmentKey: "test-environment",
+					EntityId:       "test-entity",
+					RequestId:      "test-request-id",
+					NamespaceKey:   "test-namespace",
+					Context: map[string]string{
+						"hello": "world",
+					},
+				})
+				return err
+			},
+			validateEvents: func(t *testing.T, events []sdktrace.Event, environmentKey, namespaceKey string) {
+				require.Len(t, events, 1)
+				event := events[0]
+				assert.Equal(t, tracing.Event, event.Name)
+				attrs := event.Attributes
+				assertAttributeValue(t, attrs, tracing.AttributeEnvironment, environmentKey)
+				assertAttributeValue(t, attrs, tracing.AttributeNamespace, namespaceKey)
+				assertAttributeValue(t, attrs, tracing.AttributeFlag, "test-flag")
+				assertAttributeValue(t, attrs, tracing.AttributeEntityID, "test-entity")
+				assertAttributeValue(t, attrs, tracing.AttributeRequestID, "test-request-id")
+				assertAttributeValue(t, attrs, tracing.AttributeVariant, true)
+				assertAttributeValue(t, attrs, tracing.AttributeReason, "match")
+				assertAttributeValue(t, attrs, tracing.AttributeFlagType, "boolean")
+			},
+		},
+		{
+			name:               "batch_evaluation_with_tracing",
+			tracingEnabled:     true,
+			expectedEventCount: 2,
+			setupMocks: func(t *testing.T, envStore *MockEnvironmentStore, environment *environments.MockEnvironment, store *storage.MockReadOnlyStore, namespaceKey string) {
+				booleanFlagKey := "boolean-flag"
+				variantFlagKey := "variant-flag"
+
+				environment.On("Key").Return("test-environment")
+				envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+				environment.On("EvaluationStore").Return(store, nil)
+
+				// Setup boolean flag
+				store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, booleanFlagKey)).Return(&core.Flag{
+					Key:     booleanFlagKey,
+					Enabled: true,
+					Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+				}, nil)
+
+				store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, booleanFlagKey)).Return([]*storage.EvaluationRollout{
+					{
+						NamespaceKey: namespaceKey,
+						Rank:         1,
+						RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+						Threshold: &storage.RolloutThreshold{
+							Percentage: 100,
+							Value:      true,
+						},
+					},
+				}, nil)
+
+				// Setup variant flag
+				store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey)).Return(&core.Flag{
+					Key:     variantFlagKey,
+					Enabled: true,
+					Type:    core.FlagType_VARIANT_FLAG_TYPE,
+				}, nil)
+
+				store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey)).Return(
+					[]*storage.EvaluationRule{
+						{
+							ID:      "1",
+							FlagKey: variantFlagKey,
+							Rank:    0,
+							Segments: map[string]*storage.EvaluationSegment{
+								"segment-1": {
+									SegmentKey: "segment-1",
+									MatchType:  core.MatchType_ALL_MATCH_TYPE,
+									Constraints: []storage.EvaluationConstraint{
+										{
+											ID:       "2",
+											Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+											Property: "hello",
+											Operator: flipt.OpEQ,
+											Value:    "world",
+										},
+									},
+								},
+							},
+						},
+					}, nil)
+
+				store.On(
+					"GetEvaluationDistributions",
+					mock.Anything,
+					storage.NewResource(namespaceKey, variantFlagKey),
+					storage.NewID("1"),
+				).Return([]*storage.EvaluationDistribution{
+					{
+						RuleID:     "1",
+						VariantID:  "variant-1",
+						VariantKey: "test-variant",
+						Rollout:    100,
+					},
+				}, nil)
+			},
+			runEvaluation: func(ctx context.Context, s *Server) error {
+				_, err := s.Batch(ctx, &rpcevaluation.BatchEvaluationRequest{
+					Requests: []*rpcevaluation.EvaluationRequest{
+						{
+							RequestId:      "request-1",
+							FlagKey:        "boolean-flag",
+							EntityId:       "test-entity",
+							NamespaceKey:   "test-namespace",
+							EnvironmentKey: "test-environment",
+							Context: map[string]string{
+								"hello": "world",
+							},
+						},
+						{
+							RequestId:      "request-2",
+							FlagKey:        "variant-flag",
+							EntityId:       "test-entity",
+							NamespaceKey:   "test-namespace",
+							EnvironmentKey: "test-environment",
+							Context: map[string]string{
+								"hello": "world",
+							},
+						},
+					},
+				})
+				return err
+			},
+			validateEvents: func(t *testing.T, events []sdktrace.Event, environmentKey, namespaceKey string) {
+				require.Len(t, events, 2, "expected two events (one per flag)")
+
+				// Verify boolean flag event
+				booleanEvent := events[0]
+				assert.Equal(t, tracing.Event, booleanEvent.Name)
+				booleanAttrs := booleanEvent.Attributes
+				assertAttributeValue(t, booleanAttrs, tracing.AttributeEnvironment, environmentKey)
+				assertAttributeValue(t, booleanAttrs, tracing.AttributeNamespace, namespaceKey)
+				assertAttributeValue(t, booleanAttrs, tracing.AttributeFlag, "boolean-flag")
+				assertAttributeValue(t, booleanAttrs, tracing.AttributeEntityID, "test-entity")
+				assertAttributeValue(t, booleanAttrs, tracing.AttributeRequestID, "request-1")
+				assertAttributeValue(t, booleanAttrs, tracing.AttributeVariant, true)
+				assertAttributeValue(t, booleanAttrs, tracing.AttributeFlagType, "boolean")
+
+				// Verify variant flag event
+				variantEvent := events[1]
+				assert.Equal(t, tracing.Event, variantEvent.Name)
+				variantAttrs := variantEvent.Attributes
+				assertAttributeValue(t, variantAttrs, tracing.AttributeEnvironment, environmentKey)
+				assertAttributeValue(t, variantAttrs, tracing.AttributeNamespace, namespaceKey)
+				assertAttributeValue(t, variantAttrs, tracing.AttributeFlag, "variant-flag")
+				assertAttributeValue(t, variantAttrs, tracing.AttributeEntityID, "test-entity")
+				assertAttributeValue(t, variantAttrs, tracing.AttributeRequestID, "request-2")
+				assertAttributeValue(t, variantAttrs, tracing.AttributeMatch, true)
+				assertAttributeValue(t, variantAttrs, tracing.AttributeVariant, "test-variant")
+				assertAttributeValue(t, variantAttrs, tracing.AttributeFlagType, "variant")
+			},
+		},
+		{
+			name:               "tracing_disabled",
+			tracingEnabled:     false,
+			expectedEventCount: 0,
+			setupMocks: func(t *testing.T, envStore *MockEnvironmentStore, environment *environments.MockEnvironment, store *storage.MockReadOnlyStore, namespaceKey string) {
+				flagKey := "test-flag"
+				environment.On("Key").Return("test-environment")
+				envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+				environment.On("EvaluationStore").Return(store, nil)
+
+				store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+					Key:     flagKey,
+					Enabled: true,
+					Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+				}, nil)
+
+				store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
+					{
+						NamespaceKey: namespaceKey,
+						Rank:         1,
+						RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+						Threshold: &storage.RolloutThreshold{
+							Percentage: 100,
+							Value:      true,
+						},
+					},
+				}, nil)
+			},
+			runEvaluation: func(ctx context.Context, s *Server) error {
+				_, err := s.Boolean(ctx, &rpcevaluation.EvaluationRequest{
+					FlagKey:        "test-flag",
+					EnvironmentKey: "test-environment",
+					EntityId:       "test-entity",
+					RequestId:      "test-request-id",
+					NamespaceKey:   "test-namespace",
+					Context: map[string]string{
+						"hello": "world",
+					},
+				})
+				return err
+			},
+			validateEvents: func(t *testing.T, events []sdktrace.Event, environmentKey, namespaceKey string) {
+				assert.Empty(t, events, "expected no events when tracing is disabled")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				environmentKey = "test-environment"
+				namespaceKey   = "test-namespace"
+				envStore       = NewMockEnvironmentStore(t)
+				environment    = environments.NewMockEnvironment(t)
+				store          = storage.NewMockReadOnlyStore(t)
+				logger         = zaptest.NewLogger(t)
+			)
+
+			spanRecorder := tracetest.NewSpanRecorder()
+			tp := sdktrace.NewTracerProvider(
+				sdktrace.WithSpanProcessor(spanRecorder),
+				sdktrace.WithSampler(sdktrace.AlwaysSample()),
+			)
+			tracer := tp.Tracer("test")
+
+			s := New(logger, envStore, WithTracing(tt.tracingEnabled))
+
+			tt.setupMocks(t, envStore, environment, store, namespaceKey)
+
+			ctx, span := tracer.Start(context.Background(), "test-span")
+			err := tt.runEvaluation(ctx, s)
+			span.End()
+			require.NoError(t, err)
+
+			spans := spanRecorder.Ended()
+			require.Len(t, spans, 1, "expected one span to be recorded")
+
+			events := spans[0].Events()
+			require.Len(t, events, tt.expectedEventCount)
+
+			if tt.expectedEventCount > 0 {
+				tt.validateEvents(t, events, environmentKey, namespaceKey)
+			}
+		})
+	}
+}
+
+// Helper function to assert attribute values
+func assertAttributeValue(t *testing.T, attrs []attribute.KeyValue, key attribute.Key, expectedValue interface{}) {
+	t.Helper()
+	found := false
+	for _, attr := range attrs {
+		if attr.Key == key {
+			found = true
+			switch v := expectedValue.(type) {
+			case string:
+				assert.Equal(t, v, attr.Value.AsString(), "attribute %s value mismatch", key)
+			case bool:
+				assert.Equal(t, v, attr.Value.AsBool(), "attribute %s value mismatch", key)
+			case []string:
+				actualSlice := attr.Value.AsStringSlice()
+				assert.ElementsMatch(t, v, actualSlice, "attribute %s value mismatch", key)
+			default:
+				t.Fatalf("unsupported type for attribute %s: %T", key, v)
+			}
+			break
+		}
+	}
+	assert.True(t, found, "attribute %s not found in event", key)
+}
+
+// Helper function to assert attribute is not present
+func assertAttributeNotPresent(t *testing.T, attrs []attribute.KeyValue, key attribute.Key) {
+	t.Helper()
+	for _, attr := range attrs {
+		if attr.Key == key {
+			assert.Failf(t, "unexpected attribute", "attribute %s should not be present in event", string(key))
+			return
+		}
 	}
 }
