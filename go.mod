@@ -65,7 +65,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.39.0
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
-	github.com/twmb/franz-go v1.19.5
+	github.com/twmb/franz-go v1.20.0
 	github.com/twmb/franz-go/pkg/kadm v1.16.1
 	github.com/twmb/franz-go/pkg/sr v1.5.0
 	github.com/twmb/franz-go/plugin/kzap v1.1.2
@@ -286,7 +286,7 @@ require (
 	github.com/tchap/go-patricia/v2 v2.3.3 // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
-	github.com/twmb/franz-go/pkg/kmsg v1.11.2 // indirect
+	github.com/twmb/franz-go/pkg/kmsg v1.12.0 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.30 // indirect
 	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
