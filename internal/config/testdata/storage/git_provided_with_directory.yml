@@ -1,6 +1,7 @@
 storage:
   default:
     remote: "git@github.com:foo/bar.git"
+    remote_startup_fetch_policy: optional
     backend:
       type: "local"
       path: "/path/to/gitdir"

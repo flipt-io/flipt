@@ -776,6 +776,10 @@
             "remote": {
               "type": "string"
             },
+            "remoteStartupFetchPolicy": {
+              "type": "string",
+              "enum": ["required", "optional"]
+            },
             "backend": {
               "type": [
                 "object",
