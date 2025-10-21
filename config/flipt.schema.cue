@@ -69,7 +69,7 @@ JsonPath: string
 					ca_cert_path?:       string
 					ca_cert_bytes?:      string
 					insecure_skip_tls?:  bool | *false
-					mode?:               "single" | "cluster" | *""
+					mode?:               *"single" | "cluster"
 					prefix?:             string | *"flipt"
 				}
 			}
