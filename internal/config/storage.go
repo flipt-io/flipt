@@ -81,7 +81,7 @@ type StorageBackendConfig struct {
 	Path string             `json:"path,omitempty" mapstructure:"path" yaml:"path,omitempty"`
 }
 
-type RemoteStartupFetchPolicy string
+type FetchPolicy string
 
 const (
 	RemoteStartupFetchPolicyRequired = RemoteStartupFetchPolicy("required")
