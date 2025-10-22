@@ -776,7 +776,7 @@
             "remote": {
               "type": "string"
             },
-            "remoteStartupFetchPolicy": {
+            "fetchPolicy": {
               "type": "string",
               "enum": ["required", "optional"]
             },
