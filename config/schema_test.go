@@ -75,6 +75,7 @@ func defaultConfig(t *testing.T) (conf map[string]any) {
 	config := config.Default()
 	// hack to get around validation not being able to handle types that map[string]*struct
 	config.Storage["default"].PollInterval = 0
+	config.Authentication.Session.Storage.Redis.Mode = "single"
 	require.NoError(t, err)
 	require.NoError(t, dec.Decode(config))
 
@@ -82,5 +83,5 @@ func defaultConfig(t *testing.T) (conf map[string]any) {
 	// string representation, which CUE is going to validate
 	adapt(conf)
 
-	return
+	return conf
 }
