@@ -1,9 +1,10 @@
 package git
 
 import (
-	"context"
+	"net"
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 
@@ -19,7 +20,7 @@ func TestNewRepository_EmptyDirectory(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	repo, empty, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo, empty, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 	assert.True(t, empty, "empty directory should be marked as empty")
@@ -31,7 +32,7 @@ func TestNewRepository_NonExistentDirectory(t *testing.T) {
 	nonExistentDir := filepath.Join(tempDir, "nonexistent")
 	logger := zap.NewNop()
 
-	repo, empty, err := newRepository(context.Background(), logger, WithFilesystemStorage(nonExistentDir))
+	repo, empty, err := newRepository(t.Context(), logger, WithFilesystemStorage(nonExistentDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 	assert.True(t, empty, "non-existent directory should be marked as empty")
@@ -43,7 +44,7 @@ func TestNewRepository_DirectoryWithFiles_NoGitRepo(t *testing.T) {
 	logger := zap.NewNop()
 
 	// Create some content files
-	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0o755))
 	featuresFile := filepath.Join(tempDir, "production", "features.yaml")
 	content := `namespace:
     key: production
@@ -54,9 +55,9 @@ flags:
       type: VARIANT_FLAG_TYPE
       description: A test flag
       enabled: true`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0600))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0o600))
 
-	repo, empty, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo, empty, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 	assert.True(t, empty, "directory with files but no git repo should be marked as empty for initial commit")
@@ -72,7 +73,7 @@ func TestNewRepository_NormalGitRepository(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create and commit some content
-	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0o755))
 	featuresFile := filepath.Join(tempDir, "production", "features.yaml")
 	content := `namespace:
     key: production
@@ -83,7 +84,7 @@ flags:
       type: VARIANT_FLAG_TYPE
       description: A test flag
       enabled: true`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0600))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0o600))
 
 	// Commit the files
 	plainRepo, err := git.PlainOpen(tempDir)
@@ -102,7 +103,7 @@ flags:
 	require.NoError(t, err)
 
 	// Test opening with Flipt
-	repo, empty, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo, empty, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 	assert.False(t, empty, "normal git repo with commits should not be marked as empty")
@@ -122,7 +123,7 @@ func TestNewRepository_NormalGitRepository_NoCommits(t *testing.T) {
 	_, err := git.PlainInit(tempDir, false)
 	require.NoError(t, err)
 
-	repo, empty, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo, empty, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 	assert.True(t, empty, "normal git repo without commits should be marked as empty")
@@ -134,14 +135,14 @@ func TestNewRepository_BareGitRepository(t *testing.T) {
 	logger := zap.NewNop()
 
 	// Create a bare Git repository by initializing with custom storage
-	repo1, empty1, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo1, empty1, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo1)
 	assert.True(t, empty1, "initial bare repository should be empty")
 	assert.False(t, repo1.isNormalRepo, "should be bare repository")
 
 	// Try to reopen the empty bare repository (no files added yet)
-	repo2, empty2, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo2, empty2, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo2)
 	// The empty status may vary when reopening existing repositories depending on internal Git state
@@ -155,14 +156,14 @@ func TestNewRepository_FilesWithNonGitBareRepository(t *testing.T) {
 	logger := zap.NewNop()
 
 	// Create a bare repository first
-	repo1, empty1, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo1, empty1, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo1)
 	assert.True(t, empty1, "initial bare repository should be empty")
 	assert.False(t, repo1.isNormalRepo, "should be bare repository")
 
 	// Now add some files to the temp directory (simulating files in storage path)
-	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0o755))
 	featuresFile := filepath.Join(tempDir, "production", "features.yaml")
 	content := `namespace:
     key: production
@@ -171,10 +172,10 @@ flags:
     - key: test-flag
       name: Test Flag
       type: VARIANT_FLAG_TYPE`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0600))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0o600))
 
 	// Try to reopen - should detect existing bare repository instead of treating as normal repo
-	repo2, empty2, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo2, empty2, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo2)
 	// The behavior here depends on whether the bare repository has been initialized with objects
@@ -192,7 +193,7 @@ func TestUpdateWorkingDirectory(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create initial content and commit
-	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0o755))
 	featuresFile := filepath.Join(tempDir, "production", "features.yaml")
 	initialContent := `namespace:
     key: production
@@ -201,7 +202,7 @@ flags:
     - key: test-flag
       name: Test Flag
       enabled: false`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(initialContent), 0600))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(initialContent), 0o600))
 
 	worktree, err := plainRepo.Worktree()
 	require.NoError(t, err)
@@ -224,7 +225,7 @@ flags:
     - key: test-flag
       name: Test Flag
       enabled: true`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(updatedContent), 0600))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(updatedContent), 0o600))
 	_, err = worktree.Add("production/features.yaml")
 	require.NoError(t, err)
 	commit2, err := worktree.Commit("Update flag", &git.CommitOptions{
@@ -237,12 +238,12 @@ flags:
 	require.NoError(t, err)
 
 	// Create Flipt repository instance
-	repo, _, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo, _, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.True(t, repo.isNormalRepo, "should be normal repository")
 
 	// Test updating working directory to first commit
-	err = repo.updateWorkingDirectory(context.Background(), commit1)
+	err = repo.updateWorkingDirectory(t.Context(), commit1)
 	require.NoError(t, err)
 
 	// Verify file content matches first commit
@@ -251,7 +252,7 @@ flags:
 	assert.Contains(t, string(content), "enabled: false", "working directory should show first commit content")
 
 	// Test updating working directory to second commit
-	err = repo.updateWorkingDirectory(context.Background(), commit2)
+	err = repo.updateWorkingDirectory(t.Context(), commit2)
 	require.NoError(t, err)
 
 	// Verify file content matches second commit
@@ -265,12 +266,12 @@ func TestUpdateWorkingDirectory_BareRepository(t *testing.T) {
 	logger := zap.NewNop()
 
 	// Create a bare repository
-	repo, _, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo, _, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.False(t, repo.isNormalRepo, "should be bare repository")
 
 	// updateWorkingDirectory should be a no-op for bare repositories
-	err = repo.updateWorkingDirectory(context.Background(), plumbing.ZeroHash)
+	err = repo.updateWorkingDirectory(t.Context(), plumbing.ZeroHash)
 	assert.NoError(t, err, "updateWorkingDirectory should not error on bare repositories")
 }
 
@@ -278,7 +279,7 @@ func TestRepositoryDefaults(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	repo, _, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
+	repo, _, err := newRepository(t.Context(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 
@@ -291,11 +292,190 @@ func TestRepositoryWithCustomBranch(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	repo, _, err := newRepository(context.Background(), logger,
+	repo, _, err := newRepository(t.Context(), logger,
 		WithFilesystemStorage(tempDir),
 		WithDefaultBranch("develop"))
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 
 	assert.Equal(t, "develop", repo.defaultBranch, "should use custom default branch")
+}
+
+func TestFetchPolicy_Strict(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// Create a repository with strict fetch policy (default)
+	repo, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir))
+	require.NoError(t, err)
+	require.NotNil(t, repo)
+
+	assert.False(t, repo.lenientFetchPolicyEnabled, "should set fetch policy to strict")
+}
+
+func TestFetchPolicy_Lenient(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// Create a repository with lenient fetch policy
+	repo, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir),
+		WithLenientFetchPolicy(),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, repo)
+
+	assert.True(t, repo.lenientFetchPolicyEnabled, "should set fetch policy to lenient")
+}
+
+func TestIsConnectionRefused(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	repo, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir))
+	require.NoError(t, err)
+
+	tests := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{
+			name:     "nil error",
+			err:      nil,
+			expected: false,
+		},
+		{
+			name:     "generic error",
+			err:      assert.AnError,
+			expected: false,
+		},
+		{
+			name:     "connection refused wrapped in net.OpError",
+			err:      &net.OpError{Op: "dial", Net: "tcp", Err: &os.SyscallError{Syscall: "connect", Err: syscall.ECONNREFUSED}},
+			expected: true,
+		},
+		{
+			name:     "different syscall error",
+			err:      &os.SyscallError{Syscall: "connect", Err: syscall.ETIMEDOUT},
+			expected: false,
+		},
+		{
+			name:     "net.OpError with non-connection-refused error",
+			err:      &net.OpError{Op: "dial", Net: "tcp", Err: &os.SyscallError{Syscall: "connect", Err: syscall.EADDRINUSE}},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := repo.IsConnectionRefused(tt.err)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestFetch_NoRemote(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// Create repository without remote
+	repo, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir))
+	require.NoError(t, err)
+
+	// Fetch should be a no-op when no remote is configured
+	err = repo.Fetch(t.Context())
+	assert.NoError(t, err, "fetch without remote should succeed silently")
+}
+
+func TestFetch_StrictPolicy_WithConnectionRefused(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// Create repository with strict fetch policy and invalid remote
+	_, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir),
+		WithRemote("origin", "http://localhost:1/invalid-repo.git"),
+	)
+	require.Error(t, err)
+}
+
+func TestFetch_LenientPolicy_WithConnectionRefusedAndCommits(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	plainRepo, err := git.PlainInit(tempDir, false)
+	require.NoError(t, err)
+
+	// Add a commit to the repository
+	worktree, err := plainRepo.Worktree()
+	require.NoError(t, err)
+
+	// Create a file
+	testFile := filepath.Join(tempDir, "test.txt")
+	require.NoError(t, os.WriteFile(testFile, []byte("test content"), 0o600))
+
+	_, err = worktree.Add("test.txt")
+	require.NoError(t, err)
+
+	_, err = worktree.Commit("Initial commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test User",
+			Email: "test@example.com",
+			When:  time.Now(),
+		},
+	})
+	require.NoError(t, err)
+
+	// Now create our Repository wrapper with lenient policy and invalid remote
+	repo, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir),
+		WithRemote("origin", "http://localhost:1/invalid-repo.git"),
+		WithLenientFetchPolicy())
+	require.NoError(t, err)
+	assert.True(t, repo.lenientFetchPolicyEnabled)
+	assert.True(t, repo.HasLenientFetchPolicy())
+
+	err = repo.Fetch(t.Context())
+	assert.Error(t, err)
+}
+
+func TestFetch_LenientPolicy_WithConnectionRefusedAndNoCommits(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// Create repository with lenient fetch policy and invalid remote, but no commits
+	repo, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir),
+		WithRemote("origin", "http://localhost:1/invalid-repo.git"),
+		WithLenientFetchPolicy())
+	require.Error(t, err)
+	assert.Nil(t, repo)
+}
+
+func TestFetch_LenientPolicy_WithNonConnectionError(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// Create repository with lenient fetch policy but a different type of error (not connection refused)
+	// Using an invalid URL format to trigger a different error
+	_, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir),
+		WithRemote("origin", "invalid://bad-url"),
+		WithLenientFetchPolicy())
+	require.Error(t, err)
+}
+
+func TestFetch_DefaultPolicy_BehavesAsStrict(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// Create repository without specifying policy (should default to strict behavior)
+	_, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir),
+		WithRemote("origin", "http://localhost:1/invalid-repo.git"))
+	require.Error(t, err)
 }

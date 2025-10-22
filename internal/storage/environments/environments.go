@@ -147,6 +147,9 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 					zap.String("key_id", storage.Signature.KeyID))
 			}
 		}
+		if storage.FetchPolicy == config.FetchPolicyLenient {
+			opts = append(opts, storagegit.WithLenientFetchPolicy())
+		}
 
 		newRepo, err := storagegit.NewRepository(ctx, logger, opts...)
 		if err != nil {
@@ -512,7 +515,12 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 	// branched environments have been added
 	for _, repo := range repoManager.repos {
 		if err := repo.Fetch(ctx); err != nil {
-			if !errors.Is(err, transport.ErrEmptyRemoteRepository) && !errors.Is(err, git.ErrRemoteRefNotFound) {
+			switch {
+			case repo.HasLenientFetchPolicy() && repo.IsConnectionRefused(err):
+				continue
+			case errors.Is(err, transport.ErrEmptyRemoteRepository) || errors.Is(err, git.ErrRemoteRefNotFound):
+				continue
+			default:
 				return nil, err
 			}
 		}

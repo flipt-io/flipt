@@ -200,6 +200,7 @@ JsonPath: string
 
 	#storage: [string]: {
 		remote?: string
+		fetch_policy?: *"strict" | "lenient"
 		backend?: {
 			type:  *"memory" | "local"
 			path?: string

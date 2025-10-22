@@ -776,6 +776,11 @@
             "remote": {
               "type": "string"
             },
+            "fetchPolicy": {
+              "type": "string",
+              "enum": ["strict", "lenient"],
+              "default": "strict"
+            },
             "backend": {
               "type": [
                 "object",

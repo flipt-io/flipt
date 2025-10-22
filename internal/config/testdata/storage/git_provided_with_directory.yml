@@ -1,6 +1,7 @@
 storage:
   default:
     remote: "git@github.com:foo/bar.git"
+    fetch_policy: lenient
     backend:
       type: "local"
       path: "/path/to/gitdir"

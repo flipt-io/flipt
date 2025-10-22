@@ -459,6 +459,7 @@ func TestLoad(t *testing.T) {
 							Type: MemoryStorageBackendType,
 						},
 						Remote:       "https://github.com/flipt-io/flipt.git",
+						FetchPolicy:  "strict",
 						Branch:       "main",
 						PollInterval: 5 * time.Second,
 						Credentials:  "git",
@@ -578,6 +579,7 @@ func TestLoad(t *testing.T) {
 							Type: MemoryStorageBackendType,
 						},
 						Remote:       "git@github.com:foo/bar.git",
+						FetchPolicy:  "strict",
 						Branch:       "main",
 						PollInterval: 30 * time.Second,
 					},
@@ -597,6 +599,7 @@ func TestLoad(t *testing.T) {
 							Path: "/path/to/gitdir",
 						},
 						Remote:       "git@github.com:foo/bar.git",
+						FetchPolicy:  "lenient",
 						Branch:       "main",
 						PollInterval: 30 * time.Second,
 					},
@@ -635,6 +638,7 @@ func TestLoad(t *testing.T) {
 							Type: MemoryStorageBackendType,
 						},
 						Remote:       "git@github.com:foo/bar.git",
+						FetchPolicy:  "strict",
 						Branch:       "main",
 						PollInterval: 30 * time.Second,
 						Credentials:  "git",
@@ -889,6 +893,7 @@ func TestLoad(t *testing.T) {
 							Type: MemoryStorageBackendType,
 						},
 						Remote:       "git@github.com:foo/bar.git",
+						FetchPolicy:  "strict",
 						Branch:       "main",
 						PollInterval: 30 * time.Second,
 						Signature: SignatureConfig{
@@ -1141,7 +1146,7 @@ OUTER:
 		}
 	}
 
-	return
+	return vals
 }
 
 func TestMarshalYAML(t *testing.T) {
@@ -1516,7 +1521,7 @@ func TestLicenseConfig_validate(t *testing.T) {
 			setupFile: func(t *testing.T) string {
 				tmpDir := t.TempDir()
 				licenseFile := filepath.Join(tmpDir, "license.cert")
-				err := os.WriteFile(licenseFile, []byte("test license content"), 0600)
+				err := os.WriteFile(licenseFile, []byte("test license content"), 0o600)
 				require.NoError(t, err)
 				return licenseFile
 			},
@@ -1531,7 +1536,7 @@ func TestLicenseConfig_validate(t *testing.T) {
 			setupFile: func(t *testing.T) string {
 				tmpDir := t.TempDir()
 				licenseFile := filepath.Join(tmpDir, "license.cert")
-				err := os.WriteFile(licenseFile, []byte("test license content"), 0600)
+				err := os.WriteFile(licenseFile, []byte("test license content"), 0o600)
 				require.NoError(t, err)
 				return licenseFile
 			},

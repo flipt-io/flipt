@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/go-git/go-billy/v6/osfs"
@@ -33,19 +34,20 @@ type Repository struct {
 
 	logger *zap.Logger
 
-	mu                 sync.RWMutex
-	remote             *config.RemoteConfig
-	defaultBranch      string
-	auth               transport.AuthMethod
-	insecureSkipTLS    bool
-	caBundle           []byte
-	localPath          string
-	readme             []byte
-	sigName            string
-	sigEmail           string
-	signer             signing.Signer
-	maxOpenDescriptors int
-	isNormalRepo       bool // true if opened with PlainOpen, false if bare repository
+	mu                        sync.RWMutex
+	remote                    *config.RemoteConfig
+	lenientFetchPolicyEnabled bool
+	defaultBranch             string
+	auth                      transport.AuthMethod
+	insecureSkipTLS           bool
+	caBundle                  []byte
+	localPath                 string
+	readme                    []byte
+	sigName                   string
+	sigEmail                  string
+	signer                    signing.Signer
+	maxOpenDescriptors        int
+	isNormalRepo              bool // true if opened with PlainOpen, false if bare repository
 
 	subs []Subscriber
 
@@ -71,7 +73,7 @@ func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 		logger.Debug("repository empty, attempting to add and push a README")
 		// add initial readme if repo is empty
 		if _, err := repo.UpdateAndPush(ctx, repo.defaultBranch, func(fs envsfs.Filesystem) (string, error) {
-			fi, err := fs.OpenFile("README.md", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+			fi, err := fs.OpenFile("README.md", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 			if err != nil {
 				return "", err
 			}
@@ -198,15 +200,28 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 
 		// do an initial fetch to setup remote tracking branches
 		if err := r.Fetch(ctx); err != nil {
-			if !errors.Is(err, transport.ErrEmptyRemoteRepository) && !errors.Is(err, git.ErrRemoteRefNotFound) {
-				return nil, empty, fmt.Errorf("performing initial fetch: %w", err)
+			fetchErr := fmt.Errorf("performing initial fetch: %w", err)
+			switch {
+			case r.HasLenientFetchPolicy() && r.IsConnectionRefused(err):
+				// if lenient, we check if the error is connection refused
+				// and there is non-empty repo and flags could be evaluated
+				objs, rerr := r.CommitObjects()
+				if rerr != nil {
+					return nil, empty, fetchErr
+				}
+				_, rerr = objs.Next()
+				objs.Close()
+				if rerr != nil {
+					return nil, empty, fetchErr
+				}
+			case errors.Is(err, transport.ErrEmptyRemoteRepository) || errors.Is(err, git.ErrRemoteRefNotFound):
+				// the remote was reachable but either its contents was completely empty
+				// or our default branch doesn't exist and so we decide to seed it
+				empty = true
+				logger.Debug("initial fetch empty", zap.String("reference", r.defaultBranch), zap.Error(err))
+			default:
+				return nil, empty, fetchErr
 			}
-
-			// the remote was reachable but either its contents was completely empty
-			// or our default branch doesn't exist and so we decide to seed it
-			empty = true
-
-			logger.Debug("initial fetch empty", zap.String("reference", r.defaultBranch), zap.Error(err))
 		}
 	}
 
@@ -294,6 +309,17 @@ func (r *Repository) fetchHeads() []string {
 	}
 
 	return slices.Collect(maps.Keys(heads))
+}
+
+// IsConnectionRefused checks if the provided error is a connection refused error.
+func (r *Repository) IsConnectionRefused(err error) bool {
+	return errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, syscall.EHOSTUNREACH) ||
+		errors.Is(err, syscall.ENETUNREACH) || errors.Is(err, syscall.EHOSTDOWN)
+}
+
+// HasLenientFetchPolicy returns true if the fetch policy set to lenient.
+func (r *Repository) HasLenientFetchPolicy() bool {
+	return r.lenientFetchPolicyEnabled
 }
 
 // Fetch does a fetch for the requested head names on a configured remote.
@@ -827,6 +853,13 @@ func WithInterval(interval time.Duration) containers.Option[Repository] {
 func WithMaxOpenDescriptors(n int) containers.Option[Repository] {
 	return func(r *Repository) {
 		r.maxOpenDescriptors = n
+	}
+}
+
+// WithLenientFetchPolicy sets the lenient fetch policy which allows skip startup git fetch.
+func WithLenientFetchPolicy() containers.Option[Repository] {
+	return func(r *Repository) {
+		r.lenientFetchPolicyEnabled = true
 	}
 }
 
