@@ -22,7 +22,8 @@ RELEASE_URL_BASE="https://api.github.com/repos/${REPO}/releases"
 DOWNLOAD_URL_BASE="https://download.flipt.io/flipt"
 
 # Color and formatting
-if command -v tput >/dev/null 2>&1 && [ -t 1 ]; then
+# Check if tput is available, stdout is a terminal, and tput can actually work with the current TERM
+if command -v tput >/dev/null 2>&1 && [ -t 1 ] && tput setaf 1 >/dev/null 2>&1; then
     RED=$(tput setaf 1)
     GREEN=$(tput setaf 2)
     YELLOW=$(tput setaf 3)
