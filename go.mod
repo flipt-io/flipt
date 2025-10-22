@@ -26,7 +26,7 @@ require (
 	github.com/go-jose/go-jose/v4 v4.1.2
 	github.com/go-openapi/jsonpointer v0.21.1
 	github.com/gobwas/glob v0.2.3
-	github.com/golang-migrate/migrate/v4 v4.18.1
+	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/gnostic v0.7.1
 	github.com/google/go-cmp v0.7.0
@@ -519,7 +519,6 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.38.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.38.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.7.1 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
