@@ -778,7 +778,8 @@
             },
             "fetchPolicy": {
               "type": "string",
-              "enum": ["required", "optional"]
+              "enum": ["strict", "lenient"],
+              "default": "strict"
             },
             "backend": {
               "type": [

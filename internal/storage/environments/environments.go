@@ -147,8 +147,8 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 					zap.String("key_id", storage.Signature.KeyID))
 			}
 		}
-		if storage.RemoteStartupFetchPolicy == config.RemoteStartupFetchPolicyOptional {
-			opts = append(opts, storagegit.WithOptionalRemoteStartupFetchPolicy())
+		if storage.FetchPolicy == config.FetchPolicyLenient {
+			opts = append(opts, storagegit.WithLenientFetchPolicy())
 		}
 
 		newRepo, err := storagegit.NewRepository(ctx, logger, opts...)
@@ -516,7 +516,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 	for _, repo := range repoManager.repos {
 		if err := repo.Fetch(ctx); err != nil {
 			switch {
-			case repo.IsRemoteStartupFetchOptional() && repo.IsConnectionRefused(err):
+			case repo.HasLenientFetchPolicy() && repo.IsConnectionRefused(err):
 				continue
 			case errors.Is(err, transport.ErrEmptyRemoteRepository) || errors.Is(err, git.ErrRemoteRefNotFound):
 				continue

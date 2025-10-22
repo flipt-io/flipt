@@ -61,8 +61,8 @@ func (s *StoragesConfig) setDefaults(v *viper.Viper) error {
 			setDefault("poll_interval", "30s")
 		}
 
-		if getString("remote") != "" && getString("remote_startup_fetch_policy") == "" {
-			setDefault("remote_startup_fetch_policy", RemoteStartupFetchPolicyRequired)
+		if getString("remote") != "" && getString("fetch_policy") == "" {
+			setDefault("fetch_policy", FetchPolicyStrict)
 		}
 	}
 
@@ -84,23 +84,23 @@ type StorageBackendConfig struct {
 type FetchPolicy string
 
 const (
-	RemoteStartupFetchPolicyRequired = RemoteStartupFetchPolicy("required")
-	RemoteStartupFetchPolicyOptional = RemoteStartupFetchPolicy("optional")
+	FetchPolicyStrict  = FetchPolicy("strict")
+	FetchPolicyLenient = FetchPolicy("lenient")
 )
 
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
 // flag state.
 type StorageConfig struct {
-	Remote                   string                   `json:"remote,omitempty" mapstructure:"remote" yaml:"remote,omitempty"`
-	RemoteStartupFetchPolicy RemoteStartupFetchPolicy `json:"remote_startup_fetch_policy,omitempty" mapstructure:"remote_startup_fetch_policy" yaml:"remote_startup_fetch_policy,omitempty"`
-	Backend                  StorageBackendConfig     `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
-	Branch                   string                   `json:"branch,omitempty" mapstructure:"branch" yaml:"branch,omitempty"`
-	CaCertBytes              string                   `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
-	CaCertPath               string                   `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
-	PollInterval             time.Duration            `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-	InsecureSkipTLS          bool                     `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
-	Credentials              string                   `json:"-" mapstructure:"credentials" yaml:"-"`
-	Signature                SignatureConfig          `json:"signature,omitempty" mapstructure:"signature,omitempty" yaml:"signature,omitempty"`
+	Remote          string               `json:"remote,omitempty" mapstructure:"remote" yaml:"remote,omitempty"`
+	FetchPolicy     FetchPolicy          `json:"fetch_policy,omitempty" mapstructure:"fetch_policy" yaml:"fetch_policy,omitempty"`
+	Backend         StorageBackendConfig `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
+	Branch          string               `json:"branch,omitempty" mapstructure:"branch" yaml:"branch,omitempty"`
+	CaCertBytes     string               `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
+	CaCertPath      string               `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
+	PollInterval    time.Duration        `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+	InsecureSkipTLS bool                 `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	Credentials     string               `json:"-" mapstructure:"credentials" yaml:"-"`
+	Signature       SignatureConfig      `json:"signature,omitempty" mapstructure:"signature,omitempty" yaml:"signature,omitempty"`
 }
 
 func (c *StorageConfig) validate() error {

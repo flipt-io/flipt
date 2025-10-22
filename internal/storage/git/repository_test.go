@@ -301,32 +301,32 @@ func TestRepositoryWithCustomBranch(t *testing.T) {
 	assert.Equal(t, "develop", repo.defaultBranch, "should use custom default branch")
 }
 
-func TestRemoteStartupPolicy_Required(t *testing.T) {
+func TestFetchPolicy_Strict(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	// Create a repository with required fetch policy (default)
+	// Create a repository with strict fetch policy (default)
 	repo, _, err := newRepository(t.Context(), logger,
 		WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 
-	assert.False(t, repo.optionalRemoteStartupFetch, "should set fetch policy to required")
+	assert.False(t, repo.lenientFetchPolicyEnabled, "should set fetch policy to strict")
 }
 
-func TestRemoteStartupPolicy_Optional(t *testing.T) {
+func TestFetchPolicy_Lenient(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	// Create a repository with optional fetch policy
+	// Create a repository with lenient fetch policy
 	repo, _, err := newRepository(t.Context(), logger,
 		WithFilesystemStorage(tempDir),
-		WithOptionalRemoteStartupFetchPolicy(),
+		WithLenientFetchPolicy(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, repo)
 
-	assert.True(t, repo.optionalRemoteStartupFetch, "should set fetch policy to optional")
+	assert.True(t, repo.lenientFetchPolicyEnabled, "should set fetch policy to lenient")
 }
 
 func TestIsConnectionRefused(t *testing.T) {
@@ -391,11 +391,11 @@ func TestFetch_NoRemote(t *testing.T) {
 	assert.NoError(t, err, "fetch without remote should succeed silently")
 }
 
-func TestFetch_RequiredPolicy_WithConnectionRefused(t *testing.T) {
+func TestFetch_StrictPolicy_WithConnectionRefused(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	// Create repository with required fetch policy and invalid remote
+	// Create repository with strict fetch policy and invalid remote
 	_, _, err := newRepository(t.Context(), logger,
 		WithFilesystemStorage(tempDir),
 		WithRemote("origin", "http://localhost:1/invalid-repo.git"),
@@ -403,7 +403,7 @@ func TestFetch_RequiredPolicy_WithConnectionRefused(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestFetch_OptionalPolicy_WithConnectionRefusedAndCommits(t *testing.T) {
+func TestFetch_LenientPolicy_WithConnectionRefusedAndCommits(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
@@ -430,50 +430,50 @@ func TestFetch_OptionalPolicy_WithConnectionRefusedAndCommits(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Now create our Repository wrapper with optional policy and invalid remote
+	// Now create our Repository wrapper with lenient policy and invalid remote
 	repo, _, err := newRepository(t.Context(), logger,
 		WithFilesystemStorage(tempDir),
 		WithRemote("origin", "http://localhost:1/invalid-repo.git"),
-		WithOptionalRemoteStartupFetchPolicy())
+		WithLenientFetchPolicy())
 	require.NoError(t, err)
-	assert.True(t, repo.optionalRemoteStartupFetch)
-	assert.True(t, repo.IsRemoteStartupFetchOptional())
+	assert.True(t, repo.lenientFetchPolicyEnabled)
+	assert.True(t, repo.HasLenientFetchPolicy())
 
 	err = repo.Fetch(t.Context())
 	assert.Error(t, err)
 }
 
-func TestFetch_OptionalPolicy_WithConnectionRefusedAndNoCommits(t *testing.T) {
+func TestFetch_LenientPolicy_WithConnectionRefusedAndNoCommits(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	// Create repository with optional fetch policy and invalid remote, but no commits
+	// Create repository with lenient fetch policy and invalid remote, but no commits
 	repo, _, err := newRepository(t.Context(), logger,
 		WithFilesystemStorage(tempDir),
 		WithRemote("origin", "http://localhost:1/invalid-repo.git"),
-		WithOptionalRemoteStartupFetchPolicy())
+		WithLenientFetchPolicy())
 	require.Error(t, err)
 	assert.Nil(t, repo)
 }
 
-func TestFetch_OptionalPolicy_WithNonConnectionError(t *testing.T) {
+func TestFetch_LenientPolicy_WithNonConnectionError(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	// Create repository with optional fetch policy but a different type of error (not connection refused)
+	// Create repository with lenient fetch policy but a different type of error (not connection refused)
 	// Using an invalid URL format to trigger a different error
 	_, _, err := newRepository(t.Context(), logger,
 		WithFilesystemStorage(tempDir),
 		WithRemote("origin", "invalid://bad-url"),
-		WithOptionalRemoteStartupFetchPolicy())
+		WithLenientFetchPolicy())
 	require.Error(t, err)
 }
 
-func TestFetch_DefaultPolicy_BehavesAsRequired(t *testing.T) {
+func TestFetch_DefaultPolicy_BehavesAsStrict(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	// Create repository without specifying policy (should default to required behavior)
+	// Create repository without specifying policy (should default to strict behavior)
 	_, _, err := newRepository(t.Context(), logger,
 		WithFilesystemStorage(tempDir),
 		WithRemote("origin", "http://localhost:1/invalid-repo.git"))

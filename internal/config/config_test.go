@@ -459,7 +459,7 @@ func TestLoad(t *testing.T) {
 							Type: MemoryStorageBackendType,
 						},
 						Remote:       "https://github.com/flipt-io/flipt.git",
-						RemoteStartupFetchPolicy: "required",
+						FetchPolicy:  "strict",
 						Branch:       "main",
 						PollInterval: 5 * time.Second,
 						Credentials:  "git",
@@ -578,10 +578,10 @@ func TestLoad(t *testing.T) {
 						Backend: StorageBackendConfig{
 							Type: MemoryStorageBackendType,
 						},
-						Remote:                   "git@github.com:foo/bar.git",
-						RemoteStartupFetchPolicy: "required",
-						Branch:                   "main",
-						PollInterval:             30 * time.Second,
+						Remote:       "git@github.com:foo/bar.git",
+						FetchPolicy:  "strict",
+						Branch:       "main",
+						PollInterval: 30 * time.Second,
 					},
 				}
 				return cfg
@@ -598,10 +598,10 @@ func TestLoad(t *testing.T) {
 							Type: LocalStorageBackendType,
 							Path: "/path/to/gitdir",
 						},
-						Remote:                   "git@github.com:foo/bar.git",
-						RemoteStartupFetchPolicy: "optional",
-						Branch:                   "main",
-						PollInterval:             30 * time.Second,
+						Remote:       "git@github.com:foo/bar.git",
+						FetchPolicy:  "lenient",
+						Branch:       "main",
+						PollInterval: 30 * time.Second,
 					},
 				}
 				return cfg
@@ -637,11 +637,11 @@ func TestLoad(t *testing.T) {
 						Backend: StorageBackendConfig{
 							Type: MemoryStorageBackendType,
 						},
-						Remote:                   "git@github.com:foo/bar.git",
-						RemoteStartupFetchPolicy: "required",
-						Branch:                   "main",
-						PollInterval:             30 * time.Second,
-						Credentials:              "git",
+						Remote:       "git@github.com:foo/bar.git",
+						FetchPolicy:  "strict",
+						Branch:       "main",
+						PollInterval: 30 * time.Second,
+						Credentials:  "git",
 					},
 				}
 				cfg.Credentials = CredentialsConfig{
@@ -892,10 +892,10 @@ func TestLoad(t *testing.T) {
 						Backend: StorageBackendConfig{
 							Type: MemoryStorageBackendType,
 						},
-						Remote:                   "git@github.com:foo/bar.git",
-						RemoteStartupFetchPolicy: "required",
-						Branch:                   "main",
-						PollInterval:             30 * time.Second,
+						Remote:       "git@github.com:foo/bar.git",
+						FetchPolicy:  "strict",
+						Branch:       "main",
+						PollInterval: 30 * time.Second,
 						Signature: SignatureConfig{
 							Name:    "Flipt Bot",
 							Email:   "bot@flipt.io",

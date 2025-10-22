@@ -34,20 +34,20 @@ type Repository struct {
 
 	logger *zap.Logger
 
-	mu                         sync.RWMutex
-	remote                     *config.RemoteConfig
-	optionalRemoteStartupFetch bool
-	defaultBranch              string
-	auth                       transport.AuthMethod
-	insecureSkipTLS            bool
-	caBundle                   []byte
-	localPath                  string
-	readme                     []byte
-	sigName                    string
-	sigEmail                   string
-	signer                     signing.Signer
-	maxOpenDescriptors         int
-	isNormalRepo               bool // true if opened with PlainOpen, false if bare repository
+	mu                        sync.RWMutex
+	remote                    *config.RemoteConfig
+	lenientFetchPolicyEnabled bool
+	defaultBranch             string
+	auth                      transport.AuthMethod
+	insecureSkipTLS           bool
+	caBundle                  []byte
+	localPath                 string
+	readme                    []byte
+	sigName                   string
+	sigEmail                  string
+	signer                    signing.Signer
+	maxOpenDescriptors        int
+	isNormalRepo              bool // true if opened with PlainOpen, false if bare repository
 
 	subs []Subscriber
 
@@ -202,8 +202,8 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 		if err := r.Fetch(ctx); err != nil {
 			fetchErr := fmt.Errorf("performing initial fetch: %w", err)
 			switch {
-			case r.optionalRemoteStartupFetch && r.IsConnectionRefused(err):
-				// if optional, we check if the error is connection refused
+			case r.HasLenientFetchPolicy() && r.IsConnectionRefused(err):
+				// if lenient, we check if the error is connection refused
 				// and there is non-empty repo and flags could be evaluated
 				objs, rerr := r.CommitObjects()
 				if rerr != nil {
@@ -317,9 +317,9 @@ func (r *Repository) IsConnectionRefused(err error) bool {
 		errors.Is(err, syscall.ENETUNREACH) || errors.Is(err, syscall.EHOSTDOWN)
 }
 
-// IsRemoteStartupFetchOptional returns true if the startup fetch is optional.
-func (r *Repository) IsRemoteStartupFetchOptional() bool {
-	return r.optionalRemoteStartupFetch
+// HasLenientFetchPolicy returns true if the fetch policy set to lenient.
+func (r *Repository) HasLenientFetchPolicy() bool {
+	return r.lenientFetchPolicyEnabled
 }
 
 // Fetch does a fetch for the requested head names on a configured remote.
@@ -856,10 +856,10 @@ func WithMaxOpenDescriptors(n int) containers.Option[Repository] {
 	}
 }
 
-// WithOptionalRemoteStartupFetchPolicy sets the optional remote startup fetch policy.
-func WithOptionalRemoteStartupFetchPolicy() containers.Option[Repository] {
+// WithLenientFetchPolicy sets the lenient fetch policy which allows skip startup git fetch.
+func WithLenientFetchPolicy() containers.Option[Repository] {
 	return func(r *Repository) {
-		r.optionalRemoteStartupFetch = true
+		r.lenientFetchPolicyEnabled = true
 	}
 }
 
