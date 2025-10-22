@@ -249,12 +249,12 @@
                     "conn_max_idle_time": {
                       "type": "string",
                       "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
-                      "default": "0"
+                      "default": "0s"
                     },
                     "net_timeout": {
                       "type": "string",
                       "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
-                      "default": "0"
+                      "default": "0s"
                     },
                     "ca_cert_path": {
                       "type": "string"
@@ -270,10 +270,9 @@
                       "type": "string",
                       "enum": [
                         "single",
-                        "cluster",
-                        ""
+                        "cluster"
                       ],
-                      "default": ""
+                      "default": "single"
                     },
                     "prefix": {
                       "type": "string",
