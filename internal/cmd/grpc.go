@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 	"sync"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
@@ -46,7 +47,6 @@ import (
 	rpcanalytics "go.flipt.io/flipt/rpc/v2/analytics"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	opentelemetry "go.opentelemetry.io/otel"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
@@ -113,6 +113,10 @@ func NewGRPCServer(
 	options := &grpcServerOptions{}
 	for _, opt := range opts {
 		opt(options)
+	}
+
+	if cfg.Tracing.Enabled {
+		ipch = ipch.WithServerStatsHandler(otelgrpc.NewServerHandler())
 	}
 
 	logger = logger.With(zap.String("server", "grpc"))
@@ -215,9 +219,8 @@ func NewGRPCServer(
 			}
 			return true
 		})),
+
 		grpc_prometheus.UnaryServerInterceptor,
-		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
-		otelgrpc.UnaryServerInterceptor(),
 		middlewaregrpc.ErrorUnaryInterceptor,
 	}
 
@@ -235,8 +238,6 @@ func NewGRPCServer(
 			return true
 		})),
 		grpc_prometheus.StreamServerInterceptor,
-		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
-		otelgrpc.StreamServerInterceptor(),
 		middlewaregrpc.ErrorStreamInterceptor,
 	}
 
@@ -375,7 +376,6 @@ func NewGRPCServer(
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
-		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
 			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
