@@ -316,10 +316,7 @@ func TestListFlags_WithMetadata(t *testing.T) {
 		environment = &environments.MockEnvironment{}
 		envStore    = &evaluation.MockEnvironmentStore{}
 		logger      = zaptest.NewLogger(t)
-		s           = &Server{
-			logger: logger,
-			store:  envStore,
-		}
+		s           = New(logger, envStore, WithFlagMetadata(true))
 	)
 
 	defer store.AssertExpectations(t)

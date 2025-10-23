@@ -25,6 +25,7 @@ type ServerConfig struct {
 	GRPCConnectionMaxIdleTime time.Duration `json:"-" mapstructure:"grpc_conn_max_idle_time" yaml:"-"`
 	GRPCConnectionMaxAge      time.Duration `json:"-" mapstructure:"grpc_conn_max_age" yaml:"-"`
 	GRPCConnectionMaxAgeGrace time.Duration `json:"-" mapstructure:"grpc_conn_max_age_grace" yaml:"-"`
+	IncludeFlagMetadata       bool          `json:"-" mapstructure:"include_flag_metadata" yaml:"include_flag_metadata,omitempty"`
 }
 
 func (c *ServerConfig) setDefaults(v *viper.Viper) error {

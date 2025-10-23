@@ -282,6 +282,7 @@ JsonPath: string
 		grpc_conn_max_idle_time?: =~#duration
 		grpc_conn_max_age?:       =~#duration
 		grpc_conn_max_age_grace?: =~#duration
+		include_flag_metadata?:   bool | *false
 	}
 
 	#metrics: {

@@ -244,7 +244,7 @@ func NewGRPCServer(
 		// legacy services
 		metasrv    = metadata.New(cfg, info)
 		evalsrv    = evaluation.New(logger, environmentStore, evaluation.WithTracing(cfg.Tracing.Enabled || cfg.Analytics.Storage.Clickhouse.Enabled))
-		fliptv1srv = serverfliptv1.New(logger, environmentStore)
+		fliptv1srv = serverfliptv1.New(logger, environmentStore, serverfliptv1.WithFlagMetadata(cfg.Server.IncludeFlagMetadata))
 		ofrepsrv   = ofrep.New(logger, evalsrv, environmentStore)
 
 		// health service

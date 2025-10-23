@@ -1121,6 +1121,10 @@
         "grpc_conn_max_age_grace": {
           "type": "string",
           "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+        },
+        "include_flag_metadata": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

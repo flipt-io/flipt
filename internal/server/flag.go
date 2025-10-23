@@ -66,15 +66,20 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 			}
 		}
 
-		resp.Flags = append(resp.Flags, &flipt.Flag{
+		f := &flipt.Flag{
 			Key:            flag.Key,
 			Name:           flag.Name,
 			Description:    flag.Description,
 			DefaultVariant: defaultVariant,
 			Type:           toListFlagType(flag.Type),
 			Enabled:        flag.Enabled,
-			Metadata:       flag.Metadata,
-		})
+		}
+
+		if s.includeFlagMetadata {
+			f.Metadata = flag.Metadata
+		}
+
+		resp.Flags = append(resp.Flags, f)
 	}
 
 	total, err := store.CountFlags(ctx, ns)
