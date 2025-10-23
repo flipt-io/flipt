@@ -99,7 +99,7 @@ require (
 	golang.org/x/net v0.46.0
 	golang.org/x/oauth2 v0.32.0
 	golang.org/x/sync v0.17.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20251020155222-88f65dc88635
+	google.golang.org/genproto/googleapis/api v0.0.0-20251022142026-3a174f9686a8
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
