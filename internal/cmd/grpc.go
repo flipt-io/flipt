@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 	"sync"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
@@ -112,6 +113,10 @@ func NewGRPCServer(
 	options := &grpcServerOptions{}
 	for _, opt := range opts {
 		opt(options)
+	}
+
+	if cfg.Tracing.Enabled {
+		ipch = ipch.WithServerStatsHandler(otelgrpc.NewServerHandler())
 	}
 
 	logger = logger.With(zap.String("server", "grpc"))
