@@ -59,6 +59,7 @@ type Config struct {
 	Authorization  AuthorizationConfig  `json:"authorization,omitempty" mapstructure:"authorization" yaml:"authorization,omitempty"`
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`
 	Diagnostics    DiagnosticConfig     `json:"diagnostics,omitempty" mapstructure:"diagnostics" yaml:"diagnostics,omitempty"`
+	Evaluation     EvaluationConfig     `json:"evaluation,omitempty" mapstructure:"evaluation" yaml:"evaluation,omitempty"`
 	Experimental   ExperimentalConfig   `json:"experimental,omitempty" mapstructure:"experimental" yaml:"experimental,omitempty"`
 	Log            LogConfig            `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
 	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta" yaml:"meta,omitempty"`

@@ -19,17 +19,34 @@ type EnvironmentStore interface {
 
 // Server serves the Flipt backend
 type Server struct {
-	logger *zap.Logger
-	store  EnvironmentStore
+	logger              *zap.Logger
+	store               EnvironmentStore
+	includeFlagMetadata bool
 	flipt.UnimplementedFliptServer
 }
 
+// Option is a functional option for configuring the Server
+type Option func(*Server)
+
+// WithFlagMetadata configures whether flag metadata should be included in responses
+func WithFlagMetadata(include bool) Option {
+	return func(s *Server) {
+		s.includeFlagMetadata = include
+	}
+}
+
 // New creates a new Server
-func New(logger *zap.Logger, store EnvironmentStore) *Server {
-	return &Server{
+func New(logger *zap.Logger, store EnvironmentStore, opts ...Option) *Server {
+	s := &Server{
 		logger: logger,
 		store:  store,
 	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
 }
 
 // RegisterGRPC registers the *Server onto the provided grpc Server.
