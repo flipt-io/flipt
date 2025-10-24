@@ -19,6 +19,7 @@ JsonPath: string
 	authorization?:  #authorization
 	cors?:           #cors
 	diagnostics?:    #diagnostics
+	evaluation?:     #evaluation
 	environments?:   #environments
 	storage?:        #storage
 	credentials?:    #credentials
@@ -190,6 +191,10 @@ JsonPath: string
 		api_url?:    string
 	}
 
+	#evaluation: {
+		include_flag_metadata?:   bool | *false
+	}
+
 	#environments: [string]: {
 		name:      string
 		default:   bool | *false
@@ -282,7 +287,6 @@ JsonPath: string
 		grpc_conn_max_idle_time?: =~#duration
 		grpc_conn_max_age?:       =~#duration
 		grpc_conn_max_age_grace?: =~#duration
-		include_flag_metadata?:   bool | *false
 	}
 
 	#metrics: {

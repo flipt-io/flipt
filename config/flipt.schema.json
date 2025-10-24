@@ -704,6 +704,20 @@
         }
       }
     },
+    "evaluation": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "title": "Evaluation",
+      "additionalProperties": false,
+      "properties": {
+        "include_flag_metadata": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
     "environments": {
       "type": [
         "object",
@@ -1121,10 +1135,6 @@
         "grpc_conn_max_age_grace": {
           "type": "string",
           "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
-        },
-        "include_flag_metadata": {
-          "type": "boolean",
-          "default": false
         }
       }
     },
