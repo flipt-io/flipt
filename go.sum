@@ -706,8 +706,8 @@ github.com/redis/go-redis/extra/rediscmd/v9 v9.15.1/go.mod h1:JiJ4f0bngycE8LQqzY
 github.com/redis/go-redis/extra/redisotel/v9 v9.15.1 h1:gvNK57rhjwIjAiGTSZH2+XO37mcLyYCsJC1qlNUnBjs=
 github.com/redis/go-redis/extra/redisotel/v9 v9.15.1/go.mod h1:O41kV1OVBXIT0Tipo902iT8+rbqF0zL5v5paLxp5/7s=
 github.com/redis/go-redis/v9 v9.0.0-rc.4/go.mod h1:Vo3EsyWnicKnSKCA7HhgnvnyA74wOA69Cd2Meli5mmA=
-github.com/redis/go-redis/v9 v9.15.1 h1:BVn5z3pdIKIr5WI4Yv1MRXslB616gqBLBgVmhykiHIw=
-github.com/redis/go-redis/v9 v9.15.1/go.mod h1:u410H11HMLoB+TP67dz8rL9s6QW2j76l0//kSOd3370=
+github.com/redis/go-redis/v9 v9.16.0 h1:OotgqgLSRCmzfqChbQyG1PHC3tLNR89DG4jdOERSEP4=
+github.com/redis/go-redis/v9 v9.16.0/go.mod h1:u410H11HMLoB+TP67dz8rL9s6QW2j76l0//kSOd3370=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=

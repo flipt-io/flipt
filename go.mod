@@ -58,7 +58,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.1
 	github.com/redis/go-redis/extra/redisotel/v9 v9.15.1
-	github.com/redis/go-redis/v9 v9.15.1
+	github.com/redis/go-redis/v9 v9.16.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
