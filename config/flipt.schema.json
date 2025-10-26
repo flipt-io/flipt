@@ -704,6 +704,20 @@
         }
       }
     },
+    "evaluation": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "title": "Evaluation",
+      "additionalProperties": false,
+      "properties": {
+        "include_flag_metadata": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
     "environments": {
       "type": [
         "object",

@@ -19,6 +19,7 @@ JsonPath: string
 	authorization?:  #authorization
 	cors?:           #cors
 	diagnostics?:    #diagnostics
+	evaluation?:     #evaluation
 	environments?:   #environments
 	storage?:        #storage
 	credentials?:    #credentials
@@ -188,6 +189,10 @@ JsonPath: string
 		type:        *"github" | "gitea" | "gitlab" | "azure" | "bitbucket"
 		credentials: string
 		api_url?:    string
+	}
+
+	#evaluation: {
+		include_flag_metadata?:   bool | *false
 	}
 
 	#environments: [string]: {
