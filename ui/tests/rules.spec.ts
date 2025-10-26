@@ -178,16 +178,26 @@ test.describe('Rules', () => {
     await page.getByRole('link', { name: 'Rules' }).click();
 
     // Wait for rules to be visible before attempting drag
-    await page.getByTestId('rule-0').waitFor();
-    await page.getByTestId('rule-1').waitFor();
-
-    await page
+    const sourceElement = page
       .getByTestId('rule-1')
       .getByRole('button', { name: 'Rule' })
-      .first()
-      .dragTo(
-        page.getByTestId('rule-0').getByRole('button', { name: 'Rule' }).first()
-      );
+      .first();
+    await sourceElement.waitFor();
+    await expect(sourceElement).toBeVisible();
+    const targetElement = page
+      .getByTestId('rule-0')
+      .getByRole('button', { name: 'Rule' })
+      .first();
+    await targetElement.waitFor();
+    await expect(targetElement).toBeVisible();
+
+    // await sourceElement.dragTo(targetElement);
+    await sourceElement.hover();
+    await page.mouse.down();
+    await targetElement.hover();
+    await page.mouse.up();
+
+    // update
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
     await expect(
