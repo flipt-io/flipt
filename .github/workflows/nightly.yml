@@ -77,7 +77,7 @@ jobs:
           KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}
           KEYGEN_PRODUCT_ID: ${{ secrets.KEYGEN_PRODUCT_ID }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: flipt-nightly-${{ matrix.name }}
           path: dist/flipt_${{ matrix.name }}_*/flipt
