@@ -147,19 +147,26 @@ test.describe('Rollouts', () => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
 
     // Wait for rollouts to be visible before attempting drag
-    await page.getByTestId('rollout-0').waitFor();
-    await page.getByTestId('rollout-1').waitFor();
-
-    await page
+    const sourceElement = page
       .getByTestId('rollout-0')
       .getByRole('button', { name: 'Rollout' })
-      .first()
-      .dragTo(
-        page
-          .getByTestId('rollout-1')
-          .getByRole('button', { name: 'Rollout' })
-          .first()
-      );
+      .first();
+    await sourceElement.waitFor();
+    await expect(sourceElement).toBeVisible();
+    const targetElement = page
+      .getByTestId('rollout-1')
+      .getByRole('button', { name: 'Rollout' })
+      .first();
+    await targetElement.waitFor();
+    await expect(targetElement).toBeVisible();
+
+    // await sourceElement.dragTo(targetElement);
+    await sourceElement.hover();
+    await page.mouse.down();
+    await targetElement.hover();
+    await page.mouse.up();
+
+    // update
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
     await expect(
