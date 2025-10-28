@@ -790,7 +790,7 @@
             "remote": {
               "type": "string"
             },
-            "fetchPolicy": {
+            "fetch_policy": {
               "type": "string",
               "enum": ["strict", "lenient"],
               "default": "strict"
