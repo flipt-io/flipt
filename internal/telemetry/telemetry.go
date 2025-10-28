@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	segment "github.com/segmentio/analytics-go/v3"
 	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.uber.org/zap"
-	segment "gopkg.in/segmentio/analytics-go.v3"
 )
 
 const (
@@ -156,7 +156,7 @@ type file interface {
 
 // report sends a ping event to the analytics service.
 func (r *Reporter) report(ctx context.Context) (err error) {
-	f, err := os.OpenFile(filepath.Join(r.cfg.Meta.StateDirectory, filename), os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(filepath.Join(r.cfg.Meta.StateDirectory, filename), os.O_RDWR|os.O_CREATE, 0o644)
 	if err != nil {
 		return fmt.Errorf("opening state file: %w", err)
 	}
