@@ -3,6 +3,34 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0](https://github.com/flipt-io/flipt/releases/tag/v2.3.0) - 2025-10-28
+
+### Added
+
+- **Configurable flag metadata in ListFlags**: New server configuration option to control whether flag metadata is included in ListFlags API responses, allowing operators to expose metadata publicly when needed (#4934, #4848)
+- **Git fetch policy configuration**: Add `fetch_policy` configuration option to control behavior when remote git fetch fails during startup, allowing Flipt to continue operating with stale local data (#4920)
+
+### Fixed
+
+- **Install script compatibility**: Prevent install script failure in minimal terminals (TERM=dumb) by adding tput capability check before setting color variables (#4928)
+- **Segment deletion validation**: Prevent deletion of segments that are referenced by flag rules or rollouts to ensure data integrity (#4879)
+- **SDK default environment compatibility**: Ensure proper compatibility with SDKs using default environment (#4857)
+- **OpenTelemetry batch evaluation**: Add missing OpenTelemetry event tracking to batch evaluation endpoint for consistent observability (#4875)
+- **UI form submission**: Prevent Enter key from submitting form when adding tags in constraint values, now properly adds tag instead (#4896)
+- **Redis configuration schema**: Set default Redis mode to "single" instead of empty string for more explicit configuration (#4926)
+- **OpenAPI generation**: Generate OpenAPI specs for v2 API using gnostic (#4847)
+
+### Changed
+
+- **Authentication error handling**: Improve code style and error handling in authentication method utilities (#4775)
+- **GitHub API**: Update to go-github/v75 for latest GitHub API features (#4866)
+- **Contributor workflow**: Optimize contributor workflow to use check_suite pattern (#4819)
+- **OpenTelemetry dependencies**: Group OpenTelemetry dependency updates for better management (#4820)
+
+### Dependencies
+
+- Updated various dependencies including OpenTelemetry group, grpc-ecosystem middleware, ClickHouse client, OPA, and cloud storage libraries
+
 ## [2.2.0](https://github.com/flipt-io/flipt/releases/tag/v2.2.0) - 2025-10-02
 
 ### Added
