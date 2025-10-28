@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/bufbuild/buf v1.59.0
 	github.com/golangci/golangci-lint/v2 v2.5.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/rakyll/gotest v0.0.6
 	golang.org/x/tools v0.38.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
