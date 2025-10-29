@@ -20,7 +20,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.16.0
 	github.com/docker/go-connections v0.6.0
 	github.com/fatih/color v1.18.0
-	github.com/fullstorydev/grpchan v1.1.1
+	github.com/fullstorydev/grpchan v1.1.2-0.20251029153927-64549862212f
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/cors v1.2.2
 	github.com/go-git/go-billy/v5 v5.6.2
@@ -330,9 +330,6 @@ require (
 replace (
 	github.com/codahale/hdrhistogram => github.com/HdrHistogram/hdrhistogram-go v0.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt/v4 v4.2.0
-	// pin otel library until inprocgrpc supports new stats
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc => go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp => go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0
 )
 
 replace (

@@ -209,6 +209,8 @@ func NewGRPCServer(
 
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(exp, tracesdk.WithBatchTimeout(1*time.Second)))
 
+		ipch = ipch.WithServerStatsHandler(otelgrpc.NewServerHandler())
+
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
@@ -228,8 +230,6 @@ func NewGRPCServer(
 		})),
 		grpc_prometheus.UnaryServerInterceptor,
 		middlewaregrpc.ErrorUnaryInterceptor,
-		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
-		otelgrpc.UnaryServerInterceptor(),
 	}
 
 	if cfg.Cache.Enabled {
