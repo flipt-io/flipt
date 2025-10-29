@@ -18,14 +18,12 @@ import (
 	"github.com/fatih/color"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -352,10 +350,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	// in-process client connection for grpc services
 	var ipch = &inprocgrpc.Channel{}
-	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(
-		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
-		otelgrpc.UnaryServerInterceptor(),
-	))
 
 	// initialize grpc server
 	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate)
