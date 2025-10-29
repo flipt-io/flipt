@@ -8,6 +8,7 @@ import (
 	"crypto/sha1" //nolint:gosec
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/server/metrics"
 	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
@@ -17,6 +18,17 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
+
+// getEnvironmentFromContext retrieves the environment by key. If environment isn't found by key, it falls back to retrieving it from the context.
+func (s *Server) getCurrentEnvironment(ctx context.Context, key string) (environments.Environment, error) {
+	env, err := s.envs.Get(ctx, key)
+	if err != nil {
+		// try to get the environment from the context
+		// this is for backwards compatibility with v1
+		return s.envs.GetFromContext(ctx)
+	}
+	return env, nil
+}
 
 var _ rpcevaluation.ClientEvaluationServiceServer = (*Server)(nil)
 
@@ -39,14 +51,9 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluation.EvaluationNamespaceSnapshotRequest) (*rpcevaluation.EvaluationNamespaceSnapshot, error) {
 	start := time.Now()
 
-	env, err := s.envs.Get(ctx, r.EnvironmentKey)
+	env, err := s.getCurrentEnvironment(ctx, r.EnvironmentKey)
 	if err != nil {
-		// try to get the environment from the context
-		// this is for backwards compatibility with v1
-		env, err = s.envs.GetFromContext(ctx)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	var (
@@ -95,7 +102,7 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 		ctx        = stream.Context()
 	)
 
-	env, err := s.envs.Get(ctx, r.EnvironmentKey)
+	env, err := s.getCurrentEnvironment(ctx, r.EnvironmentKey)
 	if err != nil {
 		return err
 	}
