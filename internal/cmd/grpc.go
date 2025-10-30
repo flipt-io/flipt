@@ -115,10 +115,6 @@ func NewGRPCServer(
 		opt(options)
 	}
 
-	if cfg.Tracing.Enabled {
-		ipch = ipch.WithServerStatsHandler(otelgrpc.NewServerHandler())
-	}
-
 	logger = logger.With(zap.String("server", "grpc"))
 	server := &GRPCServer{
 		logger: logger,
@@ -381,6 +377,12 @@ func NewGRPCServer(
 			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
 			MaxConnectionAgeGrace: cfg.Server.GRPCConnectionMaxAgeGrace,
 		}),
+	}
+
+	if cfg.Tracing.Enabled {
+		statsHandler := otelgrpc.NewServerHandler()
+		grpcOpts = append(grpcOpts, grpc.StatsHandler(statsHandler))
+		ipch = ipch.WithServerStatsHandler(statsHandler)
 	}
 
 	if cfg.Server.Protocol == config.HTTPS {
