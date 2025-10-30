@@ -65,7 +65,7 @@ func (f *Filesystem) Remove(filename string) error {
 
 // ReadDir reads the directory named by dirname and returns a list of
 // directory entries sorted by filename.
-func (f *Filesystem) ReadDir(path string) ([]os.FileInfo, error) {
+func (f *Filesystem) ReadDir(path string) ([]os.DirEntry, error) {
 	return f.Filesystem.ReadDir(path)
 }
 
