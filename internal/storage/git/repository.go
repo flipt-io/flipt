@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"net"
 	"os"
 	"path/filepath"
 	"slices"
@@ -214,6 +215,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 				if rerr != nil {
 					return nil, empty, fetchErr
 				}
+				logger.Warn("initial fetch failed but lenient fetch policy is enabled and repository has existing commits, continuing", zap.Error(err))
 			case errors.Is(err, transport.ErrEmptyRemoteRepository) || errors.Is(err, git.ErrRemoteRefNotFound):
 				// the remote was reachable but either its contents was completely empty
 				// or our default branch doesn't exist and so we decide to seed it
@@ -311,8 +313,19 @@ func (r *Repository) fetchHeads() []string {
 	return slices.Collect(maps.Keys(heads))
 }
 
-// IsConnectionRefused checks if the provided error is a connection refused error.
+// IsConnectionRefused checks if the provided error is a connection refused error or DNS resolution error.
 func (r *Repository) IsConnectionRefused(err error) bool {
+	// Check for DNS errors (e.g., "no such host")
+	if dnsError, ok := errors.As[*net.DNSError](err); ok {
+		return dnsError.IsNotFound || dnsError.IsTemporary
+	}
+
+	// Check for network timeout errors
+	if netErr, ok := errors.As[net.Error](err); ok && netErr.Timeout() {
+		return true
+	}
+
+	// Check for syscall network errors
 	return errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, syscall.EHOSTUNREACH) ||
 		errors.Is(err, syscall.ENETUNREACH) || errors.Is(err, syscall.EHOSTDOWN)
 }

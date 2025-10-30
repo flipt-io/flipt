@@ -359,12 +359,58 @@ func TestIsConnectionRefused(t *testing.T) {
 		},
 		{
 			name:     "different syscall error",
-			err:      &os.SyscallError{Syscall: "connect", Err: syscall.ETIMEDOUT},
+			err:      &os.SyscallError{Syscall: "write", Err: syscall.EINVAL},
 			expected: false,
 		},
 		{
 			name:     "net.OpError with non-connection-refused error",
-			err:      &net.OpError{Op: "dial", Net: "tcp", Err: &os.SyscallError{Syscall: "connect", Err: syscall.EADDRINUSE}},
+			err:      &net.ParseError{},
+			expected: false,
+		},
+		{
+			name:     "connection i/o timeout",
+			err:      &net.OpError{Op: "dial", Net: "tcp", Err: os.ErrDeadlineExceeded},
+			expected: true,
+		},
+		{
+			name: "DNS error - no such host",
+			err: &net.OpError{
+				Op:  "dial",
+				Net: "tcp",
+				Err: &net.DNSError{
+					Err:        "no such host",
+					Name:       "nonexistent.example.com",
+					IsNotFound: true,
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "DNS error - direct",
+			err: &net.DNSError{
+				Err:        "no such host",
+				Name:       "invalid.local",
+				IsNotFound: true,
+			},
+			expected: true,
+		},
+		{
+			name: "DNS error - server failure",
+			err: &net.DNSError{
+				Err:         "server misbehaving",
+				Name:        "example.com",
+				Server:      "8.8.8.8",
+				IsTemporary: true,
+			},
+			expected: true,
+		},
+		{
+			name: "DNS error - permanent failure",
+			err: &net.DNSError{
+				Err:    "fatal erro",
+				Name:   "example.com",
+				Server: "8.8.8.8",
+			},
 			expected: false,
 		},
 	}
