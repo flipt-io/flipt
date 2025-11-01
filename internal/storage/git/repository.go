@@ -193,6 +193,32 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 			if !errors.Is(err, git.ErrRemoteExists) {
 				return nil, empty, err
 			}
+
+			// check if there is any difference between Flipt configuration and local git checkout
+			// and synchronize if needed.
+			gitConfig, err := r.Config()
+			if err != nil {
+				return nil, empty, fmt.Errorf("failed to read local git config: %w", err)
+			}
+
+			// safely check if remote exists and if URLs differ
+			existingRemote, exists := gitConfig.Remotes[r.remote.Name]
+			if !exists || !slices.Equal(existingRemote.URLs, r.remote.URLs) {
+				r.logger.Info("synchronizing git remote URL with Flipt configuration",
+					zap.String("remote", r.remote.Name),
+					zap.Strings("previous_urls", func() []string {
+						if exists && existingRemote != nil {
+							return existingRemote.URLs
+						}
+						return nil
+					}()),
+					zap.Strings("new_urls", r.remote.URLs))
+
+				gitConfig.Remotes[r.remote.Name] = r.remote
+				if err := r.SetConfig(gitConfig); err != nil {
+					return nil, empty, fmt.Errorf("failed to update local git config: %w", err)
+				}
+			}
 		}
 
 		// given an upstream has been configured we're going to start

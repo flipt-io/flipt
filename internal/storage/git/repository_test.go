@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/stretchr/testify/assert"
@@ -524,4 +525,260 @@ func TestFetch_DefaultPolicy_BehavesAsStrict(t *testing.T) {
 		WithFilesystemStorage(tempDir),
 		WithRemote("origin", "http://localhost:1/invalid-repo.git"))
 	require.Error(t, err)
+}
+
+func TestNewRepository_RemoteSync(t *testing.T) {
+	tests := []struct {
+		name             string
+		setupRepo        func(t *testing.T, tempDir string, remoteDir string) // setup function with remote dir
+		initialRemoteURL string                                               // initial remote URL (or empty)
+		newRemoteURL     string                                               // new remote URL to sync
+	}{
+		{
+			name: "URL changed - should sync to new URL",
+			setupRepo: func(t *testing.T, tempDir string, remoteDir string) {
+				// Create a bare remote repository first
+				oldRemoteDir := filepath.Join(remoteDir, "old-remote.git")
+				newRemoteDir := filepath.Join(remoteDir, "new-remote.git")
+				_, err := git.PlainInit(oldRemoteDir, true)
+				require.NoError(t, err)
+				_, err = git.PlainInit(newRemoteDir, true)
+				require.NoError(t, err)
+
+				// Create normal git repo with commits and initial remote
+				plainRepo, err := git.PlainInit(tempDir, false)
+				require.NoError(t, err)
+
+				// Create and commit a file
+				require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0o755))
+				featuresFile := filepath.Join(tempDir, "production", "features.yaml")
+				content := `namespace:
+    key: production
+    name: production`
+				require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0o600))
+
+				worktree, err := plainRepo.Worktree()
+				require.NoError(t, err)
+				_, err = worktree.Add("production/features.yaml")
+				require.NoError(t, err)
+				_, err = worktree.Commit("Initial commit", &git.CommitOptions{
+					Author: &object.Signature{
+						Name:  "Test User",
+						Email: "test@example.com",
+						When:  time.Now(),
+					},
+				})
+				require.NoError(t, err)
+
+				// Add initial remote
+				_, err = plainRepo.CreateRemote(&config.RemoteConfig{
+					Name: "origin",
+					URLs: []string{oldRemoteDir},
+				})
+				require.NoError(t, err)
+
+				// Push to the old remote so it has content
+				err = plainRepo.Push(&git.PushOptions{
+					RemoteName: "origin",
+				})
+				require.NoError(t, err)
+
+				// Push to the new remote too so fetch works
+				_, err = plainRepo.CreateRemote(&config.RemoteConfig{
+					Name: "newremote",
+					URLs: []string{newRemoteDir},
+				})
+				require.NoError(t, err)
+				err = plainRepo.Push(&git.PushOptions{
+					RemoteName: "newremote",
+				})
+				require.NoError(t, err)
+
+				// Remove the newremote so we only have origin
+				err = plainRepo.DeleteRemote("newremote")
+				require.NoError(t, err)
+			},
+			initialRemoteURL: "", // set in setupRepo
+			newRemoteURL:     "new-remote.git",
+		},
+		{
+			name: "URL unchanged - should remain same",
+			setupRepo: func(t *testing.T, tempDir string, remoteDir string) {
+				// Create normal git repo with commits and remote
+				plainRepo, err := git.PlainInit(tempDir, false)
+				require.NoError(t, err)
+
+				// Create and commit a file
+				require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0o755))
+				featuresFile := filepath.Join(tempDir, "production", "features.yaml")
+				content := `namespace:
+    key: production
+    name: production`
+				require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0o600))
+
+				worktree, err := plainRepo.Worktree()
+				require.NoError(t, err)
+				_, err = worktree.Add("production/features.yaml")
+				require.NoError(t, err)
+				_, err = worktree.Commit("Initial commit", &git.CommitOptions{
+					Author: &object.Signature{
+						Name:  "Test User",
+						Email: "test@example.com",
+						When:  time.Now(),
+					},
+				})
+				require.NoError(t, err)
+
+				// Create a bare remote repository
+				remoteRepoDir := filepath.Join(remoteDir, "test-remote.git")
+				_, err = git.PlainInit(remoteRepoDir, true)
+				require.NoError(t, err)
+
+				// Add remote
+				_, err = plainRepo.CreateRemote(&config.RemoteConfig{
+					Name: "origin",
+					URLs: []string{remoteRepoDir},
+				})
+				require.NoError(t, err)
+			},
+			newRemoteURL: "test-remote.git",
+		},
+		{
+			name: "multiple URLs in git config - should sync to single URL",
+			setupRepo: func(t *testing.T, tempDir string, remoteDir string) {
+				// Create normal git repo with commits
+				plainRepo, err := git.PlainInit(tempDir, false)
+				require.NoError(t, err)
+
+				// Create and commit a file
+				require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0o755))
+				featuresFile := filepath.Join(tempDir, "production", "features.yaml")
+				content := `namespace:
+    key: production
+    name: production`
+				require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0o600))
+
+				worktree, err := plainRepo.Worktree()
+				require.NoError(t, err)
+				_, err = worktree.Add("production/features.yaml")
+				require.NoError(t, err)
+				_, err = worktree.Commit("Initial commit", &git.CommitOptions{
+					Author: &object.Signature{
+						Name:  "Test User",
+						Email: "test@example.com",
+						When:  time.Now(),
+					},
+				})
+				require.NoError(t, err)
+
+				// Create bare remote repositories
+				remote1Dir := filepath.Join(remoteDir, "remote1.git")
+				remote2Dir := filepath.Join(remoteDir, "remote2.git")
+				_, err = git.PlainInit(remote1Dir, true)
+				require.NoError(t, err)
+				_, err = git.PlainInit(remote2Dir, true)
+				require.NoError(t, err)
+
+				// Add remote with multiple URLs
+				_, err = plainRepo.CreateRemote(&config.RemoteConfig{
+					Name: "origin",
+					URLs: []string{remote1Dir, remote2Dir},
+				})
+				require.NoError(t, err)
+			},
+			newRemoteURL: "remote1.git",
+		},
+		{
+			name: "add remote to existing repo without remote",
+			setupRepo: func(t *testing.T, tempDir string, remoteDir string) {
+				// Create normal git repo with commits but no remote
+				plainRepo, err := git.PlainInit(tempDir, false)
+				require.NoError(t, err)
+
+				// Create and commit a file
+				require.NoError(t, os.MkdirAll(filepath.Join(tempDir, "production"), 0o755))
+				featuresFile := filepath.Join(tempDir, "production", "features.yaml")
+				content := `namespace:
+    key: production
+    name: production`
+				require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0o600))
+
+				worktree, err := plainRepo.Worktree()
+				require.NoError(t, err)
+				_, err = worktree.Add("production/features.yaml")
+				require.NoError(t, err)
+				_, err = worktree.Commit("Initial commit", &git.CommitOptions{
+					Author: &object.Signature{
+						Name:  "Test User",
+						Email: "test@example.com",
+						When:  time.Now(),
+					},
+				})
+				require.NoError(t, err)
+
+				// Create bare remote but don't add it yet
+				newRemoteDir := filepath.Join(remoteDir, "new-remote.git")
+				_, err = git.PlainInit(newRemoteDir, true)
+				require.NoError(t, err)
+			},
+			newRemoteURL: "new-remote.git",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tempDir := t.TempDir()
+			remoteDir := t.TempDir() // separate dir for remote repos
+			logger := zap.NewNop()
+
+			// Setup repository state
+			tt.setupRepo(t, tempDir, remoteDir)
+
+			// Build the full remote URL
+			fullRemoteURL := filepath.Join(remoteDir, tt.newRemoteURL)
+
+			// Reopen repository with updated remote configuration
+			repo, _, err := newRepository(t.Context(), logger,
+				WithFilesystemStorage(tempDir),
+				WithRemote("origin", fullRemoteURL))
+
+			require.NoError(t, err)
+			require.NotNil(t, repo)
+
+			// Verify remote URLs were synchronized correctly
+			gitConfig, err := repo.Config()
+			require.NoError(t, err)
+
+			require.NotNil(t, gitConfig.Remotes["origin"])
+			assert.Equal(t, []string{fullRemoteURL}, gitConfig.Remotes["origin"].URLs,
+				"remote URLs should match expected")
+		})
+	}
+}
+
+func TestNewRepository_RemoteSync_NoRemote(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// Create repository without remote
+	repo1, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir))
+	require.NoError(t, err)
+	require.NotNil(t, repo1)
+
+	// Verify no remotes
+	gitConfig1, err := repo1.Config()
+	require.NoError(t, err)
+	assert.Empty(t, gitConfig1.Remotes)
+
+	// Reopen without remote
+	repo2, _, err := newRepository(t.Context(), logger,
+		WithFilesystemStorage(tempDir))
+	require.NoError(t, err)
+	require.NotNil(t, repo2)
+
+	// Still no remotes
+	gitConfig2, err := repo2.Config()
+	require.NoError(t, err)
+	assert.Empty(t, gitConfig2.Remotes)
 }
