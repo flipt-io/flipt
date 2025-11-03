@@ -35,7 +35,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/h2non/gock v1.2.0
 	github.com/hashicorp/cap v0.11.0
 	github.com/hashicorp/go-retryablehttp v0.7.8
@@ -89,7 +89,7 @@ require (
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/sync v0.17.0
 	golang.org/x/term v0.36.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20250825161204-c5933d9347a5
+	google.golang.org/genproto/googleapis/api v0.0.0-20250929231259-57b25ae835d4
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
@@ -535,7 +535,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.242.0 // indirect
 	google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250929231259-57b25ae835d4 // indirect
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
 	mvdan.cc/gofumpt v0.8.0 // indirect
