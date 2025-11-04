@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { Form, Formik } from 'formik';
 import { XIcon } from 'lucide-react';
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 
@@ -49,8 +49,6 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const [createNamespace] = useCreateNamespaceMutation();
   const [updateNamespace] = useUpdateNamespaceMutation();
 
-  const [isButtonEnabled, setIsButtonEnabled] = useState(false); // ✅ local state for instant button updates
-
   const handleSubmit = async (values: INamespace) => {
     if (isNew) {
       return createNamespace({
@@ -96,10 +94,9 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
       validateOnMount={true}
     >
       {(formik) => {
-        // ✅ useEffect runs after Formik updates, keeping button in sync
-        useEffect(() => {
-          setIsButtonEnabled(formik.dirty && formik.isValid && !formik.isSubmitting);
-        }, [formik.dirty, formik.isValid, formik.isSubmitting]);
+        // Derive button state directly from formik state
+        const isButtonEnabled =
+          formik.dirty && formik.isValid && !formik.isSubmitting;
 
         return (
           <Form className="flex h-full flex-col overflow-y-scroll bg-background dark:bg-gray-900 shadow-xl">
@@ -147,13 +144,13 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                       // we do this so we don't override a custom key value
 
                       const { value } = e.target;
-                      formik.setFieldValue("name", value, true);
+                      formik.setFieldValue('name', value, true);
                       if (
                         isNew &&
-                        (formik.values.key === "" ||
+                        (formik.values.key === '' ||
                           formik.values.key === stringAsKey(formik.values.name))
                       ) {
-                        formik.setFieldValue("key", stringAsKey(value), true);
+                        formik.setFieldValue('key', stringAsKey(value), true);
                       }
                     }}
                   />
@@ -176,7 +173,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                     disabled={!isNew}
                     onChange={(e) => {
                       const formatted = stringAsKey(e.target.value);
-                      formik.setFieldValue("key", formatted, true);
+                      formik.setFieldValue('key', formatted, true);
                     }}
                   />
                 </div>
