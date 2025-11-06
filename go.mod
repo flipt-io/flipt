@@ -51,7 +51,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20250905003706-0f81d9a00184
-	github.com/open-policy-agent/opa v1.10.0
+	github.com/open-policy-agent/opa v1.10.1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
