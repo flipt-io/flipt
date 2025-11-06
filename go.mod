@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	code.gitea.io/sdk/gitea v0.22.1
-	cuelang.org/go v0.11.1
+	cuelang.org/go v0.15.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/ClickHouse/clickhouse-go/v2 v2.40.3
 	github.com/MakeNowJust/heredoc v1.0.0
@@ -86,7 +86,7 @@ require (
 	golang.org/x/crypto v0.43.0
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
 	golang.org/x/net v0.46.0
-	golang.org/x/oauth2 v0.30.0
+	golang.org/x/oauth2 v0.32.0
 	golang.org/x/sync v0.17.0
 	golang.org/x/term v0.36.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250929231259-57b25ae835d4
@@ -241,6 +241,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
+	github.com/emicklei/proto v1.14.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
@@ -381,6 +382,7 @@ require (
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
@@ -419,6 +421,7 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/otlptranslator v0.0.2 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
+	github.com/protocolbuffers/txtpbfmt v0.0.0-20251016062345-16587c79cd91 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.4 // indirect
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect
@@ -526,12 +529,12 @@ require (
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20250620022241-b7579e27df2b // indirect
-	golang.org/x/mod v0.28.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/telemetry v0.0.0-20250908211612-aef8a434d053 // indirect
+	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
 	golang.org/x/text v0.30.0 // indirect
 	golang.org/x/time v0.13.0 // indirect
-	golang.org/x/tools v0.37.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.242.0 // indirect
 	google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79 // indirect
