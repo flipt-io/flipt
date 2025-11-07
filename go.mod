@@ -64,7 +64,7 @@ require (
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/testcontainers/testcontainers-go v0.39.0
+	github.com/testcontainers/testcontainers-go v0.40.0
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
 	github.com/twmb/franz-go v1.20.3
 	github.com/twmb/franz-go/pkg/kadm v1.17.1
@@ -179,7 +179,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/cli v28.3.3+incompatible // indirect
-	github.com/docker/docker v28.4.0+incompatible // indirect
+	github.com/docker/docker v28.5.1+incompatible // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
 	github.com/emicklei/proto v1.14.2 // indirect
