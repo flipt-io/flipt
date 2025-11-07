@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	cloud.google.com/go/storage v1.57.1
-	cuelang.org/go v0.14.2
+	cuelang.org/go v0.15.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.3
 	github.com/ClickHouse/clickhouse-go/v2 v2.40.3
@@ -272,7 +272,7 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/otlptranslator v0.0.2 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
-	github.com/protocolbuffers/txtpbfmt v0.0.0-20250627152318-f293424e46b5 // indirect
+	github.com/protocolbuffers/txtpbfmt v0.0.0-20251016062345-16587c79cd91 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.16.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
