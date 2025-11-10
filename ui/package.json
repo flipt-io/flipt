@@ -101,7 +101,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "knip": "^5.62.0",
+    "knip": "^5.68.0",
     "package-changed": "^3.0.0",
     "playwright": "^1.55.1",
     "postcss": "^8.5.6",
