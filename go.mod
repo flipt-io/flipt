@@ -20,7 +20,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.16.0
 	github.com/docker/go-connections v0.6.0
 	github.com/fatih/color v1.18.0
-	github.com/fullstorydev/grpchan v1.1.2-0.20251029153927-64549862212f
+	github.com/fullstorydev/grpchan v1.1.2
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/cors v1.2.2
 	github.com/go-git/go-billy/v5 v5.6.2
