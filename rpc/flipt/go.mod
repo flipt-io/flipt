@@ -9,7 +9,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/stretchr/testify v1.11.1
 	go.flipt.io/flipt/errors v1.45.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20251110190251-83f479183930
+	google.golang.org/genproto/googleapis/api v0.0.0-20251111163417-95abcf5c77ba
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
