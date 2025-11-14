@@ -13,7 +13,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.40.0
 	github.com/aws/aws-sdk-go-v2/config v1.31.20
-	github.com/aws/aws-sdk-go-v2/service/ecr v1.51.4
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.52.0
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.38.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.90.2
 	github.com/blang/semver/v4 v4.0.0
