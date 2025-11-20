@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0](https://github.com/flipt-io/flipt/releases/tag/v2.4.0) - 2025-11-20
+
+### Added
+
+- **OpenTelemetry modernization**: Migrate from deprecated gRPC interceptors to modern stats handler API for improved tracing instrumentation (#4895)
+
+### Fixed
+
+- **Git remote synchronization**: Automatically sync git remote URLs with Flipt configuration to ensure repository connections stay current (#4975)
+- **Git connection error handling**: Properly detect and handle DNS resolution errors and I/O timeouts when checking git repository connections, allowing lenient fetch policy to work correctly when remotes are temporarily unreachable (#4965)
+- **Distributed tracing coverage**: Apply OpenTelemetry stats handler to both the main gRPC server and in-process channel for complete tracing coverage (#4971)
+- **UI form submission**: Enable namespace form submit button based on form validation state for better user experience (#4991)
+
+### Dependencies
+
+- Updated various dependencies including OpenTelemetry, AWS SDK, gRPC ecosystem, and UI libraries
+
 ## [2.3.1](https://github.com/flipt-io/flipt/releases/tag/v2.3.1) - 2025-10-29
 
 ### Fixed
