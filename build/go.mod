@@ -143,7 +143,7 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/onsi/gomega v1.37.0 // indirect
 	github.com/open-feature/go-sdk v1.17.0
-	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.6
+	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.7
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
