@@ -8,7 +8,7 @@ require (
 	dagger.io/dagger v0.19.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.3
 	github.com/aws/aws-sdk-go-v2 v1.40.0
-	github.com/aws/aws-sdk-go-v2/config v1.32.0
+	github.com/aws/aws-sdk-go-v2/config v1.32.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.92.0
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/go-git/go-billy/v5 v5.6.2
