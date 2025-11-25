@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"text/template"
 	"time"
 
 	"github.com/spf13/viper"
@@ -124,6 +125,11 @@ func (c *StorageConfig) validate() error {
 		}
 	}
 
+	// Validate templates config
+	if err := c.Templates.Validate(); err != nil {
+		return errFieldWrap("storage", "templates", err)
+	}
+
 	return nil
 }
 
@@ -152,6 +158,27 @@ type TemplatesConfig struct {
 	CommitMessage string `json:"commit_message,omitempty" mapstructure:"commit_message" yaml:"commit_message,omitempty"`
 	ProposalTitle string `json:"proposal_title,omitempty" mapstructure:"proposal_title" yaml:"proposal_title,omitempty"`
 	ProposalBody  string `json:"proposal_body,omitempty" mapstructure:"proposal_body" yaml:"proposal_body,omitempty"`
+}
+
+// Validate checks that all configured templates are valid Go text/templates.
+// This provides early validation at config load time rather than at runtime.
+func (c *TemplatesConfig) Validate() error {
+	if c.CommitMessage != "" {
+		if _, err := template.New("commit_message").Parse(c.CommitMessage); err != nil {
+			return fmt.Errorf("invalid commit_message template: %w", err)
+		}
+	}
+	if c.ProposalTitle != "" {
+		if _, err := template.New("proposal_title").Parse(c.ProposalTitle); err != nil {
+			return fmt.Errorf("invalid proposal_title template: %w", err)
+		}
+	}
+	if c.ProposalBody != "" {
+		if _, err := template.New("proposal_body").Parse(c.ProposalBody); err != nil {
+			return fmt.Errorf("invalid proposal_body template: %w", err)
+		}
+	}
+	return nil
 }
 
 func (c *SignatureConfig) validate() error {

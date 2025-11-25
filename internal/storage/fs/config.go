@@ -61,6 +61,11 @@ type ConfigTemplates struct {
 // It used when a flipt.yml cannot be located.
 // If serverTemplates is provided, its templates are used as defaults instead
 // of the hardcoded defaults.
+//
+// Note: Server templates should be validated at config load time via
+// TemplatesConfig.Validate(). The error handling here is defensive and
+// silently falls back to defaults if parsing fails (which should not happen
+// if validation was performed at startup).
 func DefaultFliptConfig(serverTemplates *config.TemplatesConfig) *Config {
 	c := &Config{
 		Matchers: []glob.Glob{
@@ -77,7 +82,9 @@ func DefaultFliptConfig(serverTemplates *config.TemplatesConfig) *Config {
 		},
 	}
 
-	// Apply server-level templates if provided
+	// Apply server-level templates if provided.
+	// Errors are silently ignored here as templates should have been
+	// validated at config load time via TemplatesConfig.Validate().
 	if serverTemplates != nil {
 		if serverTemplates.CommitMessage != "" {
 			if tmpl, err := template.New("commitMessage").Parse(serverTemplates.CommitMessage); err == nil {
