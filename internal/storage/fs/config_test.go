@@ -6,12 +6,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/environments"
 	api "go.flipt.io/flipt/rpc/v2/environments"
 )
 
 func Test_DefaultFliptConfig(t *testing.T) {
-	conf := DefaultFliptConfig()
+	conf := DefaultFliptConfig(nil)
 	t.Run("CommitMessageTemplate", func(t *testing.T) {
 		for _, test := range []struct {
 			name     string
@@ -137,4 +138,88 @@ create segment default/some-other-segment`,
 type templateContext struct {
 	Base   *api.EnvironmentConfiguration
 	Branch *api.EnvironmentConfiguration
+}
+
+func Test_DefaultFliptConfig_WithServerTemplates(t *testing.T) {
+	serverTemplates := &config.TemplatesConfig{
+		CommitMessage: "Server: {{ (index .Changes 0) }} [skip ci]",
+		ProposalTitle: "Server PR: {{.Base.Ref}}",
+		ProposalBody:  "Server PR body for {{.Branch.Ref}} -> {{.Base.Ref}}",
+	}
+
+	conf := DefaultFliptConfig(serverTemplates)
+
+	t.Run("CommitMessageTemplate uses server template", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		err := conf.Templates.CommitMessageTemplate.Execute(buf, struct {
+			Changes []Change
+		}{
+			Changes: []Change{
+				{Verb: VerbCreate, Resource: Resource{
+					Type:      environments.NewResourceType("flipt.core", "Flag"),
+					Namespace: "default",
+					Key:       "test-flag",
+				}},
+			},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "Server: create flag default/test-flag [skip ci]", buf.String())
+	})
+
+	t.Run("ProposalTitleTemplate uses server template", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		err := conf.Templates.ProposalTitleTemplate.Execute(buf, templateContext{
+			Base:   &api.EnvironmentConfiguration{Ref: "main"},
+			Branch: &api.EnvironmentConfiguration{Ref: "feature"},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "Server PR: main", buf.String())
+	})
+
+	t.Run("ProposalBodyTemplate uses server template", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		err := conf.Templates.ProposalBodyTemplate.Execute(buf, templateContext{
+			Base:   &api.EnvironmentConfiguration{Ref: "main"},
+			Branch: &api.EnvironmentConfiguration{Ref: "feature"},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "Server PR body for feature -> main", buf.String())
+	})
+}
+
+func Test_DefaultFliptConfig_PartialServerTemplates(t *testing.T) {
+	// Only override commit message, keep defaults for proposals
+	serverTemplates := &config.TemplatesConfig{
+		CommitMessage: "Custom: {{ (index .Changes 0) }}",
+	}
+
+	conf := DefaultFliptConfig(serverTemplates)
+
+	t.Run("CommitMessageTemplate uses server template", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		err := conf.Templates.CommitMessageTemplate.Execute(buf, struct {
+			Changes []Change
+		}{
+			Changes: []Change{
+				{Verb: VerbUpdate, Resource: Resource{
+					Type:      environments.NewResourceType("flipt.core", "Flag"),
+					Namespace: "ns",
+					Key:       "flag",
+				}},
+			},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "Custom: update flag ns/flag", buf.String())
+	})
+
+	t.Run("ProposalTitleTemplate uses default", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		err := conf.Templates.ProposalTitleTemplate.Execute(buf, templateContext{
+			Base:   &api.EnvironmentConfiguration{Ref: "main"},
+			Branch: &api.EnvironmentConfiguration{Ref: "feature"},
+		})
+		require.NoError(t, err)
+		// Default template
+		assert.Equal(t, "Flipt: Update features on main", buf.String())
+	})
 }

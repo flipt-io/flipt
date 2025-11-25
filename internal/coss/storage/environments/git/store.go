@@ -96,7 +96,7 @@ func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, 
 		}
 		src = environmentsfs.SubFilesystem(src, dir)
 
-		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
+		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src), e.ServerTemplates())
 		if err != nil {
 			return err
 		}

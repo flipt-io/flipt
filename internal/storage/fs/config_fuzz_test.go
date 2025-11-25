@@ -100,7 +100,7 @@ flags:
 
 		// Test parsing configuration
 		reader := strings.NewReader(configData)
-		_, _ = parseConfig(zap.NewNop(), reader)
+		_, _ = parseConfig(zap.NewNop(), reader, nil)
 	})
 }
 
@@ -137,7 +137,7 @@ flags:`
 		}
 
 		reader := strings.NewReader(configData)
-		_, _ = parseConfig(zap.NewNop(), reader)
+		_, _ = parseConfig(zap.NewNop(), reader, nil)
 	})
 }
 
@@ -190,6 +190,6 @@ namespace: "` + strings.Repeat("a", 1000) + `"`,
 		}
 
 		reader := strings.NewReader(configData)
-		_, _ = parseConfig(zap.NewNop(), reader)
+		_, _ = parseConfig(zap.NewNop(), reader, nil)
 	})
 }

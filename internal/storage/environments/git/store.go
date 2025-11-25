@@ -40,9 +40,10 @@ var (
 type Environment struct {
 	logger *zap.Logger
 
-	cfg     *config.EnvironmentConfig
-	repo    *storagegit.Repository
-	storage environmentsfs.Storage
+	cfg             *config.EnvironmentConfig
+	serverTemplates *config.TemplatesConfig
+	repo            *storagegit.Repository
+	storage         environmentsfs.Storage
 
 	mu            sync.RWMutex
 	branches      map[string]*Environment
@@ -57,6 +58,8 @@ type Environment struct {
 // NewEnvironmentFromRepo takes a git repository and a set of typed resource storage implementations and exposes
 // the controls necessary to get, list, put and delete both namespaces and their resources
 // It optionally roots all changes to a target directory within the source repository
+// Server-level templates can be provided via serverTemplates; these will be used
+// as defaults when the repository config doesn't specify templates.
 func NewEnvironmentFromRepo(
 	ctx context.Context,
 	logger *zap.Logger,
@@ -64,17 +67,19 @@ func NewEnvironmentFromRepo(
 	repo *storagegit.Repository,
 	storage environmentsfs.Storage,
 	publisher evaluation.SnapshotPublisher,
+	serverTemplates *config.TemplatesConfig,
 ) (_ *Environment, err error) {
 	env := &Environment{
-		logger:        logger,
-		cfg:           cfg,
-		repo:          repo,
-		storage:       storage,
-		refs:          map[string]string{},
-		snap:          storagefs.EmptySnapshot(),
-		publisher:     publisher,
-		currentBranch: repo.GetDefaultBranch(),
-		branches:      map[string]*Environment{},
+		logger:          logger,
+		cfg:             cfg,
+		serverTemplates: serverTemplates,
+		repo:            repo,
+		storage:         storage,
+		refs:            map[string]string{},
+		snap:            storagefs.EmptySnapshot(),
+		publisher:       publisher,
+		currentBranch:   repo.GetDefaultBranch(),
+		branches:        map[string]*Environment{},
 	}
 
 	// Build initial snapshot if repository has existing data
@@ -105,6 +110,10 @@ func (e *Environment) Default() bool {
 
 func (e *Environment) Repository() *storagegit.Repository {
 	return e.repo
+}
+
+func (e *Environment) ServerTemplates() *config.TemplatesConfig {
+	return e.serverTemplates
 }
 
 func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration {
@@ -180,6 +189,7 @@ func (e *Environment) Branch(ctx context.Context, branch string) (serverenvs.Env
 		e.repo,
 		e.storage,
 		evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
+		e.serverTemplates,
 	)
 	if err != nil {
 		return nil, err
@@ -386,7 +396,7 @@ func (e *Environment) updateNamespace(ctx context.Context, rev string, fn func(e
 		// chroot our filesystem to the configured directory
 		src = environmentsfs.SubFilesystem(src, e.cfg.Directory)
 
-		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
+		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src), e.serverTemplates)
 		if err != nil {
 			return "", err
 		}
@@ -437,7 +447,7 @@ func (e *Environment) Update(ctx context.Context, rev string, typ serverenvs.Res
 		// chroot our filesystem to the configured directory
 		src = environmentsfs.SubFilesystem(src, e.cfg.Directory)
 
-		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
+		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src), e.serverTemplates)
 		if err != nil {
 			return "", err
 		}
@@ -669,6 +679,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				e.repo,
 				e.storage,
 				evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
+				e.serverTemplates,
 			)
 			if err != nil {
 				return nil, err
@@ -779,7 +790,7 @@ func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (sn
 		}
 
 		iofs := environmentsfs.ToFS(fs)
-		conf, err := storagefs.GetConfig(e.logger, iofs)
+		conf, err := storagefs.GetConfig(e.logger, iofs, e.serverTemplates)
 		if err != nil {
 			return err
 		}

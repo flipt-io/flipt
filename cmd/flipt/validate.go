@@ -85,7 +85,8 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 	ofs := os.DirFS(v.workDirectory)
 	if len(args) == 0 {
 		var config *fs.Config
-		config, err = fs.GetConfig(logger, ofs)
+		// Pass nil for server templates since validate is a CLI command without server config context
+		config, err = fs.GetConfig(logger, ofs, nil)
 		if err != nil {
 			return err
 		}

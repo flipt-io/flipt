@@ -101,6 +101,7 @@ type StorageConfig struct {
 	InsecureSkipTLS bool                 `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
 	Credentials     string               `json:"-" mapstructure:"credentials" yaml:"-"`
 	Signature       SignatureConfig      `json:"signature,omitempty" mapstructure:"signature,omitempty" yaml:"signature,omitempty"`
+	Templates       TemplatesConfig      `json:"templates,omitempty" mapstructure:"templates,omitempty" yaml:"templates,omitempty"`
 }
 
 func (c *StorageConfig) validate() error {
@@ -141,6 +142,16 @@ type SignatureConfig struct {
 	Type    SignatureType    `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
 	KeyRef  *SecretReference `json:"key_ref,omitempty" mapstructure:"key_ref" yaml:"key_ref,omitempty"`
 	KeyID   string           `json:"key_id,omitempty" mapstructure:"key_id" yaml:"key_id,omitempty"`
+}
+
+// TemplatesConfig contains templates for commit messages and pull request content.
+// These templates are used when creating commits and pull requests via the Flipt UI.
+// If specified, these templates override the defaults but can still be overridden
+// by repository-level templates in flipt.yaml.
+type TemplatesConfig struct {
+	CommitMessage string `json:"commit_message,omitempty" mapstructure:"commit_message" yaml:"commit_message,omitempty"`
+	ProposalTitle string `json:"proposal_title,omitempty" mapstructure:"proposal_title" yaml:"proposal_title,omitempty"`
+	ProposalBody  string `json:"proposal_body,omitempty" mapstructure:"proposal_body" yaml:"proposal_body,omitempty"`
 }
 
 func (c *SignatureConfig) validate() error {
