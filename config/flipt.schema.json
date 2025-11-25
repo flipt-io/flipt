@@ -888,6 +888,28 @@
             },
             "credentials": {
               "type": "string"
+            },
+            "templates": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "description": "Custom templates for commit messages and pull requests. These override built-in defaults but can be overridden by repository-level templates.",
+              "properties": {
+                "commit_message": {
+                  "type": "string",
+                  "description": "Go text/template for commit messages when updating flags via the UI."
+                },
+                "proposal_title": {
+                  "type": "string",
+                  "description": "Go text/template for pull request titles."
+                },
+                "proposal_body": {
+                  "type": "string",
+                  "description": "Go text/template for pull request body content."
+                }
+              }
             }
           }
         }
