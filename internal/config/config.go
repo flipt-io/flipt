@@ -73,6 +73,7 @@ type Config struct {
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`
 	License        LicenseConfig        `json:"license,omitempty" mapstructure:"license" yaml:"license,omitempty"`
 	Secrets        SecretsConfig        `json:"secrets,omitempty" mapstructure:"secrets" yaml:"secrets,omitempty"`
+	Templates      TemplatesConfig      `json:"templates,omitempty" mapstructure:"templates" yaml:"templates,omitempty"`
 }
 
 type Result struct {
@@ -444,6 +445,11 @@ func (c *Config) validate() error {
 		if _, exists := c.Storage[env.Storage]; !exists {
 			return errString("environments", fmt.Sprintf("%q references undefined storage %q", envName, env.Storage))
 		}
+	}
+
+	// Validate templates config
+	if err := c.Templates.Validate(); err != nil {
+		return errFieldWrap("", "templates", err)
 	}
 
 	return nil

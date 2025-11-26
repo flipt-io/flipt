@@ -10,3 +10,32 @@ log:
 #   https_port: 443
 #   http_port: 8080
 #   grpc_port: 9000
+
+# storage:
+#   default:
+#     backend:
+#       type: local
+#       path: /path/to/features
+
+# Server-wide custom templates for commit messages and pull requests.
+# These override the defaults but can still be overridden by
+# repository-level templates in flipt.yaml.
+# templates:
+#   # Template for commit messages when updating flags via the UI.
+#   # Available variables: .Changes (array), .Environment (config)
+#   commit_message: |
+#     {{- if eq (len .Changes) 1 }}
+#     {{- (index .Changes 0) }} [skip ci]
+#     {{- else -}}
+#     updated multiple resources [skip ci]
+#     {{ range $change := .Changes }}
+#     {{ $change }}
+#     {{- end }}
+#     {{- end }}
+#   # Template for pull request titles.
+#   # Available variables: .Base (target env config), .Branch (source env config)
+#   proposal_title: "Flipt: Update features on {{.Base.Ref}}"
+#   # Template for pull request body.
+#   proposal_body: |
+#     This PR updates Flipt resources on branch {{.Base.Ref}}.
+#     Source: {{.Branch.Ref}}

@@ -106,7 +106,7 @@ delete segment default/someSegment`,
 
 			template := test.tmpl
 			if template == nil {
-				template = storagefs.DefaultFliptConfig().Templates.CommitMessageTemplate
+				template = storagefs.DefaultFliptConfig(config.TemplatesConfig{}).Templates.CommitMessageTemplate
 			}
 
 			msg, err := env.messageForChanges(template, test.changes...)
@@ -129,7 +129,7 @@ func newTestEnvironment(t *testing.T, envName string) *Environment {
 	require.NoError(t, err)
 	storage := fs.NewStorage(logger)
 	cfg := &config.EnvironmentConfig{Name: envName}
-	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher)
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher, config.TemplatesConfig{})
 	require.NoError(t, err)
 	return env
 }
@@ -387,7 +387,7 @@ func Test_Environment_ViewAndUpdate(t *testing.T) {
 	require.NoError(t, err)
 	storage := fs.NewStorage(logger)
 	cfg := &config.EnvironmentConfig{Name: "production"}
-	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher)
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher, config.TemplatesConfig{})
 	require.NoError(t, err)
 
 	// Inject test resource storage
@@ -488,7 +488,7 @@ func Test_NewEnvironmentFromRepo_InitialSnapshot(t *testing.T) {
 	publisher := evaluation.NoopPublisher
 
 	// Create environment from repository
-	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, publisher)
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, publisher, config.TemplatesConfig{})
 	require.NoError(t, err)
 
 	// Verify that the snapshot was built (not nil) - this is the key issue
@@ -547,7 +547,7 @@ func Test_Environment_Default(t *testing.T) {
 				Name:    tt.envName,
 				Default: tt.isDefault,
 			}
-			env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher)
+			env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher, config.TemplatesConfig{})
 			require.NoError(t, err)
 			assert.Equal(t, tt.isDefault, env.Default())
 		})
@@ -561,7 +561,7 @@ func Test_Environment_Repository(t *testing.T) {
 	require.NoError(t, err)
 	storage := fs.NewStorage(logger)
 	cfg := &config.EnvironmentConfig{Name: "test"}
-	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher)
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher, config.TemplatesConfig{})
 	require.NoError(t, err)
 
 	assert.Equal(t, repo, env.Repository())
@@ -702,7 +702,7 @@ func Test_Environment_Configuration(t *testing.T) {
 			require.NoError(t, err)
 
 			storage := fs.NewStorage(logger)
-			env, err := NewEnvironmentFromRepo(ctx, logger, tt.cfg, repo, storage, evaluation.NoopPublisher)
+			env, err := NewEnvironmentFromRepo(ctx, logger, tt.cfg, repo, storage, evaluation.NoopPublisher, config.TemplatesConfig{})
 			require.NoError(t, err)
 
 			env.currentBranch = tt.currentBranch
@@ -760,7 +760,7 @@ func Test_Environment_EvaluationNamespaceSnapshotSubscribe(t *testing.T) {
 
 	// Use a real snapshot publisher instead of NoopPublisher for this test
 	publisher := evaluation.NewSnapshotPublisher(logger)
-	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, publisher)
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, publisher, config.TemplatesConfig{})
 	require.NoError(t, err)
 
 	ch := make(chan *rpcevaluation.EvaluationNamespaceSnapshot)

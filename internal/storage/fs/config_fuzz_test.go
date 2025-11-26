@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
 )
 
@@ -100,7 +101,7 @@ flags:
 
 		// Test parsing configuration
 		reader := strings.NewReader(configData)
-		_, _ = parseConfig(zap.NewNop(), reader)
+		_, _ = parseConfig(zap.NewNop(), reader, config.TemplatesConfig{})
 	})
 }
 
@@ -137,7 +138,7 @@ flags:`
 		}
 
 		reader := strings.NewReader(configData)
-		_, _ = parseConfig(zap.NewNop(), reader)
+		_, _ = parseConfig(zap.NewNop(), reader, config.TemplatesConfig{})
 	})
 }
 
@@ -190,6 +191,6 @@ namespace: "` + strings.Repeat("a", 1000) + `"`,
 		}
 
 		reader := strings.NewReader(configData)
-		_, _ = parseConfig(zap.NewNop(), reader)
+		_, _ = parseConfig(zap.NewNop(), reader, config.TemplatesConfig{})
 	})
 }
