@@ -22,6 +22,7 @@ JsonPath: string
 	evaluation?:     #evaluation
 	environments?:   #environments
 	storage?:        #storage
+	templates?:      #templates
 	credentials?:    #credentials
 	log?:            #log
 	meta?:           #meta
@@ -228,13 +229,14 @@ JsonPath: string
 			}
 			key_id?: string
 		}
-		// Custom templates for commit messages and pull requests.
-		// These override built-in defaults but can be overridden by repository-level templates.
-		templates?: {
-			commit_message?: string
-			proposal_title?: string
-			proposal_body?:  string
-		}
+	}
+
+	// Server-wide custom templates for commit messages and pull requests.
+	// These override built-in defaults but can be overridden by repository-level templates.
+	#templates: {
+		commit_message?: string
+		proposal_title?: string
+		proposal_body?:  string
 	}
 
 	#credentials: [string]: {

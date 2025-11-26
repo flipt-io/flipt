@@ -59,14 +59,14 @@ type ConfigTemplates struct {
 
 // DefaultFliptConfig returns the default value for the Config struct.
 // It used when a flipt.yml cannot be located.
-// If serverTemplates is provided, its templates are used as defaults instead
-// of the hardcoded defaults.
+// Server-level templates (from config.yml) are used as defaults instead
+// of the hardcoded defaults. An empty TemplatesConfig will use hardcoded defaults.
 //
 // Note: Server templates should be validated at config load time via
 // TemplatesConfig.Validate(). The error handling here is defensive and
 // silently falls back to defaults if parsing fails (which should not happen
 // if validation was performed at startup).
-func DefaultFliptConfig(serverTemplates *config.TemplatesConfig) *Config {
+func DefaultFliptConfig(serverTemplates config.TemplatesConfig) *Config {
 	c := &Config{
 		Matchers: []glob.Glob{
 			// must end in either yaml, yml or json
@@ -85,21 +85,19 @@ func DefaultFliptConfig(serverTemplates *config.TemplatesConfig) *Config {
 	// Apply server-level templates if provided.
 	// Errors are silently ignored here as templates should have been
 	// validated at config load time via TemplatesConfig.Validate().
-	if serverTemplates != nil {
-		if serverTemplates.CommitMessage != "" {
-			if tmpl, err := template.New("commitMessage").Parse(serverTemplates.CommitMessage); err == nil {
-				c.Templates.CommitMessageTemplate = tmpl
-			}
+	if serverTemplates.CommitMessage != "" {
+		if tmpl, err := template.New("commitMessage").Parse(serverTemplates.CommitMessage); err == nil {
+			c.Templates.CommitMessageTemplate = tmpl
 		}
-		if serverTemplates.ProposalTitle != "" {
-			if tmpl, err := template.New("proposalTitle").Parse(serverTemplates.ProposalTitle); err == nil {
-				c.Templates.ProposalTitleTemplate = tmpl
-			}
+	}
+	if serverTemplates.ProposalTitle != "" {
+		if tmpl, err := template.New("proposalTitle").Parse(serverTemplates.ProposalTitle); err == nil {
+			c.Templates.ProposalTitleTemplate = tmpl
 		}
-		if serverTemplates.ProposalBody != "" {
-			if tmpl, err := template.New("proposalBody").Parse(serverTemplates.ProposalBody); err == nil {
-				c.Templates.ProposalBodyTemplate = tmpl
-			}
+	}
+	if serverTemplates.ProposalBody != "" {
+		if tmpl, err := template.New("proposalBody").Parse(serverTemplates.ProposalBody); err == nil {
+			c.Templates.ProposalBodyTemplate = tmpl
 		}
 	}
 
@@ -111,7 +109,7 @@ func DefaultFliptConfig(serverTemplates *config.TemplatesConfig) *Config {
 // Failing to locate this, it falls back to parsing the .flipt.yml index file.
 // Server-level templates can be provided via serverTemplates; these will be used
 // as defaults when the repository config doesn't specify templates.
-func GetConfig(logger *zap.Logger, src fs.FS, serverTemplates *config.TemplatesConfig) (*Config, error) {
+func GetConfig(logger *zap.Logger, src fs.FS, serverTemplates config.TemplatesConfig) (*Config, error) {
 	fi, err := src.Open(configFileNameYAML)
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
@@ -178,7 +176,7 @@ type repoConfig struct {
 // parseConfig reads the contents of r as yaml and parses
 // the configuration with some predefined defaults.
 // Server-level templates are used as defaults when the repository config doesn't specify templates.
-func parseConfig(logger *zap.Logger, r io.Reader, serverTemplates *config.TemplatesConfig) (_ *Config, err error) {
+func parseConfig(logger *zap.Logger, r io.Reader, serverTemplates config.TemplatesConfig) (_ *Config, err error) {
 	conf := repoConfig{Version: defaultConfigVersion()}
 	if err := yaml.NewDecoder(r).Decode(&conf); err != nil {
 		return nil, err

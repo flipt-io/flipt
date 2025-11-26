@@ -41,7 +41,7 @@ type Environment struct {
 	logger *zap.Logger
 
 	cfg             *config.EnvironmentConfig
-	serverTemplates *config.TemplatesConfig
+	serverTemplates config.TemplatesConfig
 	repo            *storagegit.Repository
 	storage         environmentsfs.Storage
 
@@ -67,7 +67,7 @@ func NewEnvironmentFromRepo(
 	repo *storagegit.Repository,
 	storage environmentsfs.Storage,
 	publisher evaluation.SnapshotPublisher,
-	serverTemplates *config.TemplatesConfig,
+	serverTemplates config.TemplatesConfig,
 ) (_ *Environment, err error) {
 	env := &Environment{
 		logger:          logger,
@@ -112,7 +112,7 @@ func (e *Environment) Repository() *storagegit.Repository {
 	return e.repo
 }
 
-func (e *Environment) ServerTemplates() *config.TemplatesConfig {
+func (e *Environment) ServerTemplates() config.TemplatesConfig {
 	return e.serverTemplates
 }
 

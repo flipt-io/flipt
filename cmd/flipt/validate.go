@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/core/validation"
+	srvconfig "go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage/fs"
 )
@@ -85,8 +86,8 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 	ofs := os.DirFS(v.workDirectory)
 	if len(args) == 0 {
 		var config *fs.Config
-		// Pass nil for server templates since validate is a CLI command without server config context
-		config, err = fs.GetConfig(logger, ofs, nil)
+		// Pass empty templates since validate is a CLI command without server config context
+		config, err = fs.GetConfig(logger, ofs, srvconfig.TemplatesConfig{})
 		if err != nil {
 			return err
 		}

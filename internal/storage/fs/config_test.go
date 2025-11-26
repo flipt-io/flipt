@@ -12,7 +12,7 @@ import (
 )
 
 func Test_DefaultFliptConfig(t *testing.T) {
-	conf := DefaultFliptConfig(nil)
+	conf := DefaultFliptConfig(config.TemplatesConfig{})
 	t.Run("CommitMessageTemplate", func(t *testing.T) {
 		for _, test := range []struct {
 			name     string
@@ -141,7 +141,7 @@ type templateContext struct {
 }
 
 func Test_DefaultFliptConfig_WithServerTemplates(t *testing.T) {
-	serverTemplates := &config.TemplatesConfig{
+	serverTemplates := config.TemplatesConfig{
 		CommitMessage: "Server: {{ (index .Changes 0) }} [skip ci]",
 		ProposalTitle: "Server PR: {{.Base.Ref}}",
 		ProposalBody:  "Server PR body for {{.Branch.Ref}} -> {{.Base.Ref}}",
@@ -189,7 +189,7 @@ func Test_DefaultFliptConfig_WithServerTemplates(t *testing.T) {
 
 func Test_DefaultFliptConfig_PartialServerTemplates(t *testing.T) {
 	// Only override commit message, keep defaults for proposals
-	serverTemplates := &config.TemplatesConfig{
+	serverTemplates := config.TemplatesConfig{
 		CommitMessage: "Custom: {{ (index .Changes 0) }}",
 	}
 

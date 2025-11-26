@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
@@ -26,7 +27,7 @@ func ptr[P any](p P) *P {
 }
 
 func TestSnapshot_GetFlag(t *testing.T) {
-	conf := DefaultFliptConfig(nil)
+	conf := DefaultFliptConfig(config.TemplatesConfig{})
 	snap, err := SnapshotFromFS(zaptest.NewLogger(t), conf, testdata)
 	require.NoError(t, err)
 
@@ -164,7 +165,7 @@ func TestSnapshot_GetFlag(t *testing.T) {
 }
 
 func TestSnapshot_ListFlags(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(nil), testdata)
+	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(config.TemplatesConfig{}), testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -301,7 +302,7 @@ func TestSnapshot_ListFlags(t *testing.T) {
 }
 
 func TestSnapshot_CountFlags(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(nil), testdata)
+	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(config.TemplatesConfig{}), testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -343,7 +344,7 @@ func TestSnapshot_CountFlags(t *testing.T) {
 }
 
 func TestSnapshot_GetEvaluationRules(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(nil), testdata)
+	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(config.TemplatesConfig{}), testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -470,7 +471,7 @@ func storageEvaluationDistTransformer() cmp.Option {
 }
 
 func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(nil), testdata)
+	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(config.TemplatesConfig{}), testdata)
 	require.NoError(t, err)
 
 	// First get the rules to get valid rule IDs
@@ -563,7 +564,7 @@ func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
 }
 
 func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(nil), testdata)
+	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(config.TemplatesConfig{}), testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -664,7 +665,7 @@ func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
 }
 
 func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(nil), testdata)
+	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(config.TemplatesConfig{}), testdata)
 	require.NoError(t, err)
 
 	tests := []struct {

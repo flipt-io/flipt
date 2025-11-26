@@ -209,7 +209,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 		repo,
 		fileStorage,
 		evaluation.NewSnapshotPublisher(f.logger),
-		&storage.Templates,
+		f.cfg.Templates,
 	)
 	if err != nil {
 		return nil, err
