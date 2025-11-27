@@ -24,7 +24,7 @@ require (
 	github.com/go-git/go-billy/v6 v6.0.0-20251022185412-61e52df296a5
 	github.com/go-git/go-git/v6 v6.0.0-20251029213217-0bbfc0875edd
 	github.com/go-jose/go-jose/v4 v4.1.3
-	github.com/go-openapi/jsonpointer v0.22.1
+	github.com/go-openapi/jsonpointer v0.22.3
 	github.com/gobwas/glob v0.2.3
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/golang/protobuf v1.5.4
