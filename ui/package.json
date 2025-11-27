@@ -41,7 +41,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@reduxjs/toolkit": "^2.9.1",
     "@tanstack/react-table": "^8.20.6",
-    "@uiw/codemirror-theme-tokyo-night": "^4.24.2",
+    "@uiw/codemirror-theme-tokyo-night": "^4.25.3",
     "@uiw/react-codemirror": "^4.25.2",
     "buffer": "^6.0.3",
     "chart.js": "^4.5.1",
