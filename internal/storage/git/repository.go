@@ -146,7 +146,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 			gitDir := filepath.Join(r.localPath, ".git")
 			if _, err := os.Stat(gitDir); err == nil {
 				// .git subdirectory exists - this is a normal Git repository
-				r.Repository, err = git.PlainOpen(r.localPath)
+				r.Repository, err = git.PlainOpenWithOptions(r.localPath, &git.PlainOpenOptions{DetectDotGit: false, EnableDotGitCommonDir: false})
 				if err != nil {
 					return nil, empty, fmt.Errorf("opening normal git repository: %w", err)
 				}
@@ -363,7 +363,7 @@ func (r *Repository) HasLenientFetchPolicy() bool {
 
 // Fetch does a fetch for the requested head names on a configured remote.
 // If the remote is not defined, then it is a silent noop.
-// Iff specific is explicitly requested then only the heads in specific are fetched.
+// If specific is explicitly requested then only the heads in specific are fetched.
 // Otherwise, it fetches all previously tracked head references.
 func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) {
 	if r.remote == nil {
@@ -404,6 +404,8 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		InsecureSkipTLS: r.insecureSkipTLS,
 		RefSpecs:        refSpecs,
 		Prune:           true,
+		Tags:            plumbing.NoTags,
+		Depth:           1,
 	}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return err
 	}

@@ -21,8 +21,8 @@ require (
 	github.com/fullstorydev/grpchan v1.1.2
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/cors v1.2.2
-	github.com/go-git/go-billy/v6 v6.0.0-20251022185412-61e52df296a5
-	github.com/go-git/go-git/v6 v6.0.0-20251029213217-0bbfc0875edd
+	github.com/go-git/go-billy/v6 v6.0.0-20251126203821-7f9c95185ee0
+	github.com/go-git/go-git/v6 v6.0.0-20251202212438-5d40cdde8ca0
 	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-openapi/jsonpointer v0.22.3
 	github.com/gobwas/glob v0.2.3
@@ -225,7 +225,7 @@ require (
 	github.com/cpuguy83/dockercfg v0.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/curioswitch/go-reassign v0.3.0 // indirect
-	github.com/cyphar/filepath-securejoin v0.5.0 // indirect
+	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/daixiang0/gci v0.13.7 // indirect
 	github.com/dave/dst v0.27.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
