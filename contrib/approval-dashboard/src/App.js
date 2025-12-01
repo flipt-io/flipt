@@ -12,9 +12,9 @@ function App() {
   const [logs, setLogs] = useState([]);
   const [toast, setToast] = useState(null);
 
-  // 🔐 RBAC ile ilgili state
-  const [selectedUser, setSelectedUser] = useState("yusuf"); // aktif kullanıcı
-  const [currentUser, setCurrentUser] = useState(null); // /me'den gelen user
+  // RBAC-related state
+  const [selectedUser, setSelectedUser] = useState("yusuf"); // active user
+  const [currentUser, setCurrentUser] = useState(null); // user from /me
   const [userLoading, setUserLoading] = useState(false);
 
   // Toast helper
@@ -23,14 +23,14 @@ function App() {
     setTimeout(() => setToast(null), 2500);
   };
 
-  // Seçili kullanıcı değiştiğinde: önce /me, sonra request listesi
+  // When selected user changes: fetch /me first, then request list
   useEffect(() => {
     fetchCurrentUser();
     fetchRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUser]);
 
-  // --- Aktif kullanıcı bilgisini backend'den çek (/me) ---
+  // --- Fetch current user from backend (/me) ---
   const fetchCurrentUser = async () => {
     setUserLoading(true);
     try {
@@ -41,34 +41,35 @@ function App() {
       });
       setCurrentUser(res.data);
     } catch (err) {
-      console.error("Kullanıcı bilgisi alınamadı:", err);
+      console.error("Could not fetch user info:", err);
       setCurrentUser(null);
-      showToast("⚠️ Kullanıcı bilgisi alınamadı (X-User hatası olabilir)");
+      showToast("⚠️ Could not fetch user info (possible X-User issue)");
     } finally {
       setUserLoading(false);
     }
   };
 
-  // --- Tüm approval request'leri getir ---
+  // --- Fetch all approval requests ---
   const fetchRequests = async () => {
     try {
-      const res = await api.get("/approval-requests", {
+      // Backend: GET /api/v1/changes
+      const res = await api.get("/api/v1/changes", {
         headers: {
           "X-User": selectedUser,
         },
       });
       setRequests(res.data);
     } catch (err) {
-      console.error("Veri çekilemedi:", err);
-      showToast("⚠️ Veriler alınamadı");
+      console.error("Could not fetch data:", err);
+      showToast("⚠️ Could not fetch data");
     }
   };
 
-  // --- Approve / Reject işlemleri (sadece ADMIN başarılı olacak) ---
+  // --- Approve / Reject actions (only ADMIN allowed) ---
   const handleAction = async (id, action) => {
     try {
       await api.post(
-        `/approval-requests/${id}/${action}`,
+        `/api/v1/changes/${id}/${action}`,
         {},
         {
           headers: {
@@ -81,10 +82,10 @@ function App() {
         action === "approve" ? "✔️ Request approved" : "✖️ Request rejected"
       );
 
-      // Listeyi yenile
+      // Refresh list
       fetchRequests();
 
-      // Detay paneli açıksa status'u güncelle
+      // Update status if detail panel is open
       if (selected && selected.id === id) {
         const updated = requests.find((r) => r.id === id);
         if (updated) {
@@ -92,42 +93,94 @@ function App() {
             ...updated,
             status: action === "approve" ? "APPROVED" : "REJECTED",
           });
+        } else {
+          setSelected({
+            ...selected,
+            status: action === "approve" ? "APPROVED" : "REJECTED",
+          });
         }
       }
     } catch (err) {
-      console.error("İşlem başarısız:", err);
+      console.error("Action failed:", err);
       if (err.response && err.response.status === 403) {
-        showToast("⛔ Yetkin yok (ADMIN değil)");
+        showToast("⛔ Forbidden (not ADMIN)");
       } else if (err.response && err.response.status === 401) {
-        showToast("🔒 Yetkisiz: X-User veya kullanıcı hatalı");
+        showToast("🔒 Unauthorized: X-User missing or invalid");
+      } else if (err.response && err.response.status === 400) {
+        // Örn: "cannot approve before review"
+        showToast(`⚠️ ${err.response.data || "Bad Request"}`);
       } else {
-        showToast("⚠️ İşlem başarısız");
+        showToast("⚠️ Action failed");
       }
     }
   };
 
-  // --- Detay (View) butonu ---
+  // --- Multi-level Review action (DEVELOPER or ADMIN) ---
+  const handleReview = async (id) => {
+    try {
+      await api.post(
+        `/api/v1/changes/${id}/review`,
+        {},
+        {
+          headers: {
+            "X-User": selectedUser,
+          },
+        }
+      );
+
+      showToast("👀 Request reviewed");
+
+      // Refresh list
+      fetchRequests();
+
+      // Update detail panel if open
+      if (selected && selected.id === id) {
+        setSelected({
+          ...selected,
+          review_state: "REVIEWED",
+        });
+      }
+    } catch (err) {
+      console.error("Review failed:", err);
+      if (err.response && err.response.status === 403) {
+        showToast("⛔ Forbidden (not REVIEWER/ADMIN)");
+      } else if (err.response && err.response.status === 401) {
+        showToast("🔒 Unauthorized");
+      } else {
+        showToast("⚠️ Review failed");
+      }
+    }
+  };
+
+  // --- Detail (View) button ---
   const handleView = async (req) => {
     setSelected(req);
     try {
-      const res = await api.get(`/approval-logs/${req.id}`, {
+      const res = await api.get(`/api/v1/changes/${req.id}/logs`, {
         headers: {
           "X-User": selectedUser,
         },
       });
       setLogs(res.data);
     } catch (err) {
-      console.error("Loglar alınamadı:", err);
+      console.error("Could not fetch logs:", err);
       setLogs([]);
-      showToast("⚠️ Loglar alınamadı");
+      showToast("⚠️ Could not fetch logs");
     }
   };
 
-  // --- Kullanıcı rolüne göre approve/reject gösterilsin mi? ---
+  // --- Permissions helpers ---
   const canApproveReject =
-    currentUser && currentUser.role && currentUser.role.toUpperCase() === "ADMIN";
+    currentUser &&
+    currentUser.role &&
+    currentUser.role.toUpperCase() === "ADMIN";
 
-  // Status'e göre renkli badge
+  const canReview =
+    currentUser &&
+    currentUser.role &&
+    ["DEVELOPER", "ADMIN"].includes(currentUser.role.toUpperCase());
+
+  // Colored badge based on status
   const renderStatusBadge = (status) => {
     const base = {
       padding: "2px 8px",
@@ -137,12 +190,48 @@ function App() {
     };
 
     if (status === "PENDING")
-      return <span style={{ ...base, background: "#fff3cd", color: "#856404" }}>PENDING</span>;
+      return (
+        <span style={{ ...base, background: "#fff3cd", color: "#856404" }}>
+          PENDING
+        </span>
+      );
     if (status === "APPROVED")
-      return <span style={{ ...base, background: "#d4edda", color: "#155724" }}>APPROVED</span>;
+      return (
+        <span style={{ ...base, background: "#d4edda", color: "#155724" }}>
+          APPROVED
+        </span>
+      );
     if (status === "REJECTED")
-      return <span style={{ ...base, background: "#f8d7da", color: "#721c24" }}>REJECTED</span>;
+      return (
+        <span style={{ ...base, background: "#f8d7da", color: "#721c24" }}>
+          REJECTED
+        </span>
+      );
     return <span style={base}>{status}</span>;
+  };
+
+  const renderReviewBadge = (state) => {
+    const base = {
+      padding: "2px 8px",
+      borderRadius: "999px",
+      fontSize: "12px",
+      fontWeight: "bold",
+    };
+    const value = (state || "NONE").toUpperCase();
+
+    if (value === "REVIEWED") {
+      return (
+        <span style={{ ...base, background: "#d1ecf1", color: "#0c5460" }}>
+          REVIEWED
+        </span>
+      );
+    }
+
+    return (
+      <span style={{ ...base, background: "#e2e3e5", color: "#383d41" }}>
+        NONE
+      </span>
+    );
   };
 
   return (
@@ -167,9 +256,9 @@ function App() {
         </div>
       )}
 
-      <h2>🚀 Flipt Approval Dashboard (RBAC + Audit + Diff)</h2>
+      <h2>🚀 Flipt Approval Dashboard (RBAC + Audit + Diff + Multi-level)</h2>
 
-      {/* 🔐 Aktif Kullanıcı Seçimi + Bilgi */}
+      {/* Active User Selection + Info */}
       <div
         style={{
           marginTop: "10px",
@@ -185,7 +274,7 @@ function App() {
       >
         <div>
           <label>
-            <b>Aktif Kullanıcı: </b>
+            <b>Active User: </b>
             <select
               value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
@@ -200,23 +289,24 @@ function App() {
 
         <div style={{ fontSize: "14px", textAlign: "right" }}>
           {userLoading ? (
-            <span>🔄 Kullanıcı yükleniyor...</span>
+            <span>🔄 Loading user...</span>
           ) : currentUser ? (
             <>
               <div>
                 <b>{currentUser.full_name || currentUser.username}</b>
               </div>
               <div>
-                Rol: <span style={{ fontWeight: "bold" }}>{currentUser.role}</span>
+                Role:{" "}
+                <span style={{ fontWeight: "bold" }}>{currentUser.role}</span>
               </div>
             </>
           ) : (
-            <span>⚠️ Kullanıcı bilgisi alınamadı</span>
+            <span>⚠️ Could not fetch user info</span>
           )}
         </div>
       </div>
 
-      {/* --- Request Tablosu --- */}
+      {/* --- Request Table --- */}
       <table
         border="1"
         cellPadding="8"
@@ -227,8 +317,12 @@ function App() {
         <thead>
           <tr style={{ background: "#f0f0f0" }}>
             <th>ID</th>
-            <th>Source</th>
-            <th>Target</th>
+            <th>Source Env</th>
+            <th>Target Env</th>
+            <th>Source Branch</th>
+            <th>Target Branch</th>
+            <th>Repo</th>
+            <th>Review</th>
             <th>Status</th>
             <th>Requested By</th>
             <th>Actions</th>
@@ -241,6 +335,10 @@ function App() {
                 <td>{String(req.id).slice(0, 8)}...</td>
                 <td>{req.source_env}</td>
                 <td>{req.target_env}</td>
+                <td>{req.source_branch || "-"}</td>
+                <td>{req.target_branch || "-"} </td>
+                <td>{req.repo_url || "-"}</td>
+                <td>{renderReviewBadge(req.review_state)}</td>
                 <td>{renderStatusBadge(req.status)}</td>
                 <td>{req.requested_by}</td>
                 <td>
@@ -257,6 +355,26 @@ function App() {
                     🔍 View
                   </button>
 
+                  {/* REVIEW BUTTON */}
+                  {req.status === "PENDING" &&
+                    req.review_state !== "REVIEWED" &&
+                    canReview && (
+                      <button
+                        onClick={() => handleReview(req.id)}
+                        style={{
+                          marginRight: "10px",
+                          backgroundColor: "#2196f3",
+                          color: "white",
+                          border: "none",
+                          padding: "5px 10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        👀 Review
+                      </button>
+                    )}
+
+                  {/* APPROVE / REJECT */}
                   {req.status === "PENDING" ? (
                     canApproveReject ? (
                       <>
@@ -297,7 +415,7 @@ function App() {
             ))
           ) : (
             <tr>
-              <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
+              <td colSpan="10" style={{ textAlign: "center", padding: "20px" }}>
                 No requests found
               </td>
             </tr>
@@ -305,7 +423,7 @@ function App() {
         </tbody>
       </table>
 
-      {/* --- Detay Paneli --- */}
+      {/* --- Detail Panel --- */}
       {selected && (
         <div
           style={{
@@ -318,18 +436,34 @@ function App() {
         >
           <h3>Request Details</h3>
           <p>
-            <b>Source:</b> {selected.source_env}
+            <b>ID:</b> {selected.id}
           </p>
           <p>
-            <b>Target:</b> {selected.target_env}
+            <b>Source Env:</b> {selected.source_env}
           </p>
           <p>
-            <b>Status:</b> {selected.status}</p>
+            <b>Target Env:</b> {selected.target_env}
+          </p>
+          <p>
+            <b>Source Branch:</b> {selected.source_branch || "-"}
+          </p>
+          <p>
+            <b>Target Branch:</b> {selected.target_branch || "-"}
+          </p>
+          <p>
+            <b>Repo URL:</b> {selected.repo_url || "-"}
+          </p>
+          <p>
+            <b>Review State:</b> {selected.review_state || "NONE"}
+          </p>
+          <p>
+            <b>Status:</b> {selected.status}
+          </p>
           <p>
             <b>Requested By:</b> {selected.requested_by}
           </p>
 
-          {/* --- Change Payload: Diff Görünümü --- */}
+          {/* --- Change Payload: Diff View --- */}
           <h4>Change Payload (Diff View)</h4>
 
           {(() => {
@@ -341,7 +475,7 @@ function App() {
               try {
                 payload = JSON.parse(payload);
               } catch (e) {
-                console.error("Payload JSON değil:", e);
+                console.error("Payload not JSON:", e);
               }
             }
 
