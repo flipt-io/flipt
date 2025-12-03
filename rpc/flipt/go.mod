@@ -2,7 +2,7 @@ module go.flipt.io/flipt/rpc/flipt
 
 go 1.24.0
 
-toolchain go1.25.4
+toolchain go1.25.5
 
 require (
 	github.com/google/gnostic-models v0.7.1
