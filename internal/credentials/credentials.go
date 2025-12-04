@@ -132,3 +132,12 @@ func (c *Credential) APIAuthentication() *APIAuth {
 func (c *Credential) Type() config.CredentialType {
 	return c.config.Type
 }
+
+// SSHUser returns the SSH user configured in the credential.
+// Returns empty string if the credential is not SSH type.
+func (c *Credential) SSHUser() string {
+	if c.config.Type != config.CredentialTypeSSH || c.config.SSH == nil {
+		return ""
+	}
+	return c.config.SSH.User
+}

@@ -52,7 +52,7 @@ func NewRepositoryManager(logger *zap.Logger, cfg *config.Config, secretsManager
 	}
 }
 
-func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.EnvironmentConfig, storage *config.StorageConfig, credentials *credentials.CredentialSource) (*storagegit.Repository, error) {
+func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.EnvironmentConfig, storage *config.StorageConfig, credentialSource *credentials.CredentialSource) (*storagegit.Repository, error) {
 	var (
 		logger = rm.logger
 		_, ok  = rm.repos[envConf.Storage]
@@ -62,6 +62,7 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 		// fallback to using first environments branch as the default
 		var (
 			defaultBranch = storage.Branch
+			remoteURL     = storage.Remote
 			opts          = []containers.Option[storagegit.Repository]{
 				storagegit.WithInsecureTLS(storage.InsecureSkipTLS),
 				storagegit.WithSignature(storage.Signature.Name, storage.Signature.Email),
@@ -69,8 +70,37 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 			}
 		)
 
-		if storage.Remote != "" {
-			opts = append(opts, storagegit.WithRemote("origin", storage.Remote))
+		// Handle credentials and potentially normalize SSH remote URL
+		if storage.Credentials != "" {
+			creds, err := credentialSource.Get(storage.Credentials)
+			if err != nil {
+				return nil, err
+			}
+
+			// If using SSH credentials and a remote URL is configured,
+			// normalize the URL to ensure it's in the correct SSH format
+			if creds.Type() == config.CredentialTypeSSH && remoteURL != "" {
+				normalizedURL, err := credentials.NormalizeSSHRemoteURL(remoteURL, creds.SSHUser())
+				if err != nil {
+					return nil, fmt.Errorf("normalizing SSH remote URL: %w", err)
+				}
+				if normalizedURL != remoteURL {
+					logger.Info("normalized SSH remote URL",
+						zap.String("original", remoteURL),
+						zap.String("normalized", normalizedURL))
+				}
+				remoteURL = normalizedURL
+			}
+
+			auth, err := creds.GitAuthentication()
+			if err != nil {
+				return nil, err
+			}
+			opts = append(opts, storagegit.WithAuth(auth))
+		}
+
+		if remoteURL != "" {
+			opts = append(opts, storagegit.WithRemote("origin", remoteURL))
 		}
 
 		pollInterval := storage.PollInterval
@@ -105,18 +135,6 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 			} else {
 				return nil, err
 			}
-		}
-
-		if storage.Credentials != "" {
-			creds, err := credentials.Get(storage.Credentials)
-			if err != nil {
-				return nil, err
-			}
-			auth, err := creds.GitAuthentication()
-			if err != nil {
-				return nil, err
-			}
-			opts = append(opts, storagegit.WithAuth(auth))
 		}
 
 		// Configure commit signing if enabled
