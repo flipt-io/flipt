@@ -61,7 +61,7 @@ require (
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/segmentio/analytics-go/v3 v3.3.0
 	github.com/spf13/afero v1.15.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.40.0
