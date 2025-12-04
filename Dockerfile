@@ -24,7 +24,7 @@ ENV CGO_ENABLED=1
 RUN mage bootstrap && \
     mage build
 
-FROM alpine:3.22
+FROM alpine:3.23
 
 LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
