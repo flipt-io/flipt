@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	cloud.google.com/go/storage v1.57.2
 	code.gitea.io/sdk/gitea v0.22.1
-	dagger.io/dagger v0.19.7
+	dagger.io/dagger v0.19.8
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.3
 	github.com/aws/aws-sdk-go-v2 v1.40.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.3
