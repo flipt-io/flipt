@@ -41,7 +41,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/h2non/gock v1.2.0
 	github.com/hamba/avro/v2 v2.30.0
-	github.com/hashicorp/cap v0.11.0
+	github.com/hashicorp/cap v0.12.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/golang-lru/v2 v2.0.7
