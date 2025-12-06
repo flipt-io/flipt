@@ -17,7 +17,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v66 v66.0.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/cap v0.11.0
+	github.com/hashicorp/cap v0.12.0
 	github.com/magefile/mage v1.15.0
 	github.com/stretchr/testify v1.11.1
 	go.flipt.io/flipt/rpc/flipt v1.54.0
