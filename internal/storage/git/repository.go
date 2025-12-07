@@ -405,7 +405,6 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		RefSpecs:        refSpecs,
 		Prune:           true,
 		Tags:            plumbing.NoTags,
-		Depth:           1,
 	}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return err
 	}
