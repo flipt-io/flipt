@@ -217,6 +217,82 @@ func TestCredential_Type(t *testing.T) {
 	}
 }
 
+func TestCredential_SSHUser(t *testing.T) {
+	logger := zap.NewNop()
+
+	tests := []struct {
+		name     string
+		config   *config.CredentialConfig
+		expected string
+	}{
+		{
+			name: "ssh credential with user",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeSSH,
+				SSH: &config.SSHAuthConfig{
+					User:           "git",
+					Password:       "pass",
+					PrivateKeyPath: "/path/to/key",
+				},
+			},
+			expected: "git",
+		},
+		{
+			name: "ssh credential with custom user",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeSSH,
+				SSH: &config.SSHAuthConfig{
+					User:           "deploy",
+					Password:       "pass",
+					PrivateKeyPath: "/path/to/key",
+				},
+			},
+			expected: "deploy",
+		},
+		{
+			name: "basic auth credential returns empty",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeBasic,
+				Basic: &config.BasicAuthConfig{
+					Username: "user",
+					Password: "pass",
+				},
+			},
+			expected: "",
+		},
+		{
+			name: "access token credential returns empty",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeAccessToken,
+				AccessToken: func() *string {
+					s := "token123"
+					return &s
+				}(),
+			},
+			expected: "",
+		},
+		{
+			name: "ssh credential with nil SSH config returns empty",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeSSH,
+				SSH:  nil,
+			},
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Credential{
+				logger: logger,
+				config: tt.config,
+			}
+
+			assert.Equal(t, tt.expected, c.SSHUser())
+		})
+	}
+}
+
 func TestCredential_APIAuthentication(t *testing.T) {
 	logger := zap.NewNop()
 
