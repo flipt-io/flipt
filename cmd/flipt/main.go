@@ -596,8 +596,24 @@ func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager s
 			if value.Kind() == reflect.Interface && !value.IsNil() {
 				value = value.Elem()
 			}
-			if err := walkConfigForSecrets(ctx, value, secretsManager); err != nil {
-				return err
+
+			// Map values from MapIndex are not addressable, so we need to create
+			// an addressable copy, resolve secrets in it, and set it back
+			if value.Kind() == reflect.Struct {
+				// Create a new addressable copy of the struct
+				newValue := reflect.New(value.Type()).Elem()
+				newValue.Set(value)
+
+				if err := walkConfigForSecrets(ctx, newValue, secretsManager); err != nil {
+					return err
+				}
+
+				// Set the modified value back into the map
+				v.SetMapIndex(key, newValue)
+			} else {
+				if err := walkConfigForSecrets(ctx, value, secretsManager); err != nil {
+					return err
+				}
 			}
 		}
 	}
