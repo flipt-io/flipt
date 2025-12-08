@@ -1,6 +1,7 @@
 package github
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -153,6 +154,16 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 			metadata[key] = s
 		}
 	}
+
+	// Flipt fetches public profile data. A user may not have a name or public email
+	// configured on GitHub; in that case, the GitHub API returns a null for name and email.
+	// When this happens, the fallback name as login and email address as
+	// "<id>+<login>@users.noreply.github.com" are used so the commit author
+	// can still be properly identified.
+	githubUserResponse.Name = cmp.Or(githubUserResponse.Name, githubUserResponse.Login)
+	githubUserResponse.Email = cmp.Or(githubUserResponse.Email,
+		fmt.Sprintf("%d+%s@users.noreply.github.com", githubUserResponse.ID, githubUserResponse.Login),
+	)
 
 	set(storageMetadataGithubName, githubUserResponse.Name)
 	set(storageMetadataGithubEmail, githubUserResponse.Email)
