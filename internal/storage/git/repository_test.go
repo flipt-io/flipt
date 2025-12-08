@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -781,4 +782,187 @@ func TestNewRepository_RemoteSync_NoRemote(t *testing.T) {
 	gitConfig2, err := repo2.Config()
 	require.NoError(t, err)
 	assert.Empty(t, gitConfig2.Remotes)
+}
+
+func TestFetchRepos(t *testing.T) {
+	// Create a git repository to use as remote base
+	remoteNormalDir := t.TempDir()
+	remoteNormalRepo, err := git.PlainInit(remoteNormalDir, false,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+
+	remoteWorktree, err := remoteNormalRepo.Worktree()
+	require.NoError(t, err)
+	// helper func to create commits
+	createCommitOnRemote := func(tb testing.TB, i int) plumbing.Hash {
+		tb.Helper()
+		testFile := filepath.Join(remoteNormalDir, fmt.Sprintf("file%d.txt", i))
+		require.NoError(t, os.WriteFile(testFile, fmt.Appendf(nil, "content %d", i), 0o600))
+		_, err = remoteWorktree.Add(fmt.Sprintf("file%d.txt", i))
+		require.NoError(t, err)
+		commitHash, err := remoteWorktree.Commit(fmt.Sprintf("Commit %d", i), &git.CommitOptions{
+			Author: &object.Signature{
+				Name:  "Test User",
+				Email: "test@example.com",
+				When:  time.Now(),
+			},
+		})
+		require.NoError(t, err)
+		return commitHash
+	}
+
+	// Create multiple commits
+	for i := range 3 {
+		createCommitOnRemote(t, i)
+	}
+
+	t.Run("no repo exists", func(t *testing.T) {
+		localDir := t.TempDir()
+		logger := zap.NewNop()
+
+		// Create local bare repository with remote
+		repo, err := NewRepository(t.Context(), logger,
+			WithFilesystemStorage(localDir),
+			WithRemote("origin", remoteNormalDir))
+		require.NoError(t, err)
+		require.False(t, repo.isNormalRepo, "should be bare repository")
+
+		// Fetch should create refs/heads
+		err = repo.Fetch(t.Context())
+		require.NoError(t, err)
+
+		// Verify refs/heads was created for main branch
+		ref, err := repo.Reference(plumbing.NewBranchReferenceName("main"), true)
+		require.NoError(t, err)
+		assert.False(t, ref.Hash().IsZero(), "refs/heads/main should be created after fetch")
+		shallowData, err := os.ReadFile(filepath.Join(localDir, "shallow"))
+		require.NoError(t, err, "shallow file doesn't exist")
+		assert.Equal(t, ref.Hash().String()+"\n", string(shallowData))
+		shallows, err := repo.Storer.Shallow()
+		require.NoError(t, err)
+		assert.NotEmpty(t, shallows, "shallow boundary should be maintained for bare repository depth=1 fetch")
+		createCommitOnRemote(t, 10)
+		// refetch should maintain shallow
+		commitHash := createCommitOnRemote(t, time.Now().Nanosecond())
+		err = repo.Fetch(t.Context())
+		require.NoError(t, err)
+		shallows, err = repo.Storer.Shallow()
+		require.NoError(t, err)
+		assert.Contains(t, shallows, commitHash)
+	})
+
+	t.Run("bare repo exists", func(t *testing.T) {
+		localDir := t.TempDir()
+		logger := zap.NewNop()
+
+		_, err := git.PlainInit(localDir, true,
+			git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+		)
+		require.NoError(t, err)
+
+		repo, err := NewRepository(t.Context(), logger,
+			WithFilesystemStorage(localDir),
+			WithRemote("origin", remoteNormalDir))
+		require.NoError(t, err)
+		require.False(t, repo.isNormalRepo, "should be bare repository")
+
+		// Fetch should create refs/heads and not use depth=1
+		err = repo.Fetch(t.Context())
+		require.NoError(t, err)
+
+		// Verify refs/heads was created for main branch
+		ref, err := repo.Reference(plumbing.NewBranchReferenceName("main"), true)
+		require.NoError(t, err)
+		assert.False(t, ref.Hash().IsZero(), "refs/heads/main should be created after fetch")
+		shallowData, err := os.ReadFile(filepath.Join(localDir, "shallow"))
+		require.NoError(t, err, "shallow file doesn't exist")
+		assert.Equal(t, ref.Hash().String()+"\n", string(shallowData))
+		shallows, err := repo.Storer.Shallow()
+		require.NoError(t, err)
+		assert.NotEmpty(t, shallows, "shallow boundary should be maintained for bare repository depth=1 fetch")
+		// refetch should maintain shallow
+		commitHash := createCommitOnRemote(t, time.Now().Nanosecond())
+		err = repo.Fetch(t.Context())
+		require.NoError(t, err)
+		shallows, err = repo.Storer.Shallow()
+		require.NoError(t, err)
+		assert.Contains(t, shallows, commitHash)
+	})
+
+	t.Run("normal repo exists", func(t *testing.T) {
+		localDir := t.TempDir()
+		logger := zap.NewNop()
+
+		_, err := git.PlainInit(localDir, false,
+			git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+		)
+		require.NoError(t, err)
+
+		repo, err := NewRepository(t.Context(), logger,
+			WithFilesystemStorage(localDir),
+			WithRemote("origin", remoteNormalDir))
+		require.NoError(t, err)
+		require.True(t, repo.isNormalRepo, "should be normal repository")
+
+		// Fetch should create refs/heads and not use depth=1
+		err = repo.Fetch(t.Context())
+		require.NoError(t, err)
+
+		// Verify refs/heads was created for main branch
+		ref, err := repo.Reference(plumbing.NewBranchReferenceName("main"), true)
+		require.NoError(t, err)
+		assert.False(t, ref.Hash().IsZero(), "refs/heads/main should be created after fetch")
+		_, err = os.ReadFile(filepath.Join(localDir, "shallow"))
+		require.Error(t, err)
+		shallows, err := repo.Storer.Shallow()
+		require.NoError(t, err)
+		assert.Empty(t, shallows, "shallow boundary should be present for normal repo")
+
+		// refetch should maintain shallow
+		createCommitOnRemote(t, time.Now().Nanosecond())
+		err = repo.Fetch(t.Context())
+		require.NoError(t, err)
+		shallows, err = repo.Storer.Shallow()
+		require.NoError(t, err)
+		assert.Empty(t, shallows)
+	})
+
+	t.Run("prune removes deleted remote refs", func(t *testing.T) {
+		localDir := t.TempDir()
+		logger := zap.NewNop()
+
+		repo, err := NewRepository(t.Context(), logger,
+			WithFilesystemStorage(localDir),
+			WithRemote("origin", remoteNormalDir))
+		require.NoError(t, err)
+
+		branch := plumbing.NewBranchReferenceName("flipt/default/testing")
+		// Setup some heads with should be pruned
+		remoteHead, err := remoteNormalRepo.Head()
+		require.NoError(t, err)
+		err = remoteNormalRepo.Storer.SetReference(plumbing.NewHashReference(branch, remoteHead.Hash()))
+		require.NoError(t, err)
+
+		// Fetch should prune refs/heads
+		err = repo.Fetch(t.Context(), "*")
+		require.NoError(t, err)
+
+		// Verify refs/heads has not for flipt/main/testing branch
+		_, err = repo.Reference(branch, true)
+		require.NoError(t, err)
+
+		// Remove remote branch
+		err = remoteNormalRepo.Storer.RemoveReference(branch)
+		require.NoError(t, err)
+
+		// Fetch should prune refs/heads
+		err = repo.Fetch(t.Context(), "*")
+		require.NoError(t, err)
+
+		// Verify refs/heads has not for flipt/main/testing branch
+		_, err = repo.Reference(branch, true)
+		require.Error(t, err)
+		require.ErrorIs(t, err, plumbing.ErrReferenceNotFound)
+	})
 }
