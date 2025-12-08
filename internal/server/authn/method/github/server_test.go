@@ -111,6 +111,38 @@ func Test_Server(t *testing.T) {
 		}, callback.Authentication.Metadata)
 	})
 
+	t.Run("should authorize the user and generate name and email", func(t *testing.T) {
+		ctx := t.Context()
+		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
+			Enabled: true,
+			Method: config.AuthenticationMethodGithubConfig{
+				ClientSecret:    "topsecret",
+				ClientId:        "githubid",
+				RedirectAddress: "test.flipt.io",
+			},
+		})
+
+		defer gock.Off()
+		gock.New("https://api.github.com").
+			MatchHeader("Authorization", "Bearer AccessToken").
+			MatchHeader("Accept", "application/vnd.github+json").
+			Get("/user").
+			Reply(200).
+			JSON(map[string]any{"name": nil, "email": nil, "avatar_url": "https://thispicture.com", "id": 1234567890, "login": "someuser"})
+
+		callback, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, callback.ClientToken)
+		assert.Equal(t, auth.Method_METHOD_GITHUB, callback.Authentication.Method)
+		assert.Subset(t, callback.Authentication.Metadata, map[string]string{
+			"io.flipt.auth.github.email": "1234567890+someuser@users.noreply.github.com",
+			"io.flipt.auth.email":        "1234567890+someuser@users.noreply.github.com",
+			"io.flipt.auth.github.name":  "someuser",
+			"io.flipt.auth.name":         "someuser",
+		})
+	})
+
 	t.Run("store all orgs and teams to metadata", func(t *testing.T) {
 		ctx := context.Background()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
@@ -656,7 +688,7 @@ func TestCallbackURL(t *testing.T) {
 }
 
 func TestGithubSimpleOrganizationDecode(t *testing.T) {
-	var body = `[{
+	body := `[{
 	"login": "github",
 	"id": 1,
 	"node_id": "MDEyOk9yZ2FuaXphdGlvbjE=",

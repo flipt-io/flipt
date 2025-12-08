@@ -1,6 +1,7 @@
 package git
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -58,8 +59,8 @@ func withBaseCommit(hash plumbing.Hash) containers.Option[filesystemOption] {
 
 func withSignature(name, email string) containers.Option[filesystemOption] {
 	return func(o *filesystemOption) {
-		o.sigName = name
-		o.sigEmail = email
+		o.sigName = cmp.Or(name, "flipt")
+		o.sigEmail = cmp.Or(email, "dev@flipt.io")
 	}
 }
 
@@ -722,8 +723,8 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 	}
 
 	if actor := authn.ActorFromContext(ctx); actor != nil {
-		signature.Name = actor.Name
-		signature.Email = actor.Email
+		signature.Name = cmp.Or(actor.Name, f.sigName)
+		signature.Email = cmp.Or(actor.Email, f.sigEmail)
 	}
 
 	var hashes []plumbing.Hash
