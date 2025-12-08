@@ -328,8 +328,8 @@ github.com/containerd/platforms v1.0.0-rc.2 h1:0SPgaNZPVWGEi4grZdV8VRYQn78y+nm6a
 github.com/containerd/platforms v1.0.0-rc.2/go.mod h1:J71L7B+aiM5SdIEqmd9wp6THLVRzJGXfNuWCZCllLA4=
 github.com/containerd/stargz-snapshotter/estargz v0.17.0 h1:+TyQIsR/zSFI1Rm31EQBwpAA1ovYgIKHy7kctL3sLcE=
 github.com/containerd/stargz-snapshotter/estargz v0.17.0/go.mod h1:s06tWAiJcXQo9/8AReBCIo/QxcXFZ2n4qfsRnpl71SM=
-github.com/coreos/go-oidc/v3 v3.16.0 h1:qRQUCFstKpXwmEjDQTIbyY/5jF00+asXzSkmkoa/mow=
-github.com/coreos/go-oidc/v3 v3.16.0/go.mod h1:wqPbKFrVnE90vty060SB40FCJ8fTHTxSwyXJqZH+sI8=
+github.com/coreos/go-oidc/v3 v3.17.0 h1:hWBGaQfbi0iVviX4ibC7bk8OKT5qNr4klBaCHVNvehc=
+github.com/coreos/go-oidc/v3 v3.17.0/go.mod h1:wqPbKFrVnE90vty060SB40FCJ8fTHTxSwyXJqZH+sI8=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/cpuguy83/dockercfg v0.3.2 h1:DlJTyZGBDlXqUZ2Dk2Q3xHs/FtnooJJVaad2S9GKorA=
 github.com/cpuguy83/dockercfg v0.3.2/go.mod h1:sugsbF4//dDlL/i+S+rtpIWp+5h0BHJHfjj5/jFyUJc=
