@@ -74,7 +74,7 @@ func TestWalkConfigForSecrets_SimpleField(t *testing.T) {
 		"file:mykey": []byte("resolved-value"),
 	})
 
-	err := walkConfigForSecrets(context.Background(), reflect.ValueOf(cfg).Elem(), manager)
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
 	require.NoError(t, err)
 	assert.Equal(t, "resolved-value", cfg.SimpleField)
 }
