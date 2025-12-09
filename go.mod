@@ -41,7 +41,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/keygen-sh/keygen-go/v3 v3.2.1
+	github.com/keygen-sh/keygen-go/v3 v3.3.0
 	github.com/keygen-sh/machineid v1.1.1
 	github.com/ktrysmt/go-bitbucket v0.9.87
 	github.com/kubescape/go-git-url v0.0.30

@@ -719,8 +719,8 @@ github.com/keygen-sh/go-update v1.0.0 h1:M65sTVUHUO07tEK4l1Hq7u5D4kdEqkcgfdzUt3q
 github.com/keygen-sh/go-update v1.0.0/go.mod h1:wn0UWRHLnBP5hwXtj1IdHZqWlHvIadh2Nn+becFf8Ro=
 github.com/keygen-sh/jsonapi-go v1.2.1 h1:NTSIAxl2+7S5fPnKgrYwNjQSWbdKRtrFq26SD8AOkiU=
 github.com/keygen-sh/jsonapi-go v1.2.1/go.mod h1:8j9vsLiKyJyDqmt8r3tYaYNmXszq2+cFhoO6QdMdAes=
-github.com/keygen-sh/keygen-go/v3 v3.2.1 h1:vCI3L6JX7XrOUTocWTuQO0ABHihRxNXbVqbsL6NoBLE=
-github.com/keygen-sh/keygen-go/v3 v3.2.1/go.mod h1:YoFyryzXEk6XrbT3H8EUUU+JcIJkQu414TA6CvZgS/E=
+github.com/keygen-sh/keygen-go/v3 v3.3.0 h1:EuX4HIxGgkfnF6GKOolvTJhch1SRpKq7bIxpj5R9n+w=
+github.com/keygen-sh/keygen-go/v3 v3.3.0/go.mod h1:YoFyryzXEk6XrbT3H8EUUU+JcIJkQu414TA6CvZgS/E=
 github.com/keygen-sh/machineid v1.1.1 h1:L6G3+l5/0ZgvDST1EE6L8Yfqcss7EC8xs0Q8gEQyIo0=
 github.com/keygen-sh/machineid v1.1.1/go.mod h1:xBhEE0H4t3N05kn+vBNlOnhTf5NMz36YmrmpdrjpgsI=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
