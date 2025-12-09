@@ -14,7 +14,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/huh v0.8.0
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/coreos/go-oidc/v3 v3.16.0
+	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.6.0
 	github.com/fatih/color v1.18.0
@@ -41,9 +41,9 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/keygen-sh/keygen-go/v3 v3.2.1
+	github.com/keygen-sh/keygen-go/v3 v3.3.0
 	github.com/keygen-sh/machineid v1.1.1
-	github.com/ktrysmt/go-bitbucket v0.9.87
+	github.com/ktrysmt/go-bitbucket v0.9.88
 	github.com/kubescape/go-git-url v0.0.30
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-isatty v0.0.20
@@ -53,7 +53,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.66.1
 	github.com/redis/go-redis/extra/redisotel/v9 v9.16.0
-	github.com/redis/go-redis/v9 v9.17.1
+	github.com/redis/go-redis/v9 v9.17.2
 	github.com/samber/lo v1.52.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0

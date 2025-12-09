@@ -74,7 +74,10 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 		opt(bitbucketOpts)
 	}
 
-	var client *bitbucket.Client
+	var (
+		client *bitbucket.Client
+		err    error
+	)
 
 	if bitbucketOpts.apiAuth != nil {
 		// Configure API client authentication
@@ -82,16 +85,25 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 		switch apiAuth.Type() {
 		case config.CredentialTypeAccessToken:
 			// Use bearer token for API operations
-			client = bitbucket.NewOAuthbearerToken(apiAuth.Token)
+			client, err = bitbucket.NewOAuthbearerToken(apiAuth.Token)
+			if err != nil {
+				return nil, err
+			}
 		case config.CredentialTypeBasic:
 			// Use basic auth for API operations
-			client = bitbucket.NewBasicAuth(apiAuth.Username, apiAuth.Password)
+			client, err = bitbucket.NewBasicAuth(apiAuth.Username, apiAuth.Password)
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
 		}
 	} else {
 		// Create an unauthenticated client (for public repos)
-		client = bitbucket.NewBasicAuth("", "")
+		client, err = bitbucket.NewBasicAuth("", "")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Configure pagination settings - use optimal defaults
