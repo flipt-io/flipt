@@ -2222,7 +2222,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 
 			tt.setupMocks(t, envStore, environment, store, namespaceKey)
 
-			ctx, span := tracer.Start(context.Background(), "test-span")
+			ctx, span := tracer.Start(t.Context(), "test-span")
 			err := tt.runEvaluation(ctx, s)
 			span.End()
 			require.NoError(t, err)
@@ -2241,7 +2241,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 }
 
 // Helper function to assert attribute values
-func assertAttributeValue(t *testing.T, attrs []attribute.KeyValue, key attribute.Key, expectedValue interface{}) {
+func assertAttributeValue(t *testing.T, attrs []attribute.KeyValue, key attribute.Key, expectedValue any) {
 	t.Helper()
 	found := false
 	for _, attr := range attrs {

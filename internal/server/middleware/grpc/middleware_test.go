@@ -72,7 +72,7 @@ func TestValidationUnaryInterceptor(t *testing.T) {
 				return nil, nil
 			})
 
-			_, _ = ValidationUnaryInterceptor(context.Background(), req, nil, handler)
+			_, _ = ValidationUnaryInterceptor(t.Context(), req, nil, handler)
 			assert.Equal(t, wantCalled, called)
 		})
 	}
@@ -164,7 +164,7 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 				return nil, wantErr
 			})
 
-			_, err := ErrorUnaryInterceptor(context.Background(), nil, nil, handler)
+			_, err := ErrorUnaryInterceptor(t.Context(), nil, nil, handler)
 			if wantErr != nil {
 				require.Error(t, err)
 				status := status.Convert(err)
@@ -270,7 +270,7 @@ func TestErrorStreamInterceptor(t *testing.T) {
 				return wantErr
 			})
 
-			stream := &mockStream{ctx: context.Background()}
+			stream := &mockStream{ctx: t.Context()}
 			info := &grpc.StreamServerInfo{}
 
 			err := ErrorStreamInterceptor(nil, stream, info, handler)
@@ -340,7 +340,7 @@ func TestFliptHeadersUnaryInterceptor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.md != nil {
 				ctx = metadata.NewIncomingContext(ctx, tt.md)
 			}
@@ -414,7 +414,7 @@ func TestFliptHeadersStreamInterceptor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.md != nil {
 				ctx = metadata.NewIncomingContext(ctx, tt.md)
 			}
@@ -462,7 +462,7 @@ func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 		}
 	)
 
-	got, err := EvaluationUnaryInterceptor()(context.Background(), req, info, handler)
+	got, err := EvaluationUnaryInterceptor()(t.Context(), req, info, handler)
 	require.NoError(t, err)
 
 	assert.NotNil(t, got)
@@ -530,7 +530,7 @@ func TestEvaluationUnaryInterceptor_EnvironmentAndNamespace(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		ctx := context.Background()
+		ctx := t.Context()
 		ctx = cctx.WithFliptEnvironment(ctx, "test-environment")
 		ctx = cctx.WithFliptNamespace(ctx, "test-namespace")
 
@@ -625,7 +625,7 @@ func TestEvaluationUnaryInterceptor_RequestID(t *testing.T) {
 				}
 			)
 
-			got, err := EvaluationUnaryInterceptor()(context.Background(), test.req, info, handler)
+			got, err := EvaluationUnaryInterceptor()(t.Context(), test.req, info, handler)
 			require.NoError(t, err)
 
 			assert.NotNil(t, got)
@@ -650,20 +650,20 @@ func TestEvaluationUnaryInterceptor_RequestID(t *testing.T) {
 
 func TestForwardFliptEnvironment(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
-	md := ForwardFliptEnvironment(context.Background(), req)
+	md := ForwardFliptEnvironment(t.Context(), req)
 	assert.Empty(t, md.Get(common.HeaderFliptEnvironment))
 	req.Header.Add(common.HeaderFliptEnvironment, "extra-environment")
 
-	md = ForwardFliptEnvironment(context.Background(), req)
+	md = ForwardFliptEnvironment(t.Context(), req)
 	assert.Equal(t, []string{"extra-environment"}, md.Get(common.HeaderFliptEnvironment))
 }
 
 func TestForwardFliptNamespace(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
-	md := ForwardFliptNamespace(context.Background(), req)
+	md := ForwardFliptNamespace(t.Context(), req)
 	assert.Empty(t, md.Get(common.HeaderFliptNamespace))
 	req.Header.Add(common.HeaderFliptNamespace, "extra-namespace")
 
-	md = ForwardFliptNamespace(context.Background(), req)
+	md = ForwardFliptNamespace(t.Context(), req)
 	assert.Equal(t, []string{"extra-namespace"}, md.Get(common.HeaderFliptNamespace))
 }

@@ -124,7 +124,7 @@ delete segment default/someSegment`,
 //nolint:unparam
 func newTestEnvironment(t *testing.T, envName string) *Environment {
 	logger := zaptest.NewLogger(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	repo, err := storagegit.NewRepository(ctx, logger)
 	require.NoError(t, err)
 	storage := fs.NewStorage(logger)
@@ -136,7 +136,7 @@ func newTestEnvironment(t *testing.T, envName string) *Environment {
 
 func Test_Environment_BranchCreation(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	branchEnv, err := env.Branch(ctx, "flipt/production/testbranch")
 	require.NoError(t, err)
@@ -147,7 +147,7 @@ func Test_Environment_BranchCreation(t *testing.T) {
 
 func Test_Environment_ListBranches(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// No branches yet
 	resp, err := env.ListBranches(ctx)
@@ -166,7 +166,7 @@ func Test_Environment_ListBranches(t *testing.T) {
 
 func Test_Environment_ProposeNotImplemented(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	_, err := env.Propose(ctx, nil, environments.ProposalOptions{})
 	require.Error(t, err)
@@ -175,7 +175,7 @@ func Test_Environment_ProposeNotImplemented(t *testing.T) {
 
 func Test_Environment_ListBranchedChangesNotImplemented(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	_, err := env.ListBranchedChanges(ctx, nil)
 	require.Error(t, err)
@@ -184,7 +184,7 @@ func Test_Environment_ListBranchedChangesNotImplemented(t *testing.T) {
 
 func Test_Environment_RefreshEnvironment(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Simulate creating a branch directly in the repo
 	branchName := "flipt/production/testbranch"
@@ -217,7 +217,7 @@ func Test_Environment_RefreshEnvironment(t *testing.T) {
 
 func Test_Environment_RefreshEnvironment_DeletedBranches(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create a branch in the repo
 	branchName := "flipt/production/testbranch"
@@ -279,7 +279,7 @@ func Test_Environment_RefreshEnvironment_DeletedBranches(t *testing.T) {
 
 func Test_Environment_GetAndListNamespaces(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Initially, only the default namespace should exist
 	resp, err := env.ListNamespaces(ctx)
@@ -295,7 +295,7 @@ func Test_Environment_GetAndListNamespaces(t *testing.T) {
 
 func Test_Environment_CreateUpdateDeleteNamespace(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Get current revision
 	rev := ""
@@ -363,18 +363,22 @@ type testResourceStorage struct {
 func (t *testResourceStorage) ResourceType() environments.ResourceType {
 	return environments.NewResourceType("test", "Test")
 }
+
 func (t *testResourceStorage) GetResource(_ context.Context, _ fs.Filesystem, ns, key string) (*rpcenvironments.Resource, error) {
 	t.getCalled = true
 	return &rpcenvironments.Resource{NamespaceKey: ns, Key: key}, nil
 }
+
 func (t *testResourceStorage) ListResources(_ context.Context, _ fs.Filesystem, ns string) ([]*rpcenvironments.Resource, error) {
 	t.listCalled = true
 	return []*rpcenvironments.Resource{{NamespaceKey: ns, Key: "foo"}}, nil
 }
+
 func (t *testResourceStorage) PutResource(_ context.Context, _ fs.Filesystem, r *rpcenvironments.Resource) error {
 	t.putCalled = true
 	return nil
 }
+
 func (t *testResourceStorage) DeleteResource(_ context.Context, _ fs.Filesystem, ns, key string) error {
 	t.deleteCalled = true
 	return nil
@@ -382,7 +386,7 @@ func (t *testResourceStorage) DeleteResource(_ context.Context, _ fs.Filesystem,
 
 func Test_Environment_ViewAndUpdate(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	repo, err := storagegit.NewRepository(ctx, logger)
 	require.NoError(t, err)
 	storage := fs.NewStorage(logger)
@@ -419,7 +423,7 @@ func Test_Environment_ViewAndUpdate(t *testing.T) {
 }
 
 func Test_store_UpdateResource_and_DeleteResource(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	rs := &testResourceStorage{}
 	st := &store{
 		typ:    rs.ResourceType(),
@@ -449,7 +453,7 @@ func Test_store_UpdateResource_and_DeleteResource(t *testing.T) {
 }
 
 func Test_store_ListResources(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	rs := &testResourceStorage{}
 	st := &store{
 		typ:    rs.ResourceType(),
@@ -468,7 +472,7 @@ func Test_store_ListResources(t *testing.T) {
 }
 
 func Test_NewEnvironmentFromRepo_InitialSnapshot(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 
 	// Create a test repository
@@ -539,7 +543,7 @@ func Test_Environment_Default(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := zaptest.NewLogger(t)
-			ctx := context.Background()
+			ctx := t.Context()
 			repo, err := storagegit.NewRepository(ctx, logger)
 			require.NoError(t, err)
 			storage := fs.NewStorage(logger)
@@ -556,7 +560,7 @@ func Test_Environment_Default(t *testing.T) {
 
 func Test_Environment_Repository(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	repo, err := storagegit.NewRepository(ctx, logger)
 	require.NoError(t, err)
 	storage := fs.NewStorage(logger)
@@ -691,7 +695,7 @@ func Test_Environment_Configuration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := zaptest.NewLogger(t)
-			ctx := context.Background()
+			ctx := t.Context()
 
 			var opts []containers.Option[storagegit.Repository]
 			if tt.repoRemote != "" {
@@ -716,7 +720,7 @@ func Test_Environment_Configuration(t *testing.T) {
 
 func Test_Environment_DeleteBranch(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create a branch first
 	branchEnv, err := env.Branch(ctx, "flipt/production/test-delete")
@@ -742,7 +746,7 @@ func Test_Environment_DeleteBranch(t *testing.T) {
 
 func Test_Environment_EvaluationNamespaceSnapshot(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Get namespace snapshot
 	_, err := env.EvaluationNamespaceSnapshot(ctx, "default")
@@ -752,7 +756,7 @@ func Test_Environment_EvaluationNamespaceSnapshot(t *testing.T) {
 
 func Test_Environment_EvaluationNamespaceSnapshotSubscribe(t *testing.T) {
 	logger := zaptest.NewLogger(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	repo, err := storagegit.NewRepository(ctx, logger)
 	require.NoError(t, err)
 	storage := fs.NewStorage(logger)
@@ -775,7 +779,7 @@ func Test_Environment_EvaluationNamespaceSnapshotSubscribe(t *testing.T) {
 
 func Test_Environment_Notify(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Test with no hash change
 	env.refs[env.currentBranch] = "abc123"
@@ -790,7 +794,7 @@ func Test_Environment_Notify(t *testing.T) {
 
 func Test_Environment_updateSnapshot(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Initial snapshot update
 	err := env.updateSnapshot(ctx)
@@ -814,7 +818,7 @@ func Test_Environment_updateSnapshot(t *testing.T) {
 
 func Test_branchEnvIterator(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create some test branches
 	for i := 1; i <= 3; i++ {
@@ -847,7 +851,7 @@ func Test_branchEnvIterator(t *testing.T) {
 
 func Test_Environment_Branch_GeneratesNameIfEmpty(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Branch with empty name (should generate a random name)
 	branchEnv, err := env.Branch(ctx, "")
@@ -864,7 +868,7 @@ func Test_Environment_Branch_GeneratesNameIfEmpty(t *testing.T) {
 
 func Test_Environment_Branch_WithSpaces(t *testing.T) {
 	env := newTestEnvironment(t, "production")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Branch with just the name including spaces should be trimmed
 	branchEnv, err := env.Branch(ctx, "  spaced-branch  ")

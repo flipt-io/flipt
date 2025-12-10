@@ -1,7 +1,6 @@
 package ofrep
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -58,7 +57,7 @@ func TestErrorHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("error", func(t *testing.T) {
 			resp := httptest.NewRecorder()
-			h(context.Background(), nil, &runtime.JSONPb{}, resp, nil, tt.input)
+			h(t.Context(), nil, &runtime.JSONPb{}, resp, nil, tt.input)
 			assert.Equal(t, tt.expectedCode, resp.Code)
 			assert.Equal(t, tt.expectedOutput+"\n", resp.Body.String())
 		})

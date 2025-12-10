@@ -15,7 +15,7 @@ import (
 )
 
 func TestEngine_NewEngine(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	policy, err := os.ReadFile("../testdata/rbac_v2.rego")
 	require.NoError(t, err)
@@ -37,7 +37,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 	data, err := os.ReadFile("../testdata/rbac_v2.json")
 	require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 	engine, err := newEngine(ctx, zaptest.NewLogger(t),
 		withPolicySource(policySource(string(policy))),
@@ -150,7 +150,7 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 	data, err := os.ReadFile("../testdata/rbac_v2.json")
 	require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 	engine, err := newEngine(ctx, zaptest.NewLogger(t),
 		withPolicySource(policySource(string(policy))),
@@ -229,7 +229,7 @@ func TestEngine_ViewableNamespaces(t *testing.T) {
 	data, err := os.ReadFile("../testdata/rbac_v2.json")
 	require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 	engine, err := newEngine(ctx, zaptest.NewLogger(t),
 		withPolicySource(policySource(string(policy))),

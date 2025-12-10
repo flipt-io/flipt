@@ -45,7 +45,7 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 		nonce      = "static"
 
 		logger = zaptest.NewLogger(t)
-		ctx    = context.Background()
+		ctx    = t.Context()
 	)
 
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
@@ -152,7 +152,7 @@ func Test_Server_PKCE(t *testing.T) {
 		nonce      = "static"
 
 		logger = zaptest.NewLogger(t)
-		ctx    = context.Background()
+		ctx    = t.Context()
 	)
 
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
@@ -261,7 +261,7 @@ func Test_Server_Nonce(t *testing.T) {
 		nonce      = "random-nonce"
 
 		logger = zaptest.NewLogger(t)
-		ctx    = context.Background()
+		ctx    = t.Context()
 	)
 
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)

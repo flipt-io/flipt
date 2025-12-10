@@ -1,7 +1,6 @@
 package git
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +11,7 @@ import (
 
 func TestSCMNotImplemented_Propose(t *testing.T) {
 	scm := &SCMNotImplemented{}
-	res, err := scm.Propose(context.Background(), ProposalRequest{})
+	res, err := scm.Propose(t.Context(), ProposalRequest{})
 	assert.Nil(t, res)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, errors.ErrNotImplemented("SCM not implemented"))
@@ -20,7 +19,7 @@ func TestSCMNotImplemented_Propose(t *testing.T) {
 
 func TestSCMNotImplemented_ListChanges(t *testing.T) {
 	scm := &SCMNotImplemented{}
-	res, err := scm.ListChanges(context.Background(), ListChangesRequest{})
+	res, err := scm.ListChanges(t.Context(), ListChangesRequest{})
 	assert.Nil(t, res)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, errors.ErrNotImplemented("SCM not implemented"))
@@ -29,7 +28,7 @@ func TestSCMNotImplemented_ListChanges(t *testing.T) {
 func TestSCMNotImplemented_ListProposals(t *testing.T) {
 	scm := &SCMNotImplemented{}
 	mockEnv := &environments.MockEnvironment{}
-	res, err := scm.ListProposals(context.Background(), mockEnv)
+	res, err := scm.ListProposals(t.Context(), mockEnv)
 	assert.Nil(t, res)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, errors.ErrNotImplemented("SCM not implemented"))

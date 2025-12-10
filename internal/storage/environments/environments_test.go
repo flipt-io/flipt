@@ -200,7 +200,7 @@ test_key_data
 			rm := NewRepositoryManager(logger, cfg, secretsManager, licenseManager)
 			credentials := credentials.New(logger, cfg.Credentials)
 
-			ctx := context.Background()
+			ctx := t.Context()
 			repo, err := rm.GetOrCreate(ctx, tt.envConf, tt.storageConfig, credentials)
 
 			if tt.expectedError {
@@ -301,7 +301,7 @@ func Test_EnvironmentFactory_Create(t *testing.T) {
 			repoManager := NewRepositoryManager(logger, cfg, secretsManager, licenseManager)
 			factory := NewEnvironmentFactory(logger, cfg, credentials, repoManager, licenseManager)
 
-			ctx := context.Background()
+			ctx := t.Context()
 			env, err := factory.Create(ctx, tt.envName, tt.envConf)
 
 			if tt.expectedError {
@@ -414,7 +414,7 @@ func Test_NewStore(t *testing.T) {
 			licenseManager := &license.MockManager{}
 			tt.setupMocks(licenseManager, secretsManager)
 
-			ctx := context.Background()
+			ctx := t.Context()
 			store, err := NewStore(ctx, logger, tt.cfg, secretsManager, licenseManager)
 
 			if tt.expectedError {
@@ -449,7 +449,7 @@ func Test_environmentSubscriber(t *testing.T) {
 	assert.Equal(t, []string{"main", "dev"}, branches)
 
 	// Test Notify
-	ctx := context.Background()
+	ctx := t.Context()
 	err := subscriber.Notify(ctx, map[string]string{"main": "abc123"})
 	require.NoError(t, err)
 }

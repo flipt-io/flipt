@@ -313,7 +313,7 @@ func TestOFREPEvaluationWithTracing(t *testing.T) {
 
 			tt.setupMocks(t, envStore, environment, store, namespaceKey)
 
-			mdCtx := metadata.NewIncomingContext(context.Background(), metadata.New(map[string]string{
+			mdCtx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{
 				"x-flipt-environment": environmentKey,
 				"x-flipt-namespace":   namespaceKey,
 			}))

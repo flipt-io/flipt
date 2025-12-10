@@ -1,7 +1,6 @@
 package azure
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -32,7 +31,7 @@ func TestSCM_Propose(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ProposalRequest{
 		Base:  "main",
 		Head:  "feature",
@@ -59,7 +58,7 @@ func TestSCM_Propose_Error(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ProposalRequest{}
 
 	mockClient.EXPECT().CreatePullRequest(mock.Anything, mock.Anything).Return(nil, errors.New("create error"))
@@ -79,7 +78,7 @@ func TestSCM_ListChanges(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ListChangesRequest{Base: "main", Head: "feature", Limit: 1}
 
 	commitTime := time.Now()
@@ -131,7 +130,7 @@ func TestSCM_ListChanges_Error(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ListChangesRequest{Base: "main", Head: "feature"}
 
 	mockClient.EXPECT().GetCommits(mock.Anything, mock.Anything).Return(nil, errors.New("compare error"))
@@ -151,7 +150,7 @@ func TestSCM_ListProposals(t *testing.T) {
 		logger:     zap.NewNop(),
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")

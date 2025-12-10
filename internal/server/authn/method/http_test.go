@@ -1,7 +1,6 @@
 package method
 
 import (
-	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -23,7 +22,7 @@ func TestForwardPrefix(t *testing.T) {
 			for k, v := range tt.headers {
 				req.Header.Add(k, v)
 			}
-			md := ForwardPrefix(context.Background(), req)
+			md := ForwardPrefix(t.Context(), req)
 			assert.Equal(t, tt.expected, md.Get(ForwardedPrefixKey))
 		})
 	}

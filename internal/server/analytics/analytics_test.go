@@ -1,7 +1,6 @@
 package analytics
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -52,7 +51,7 @@ func TestGetFlagEvaluationsCountClientError(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	client := NewMockClient(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	client.EXPECT().GetFlagEvaluationsCount(ctx, &FlagEvaluationsCountRequest{
 		EnvironmentKey: "default",

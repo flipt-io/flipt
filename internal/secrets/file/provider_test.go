@@ -1,7 +1,6 @@
 package file
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,7 +43,7 @@ func TestProvider_GetSecret(t *testing.T) {
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("retrieves existing secret", func(t *testing.T) {
 		// Create a secret file directly (simplified approach)
@@ -52,7 +51,7 @@ func TestProvider_GetSecret(t *testing.T) {
 		secretValue := "my-secret-value"
 
 		fullPath := filepath.Join(tmpDir, secretPath)
-		err := os.WriteFile(fullPath, []byte(secretValue), 0600)
+		err := os.WriteFile(fullPath, []byte(secretValue), 0o600)
 		require.NoError(t, err)
 
 		// Retrieve the secret
@@ -69,9 +68,9 @@ func TestProvider_GetSecret(t *testing.T) {
 		secretValue := "azure-storage-key-value" // #nosec G101 - test data
 
 		fullPath := filepath.Join(tmpDir, secretPath)
-		err := os.MkdirAll(filepath.Dir(fullPath), 0700)
+		err := os.MkdirAll(filepath.Dir(fullPath), 0o700)
 		require.NoError(t, err)
-		err = os.WriteFile(fullPath, []byte(secretValue), 0600)
+		err = os.WriteFile(fullPath, []byte(secretValue), 0o600)
 		require.NoError(t, err)
 
 		// Retrieve the secret
@@ -89,7 +88,7 @@ func TestProvider_GetSecret(t *testing.T) {
 		expectedValue := "my-secret-value"
 
 		fullPath := filepath.Join(tmpDir, secretPath)
-		err := os.WriteFile(fullPath, []byte(secretValue), 0600)
+		err := os.WriteFile(fullPath, []byte(secretValue), 0o600)
 		require.NoError(t, err)
 
 		// Retrieve the secret
@@ -113,7 +112,7 @@ func TestProvider_GetSecret(t *testing.T) {
 		gpgKey := "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nlQVYBGh9OVoBDACmOSHo...\n-----END PGP PRIVATE KEY BLOCK-----"
 
 		fullPath := filepath.Join(tmpDir, secretPath)
-		err := os.WriteFile(fullPath, []byte(gpgKey), 0600)
+		err := os.WriteFile(fullPath, []byte(gpgKey), 0o600)
 		require.NoError(t, err)
 
 		// Retrieve the secret
@@ -133,7 +132,7 @@ func TestProvider_PutSecret(t *testing.T) {
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("stores secret with correct permissions", func(t *testing.T) {
 		secretPath := "test_secret"
@@ -153,7 +152,7 @@ func TestProvider_PutSecret(t *testing.T) {
 		fullPath := provider.secretPath(secretPath)
 		stat, err := os.Stat(fullPath)
 		require.NoError(t, err)
-		assert.Equal(t, os.FileMode(0600), stat.Mode().Perm())
+		assert.Equal(t, os.FileMode(0o600), stat.Mode().Perm())
 
 		// Verify content
 		content, err := os.ReadFile(fullPath)
@@ -181,7 +180,7 @@ func TestProvider_PutSecret(t *testing.T) {
 		dirStat, err := os.Stat(dir)
 		require.NoError(t, err)
 		assert.True(t, dirStat.IsDir())
-		assert.Equal(t, os.FileMode(0700), dirStat.Mode().Perm())
+		assert.Equal(t, os.FileMode(0o700), dirStat.Mode().Perm())
 
 		// Verify content
 		content, err := os.ReadFile(fullPath)
@@ -245,7 +244,7 @@ func TestProvider_DeleteSecret(t *testing.T) {
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("deletes existing secret", func(t *testing.T) {
 		secretPath := "delete_test"
@@ -253,7 +252,7 @@ func TestProvider_DeleteSecret(t *testing.T) {
 
 		// Create the secret file directly
 		fullPath := filepath.Join(tmpDir, secretPath)
-		err := os.WriteFile(fullPath, []byte(secretValue), 0600)
+		err := os.WriteFile(fullPath, []byte(secretValue), 0o600)
 		require.NoError(t, err)
 
 		// Verify it exists
@@ -282,9 +281,9 @@ func TestProvider_DeleteSecret(t *testing.T) {
 
 		// Create the secret file
 		fullPath := filepath.Join(tmpDir, secretPath)
-		err := os.MkdirAll(filepath.Dir(fullPath), 0700)
+		err := os.MkdirAll(filepath.Dir(fullPath), 0o700)
 		require.NoError(t, err)
-		err = os.WriteFile(fullPath, []byte("test"), 0600)
+		err = os.WriteFile(fullPath, []byte("test"), 0o600)
 		require.NoError(t, err)
 
 		// Verify directories were created
@@ -309,11 +308,11 @@ func TestProvider_DeleteSecret(t *testing.T) {
 		fullPath1 := filepath.Join(tmpDir, secret1Path)
 		fullPath2 := filepath.Join(tmpDir, secret2Path)
 
-		err := os.MkdirAll(filepath.Dir(fullPath1), 0700)
+		err := os.MkdirAll(filepath.Dir(fullPath1), 0o700)
 		require.NoError(t, err)
-		err = os.WriteFile(fullPath1, []byte("test1"), 0600)
+		err = os.WriteFile(fullPath1, []byte("test1"), 0o600)
 		require.NoError(t, err)
-		err = os.WriteFile(fullPath2, []byte("test2"), 0600)
+		err = os.WriteFile(fullPath2, []byte("test2"), 0o600)
 		require.NoError(t, err)
 
 		// Delete one secret
@@ -340,7 +339,7 @@ func TestProvider_ListSecrets(t *testing.T) {
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("lists all secrets with prefix", func(t *testing.T) {
 		// Create several secrets
@@ -354,9 +353,9 @@ func TestProvider_ListSecrets(t *testing.T) {
 
 		for _, secretPath := range secretPaths {
 			fullPath := filepath.Join(tmpDir, secretPath)
-			err := os.MkdirAll(filepath.Dir(fullPath), 0700)
+			err := os.MkdirAll(filepath.Dir(fullPath), 0o700)
 			require.NoError(t, err)
-			err = os.WriteFile(fullPath, []byte("test"), 0600)
+			err = os.WriteFile(fullPath, []byte("test"), 0o600)
 			require.NoError(t, err)
 		}
 
@@ -380,7 +379,7 @@ func TestProvider_ListSecrets(t *testing.T) {
 		// Create a secret at root level
 		secretPath := "root-secret"
 		fullPath := filepath.Join(tmpDir, secretPath)
-		err := os.WriteFile(fullPath, []byte("test"), 0600)
+		err := os.WriteFile(fullPath, []byte("test"), 0o600)
 		require.NoError(t, err)
 
 		// List all secrets
@@ -402,7 +401,7 @@ func TestProvider_ListSecrets(t *testing.T) {
 
 		for _, filename := range testFiles {
 			fullPath := filepath.Join(tmpDir, filename)
-			err := os.WriteFile(fullPath, []byte("content"), 0600)
+			err := os.WriteFile(fullPath, []byte("content"), 0o600)
 			require.NoError(t, err)
 		}
 
@@ -475,7 +474,7 @@ func TestProvider_Integration(t *testing.T) {
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("full lifecycle test", func(t *testing.T) {
 		secretPath := "integration/test/secret"

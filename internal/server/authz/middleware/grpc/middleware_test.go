@@ -156,7 +156,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				logger  = zap.NewNop()
 				allowed = false
 
-				ctx     = authmiddlewaregrpc.ContextWithAuthentication(context.Background(), tt.authn)
+				ctx     = authmiddlewaregrpc.ContextWithAuthentication(t.Context(), tt.authn)
 				handler = func(ctx context.Context, req any) (any, error) {
 					allowed = true
 					return nil, nil

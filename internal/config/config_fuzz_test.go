@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -33,7 +32,7 @@ func FuzzConfigLoad(f *testing.F) {
 		}()
 
 		// Test that Load doesn't panic with this path
-		_, _ = Load(context.Background(), path)
+		_, _ = Load(t.Context(), path)
 	})
 }
 
@@ -56,12 +55,11 @@ server:
 		}()
 
 		// Write fuzzed data to a temp file
-		tmpFile, err := os.CreateTemp("", "config-*.yml")
+		tmpFile, err := os.CreateTemp(t.TempDir(), "config-*.yml")
 		if err != nil {
 			return
 		}
-		defer os.Remove(tmpFile.Name())
-		defer tmpFile.Close()
+		t.Cleanup(func() { tmpFile.Close() })
 
 		if _, err := tmpFile.Write(data); err != nil {
 			return
@@ -73,7 +71,7 @@ server:
 		}
 
 		// Try to load the config with the fuzzed data
-		_, _ = Load(context.Background(), tmpFile.Name())
+		_, _ = Load(t.Context(), tmpFile.Name())
 	})
 }
 
@@ -91,21 +89,9 @@ func FuzzEnvSubst(f *testing.F) {
 			}
 		}()
 
-		// Store original environment
 		if len(envVar) > 0 {
-			oldValue, exists := os.LookupEnv(envVar)
-
 			// Set the environment variable
-			os.Setenv(envVar, envValue)
-
-			// Clean up after test
-			defer func() {
-				if exists {
-					os.Setenv(envVar, oldValue)
-				} else {
-					os.Unsetenv(envVar)
-				}
-			}()
+			t.Setenv(envVar, envValue)
 
 			// Create a simple config with the env var
 			yamlConfig := fmt.Sprintf(`
@@ -116,7 +102,7 @@ server:
 `, envVar)
 
 			// Write this to a temp file
-			tmpFile, err := os.CreateTemp("", "config-*.yml")
+			tmpFile, err := os.CreateTemp(t.TempDir(), "config-*.yml")
 			if err != nil {
 				return
 			}
@@ -133,7 +119,7 @@ server:
 			}
 
 			// Try to load the config
-			_, _ = Load(context.Background(), tmpFile.Name())
+			_, _ = Load(t.Context(), tmpFile.Name())
 		}
 	})
 }
@@ -168,7 +154,7 @@ func FuzzBindEnvVars(f *testing.F) {
 		binder := sliceEnvBinder{}
 
 		// Generate a struct type using reflection
-		structType := reflect.TypeOf(Config{})
+		structType := reflect.TypeFor[Config]()
 
 		// Call bindEnvVars with the fuzzed inputs
 		bindEnvVars(&binder, []string{envVar}, []string{}, structType)
@@ -197,8 +183,7 @@ func FuzzDecodeHooks(f *testing.F) {
 		// Setup environment variable if this appears to be an env var substitution
 		if strings.HasPrefix(input, "${") && strings.HasSuffix(input, "}") {
 			varName := strings.TrimPrefix(strings.TrimSuffix(input, "}"), "${")
-			os.Setenv(varName, "test-value")
-			defer os.Unsetenv(varName)
+			t.Setenv(varName, "test-value")
 		}
 
 		// Test each decode hook
@@ -212,8 +197,8 @@ func FuzzDecodeHooks(f *testing.F) {
 
 			hook := mapstructure.StringToTimeDurationHookFunc()
 			_, _ = hook.(func(reflect.Type, reflect.Type, any) (any, error))(
-				reflect.TypeOf(""),
-				reflect.TypeOf(time.Duration(0)),
+				reflect.TypeFor[string](),
+				reflect.TypeFor[time.Duration](),
 				input,
 			)
 		}()
@@ -244,8 +229,8 @@ func FuzzDecodeHooks(f *testing.F) {
 
 			hook := stringToReferenceHookFunc()
 			_, _ = hook.(func(reflect.Type, reflect.Type, any) (any, error))(
-				reflect.TypeOf(""),
-				reflect.TypeOf(""),
+				reflect.TypeFor[string](),
+				reflect.TypeFor[string](),
 				input,
 			)
 		}()

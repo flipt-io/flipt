@@ -3,16 +3,16 @@ package grpc_middleware
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
 	"go.flipt.io/flipt/errors"
 
 	errs "errors"
-
-	"slices"
 
 	"github.com/go-openapi/jsonpointer"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -219,7 +219,7 @@ func JWTAuthenticationStreamInterceptor(logger *zap.Logger, validator method.JWT
 	}
 }
 
-func jwtClaimsToMetadata(jwtClaims map[string]interface{}, claimsMapping map[string]string) map[string]string {
+func jwtClaimsToMetadata(jwtClaims map[string]any, claimsMapping map[string]string) map[string]string {
 	md := map[string]string{}
 
 	for k, v := range jwtClaims {
@@ -242,13 +242,8 @@ func jwtClaimsToMetadata(jwtClaims map[string]interface{}, claimsMapping map[str
 		"role":    "/user/role",
 	}
 
-	effectiveMappings := make(map[string]string)
-	for k, v := range defaultMappings {
-		effectiveMappings[k] = v
-	}
-	for k, v := range claimsMapping {
-		effectiveMappings[k] = v
-	}
+	effectiveMappings := maps.Clone(defaultMappings)
+	maps.Copy(effectiveMappings, claimsMapping)
 
 	// Extract user attributes using the effective mappings
 	for attribute, jsonPointerExpr := range effectiveMappings {

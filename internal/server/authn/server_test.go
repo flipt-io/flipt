@@ -31,7 +31,7 @@ func TestActorFromContext(t *testing.T) {
 		authentication = "token"
 	)
 
-	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{"x-forwarded-for": {"127.0.0.1"}})
+	ctx := metadata.NewIncomingContext(t.Context(), map[string][]string{"x-forwarded-for": {"127.0.0.1"}})
 	ctx = authmiddlewaregrpc.ContextWithAuthentication(ctx, &rpcauth.Authentication{Method: rpcauth.Method_METHOD_TOKEN})
 
 	actor := authn.ActorFromContext(ctx)
@@ -71,7 +71,7 @@ func TestServer(t *testing.T) {
 	}()
 
 	var (
-		ctx    = context.Background()
+		ctx    = t.Context()
 		dialer = func(context.Context, string) (net.Conn, error) {
 			return listener.Dial()
 		}
