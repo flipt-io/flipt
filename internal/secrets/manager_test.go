@@ -297,7 +297,7 @@ func TestManagerImpl_GetProvider(t *testing.T) {
 }
 
 func TestManagerImpl_GetSecretValue(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("retrieves secret value successfully", func(t *testing.T) {
 		mockProvider := &MockProvider{}
@@ -447,7 +447,7 @@ func TestManagerImpl_GetSecret(t *testing.T) {
 		logger: zap.NewNop(),
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("retrieves secret successfully", func(t *testing.T) {
 		secret := &Secret{
@@ -486,7 +486,7 @@ func TestManagerImpl_ListSecrets(t *testing.T) {
 		logger: zap.NewNop(),
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("lists secrets successfully", func(t *testing.T) {
 		expectedPaths := []string{"app/secret1", "app/secret2"}

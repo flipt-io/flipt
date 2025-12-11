@@ -532,7 +532,7 @@ func stringToReferenceHookFunc() mapstructure.DecodeHookFunc {
 		t reflect.Type,
 		data any,
 	) (any, error) {
-		if f.Kind() != reflect.String || f != reflect.TypeOf("") {
+		if f.Kind() != reflect.String || f != reflect.TypeFor[string]() {
 			return data, nil
 		}
 

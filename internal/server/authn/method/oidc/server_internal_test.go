@@ -1,7 +1,6 @@
 package oidc
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,5 +48,5 @@ func TestCallbackURL(t *testing.T) {
 
 func Test_Server_SkipsAuthentication(t *testing.T) {
 	server := &Server{}
-	assert.True(t, server.SkipsAuthentication(context.Background()))
+	assert.True(t, server.SkipsAuthentication(t.Context()))
 }

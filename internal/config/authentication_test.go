@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +8,7 @@ import (
 )
 
 func TestWithForwardPrefix(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	assert.Empty(t, getForwardPrefix(ctx))
 	ctx = WithForwardPrefix(ctx, "/some/prefix")
 	assert.Equal(t, "/some/prefix", getForwardPrefix(ctx))

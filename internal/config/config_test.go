@@ -992,22 +992,12 @@ func TestLoad(t *testing.T) {
 		}
 
 		t.Run(tt.name+" (YAML)", func(t *testing.T) {
-			// backup and restore environment
-			backup := os.Environ()
-			defer func() {
-				os.Clearenv()
-				for _, env := range backup {
-					key, value, _ := strings.Cut(env, "=")
-					os.Setenv(key, value)
-				}
-			}()
-
 			for key, value := range tt.envOverrides {
 				t.Logf("Setting env '%s=%s'\n", key, value)
-				os.Setenv(key, value)
+				t.Setenv(key, value)
 			}
 
-			res, err := Load(context.Background(), path)
+			res, err := Load(t.Context(), path)
 
 			if wantErr != nil {
 				t.Log(err)
@@ -1030,32 +1020,22 @@ func TestLoad(t *testing.T) {
 		})
 
 		t.Run(tt.name+" (ENV)", func(t *testing.T) {
-			// backup and restore environment
-			backup := os.Environ()
-			defer func() {
-				os.Clearenv()
-				for _, env := range backup {
-					key, value, _ := strings.Cut(env, "=")
-					os.Setenv(key, value)
-				}
-			}()
-
 			if path != "" {
 				// read the input config file into equivalent envs
 				envs := readYAMLIntoEnv(t, path)
 				for _, env := range envs {
 					t.Logf("Setting env '%s=%s'\n", env[0], env[1])
-					os.Setenv(env[0], env[1])
+					t.Setenv(env[0], env[1])
 				}
 			}
 
 			for key, value := range tt.envOverrides {
 				t.Logf("Setting env '%s=%s'\n", key, value)
-				os.Setenv(key, value)
+				t.Setenv(key, value)
 			}
 
 			// load default (empty) config
-			res, err := Load(context.Background(), "./testdata/default.yml")
+			res, err := Load(t.Context(), "./testdata/default.yml")
 
 			if wantErr != nil {
 				t.Log(err)
@@ -1322,7 +1302,7 @@ func TestGetConfigFile(t *testing.T) {
 	})
 
 	var (
-		ctx        = context.Background()
+		ctx        = t.Context()
 		configData = []byte("some config data")
 		b, err     = blob.OpenBucket(ctx, "mock://mybucket")
 	)
@@ -1401,7 +1381,7 @@ var camelCaseMatchers = map[string]string{
 }
 
 func TestStructTags(t *testing.T) {
-	configType := reflect.TypeOf(Config{})
+	configType := reflect.TypeFor[Config]()
 	configTags := getStructTags(configType)
 
 	for k, v := range camelCaseMatchers {
@@ -1641,8 +1621,8 @@ func TestStringToReferenceHookFunc(t *testing.T) {
 
 				hookFunc := hook.(func(reflect.Type, reflect.Type, any) (any, error))
 				result, err := hookFunc(
-					reflect.TypeOf(""),
-					reflect.TypeOf(""),
+					reflect.TypeFor[string](),
+					reflect.TypeFor[string](),
 					tt.input,
 				)
 
@@ -1693,8 +1673,8 @@ func TestStringToReferenceHookFunc(t *testing.T) {
 
 				hookFunc := hook.(func(reflect.Type, reflect.Type, any) (any, error))
 				result, err := hookFunc(
-					reflect.TypeOf(""),
-					reflect.TypeOf(""),
+					reflect.TypeFor[string](),
+					reflect.TypeFor[string](),
 					tt.input,
 				)
 
@@ -1713,7 +1693,7 @@ func TestConfigSecretReferences(t *testing.T) {
 		t.Setenv("GITHUB_REDIRECT_URL", "http://localhost:8080/auth/callback")
 
 		// Load config normally - secret references should remain as-is
-		result, err := Load(context.Background(), "./testdata/secret_references.yml")
+		result, err := Load(t.Context(), "./testdata/secret_references.yml")
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		require.NotNil(t, result.Config)
@@ -1735,7 +1715,7 @@ func TestConfigSecretReferences(t *testing.T) {
 		t.Setenv("GITHUB_REDIRECT_URL", "http://localhost:8080/auth/callback")
 
 		// Load config normally
-		result, err := Load(context.Background(), "./testdata/mixed_references.yml")
+		result, err := Load(t.Context(), "./testdata/mixed_references.yml")
 		require.NoError(t, err)
 		require.NotNil(t, result)
 

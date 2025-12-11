@@ -2,7 +2,6 @@ package git
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"io/fs"
 	"os"
@@ -38,7 +37,7 @@ func Test_filesystem(t *testing.T) {
 
 	// Test MkdirAll
 	t.Run("MkdirAll", func(t *testing.T) {
-		err := gitFS.MkdirAll("test", 0755)
+		err := gitFS.MkdirAll("test", 0o755)
 		require.NoError(t, err)
 
 		infos, err := gitFS.ReadDir(".")
@@ -50,7 +49,7 @@ func Test_filesystem(t *testing.T) {
 
 	// Test OpenFile
 	t.Run(`OpenFile("file.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0755)`, func(t *testing.T) {
-		file, err := gitFS.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0755)
+		file, err := gitFS.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o755)
 		require.NoError(t, err)
 		require.NotNil(t, file)
 
@@ -69,7 +68,7 @@ func Test_filesystem(t *testing.T) {
 		assert.Equal(t, "test", infos[1].Name(), "unexpected name")
 	})
 
-	commit, err := gitFS.commit(context.Background(), "add first file")
+	commit, err := gitFS.commit(t.Context(), "add first file")
 	require.NoError(t, err)
 
 	gitFS, err = newFilesystem(logger, storer, withBaseCommit(commit.Hash))
@@ -77,7 +76,7 @@ func Test_filesystem(t *testing.T) {
 
 	// Test OpenFile
 	t.Run(`OpenFile("file.txt", os.O_RDONLY, 0755)`, func(t *testing.T) {
-		file, err := gitFS.OpenFile("test.txt", os.O_RDONLY, 0755)
+		file, err := gitFS.OpenFile("test.txt", os.O_RDONLY, 0o755)
 		require.NoError(t, err)
 		require.NotNil(t, file)
 
@@ -103,7 +102,7 @@ func Test_filesystem(t *testing.T) {
 	})
 
 	t.Run("ReadDirFile", func(t *testing.T) {
-		fi, err := gitFS.OpenFile(".", os.O_RDONLY, 0755)
+		fi, err := gitFS.OpenFile(".", os.O_RDONLY, 0o755)
 		require.NoError(t, err)
 
 		dir, ok := fi.(fs.ReadDirFile)
@@ -144,11 +143,11 @@ func Test_RapidNamespaceDeletion(t *testing.T) {
 
 	for _, ns := range namespaces {
 		// Create namespace directory
-		err := gitFS.MkdirAll(ns, 0755)
+		err := gitFS.MkdirAll(ns, 0o755)
 		require.NoError(t, err)
 
 		// Create a features.yaml file in each namespace
-		file, err := gitFS.OpenFile(ns+"/features.yaml", os.O_CREATE|os.O_WRONLY, 0644)
+		file, err := gitFS.OpenFile(ns+"/features.yaml", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 
 		_, err = file.Write([]byte("namespace: " + ns + "\n"))
@@ -181,7 +180,7 @@ func Test_RapidNamespaceDeletion(t *testing.T) {
 	assert.Empty(t, infos, "all namespaces should be deleted")
 
 	// Create a commit to ensure the tree is valid
-	ctx := context.Background()
+	ctx := t.Context()
 	commit, err := gitFS.commit(ctx, "deleted all namespaces")
 	require.NoError(t, err, "failed to create commit after deletions")
 	require.NotNil(t, commit, "commit should not be nil")
@@ -204,21 +203,21 @@ func Test_NamespaceWithSubdirectories(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a namespace with subdirectories
-	err = gitFS.MkdirAll("namespace/subdir1", 0755)
+	err = gitFS.MkdirAll("namespace/subdir1", 0o755)
 	require.NoError(t, err)
 
-	err = gitFS.MkdirAll("namespace/subdir2", 0755)
+	err = gitFS.MkdirAll("namespace/subdir2", 0o755)
 	require.NoError(t, err)
 
 	// Add files to subdirectories
-	file1, err := gitFS.OpenFile("namespace/subdir1/file1.yaml", os.O_CREATE|os.O_WRONLY, 0644)
+	file1, err := gitFS.OpenFile("namespace/subdir1/file1.yaml", os.O_CREATE|os.O_WRONLY, 0o644)
 	require.NoError(t, err)
 	_, err = file1.Write([]byte("content1"))
 	require.NoError(t, err)
 	err = file1.Close()
 	require.NoError(t, err)
 
-	file2, err := gitFS.OpenFile("namespace/subdir2/file2.yaml", os.O_CREATE|os.O_WRONLY, 0644)
+	file2, err := gitFS.OpenFile("namespace/subdir2/file2.yaml", os.O_CREATE|os.O_WRONLY, 0o644)
 	require.NoError(t, err)
 	_, err = file2.Write([]byte("content2"))
 	require.NoError(t, err)
@@ -247,7 +246,7 @@ func Test_NamespaceWithSubdirectories(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify we can commit successfully
-	ctx := context.Background()
+	ctx := t.Context()
 	commit, err := gitFS.commit(ctx, "deleted namespace with subdirectories")
 	require.NoError(t, err)
 	assert.NotNil(t, commit)

@@ -47,7 +47,7 @@ func TestGetExporter(t *testing.T) {
 			metricExpFunc = func(context.Context) error { return nil }
 			metricExpErr = nil
 
-			exp, expFunc, err := GetExporter(context.Background(), tt.cfg)
+			exp, expFunc, err := GetExporter(t.Context(), tt.cfg)
 			if tt.wantErr != nil {
 				require.EqualError(t, err, tt.wantErr.Error())
 				assert.Nil(t, exp, "expected nil exporter when error occurs")
@@ -59,7 +59,7 @@ func TestGetExporter(t *testing.T) {
 			assert.NotNil(t, expFunc)
 
 			t.Cleanup(func() {
-				err := expFunc(context.Background())
+				err := expFunc(context.Background()) // nolint
 				assert.NoError(t, err)
 			})
 		})

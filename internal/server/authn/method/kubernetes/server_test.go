@@ -2,7 +2,6 @@ package kubernetes_test
 
 import (
 	"bytes"
-	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"io"
@@ -36,7 +35,7 @@ func Test_Server(t *testing.T) {
 		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
 
 		logger = zaptest.NewLogger(t)
-		ctx    = context.Background()
+		ctx    = t.Context()
 	)
 
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
@@ -163,7 +162,8 @@ func Test_Server(t *testing.T) {
 }
 
 func writeStringToTemp(t *testing.T, pattern, contents string) string {
-	fi, err := os.CreateTemp("", pattern)
+	t.Helper()
+	fi, err := os.CreateTemp(t.TempDir(), pattern)
 	require.NoError(t, err)
 
 	_, err = io.Copy(fi, strings.NewReader(contents))

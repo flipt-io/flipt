@@ -27,7 +27,7 @@ const (
 
 func Test_Server_VerifyServiceAccount(t *testing.T) {
 	var (
-		ctx    = context.Background()
+		ctx    = t.Context()
 		logger = zaptest.NewLogger(t)
 	)
 
@@ -114,7 +114,7 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 
 func Test_Server_SkipsAuthentication(t *testing.T) {
 	server := &Server{}
-	assert.True(t, server.SkipsAuthentication(context.Background()))
+	assert.True(t, server.SkipsAuthentication(t.Context()))
 }
 
 type mockTokenValidator map[string]claims

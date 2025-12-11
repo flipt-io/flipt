@@ -67,19 +67,19 @@ func TestAuthenticationRequiredUnaryInterceptor(t *testing.T) {
 	}{
 		{
 			name:         "authenticated context",
-			ctx:          ContextWithAuthentication(context.Background(), &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN}),
+			ctx:          ContextWithAuthentication(t.Context(), &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN}),
 			expectErr:    nil,
 			expectCalled: true,
 		},
 		{
 			name:         "unauthenticated context",
-			ctx:          context.Background(),
+			ctx:          t.Context(),
 			expectErr:    errUnauthenticated,
 			expectCalled: false,
 		},
 		{
 			name:         "skipped server",
-			ctx:          context.Background(),
+			ctx:          t.Context(),
 			server:       &mockServer{skipsAuthn: true},
 			expectErr:    nil,
 			expectCalled: true,
@@ -158,7 +158,7 @@ func TestAuthenticationRequiredUnaryInterceptorWithSkippedOption(t *testing.T) {
 			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
 			info := &grpc.UnaryServerInfo{Server: mockSrv}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.hasAuth {
 				ctx = ContextWithAuthentication(ctx, &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN})
 			}
@@ -192,19 +192,19 @@ func TestAuthenticationRequiredStreamInterceptor(t *testing.T) {
 	}{
 		{
 			name:         "authenticated context",
-			ctx:          ContextWithAuthentication(context.Background(), &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN}),
+			ctx:          ContextWithAuthentication(t.Context(), &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN}),
 			expectErr:    nil,
 			expectCalled: true,
 		},
 		{
 			name:         "unauthenticated context",
-			ctx:          context.Background(),
+			ctx:          t.Context(),
 			expectErr:    errUnauthenticated,
 			expectCalled: false,
 		},
 		{
 			name:         "skipped server",
-			ctx:          context.Background(),
+			ctx:          t.Context(),
 			server:       &mockServer{skipsAuthn: true},
 			expectErr:    nil,
 			expectCalled: true,
@@ -281,7 +281,7 @@ func TestAuthenticationRequiredStreamInterceptorWithSkippedOption(t *testing.T) 
 			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
 			info := &grpc.StreamServerInfo{}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.hasAuth {
 				ctx = ContextWithAuthentication(ctx, &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN})
 			}
@@ -508,7 +508,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
 
-				ctx     = context.Background()
+				ctx     = t.Context()
 				handler = func(ctx context.Context, req any) (any, error) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
@@ -543,7 +543,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 			tp := oidc.StartTestProvider(t, oidc.WithNoTLS())
 			tp.SetSigningKeys(priv, priv.Public(), oidc.RS256, "test")
 
-			ks, err := jwt.NewJSONWebKeySet(context.Background(), tp.Addr()+"/.well-known/jwks.json", "")
+			ks, err := jwt.NewJSONWebKeySet(t.Context(), tp.Addr()+"/.well-known/jwks.json", "")
 			require.NoError(t, err)
 
 			validator, err := jwt.NewValidator(ks)
@@ -554,7 +554,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
 
-				ctx     = context.Background()
+				ctx     = t.Context()
 				handler = func(ctx context.Context, req any) (any, error) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
@@ -658,7 +658,6 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 			server: &mockServer{skipsAuthn: true},
 		},
 	} {
-
 		t.Run(tt.name, func(t *testing.T) {
 			ks, err := jwt.NewStaticKeySet(pub)
 			require.NoError(t, err)
@@ -670,7 +669,7 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 
 			logger := zaptest.NewLogger(t)
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.metadataFunc != nil {
 				ctx = metadata.NewIncomingContext(ctx, tt.metadataFunc())
 			}
@@ -809,7 +808,7 @@ func TestJWTAuthenticationUnaryInterceptorWithSkippedOption(t *testing.T) {
 			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
 			info := &grpc.UnaryServerInfo{Server: mockSrv}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.hasToken {
 				md := metadata.MD{
 					"Authorization": []string{"JWT " + tt.token},
@@ -938,7 +937,7 @@ func TestJWTAuthenticationStreamInterceptorWithSkippedOption(t *testing.T) {
 			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
 			info := &grpc.StreamServerInfo{}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.hasToken {
 				md := metadata.MD{
 					"Authorization": []string{"JWT " + tt.token},
@@ -1060,7 +1059,7 @@ func TestClientTokenAuthenticationUnaryInterceptor(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
 
-				ctx          = context.Background()
+				ctx          = t.Context()
 				retrievedCtx = ctx
 				handler      = func(ctx context.Context, req any) (any, error) {
 					// update retrievedCtx to the one delegated to the handler
@@ -1184,7 +1183,7 @@ func TestClientTokenAuthenticationStreamInterceptor(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := zaptest.NewLogger(t)
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.metadata != nil {
 				ctx = metadata.NewIncomingContext(ctx, tt.metadata)
 			}
@@ -1292,7 +1291,7 @@ func TestClientTokenAuthenticationUnaryInterceptorWithSkippedOption(t *testing.T
 			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
 			info := &grpc.UnaryServerInfo{Server: mockSrv}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.hasToken {
 				token := clientToken
 				if !tt.validToken {
@@ -1397,7 +1396,7 @@ func TestClientTokenStreamInterceptorWithSkippedOption(t *testing.T) {
 			mockSrv := &mockServer{skipsAuthn: tt.skipServer}
 			info := &grpc.StreamServerInfo{}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tt.hasToken {
 				token := clientToken
 				if !tt.validToken {
@@ -1428,7 +1427,7 @@ func TestEmailMatchingUnaryInterceptorWithNoAuth(t *testing.T) {
 	var (
 		logger = zaptest.NewLogger(t)
 
-		ctx     = context.Background()
+		ctx     = t.Context()
 		handler = func(ctx context.Context, req any) (any, error) {
 			return nil, nil
 		}
@@ -1553,7 +1552,7 @@ func TestEmailMatchingUnaryInterceptor(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var (
-				ctx     = ContextWithAuthentication(context.Background(), tt.auth)
+				ctx     = ContextWithAuthentication(t.Context(), tt.auth)
 				handler = func(ctx context.Context, req any) (any, error) {
 					return nil, nil
 				}
@@ -1635,7 +1634,7 @@ func TestEmailMatchingUnaryInterceptorWithSkippedServers(t *testing.T) {
 
 			var (
 				mockSrv = &mockServer{skipsAuthn: tt.skipServer}
-				ctx     = ContextWithAuthentication(context.Background(), storedAuth)
+				ctx     = ContextWithAuthentication(t.Context(), storedAuth)
 				handler = func(ctx context.Context, req any) (any, error) {
 					called = true
 					return "success", nil
@@ -1676,17 +1675,17 @@ func TestEmailMatchingUnaryInterceptorWithSkippedServers(t *testing.T) {
 func TestJwtClaimsToMetadata(t *testing.T) {
 	tests := []struct {
 		name     string
-		claims   map[string]interface{}
+		claims   map[string]any
 		expected map[string]string
 	}{
 		{
 			name:     "empty claims",
-			claims:   map[string]interface{}{},
+			claims:   map[string]any{},
 			expected: map[string]string{},
 		},
 		{
 			name: "issuer claim",
-			claims: map[string]interface{}{
+			claims: map[string]any{
 				"iss": "flipt.io",
 			},
 			expected: map[string]string{
@@ -1695,7 +1694,7 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 		},
 		{
 			name: "flipt auth prefixed claims",
-			claims: map[string]interface{}{
+			claims: map[string]any{
 				"io.flipt.auth.role":   "admin",
 				"io.flipt.auth.tenant": "acme",
 			},
@@ -1706,8 +1705,8 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 		},
 		{
 			name: "user claims",
-			claims: map[string]interface{}{
-				"user": map[string]interface{}{
+			claims: map[string]any{
+				"user": map[string]any{
 					"email": "user@example.com",
 					"sub":   "12345",
 					"image": "https://example.com/avatar.jpg",
@@ -1725,10 +1724,10 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 		},
 		{
 			name: "combined claims",
-			claims: map[string]interface{}{
+			claims: map[string]any{
 				"iss":                 "flipt.io",
 				"io.flipt.auth.scope": "read",
-				"user": map[string]interface{}{
+				"user": map[string]any{
 					"email": "admin@flipt.io",
 					"name":  "Admin User",
 				},
@@ -1742,22 +1741,22 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 		},
 		{
 			name: "non-string issuer ignored",
-			claims: map[string]interface{}{
+			claims: map[string]any{
 				"iss": 12345,
 			},
 			expected: map[string]string{},
 		},
 		{
 			name: "user claim not a map",
-			claims: map[string]interface{}{
+			claims: map[string]any{
 				"user": "not-a-map",
 			},
 			expected: map[string]string{},
 		},
 		{
 			name: "mixed user claim types",
-			claims: map[string]interface{}{
-				"user": map[string]interface{}{
+			claims: map[string]any{
+				"user": map[string]any{
 					"email":   "test@example.com",
 					"sub":     123,
 					"name":    "Test User",
@@ -1898,7 +1897,7 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var claims map[string]interface{}
+			var claims map[string]any
 			err := json.Unmarshal([]byte(tt.claimsJSON), &claims)
 			require.NoError(t, err)
 

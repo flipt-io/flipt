@@ -1,6 +1,3 @@
-//go:build go1.18
-// +build go1.18
-
 package signing
 
 import (
@@ -120,7 +117,7 @@ invalid content without proper encoding
 		}
 
 		// Try to load entity - this is where PGP parsing happens
-		ctx := context.Background()
+		ctx := t.Context()
 		_ = signer.loadEntity(ctx)
 
 		// Try to get public key
@@ -191,7 +188,7 @@ iQEcBAABCgAGBQJhQ...
 			return
 		}
 
-		ctx := context.Background()
+		ctx := t.Context()
 		_ = signer.loadEntity(ctx)
 	})
 }

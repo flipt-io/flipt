@@ -24,7 +24,7 @@ func Test_Server(t *testing.T) {
 	}{
 		{
 			name: "github and single oidc provider methods enabled",
-			ctx:  context.Background(),
+			ctx:  t.Context(),
 			conf: config.AuthenticationConfig{
 				Required: true,
 				Methods: config.AuthenticationMethodsConfig{
@@ -64,7 +64,7 @@ func Test_Server(t *testing.T) {
 		},
 		{
 			name: "github and single oidc provider methods enabled with prefix",
-			ctx: metadata.NewIncomingContext(context.Background(), metadata.New(
+			ctx: metadata.NewIncomingContext(t.Context(), metadata.New(
 				map[string]string{
 					"x-forwarded-prefix": "/someprefix",
 				},

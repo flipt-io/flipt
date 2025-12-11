@@ -136,14 +136,14 @@ func TestFilesystem_CommitSigning_MockBehavior(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a simple file to have a tree
-		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 		require.NoError(t, err)
 		_, err = io.Copy(file, bytes.NewBufferString("test content"))
 		require.NoError(t, err)
 		err = file.Close()
 		require.NoError(t, err)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		commit, err := fs.commit(ctx, "Test commit message")
 
 		require.NoError(t, err)
@@ -168,14 +168,14 @@ func TestFilesystem_CommitSigning_MockBehavior(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a simple file to have a tree
-		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 		require.NoError(t, err)
 		_, err = io.Copy(file, bytes.NewBufferString("test content"))
 		require.NoError(t, err)
 		err = file.Close()
 		require.NoError(t, err)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		_, err = fs.commit(ctx, "Test commit message")
 
 		require.Error(t, err)
@@ -197,14 +197,14 @@ func TestFilesystem_CommitSigning_MockBehavior(t *testing.T) {
 		assert.Nil(t, fs.signer)
 
 		// Create a simple file to have a tree
-		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 		require.NoError(t, err)
 		_, err = io.Copy(file, bytes.NewBufferString("test content"))
 		require.NoError(t, err)
 		err = file.Close()
 		require.NoError(t, err)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		commit, err := fs.commit(ctx, "Test commit message")
 
 		require.NoError(t, err)
@@ -226,7 +226,7 @@ func TestSigning_InterfaceCompliance(t *testing.T) {
 		var _ signing.Signer = mockSigner
 
 		// Test the interface methods exist
-		ctx := context.Background()
+		ctx := t.Context()
 
 		mockSigner.On("GetPublicKey", ctx).Return("test-public-key", nil)
 
@@ -280,14 +280,14 @@ func TestCommitSigning_ErrorScenarios(t *testing.T) {
 				require.NoError(t, err)
 
 				// Create a simple file to have a tree
-				file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+				file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 				require.NoError(t, err)
 				_, err = io.Copy(file, bytes.NewBufferString("test content"))
 				require.NoError(t, err)
 				err = file.Close()
 				require.NoError(t, err)
 
-				ctx := context.Background()
+				ctx := t.Context()
 				_, err = fs.commit(ctx, "Test commit message")
 
 				require.Error(t, err)
@@ -335,14 +335,14 @@ func TestCommitSigning_SignerDataValidation(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a simple file to have a tree
-		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 		require.NoError(t, err)
 		_, err = io.Copy(file, bytes.NewBufferString("test content"))
 		require.NoError(t, err)
 		err = file.Close()
 		require.NoError(t, err)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		commit, err := fs.commit(ctx, "Test commit with validation")
 
 		require.NoError(t, err)

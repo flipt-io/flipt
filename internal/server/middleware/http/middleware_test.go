@@ -1,7 +1,6 @@
 package http_middleware
 
 import (
-	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -23,7 +22,7 @@ func TestHttpResponseModifier(t *testing.T) {
 		}
 
 		var (
-			ctx  = runtime.NewServerMetadataContext(context.Background(), md)
+			ctx  = runtime.NewServerMetadataContext(t.Context(), md)
 			resp = httptest.NewRecorder()
 			msg  = &pb.Empty{}
 		)
@@ -50,7 +49,7 @@ func TestHttpResponseModifier(t *testing.T) {
 		}
 
 		var (
-			ctx  = runtime.NewServerMetadataContext(context.Background(), md)
+			ctx  = runtime.NewServerMetadataContext(t.Context(), md)
 			resp = httptest.NewRecorder()
 			msg  = &pb.Empty{}
 		)

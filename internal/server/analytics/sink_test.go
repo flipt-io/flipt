@@ -37,7 +37,7 @@ func TestSinkSpanExporter(t *testing.T) {
 
 	tr := tp.Tracer("SpanProcesser")
 
-	_, span := tr.Start(context.Background(), "OnStart")
+	_, span := tr.Start(t.Context(), "OnStart")
 
 	b := true
 	evaluationResponses := []*EvaluationResponse{
@@ -60,7 +60,7 @@ func TestSinkSpanExporter(t *testing.T) {
 	span.AddEvent(tracing.Event, trace.WithAttributes(attrs...), trace.WithTimestamp(evaluationResponses[0].Timestamp))
 	span.End()
 
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 	defer cancel()
 
 	select {

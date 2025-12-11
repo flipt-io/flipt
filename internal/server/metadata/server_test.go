@@ -1,7 +1,6 @@
 package metadata
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,5 +8,5 @@ import (
 
 func Test_Server_SkipsAuthorization(t *testing.T) {
 	server := &Server{}
-	assert.True(t, server.SkipsAuthorization(context.Background()))
+	assert.True(t, server.SkipsAuthorization(t.Context()))
 }

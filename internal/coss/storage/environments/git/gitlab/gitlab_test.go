@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -27,7 +26,7 @@ func TestSCM_Propose(t *testing.T) {
 		repos:     nil,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ProposalRequest{
 		Base:  "main",
 		Head:  "feature",
@@ -60,7 +59,7 @@ func TestSCM_Propose_Draft(t *testing.T) {
 		repos:     nil,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ProposalRequest{
 		Base:  "main",
 		Head:  "feature",
@@ -93,7 +92,7 @@ func TestSCM_Propose_Error(t *testing.T) {
 		repos:     nil,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ProposalRequest{}
 	mockMR.EXPECT().CreateMergeRequest("owner/repo", &gitlab.CreateMergeRequestOptions{
 		Title:        &req.Title,
@@ -116,7 +115,7 @@ func TestSCM_ListChanges(t *testing.T) {
 		repos:     mockRepos,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ListChangesRequest{Base: "main", Head: "feature", Limit: 1}
 
 	commitTime := time.Now()
@@ -154,7 +153,7 @@ func TestSCM_ListChanges_Error(t *testing.T) {
 		repos:     mockRepos,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ListChangesRequest{Base: "main", Head: "feature"}
 	mockRepos.EXPECT().Compare("owner/repo", &gitlab.CompareOptions{
 		From: &req.Base,
@@ -175,7 +174,7 @@ func TestSCM_ListProposals(t *testing.T) {
 		repos:     nil,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
@@ -211,7 +210,7 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 		repos:     nil,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
@@ -243,7 +242,7 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 		repos:     nil,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
@@ -283,7 +282,7 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 		repos:     nil,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
@@ -318,7 +317,7 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 		repos:     nil,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")

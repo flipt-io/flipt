@@ -129,7 +129,7 @@ func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
 	namespaceKey := "test-namespace"
 
 	// Set up context with X-Environment header
-	ctx := common.WithFliptEnvironment(context.Background(), headerEnvironment)
+	ctx := common.WithFliptEnvironment(t.Context(), headerEnvironment)
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
@@ -193,7 +193,7 @@ func TestListFlags_WithoutXEnvironmentHeader(t *testing.T) {
 	namespaceKey := "test-namespace"
 
 	// Context without X-Environment header
-	ctx := context.Background()
+	ctx := t.Context()
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
@@ -256,7 +256,7 @@ func TestListFlags_WithTypes(t *testing.T) {
 	namespaceKey := "test-namespace"
 
 	// Context without X-Environment header
-	ctx := context.Background()
+	ctx := t.Context()
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
@@ -323,7 +323,7 @@ func TestListFlags_WithMetadata(t *testing.T) {
 
 	requestEnvironment := "request-environment"
 	namespaceKey := "test-namespace"
-	ctx := context.Background()
+	ctx := t.Context()
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
