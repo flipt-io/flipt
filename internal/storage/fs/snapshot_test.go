@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"context"
 	"embed"
 	"encoding/json"
 	"testing"
@@ -145,7 +144,7 @@ func TestSnapshot_GetFlag(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flag, err := snap.GetFlag(context.Background(), storage.NewResource(
+			flag, err := snap.GetFlag(t.Context(), storage.NewResource(
 				tt.namespace,
 				tt.key,
 			))
@@ -275,7 +274,7 @@ func TestSnapshot_ListFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			set, err := snap.ListFlags(context.Background(), &storage.ListRequest[storage.NamespaceRequest]{
+			set, err := snap.ListFlags(t.Context(), &storage.ListRequest[storage.NamespaceRequest]{
 				Predicate:   storage.NewNamespace(tt.namespace),
 				QueryParams: storage.QueryParams{},
 			})
@@ -330,7 +329,7 @@ func TestSnapshot_CountFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			count, err := snap.CountFlags(context.Background(), storage.NewNamespace(tt.namespace))
+			count, err := snap.CountFlags(t.Context(), storage.NewNamespace(tt.namespace))
 
 			if tt.wantErr != nil {
 				assert.EqualError(t, err, tt.wantErr.Error())
@@ -409,7 +408,7 @@ func TestSnapshot_GetEvaluationRules(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rules, err := snap.GetEvaluationRules(context.Background(), storage.NewResource(
+			rules, err := snap.GetEvaluationRules(t.Context(), storage.NewResource(
 				tt.namespace,
 				tt.flagKey,
 			))
@@ -475,7 +474,7 @@ func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
 	require.NoError(t, err)
 
 	// First get the rules to get valid rule IDs
-	rules, err := snap.GetEvaluationRules(context.Background(), storage.NewResource(
+	rules, err := snap.GetEvaluationRules(t.Context(), storage.NewResource(
 		"production",
 		"prod-flag-1",
 	))
@@ -531,7 +530,7 @@ func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dists, err := snap.GetEvaluationDistributions(
-				context.Background(),
+				t.Context(),
 				storage.NewResource(tt.namespace, tt.flagKey),
 				storage.NewID(tt.ruleID),
 			)
@@ -640,7 +639,7 @@ func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rollouts, err := snap.GetEvaluationRollouts(context.Background(), storage.NewResource(
+			rollouts, err := snap.GetEvaluationRollouts(t.Context(), storage.NewResource(
 				tt.namespace,
 				tt.flagKey,
 			))
@@ -800,7 +799,7 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			snapshot, err := snap.EvaluationNamespaceSnapshot(context.Background(), tt.namespace)
+			snapshot, err := snap.EvaluationNamespaceSnapshot(t.Context(), tt.namespace)
 
 			if tt.wantErr != nil {
 				assert.EqualError(t, err, tt.wantErr.Error())

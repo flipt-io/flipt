@@ -1,7 +1,6 @@
 package method
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,21 +10,21 @@ import (
 
 func TestCallbackValidateState(t *testing.T) {
 	t.Run("missing state parameter", func(t *testing.T) {
-		err := CallbackValidateState(context.Background(), "")
+		err := CallbackValidateState(t.Context(), "")
 		var unauthErr errors.ErrUnauthenticated
 		require.ErrorAs(t, err, &unauthErr)
 		require.Contains(t, err.Error(), "missing state parameter")
 	})
 
 	t.Run("missing metadata parameter", func(t *testing.T) {
-		err := CallbackValidateState(context.Background(), "state123")
+		err := CallbackValidateState(t.Context(), "state123")
 		var unauthErr errors.ErrUnauthenticated
 		require.ErrorAs(t, err, &unauthErr)
 		require.Contains(t, err.Error(), "missing metadata parameter")
 	})
 
 	t.Run("missing client state in metadata", func(t *testing.T) {
-		ctx := metadata.NewIncomingContext(context.Background(), metadata.MD{})
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.MD{})
 		err := CallbackValidateState(ctx, "state123")
 		var unauthErr errors.ErrUnauthenticated
 		require.ErrorAs(t, err, &unauthErr)
@@ -33,7 +32,7 @@ func TestCallbackValidateState(t *testing.T) {
 	})
 
 	t.Run("state mismatch", func(t *testing.T) {
-		ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("flipt_client_state", "otherstate"))
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.Pairs("flipt_client_state", "otherstate"))
 		err := CallbackValidateState(ctx, "state123")
 		var unauthErr errors.ErrUnauthenticated
 		require.ErrorAs(t, err, &unauthErr)
@@ -41,7 +40,7 @@ func TestCallbackValidateState(t *testing.T) {
 	})
 
 	t.Run("state matches", func(t *testing.T) {
-		ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("flipt_client_state", "state123"))
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.Pairs("flipt_client_state", "state123"))
 		err := CallbackValidateState(ctx, "state123")
 		require.NoError(t, err)
 	})

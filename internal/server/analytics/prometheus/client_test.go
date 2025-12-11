@@ -1,7 +1,6 @@
 package prometheus
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -45,7 +44,7 @@ func TestNew(t *testing.T) {
 	s, err := New(logger, cfg)
 	require.NoError(t, err)
 	assert.Equal(t, "prometheus", s.String())
-	_, _, err = s.GetFlagEvaluationsCount(context.Background(), &panalytics.FlagEvaluationsCountRequest{})
+	_, _, err = s.GetFlagEvaluationsCount(t.Context(), &panalytics.FlagEvaluationsCountRequest{})
 	require.NoError(t, err)
 
 	cfg.Analytics.Storage.Prometheus.URL = "\t"
@@ -54,7 +53,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestGetFlagEvaluationsCount(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	from := time.Now().Add(-time.Hour).UTC()
 	to := time.Now().UTC()
 	mock := NewMockPrometheusClient(t)
@@ -231,7 +230,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 }
 
 func TestGetBatchFlagEvaluationsCount(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	from := time.Now().Add(-time.Hour).UTC()
 	to := time.Now().UTC()
 	mock := NewMockPrometheusClient(t)

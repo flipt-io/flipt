@@ -91,7 +91,7 @@ func TestWalkConfigForSecrets_NestedField(t *testing.T) {
 		"file:nested": []byte("nested-resolved"),
 	})
 
-	err := walkConfigForSecrets(context.Background(), reflect.ValueOf(cfg).Elem(), manager)
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
 	require.NoError(t, err)
 	assert.Equal(t, "plain-value", cfg.SimpleField)
 	assert.Equal(t, "nested-resolved", cfg.NestedField.Value)
@@ -115,7 +115,7 @@ func TestWalkConfigForSecrets_MapWithStructValues(t *testing.T) {
 		"file:clientsecret": []byte("my-client-secret"),
 	})
 
-	err := walkConfigForSecrets(context.Background(), reflect.ValueOf(cfg).Elem(), manager)
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
 	require.NoError(t, err)
 
 	// Verify the map values were updated with resolved secrets
@@ -145,7 +145,7 @@ func TestWalkConfigForSecrets_MapWithMultipleProviders(t *testing.T) {
 		"file:google-secret":   []byte("google-client-secret"),
 	})
 
-	err := walkConfigForSecrets(context.Background(), reflect.ValueOf(cfg).Elem(), manager)
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
 	require.NoError(t, err)
 
 	keycloak := cfg.MapField["keycloak"]
@@ -170,7 +170,7 @@ func TestWalkConfigForSecrets_NoSecretReferences(t *testing.T) {
 
 	manager := newMockManager(map[string][]byte{})
 
-	err := walkConfigForSecrets(context.Background(), reflect.ValueOf(cfg).Elem(), manager)
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
 	require.NoError(t, err)
 
 	// Values should remain unchanged
@@ -196,7 +196,7 @@ func TestWalkConfigForSecrets_MixedValues(t *testing.T) {
 		"file:clientid": []byte("resolved-client-id"),
 	})
 
-	err := walkConfigForSecrets(context.Background(), reflect.ValueOf(cfg).Elem(), manager)
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
 	require.NoError(t, err)
 
 	provider := cfg.MapField["provider1"]

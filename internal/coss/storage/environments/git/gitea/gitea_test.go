@@ -1,7 +1,6 @@
 package gitea
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -25,7 +24,7 @@ func TestSCM_Propose(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ProposalRequest{
 		Base:  "main",
 		Head:  "feature",
@@ -52,7 +51,7 @@ func TestSCM_Propose_Error(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ProposalRequest{}
 
 	mockClient.EXPECT().CreatePullRequest("owner", "repo", mock.Anything).Return(nil, nil, errors.New("create error"))
@@ -71,7 +70,7 @@ func TestSCM_ListChanges(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ListChangesRequest{Base: "main", Head: "feature", Limit: 1}
 
 	commitTime := time.Now()
@@ -113,7 +112,7 @@ func TestSCM_ListChanges_Error(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := git.ListChangesRequest{Base: "main", Head: "feature"}
 
 	mockClient.EXPECT().CompareCommits("owner", "repo", "main", "feature").Return(nil, nil, errors.New("compare error"))
@@ -132,7 +131,7 @@ func TestSCM_ListProposals(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
@@ -165,7 +164,7 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
@@ -194,7 +193,7 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
@@ -232,7 +231,7 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
@@ -267,7 +266,7 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 		client:     mockClient,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")

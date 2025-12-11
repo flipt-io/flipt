@@ -63,7 +63,7 @@ func TestAuthenticationStoreRedis(t *testing.T) {
 	if redisAddr == "" {
 		t.Log("Starting redis container.")
 
-		redisContainer, err := setupRedis(context.Background())
+		redisContainer, err := setupRedis(t.Context())
 		require.NoError(t, err, "Failed to start redis container.")
 
 		redisCancel = redisContainer.Terminate
@@ -75,7 +75,7 @@ func TestAuthenticationStoreRedis(t *testing.T) {
 	})
 
 	t.Cleanup(func() {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 		defer cancel()
 
 		t.Log("Shutting down redis container.")

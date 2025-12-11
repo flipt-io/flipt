@@ -366,16 +366,7 @@ func TestAuthenticate_TokenAuth(t *testing.T) {
 	})
 
 	t.Run("validates environment token fallback", func(t *testing.T) {
-		originalToken := os.Getenv("VAULT_TOKEN")
-		defer func() {
-			if originalToken != "" {
-				os.Setenv("VAULT_TOKEN", originalToken)
-			} else {
-				os.Unsetenv("VAULT_TOKEN")
-			}
-		}()
-
-		os.Setenv("VAULT_TOKEN", "env-token")
+		t.Setenv("VAULT_TOKEN", "env-token")
 
 		cfg := Config{
 			AuthMethod: "token",
@@ -392,16 +383,8 @@ func TestAuthenticate_TokenAuth(t *testing.T) {
 	})
 
 	t.Run("detects missing token", func(t *testing.T) {
-		originalToken := os.Getenv("VAULT_TOKEN")
-		defer func() {
-			if originalToken != "" {
-				os.Setenv("VAULT_TOKEN", originalToken)
-			} else {
-				os.Unsetenv("VAULT_TOKEN")
-			}
-		}()
-
-		os.Unsetenv("VAULT_TOKEN")
+		// unset any token
+		t.Setenv("VAULT_TOKEN", "")
 
 		cfg := Config{
 			AuthMethod: "token",

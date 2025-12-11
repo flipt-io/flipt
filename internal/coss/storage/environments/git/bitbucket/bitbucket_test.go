@@ -6,7 +6,6 @@
 package bitbucket
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -49,7 +48,7 @@ func TestNewSCM(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := zap.NewNop()
-			ctx := context.Background()
+			ctx := t.Context()
 
 			scm, err := NewSCM(ctx, logger, tt.owner, tt.repo, tt.opts...)
 
@@ -155,7 +154,7 @@ func TestSCM_Propose(t *testing.T) {
 				commits:    mockCommits,
 			}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			got, err := scm.Propose(ctx, tt.request)
 
 			if tt.wantErr {
@@ -264,7 +263,7 @@ func TestSCM_ListChanges(t *testing.T) {
 				commits:    mockCommits,
 			}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			got, err := scm.ListChanges(ctx, tt.request)
 
 			if tt.wantErr {
@@ -394,7 +393,7 @@ func TestSCM_ListProposals(t *testing.T) {
 				commits:    mockCommits,
 			}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			got, err := scm.ListProposals(ctx, mockEnv)
 
 			if tt.wantErr {
@@ -487,7 +486,7 @@ func TestListProposalsWithMultiplePRs(t *testing.T) {
 		commits:    mockCommits,
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	result, err := scm.ListProposals(ctx, mockEnv)
 
 	require.NoError(t, err)

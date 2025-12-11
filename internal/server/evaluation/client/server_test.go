@@ -40,7 +40,7 @@ func TestNewServerAndSkipsAuthorization(t *testing.T) {
 	)
 
 	assert.NotNil(t, s)
-	assert.True(t, s.SkipsAuthorization(context.Background()))
+	assert.True(t, s.SkipsAuthorization(t.Context()))
 }
 
 func TestServer_EvaluationSnapshotNamespace_Success(t *testing.T) {
@@ -65,7 +65,7 @@ func TestServer_EvaluationSnapshotNamespace_Success(t *testing.T) {
 		EnvironmentKey: "env-key",
 		Key:            "ns-key",
 	}
-	resp, err := s.EvaluationSnapshotNamespace(context.Background(), req)
+	resp, err := s.EvaluationSnapshotNamespace(t.Context(), req)
 	require.NoError(t, err)
 	assert.Equal(t, expectedSnap, resp)
 }
@@ -93,7 +93,7 @@ func TestServer_EvaluationSnapshotNamespace_EnvNotFound(t *testing.T) {
 		EnvironmentKey: "env-key",
 		Key:            "ns-key",
 	}
-	resp, err := s.EvaluationSnapshotNamespace(context.Background(), req)
+	resp, err := s.EvaluationSnapshotNamespace(t.Context(), req)
 	require.NoError(t, err)
 	assert.Equal(t, expectedSnap, resp)
 }
@@ -115,7 +115,7 @@ func TestServer_EvaluationSnapshotNamespace_SnapshotError(t *testing.T) {
 		EnvironmentKey: "env-key",
 		Key:            "ns-key",
 	}
-	resp, err := s.EvaluationSnapshotNamespace(context.Background(), req)
+	resp, err := s.EvaluationSnapshotNamespace(t.Context(), req)
 	assert.Nil(t, resp)
 	assert.Error(t, err)
 }
@@ -144,7 +144,7 @@ func TestServer_EvaluationSnapshotNamespace_EtagMatch(t *testing.T) {
 			EnvironmentKey: "env-key",
 			Key:            "ns-key",
 		}
-		ctx = metadata.NewIncomingContext(context.Background(), metadata.Pairs("GrpcGateway-If-None-Match", digest))
+		ctx = metadata.NewIncomingContext(t.Context(), metadata.Pairs("GrpcGateway-If-None-Match", digest))
 	)
 
 	resp, err := s.EvaluationSnapshotNamespace(ctx, req)
@@ -178,7 +178,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_Success(t *testing.T) {
 		}()
 	})
 
-	stream := &mockStream{ctx: context.Background()}
+	stream := &mockStream{ctx: t.Context()}
 	stream.On("Send", mock.Anything).Return(nil)
 	s := NewServer(logger, envStore)
 	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
@@ -202,7 +202,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_SubscribeError(t *testing.T) {
 
 	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(nil, errors.New("subscribe error"))
 
-	stream := &mockStream{ctx: context.Background()}
+	stream := &mockStream{ctx: t.Context()}
 	stream.On("Send", mock.Anything).Return(nil)
 	s := NewServer(logger, envStore)
 	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}

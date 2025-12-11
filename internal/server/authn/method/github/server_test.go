@@ -55,7 +55,7 @@ func (o *OAuth2Mock) Client(ctx context.Context, t *oauth2.Token) *http.Client {
 
 func Test_Server(t *testing.T) {
 	t.Run("should return the authorize url correctly", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -76,7 +76,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("should authorize the user correctly", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -144,7 +144,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("store all orgs and teams to metadata", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -203,7 +203,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("store all allowed orgs that matches orgs of the user to metadata", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -256,7 +256,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("store all allowed teams that matches teams of the user to metadata", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -325,7 +325,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("store all teams of allowed orgs to metadata", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -385,7 +385,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("should authorize successfully when the user is a member of one of the allowed organizations", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -432,7 +432,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("should not authorize when the user is not a member of one of the allowed organizations", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -478,7 +478,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("should authorize successfully when the user is a member of one of the allowed organizations and it's inside the allowed team", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -528,7 +528,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("should not authorize when the user is a member of one of the allowed organizations and but it's not inside the allowed team", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -577,7 +577,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("should return an internal error when github user route returns a code different from 200 (OK)", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -600,7 +600,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("should return an internal error when github user orgs route returns a code different from 200 (OK)", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -632,7 +632,7 @@ func Test_Server(t *testing.T) {
 	})
 
 	t.Run("should return an internal error when github user teams route returns a code different from 200 (OK)", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
 			Method: config.AuthenticationMethodGithubConfig{
@@ -676,7 +676,7 @@ func Test_Server(t *testing.T) {
 
 func Test_Server_SkipsAuthentication(t *testing.T) {
 	server := &Server{}
-	assert.True(t, server.SkipsAuthentication(context.Background()))
+	assert.True(t, server.SkipsAuthentication(t.Context()))
 }
 
 func TestCallbackURL(t *testing.T) {
@@ -742,7 +742,7 @@ func newTestServer(t *testing.T, cfg config.AuthenticationMethod[config.Authenti
 
 	// Setup gRPC Client
 	conn, err := grpc.DialContext(
-		context.Background(),
+		t.Context(),
 		"",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {

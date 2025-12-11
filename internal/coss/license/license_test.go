@@ -37,7 +37,7 @@ func TestManager_validateAndSet_NoLicenseKey(t *testing.T) {
 		cache:   &licenseCache{},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	manager.validateAndSet(ctx)
 
 	// Should fallback to OSS when no license key is provided
@@ -55,7 +55,7 @@ func TestManager_validateAndSet_FingerprintError(t *testing.T) {
 		cache:         &licenseCache{},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	manager.validateAndSet(ctx)
 
 	// Should fallback to OSS when fingerprint fails
@@ -70,7 +70,7 @@ func TestManager_Shutdown_OnlineLicense(t *testing.T) {
 		Expiry: &expiry,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	manager := &ManagerImpl{
 		logger:        logger,
@@ -86,7 +86,7 @@ func TestManager_Shutdown_OnlineLicense(t *testing.T) {
 		manager.periodicRevalidate(ctx)
 	}()
 
-	err := manager.Shutdown(context.Background())
+	err := manager.Shutdown(t.Context())
 	require.NoError(t, err)
 }
 
@@ -98,7 +98,7 @@ func TestManager_Shutdown_OfflineLicense(t *testing.T) {
 		Expiry: &expiry,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	manager := &ManagerImpl{
 		logger:        logger,
@@ -114,7 +114,7 @@ func TestManager_Shutdown_OfflineLicense(t *testing.T) {
 		manager.periodicRevalidate(ctx)
 	}()
 
-	err := manager.Shutdown(context.Background())
+	err := manager.Shutdown(t.Context())
 	require.NoError(t, err)
 }
 
@@ -138,7 +138,7 @@ func TestManager_validateOffline_Success(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// This will fail because we don't have a real license file, but we can test the file reading logic
 	_, err = manager.validateOffline(ctx)
@@ -156,7 +156,7 @@ func TestManager_validateOffline_FileNotFound(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	_, err := manager.validateOffline(ctx)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "no such file or directory")
@@ -229,7 +229,7 @@ func TestManager_validateAndSet_OfflineLicense(t *testing.T) {
 		cache:       &licenseCache{},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	manager.validateAndSet(ctx)
 
 	// Should fallback to OSS when offline license validation fails (with mock data)
@@ -266,7 +266,7 @@ func TestManager_Shutdown_FingerprintError(t *testing.T) {
 		Expiry: &expiry,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	manager := &ManagerImpl{
 		logger:        logger,
@@ -282,7 +282,7 @@ func TestManager_Shutdown_FingerprintError(t *testing.T) {
 		manager.periodicRevalidate(ctx)
 	}()
 
-	err := manager.Shutdown(context.Background())
+	err := manager.Shutdown(t.Context())
 	require.Error(t, err) // Should return error when fingerprint fails
 	assert.Contains(t, err.Error(), "fingerprint error")
 }
@@ -290,7 +290,7 @@ func TestManager_Shutdown_FingerprintError(t *testing.T) {
 func TestManager_Shutdown_NilLicense(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	manager := &ManagerImpl{
 		logger:        logger,
@@ -306,7 +306,7 @@ func TestManager_Shutdown_NilLicense(t *testing.T) {
 		manager.periodicRevalidate(ctx)
 	}()
 
-	err := manager.Shutdown(context.Background())
+	err := manager.Shutdown(t.Context())
 	require.NoError(t, err) // Should not error when license is nil
 }
 

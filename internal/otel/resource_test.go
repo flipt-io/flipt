@@ -1,7 +1,6 @@
 package otel
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,7 +29,7 @@ func TestNewResourceDefault(t *testing.T) {
 			for k, v := range tt.envs {
 				t.Setenv(k, v)
 			}
-			r, err := NewResource(context.Background(), "test")
+			r, err := NewResource(t.Context(), "test")
 			require.NoError(t, err)
 
 			want := make(map[attribute.Key]attribute.KeyValue)

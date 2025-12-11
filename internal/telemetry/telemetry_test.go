@@ -2,7 +2,6 @@ package telemetry
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -134,7 +133,7 @@ func TestPing(t *testing.T) {
 				}
 			)
 
-			err := reporter.ping(context.Background(), mockFile)
+			err := reporter.ping(t.Context(), mockFile)
 			require.NoError(t, err)
 
 			msg, ok := mockAnalytics.msg.(segment.Track)
@@ -179,7 +178,7 @@ func TestPing_Existing(t *testing.T) {
 		}
 	)
 
-	err := reporter.ping(context.Background(), mockFile)
+	err := reporter.ping(t.Context(), mockFile)
 	require.NoError(t, err)
 
 	msg, ok := mockAnalytics.msg.(segment.Track)
@@ -214,7 +213,7 @@ func TestPing_Disabled(t *testing.T) {
 		}
 	)
 
-	err := reporter.ping(context.Background(), &mockFile{})
+	err := reporter.ping(t.Context(), &mockFile{})
 	require.NoError(t, err)
 
 	assert.Nil(t, mockAnalytics.msg)
@@ -247,7 +246,7 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 	path := filepath.Join(tmpDir, filename)
 	defer os.Remove(path)
 
-	err := reporter.report(context.Background())
+	err := reporter.report(t.Context())
 	require.NoError(t, err)
 
 	msg, ok := mockAnalytics.msg.(segment.Track)

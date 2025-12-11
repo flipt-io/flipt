@@ -62,7 +62,7 @@ func TestGetLatestRelease(t *testing.T) {
 				client: srv,
 			}
 
-			got, err := rc.getLatestRelease(context.Background())
+			got, err := rc.getLatestRelease(t.Context())
 			if tt.err != nil {
 				assert.Equal(t, fmt.Sprintf("checking for latest version: %s", tt.err.Error()), err.Error())
 				return
@@ -128,7 +128,7 @@ func TestCheck(t *testing.T) {
 				htmlURL: tt.htmlURL,
 			}
 
-			got, err := check(context.Background(), rc, tt.version)
+			got, err := check(t.Context(), rc, tt.version)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})

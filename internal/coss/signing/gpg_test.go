@@ -177,7 +177,7 @@ func TestGPGSigner_GetSecretValue_Errors(t *testing.T) {
 	signer, err := NewGPGSigner(secretRef, "test@example.com", mockManager, logger)
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("handles secret manager error", func(t *testing.T) {
 		expectedRef := secrets.Reference{
@@ -319,7 +319,7 @@ func TestGPGSigner_ErrorHandling(t *testing.T) {
 	signer, err := NewGPGSigner(secretRef, "test@example.com", mockManager, logger)
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("SignCommit handles loadEntity errors", func(t *testing.T) {
 		// Reset entity to force loading
