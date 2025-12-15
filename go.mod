@@ -37,7 +37,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/h2non/gock v1.2.0
-	github.com/hashicorp/cap v0.11.0
+	github.com/hashicorp/cap v0.12.0
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/iancoleman/strcase v0.3.0
