@@ -103,12 +103,12 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: flipt-linux
           path: tmp/dist
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: flipt-darwin
           path: tmp/dist
