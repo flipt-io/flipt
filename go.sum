@@ -789,8 +789,8 @@ github.com/tklauser/go-sysconf v0.3.15 h1:VE89k0criAymJ/Os65CSn1IXaol+1wrsFHEB8O
 github.com/tklauser/go-sysconf v0.3.15/go.mod h1:Dmjwr6tYFIseJw7a3dRLJfsHAMXZ3nEnL/aZY+0IuI4=
 github.com/tklauser/numcpus v0.10.0 h1:18njr6LDBk1zuna922MgdjQuJFjrdppsZG60sHGfjso=
 github.com/tklauser/numcpus v0.10.0/go.mod h1:BiTKazU708GQTYF4mB+cmlpT2Is1gLk7XVuEeem8LsQ=
-github.com/tursodatabase/libsql-client-go v0.0.0-20251205113610-b69dd6e475fc h1:uhpFwk9G+wp9JpPnaABzwyIUz1P4EYIkEKKivyJVO14=
-github.com/tursodatabase/libsql-client-go v0.0.0-20251205113610-b69dd6e475fc/go.mod h1:08inkKyguB6CGGssc/JzhmQWwBgFQBgjlYFjxjRh7nU=
+github.com/tursodatabase/libsql-client-go v0.0.0-20251219100830-236aa1ff8acc h1:lzi/5fg2EfinRlh3v//YyIhnc4tY7BTqazQGwb1ar+0=
+github.com/tursodatabase/libsql-client-go v0.0.0-20251219100830-236aa1ff8acc/go.mod h1:08inkKyguB6CGGssc/JzhmQWwBgFQBgjlYFjxjRh7nU=
 github.com/twmb/franz-go v1.20.5 h1:Gj9jdkvlddf8pdrehvtDHLPult5JS8q65oITUff6dXo=
 github.com/twmb/franz-go v1.20.5/go.mod h1:gZmp2nTNfKuiKKND8qAsv28VdMlr/Gf4BIcsj99Bmtk=
 github.com/twmb/franz-go/pkg/kadm v1.17.1 h1:Bt02Y/RLgnFO2NP2HVP1kd2TFtGRiJZx+fSArjZDtpw=
