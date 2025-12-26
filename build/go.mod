@@ -24,7 +24,7 @@ require (
 	go.flipt.io/flipt/sdk/go v0.11.0
 	go.flipt.io/stew v0.0.0-20240109140408-33ad11ecef1c
 	golang.org/x/mod v0.31.0
-	golang.org/x/sync v0.18.0
+	golang.org/x/sync v0.19.0
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
