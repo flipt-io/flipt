@@ -67,7 +67,7 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 		return nil, 0, err
 	}
 
-	err = otelsql.RegisterDBStatsMetrics(sql,
+	_, err = otelsql.RegisterDBStatsMetrics(sql,
 		otelsql.WithAttributes(
 			attribute.Key("driver").String(driver.String()),
 		))
