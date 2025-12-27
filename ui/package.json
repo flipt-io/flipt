@@ -54,7 +54,7 @@
     "lucide-react": "^0.542.0",
     "react": "^19.2.3",
     "react-chartjs-2": "^5.3.0",
-    "react-dom": "^19.2.0",
+    "react-dom": "^19.2.3",
     "react-redux": "^9.1.2",
     "react-router": "^7.9.5",
     "sonner": "^2.0.7",
