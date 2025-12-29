@@ -42,7 +42,7 @@ require (
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/keygen-sh/keygen-go/v3 v3.3.0
-	github.com/keygen-sh/machineid v1.1.1
+	github.com/keygen-sh/machineid v1.1.2
 	github.com/ktrysmt/go-bitbucket v0.9.88
 	github.com/kubescape/go-git-url v0.0.31
 	github.com/magefile/mage v1.15.0
