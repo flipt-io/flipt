@@ -92,7 +92,10 @@ test.describe('Namespaces', () => {
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Namespaces' }).click();
     await page.getByRole('link', { name: 'Delete , no delete' }).click();
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page
+      .getByRole('dialog', { name: 'Delete Namespace' })
+      .getByRole('button', { name: 'Delete' })
+      .click();
     await expect(
       page.getByText(
         'namespace "no-delete" cannot be deleted; flags must be deleted first'
