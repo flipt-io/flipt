@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	code.gitea.io/sdk/gitea v0.22.1
-	cuelang.org/go v0.15.1
+	cuelang.org/go v0.15.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/ClickHouse/clickhouse-go/v2 v2.42.0
 	github.com/MakeNowJust/heredoc v1.0.0
