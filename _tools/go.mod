@@ -3,7 +3,7 @@ module tools
 go 1.25.0
 
 require (
-	github.com/bufbuild/buf v1.62.1
+	github.com/bufbuild/buf v1.63.0
 	github.com/golangci/golangci-lint/v2 v2.7.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.4
 	github.com/rakyll/gotest v0.0.6
@@ -67,7 +67,7 @@ require (
 	github.com/bombsimon/wsl/v5 v5.3.0 // indirect
 	github.com/breml/bidichk v0.3.3 // indirect
 	github.com/breml/errchkjson v0.4.1 // indirect
-	github.com/bufbuild/protocompile v0.14.2-0.20251223142729-db46c1b9d34e // indirect
+	github.com/bufbuild/protocompile v0.14.2-0.20260105175043-4d8d90b1c6b8 // indirect
 	github.com/bufbuild/protoplugin v0.0.0-20250218205857-750e09ce93e1 // indirect
 	github.com/butuzov/ireturn v0.4.0 // indirect
 	github.com/butuzov/mirror v1.3.0 // indirect
