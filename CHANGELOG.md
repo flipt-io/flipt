@@ -3,6 +3,22 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0](https://github.com/flipt-io/flipt/releases/tag/v2.5.0) - 2026-01-09
+
+### Added
+
+- **Custom commit and PR templates**: Configure server-wide default templates for commit messages, PR titles, and PR bodies per storage backend (#5091)
+- **GitHub auth fallbacks**: Provide sensible fallback values for name and email when GitHub users don't have public profile information configured (#5154)
+- **SSH remote URL normalization**: Automatically normalize HTTPS URLs to SCP-style format when SSH credentials are provided, ensuring Git operations work correctly (#5130)
+
+### Fixed
+
+- **OIDC secret resolution**: Resolve secret references (`${secret:file:...}`) in OIDC provider configuration for `client_id` and `client_secret` fields (#5153)
+
+### Dependencies
+
+- Updated various dependencies including OpenTelemetry, OPA, gRPC ecosystem, Redis client, and UI libraries
+
 ## [2.4.0](https://github.com/flipt-io/flipt/releases/tag/v2.4.0) - 2025-11-20
 
 ### Added
