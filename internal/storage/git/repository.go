@@ -397,7 +397,7 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		refSpecs = append(refSpecs, refSpec)
 	}
 
-	if err := r.FetchContext(ctx, &git.FetchOptions{
+	opts := &git.FetchOptions{
 		RemoteName:      r.remote.Name,
 		Auth:            r.auth,
 		CABundle:        r.caBundle,
@@ -405,7 +405,17 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		RefSpecs:        refSpecs,
 		Prune:           true,
 		Tags:            plumbing.NoTags,
-	}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+	}
+
+	// For bare repositories (i.e., repositories without a working tree),
+	// limit the fetch to a depth of 1 so that only the latest commit is
+	// retrieved. Since no checkout will occur, a full history is unnecessary
+	// and would only increase network transfer and storage usage.
+	if !r.isNormalRepo {
+		opts.Depth = 1
+	}
+
+	if err := r.FetchContext(ctx, opts); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return err
 	}
 
@@ -413,7 +423,6 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	if err != nil {
 		return err
 	}
-
 	if err := allRefs.ForEach(func(ref *plumbing.Reference) error {
 		// we're only interested in updates to remotes
 		if !ref.Name().IsRemote() {
@@ -430,6 +439,67 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		return nil
 	}); err != nil {
 		return err
+	}
+
+	// Get all existing local branch refs
+	allLocalRefs, err := r.Storer.IterReferences()
+	if err != nil {
+		return fmt.Errorf("failed to get local refs: %w", err)
+	}
+
+	existingHeads := make(map[string]struct{})
+	if err := allLocalRefs.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Name().IsBranch() {
+			branchName := strings.TrimPrefix(ref.Name().String(), "refs/heads/")
+			existingHeads[branchName] = struct{}{}
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to iterate local refs: %w", err)
+	}
+
+	// Update refs for branches that exist on remote
+	for name, hash := range updatedRefs {
+		ref := plumbing.NewHashReference(plumbing.NewBranchReferenceName(name), hash)
+		if err := r.Storer.SetReference(ref); err != nil {
+			return fmt.Errorf("failed to set reference %s: %w", name, err)
+		}
+		delete(existingHeads, name)
+	}
+
+	// Remove local refs for branches that no longer exist on remote
+	for branchName := range existingHeads {
+		refName := plumbing.NewBranchReferenceName(branchName)
+		// Check if this branch is one we're tracking
+		isTracked := false
+		for _, head := range heads {
+			if refMatch(branchName, head) {
+				isTracked = true
+				break
+			}
+		}
+		if isTracked {
+			if err := r.Storer.RemoveReference(refName); err != nil {
+				return fmt.Errorf("failed to remove reference %s: %w", branchName, err)
+			}
+		}
+	}
+
+	if opts.Depth == 1 {
+		// When performing a depth=1 fetch, maintain the shallow boundary in the object store.
+		// For shallow clones, we track which commits are shallow to prevent operations that
+		// require complete commit history from proceeding.
+		shallows, err := r.Storer.Shallow()
+		if err != nil {
+			return fmt.Errorf("failed to get shallows: %w", err)
+		}
+		shallows = slices.AppendSeq(shallows, maps.Values(updatedRefs))
+		slices.SortFunc(shallows, func(a plumbing.Hash, b plumbing.Hash) int {
+			return a.Compare(b.Bytes())
+		})
+		if err := r.Storer.SetShallow(slices.Compact(shallows)); err != nil {
+			return fmt.Errorf("failed to set shallows: %w", err)
+		}
 	}
 
 	return nil
