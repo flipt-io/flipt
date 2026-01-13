@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 	"sync"
 
+	prom "github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
@@ -62,9 +63,9 @@ import (
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	grpc_health "google.golang.org/grpc/health/grpc_health_v1"
 )
 
@@ -201,6 +202,25 @@ func NewGRPCServer(
 	opentelemetry.SetTracerProvider(tracingProvider)
 	opentelemetry.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
+	unaryMetricsInterceptor := func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, h grpc.UnaryHandler) (any, error) {
+		// fallback implementation
+		return h(ctx, req)
+	}
+
+	streamMetricsInterceptor := func(srv any, ss grpc.ServerStream, _ *grpc.StreamServerInfo, h grpc.StreamHandler) error {
+		// fallback implementation
+		return h(srv, ss)
+	}
+
+	if cfg.Metrics.Enabled {
+		cs := grpcprom.NewServerMetrics(
+			grpcprom.WithServerHandlingTimeHistogram(),
+		)
+		prom.MustRegister(cs)
+		unaryMetricsInterceptor = cs.UnaryServerInterceptor()
+		streamMetricsInterceptor = cs.StreamServerInterceptor()
+	}
+
 	// base inteceptors
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
@@ -215,8 +235,7 @@ func NewGRPCServer(
 			}
 			return true
 		})),
-
-		grpc_prometheus.UnaryServerInterceptor,
+		unaryMetricsInterceptor,
 		middlewaregrpc.ErrorUnaryInterceptor,
 	}
 
@@ -233,7 +252,7 @@ func NewGRPCServer(
 			}
 			return true
 		})),
-		grpc_prometheus.StreamServerInterceptor,
+		streamMetricsInterceptor,
 		middlewaregrpc.ErrorStreamInterceptor,
 	}
 
@@ -413,8 +432,6 @@ func NewGRPCServer(
 		return nil
 	})
 
-	grpc_prometheus.EnableHandlingTimeHistogram()
-	grpc_prometheus.Register(grpcServer)
 	reflection.Register(grpcServer)
 
 	server.Server = grpcServer
