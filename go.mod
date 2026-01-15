@@ -21,7 +21,7 @@ require (
 	github.com/docker/go-connections v0.6.0
 	github.com/fatih/color v1.18.0
 	github.com/fullstorydev/grpchan v1.1.2
-	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-chi/chi/v5 v5.2.4
 	github.com/go-chi/cors v1.2.2
 	github.com/go-git/go-billy/v5 v5.7.0
 	github.com/go-git/go-git/v5 v5.16.4
