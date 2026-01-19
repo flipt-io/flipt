@@ -18,6 +18,6 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Validate Renovate Config
-        uses: suzuki-shunsuke/github-action-renovate-config-validator@v1.1.1
+        uses: suzuki-shunsuke/github-action-renovate-config-validator@v2.0.0
         with:
           validator_version: "41.91.1"
