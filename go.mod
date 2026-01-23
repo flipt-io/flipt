@@ -19,7 +19,7 @@ require (
 	github.com/docker/go-connections v0.6.0
 	github.com/fatih/color v1.18.0
 	github.com/fullstorydev/grpchan v1.1.2
-	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-chi/chi/v5 v5.2.4
 	github.com/go-chi/cors v1.2.2
 	github.com/go-git/go-billy/v6 v6.0.0-20251126203821-7f9c95185ee0
 	github.com/go-git/go-git/v6 v6.0.0-20251202212438-5d40cdde8ca0
