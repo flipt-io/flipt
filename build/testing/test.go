@@ -45,7 +45,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 	azurite := client.Container().
 		From("mcr.microsoft.com/azure-storage/azurite").
 		WithExposedPort(10000).
-		WithDefaultArgs([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
+		WithDefaultArgs([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent", "--skipApiVersionCheck"}).
 		AsService()
 
 	gcs := client.Container().

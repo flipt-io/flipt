@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/storage v1.59.1
 	code.gitea.io/sdk/gitea v0.22.1
 	dagger.io/dagger v0.19.10
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.3
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.4
 	github.com/aws/aws-sdk-go-v2 v1.41.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.7
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.95.1
