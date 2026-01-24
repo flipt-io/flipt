@@ -74,7 +74,7 @@
     "@types/loadable__component": "^5.13.10",
     "@types/node": "^18.19.130",
     "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.2",
+    "@types/react-dom": "^19.2.3",
     "@types/react-redux": "^7.1.34",
     "@types/react-router-dom": "^5.3.3",
     "@types/uuid": "^9.0.8",
