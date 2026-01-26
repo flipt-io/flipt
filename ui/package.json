@@ -42,7 +42,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@tanstack/react-table": "^8.20.6",
     "@uiw/codemirror-theme-tokyo-night": "^4.25.4",
-    "@uiw/react-codemirror": "^4.25.2",
+    "@uiw/react-codemirror": "^4.25.4",
     "buffer": "^6.0.3",
     "chart.js": "^4.5.1",
     "chartjs-adapter-date-fns": "^3.0.0",
