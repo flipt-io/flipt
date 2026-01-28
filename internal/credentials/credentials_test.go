@@ -1,6 +1,13 @@
 package credentials
 
 import (
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/go-git/go-git/v6/plumbing/transport"
@@ -10,6 +17,8 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
+	"golang.org/x/oauth2"
 )
 
 func TestNew(t *testing.T) {
@@ -297,9 +306,10 @@ func TestCredential_APIAuthentication(t *testing.T) {
 	logger := zap.NewNop()
 
 	tests := []struct {
-		name      string
-		config    *config.CredentialConfig
-		checkAuth func(*testing.T, *APIAuth)
+		name       string
+		config     *config.CredentialConfig
+		checkAuth  func(*testing.T, *APIAuth)
+		checkToken func(*testing.T, oauth2.TokenSource, error)
 	}{
 		{
 			name: "access token credential",
@@ -316,6 +326,14 @@ func TestCredential_APIAuthentication(t *testing.T) {
 				assert.Empty(t, auth.Username)
 				assert.Empty(t, auth.Password)
 			},
+			checkToken: func(t *testing.T, ts oauth2.TokenSource, err error) {
+				require.NoError(t, err)
+				require.NotNil(t, ts)
+				token, err := ts.Token()
+				require.NoError(t, err)
+				assert.Equal(t, "Bearer", token.Type())
+				assert.Equal(t, "glpat-abc123", token.AccessToken)
+			},
 		},
 		{
 			name: "basic auth credential",
@@ -331,6 +349,14 @@ func TestCredential_APIAuthentication(t *testing.T) {
 				assert.Empty(t, auth.Token)
 				assert.Equal(t, "user", auth.Username)
 				assert.Equal(t, "pass", auth.Password)
+			},
+			checkToken: func(t *testing.T, ts oauth2.TokenSource, err error) {
+				require.NoError(t, err)
+				require.NotNil(t, ts)
+				token, err := ts.Token()
+				require.NoError(t, err)
+				assert.Equal(t, "Basic", token.Type())
+				assert.Equal(t, "dXNlcjpwYXNz", token.AccessToken)
 			},
 		},
 		{
@@ -350,6 +376,10 @@ func TestCredential_APIAuthentication(t *testing.T) {
 				assert.Empty(t, auth.Username)
 				assert.Empty(t, auth.Password)
 			},
+			checkToken: func(t *testing.T, ts oauth2.TokenSource, err error) {
+				require.Error(t, err)
+				assert.Nil(t, ts)
+			},
 		},
 	}
 
@@ -366,6 +396,69 @@ func TestCredential_APIAuthentication(t *testing.T) {
 			if tt.checkAuth != nil {
 				tt.checkAuth(t, auth)
 			}
+
+			token, err := c.APIAuthTokenSource()
+			if tt.checkToken != nil {
+				tt.checkToken(t, token, err)
+			}
 		})
 	}
+}
+
+func TestGithubAppCredentials(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /app/installations/10/access_tokens", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		_, err := w.Write([]byte(`
+	{
+  "token": "ghs_MockAccessToken",
+  "expires_at": "2046-01-29T14:12:34Z",
+  "permissions": {
+    "contents": "read",
+    "metadata": "read"
+  }}`))
+		assert.NoError(t, err)
+	})
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	c := &Credential{
+		config: &config.CredentialConfig{
+			Type: config.CredentialTypeGithubApp,
+			GitHubApp: &config.GitHubAppConfig{
+				ClientID:       "1234",
+				InstallationID: 10,
+				ApiURL:         srv.URL,
+				PrivateKeyBytes: func(t *testing.T) string {
+					key, err := rsa.GenerateKey(rand.Reader, 2048)
+					require.NoError(t, err)
+					der := x509.MarshalPKCS1PrivateKey(key)
+					block := &pem.Block{
+						Type:  "RSA PRIVATE KEY",
+						Bytes: der,
+					}
+					var buf bytes.Buffer
+					err = pem.Encode(&buf, block)
+					require.NoError(t, err)
+					return buf.String()
+				}(t),
+			},
+		},
+	}
+	t.Run("auth token for SCM", func(t *testing.T) {
+		ts, err := c.APIAuthTokenSource()
+		require.NoError(t, err)
+		require.NotNil(t, ts)
+		token, err := ts.Token()
+		require.NoError(t, err)
+		assert.Equal(t, "Bearer", token.Type())
+		assert.Equal(t, "ghs_MockAccessToken", token.AccessToken)
+	})
+
+	t.Run("auth token for go-git http client", func(t *testing.T) {
+		ghau, err := newGitHubAppAuth(zaptest.NewLogger(t), c.config.GitHubApp)
+		require.NoError(t, err)
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		ghau.SetAuth(r)
+		assert.Equal(t, "Basic eC10b2tlbi1hdXRoOmdoc19Nb2NrQWNjZXNzVG9rZW4=", r.Header.Get("Authorization"))
+	})
 }

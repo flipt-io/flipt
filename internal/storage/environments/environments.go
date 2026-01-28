@@ -307,7 +307,11 @@ func (f *EnvironmentFactory) createGitHubSCM(ctx context.Context, scmConfig *con
 		if err != nil {
 			return nil, err
 		}
-		opts = append(opts, github.WithApiAuth(creds.APIAuthentication()))
+		ts, err := creds.APIAuthTokenSource()
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, github.WithApiAuth(ts))
 	}
 
 	scm, err := github.NewSCM(ctx, f.logger, repoOwner, repoName, opts...)
