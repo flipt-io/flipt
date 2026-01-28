@@ -1,11 +1,17 @@
 package credentials
 
 import (
+	"encoding/base64"
 	"fmt"
+	"net/http"
+	"os"
+
+	"golang.org/x/oauth2"
 
 	"github.com/go-git/go-git/v6/plumbing/transport"
 	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
 	gitssh "github.com/go-git/go-git/v6/plumbing/transport/ssh"
+	"github.com/jferrl/go-githubauth"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
@@ -83,9 +89,67 @@ func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) 
 			Username: "x-token-auth",
 			Password: *c.config.AccessToken,
 		}, nil
+	case config.CredentialTypeGithubApp:
+		return newGitHubAppAuth(c.logger, c.config.GitHubApp)
 	}
 
 	return nil, fmt.Errorf("unexpected credential type: %q", c.config.Type)
+}
+
+var _ githttp.AuthMethod = (*GitHubAppAuth)(nil)
+
+type GitHubAppAuth struct {
+	logger         *zap.Logger
+	clientID       string
+	tokenSource    oauth2.TokenSource
+	installationID int64
+}
+
+func (*GitHubAppAuth) Name() string {
+	return "http-github-app"
+}
+
+func (g *GitHubAppAuth) String() string {
+	return fmt.Sprintf("%s - %s/%d", g.Name(), g.clientID, g.installationID)
+}
+
+func (g *GitHubAppAuth) SetAuth(r *http.Request) {
+	token, err := g.tokenSource.Token()
+	if err != nil {
+		g.logger.Error("failed to get GitHub App token", zap.Error(err))
+		return
+	}
+	if !token.Valid() {
+		g.logger.Error("GitHub App token is invalid", zap.String("token_type", token.Type()))
+		return
+	}
+	r.SetBasicAuth("x-token-auth", token.AccessToken)
+}
+
+func newGitHubAppAuth(logger *zap.Logger, c *config.GitHubAppConfig) (*GitHubAppAuth, error) {
+	privateKey := []byte(c.PrivateKeyBytes)
+	if c.PrivateKeyPath != "" {
+		var err error
+		privateKey, err = os.ReadFile(c.PrivateKeyPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read private key: %w", err)
+		}
+	}
+	appToken, err := githubauth.NewApplicationTokenSource(c.ClientID, privateKey)
+	if err != nil {
+		return nil, err
+	}
+	ops := make([]githubauth.InstallationTokenSourceOpt, 0, 1)
+	if c.ApiURL != "" {
+		ops = append(ops, githubauth.WithEnterpriseURL(c.ApiURL))
+	}
+
+	return &GitHubAppAuth{
+		logger:         logger,
+		tokenSource:    githubauth.NewInstallationTokenSource(c.InstallationID, appToken, ops...),
+		clientID:       c.ClientID,
+		installationID: c.InstallationID,
+	}, nil
 }
 
 // APIAuth represents different ways to authenticate with SCM APIs
@@ -126,6 +190,41 @@ func (c *Credential) APIAuthentication() *APIAuth {
 		}
 	}
 	return &APIAuth{}
+}
+
+func (c *Credential) APIAuthTokenSource() (oauth2.TokenSource, error) {
+	switch c.config.Type {
+	case config.CredentialTypeBasic:
+		return oauth2.StaticTokenSource(&oauth2.Token{
+			TokenType:   "Basic",
+			AccessToken: base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", c.config.Basic.Username, c.config.Basic.Password)),
+		}), nil
+
+	case config.CredentialTypeAccessToken:
+		return oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: *c.config.AccessToken},
+		), nil
+	case config.CredentialTypeGithubApp:
+		privateKey := []byte(c.config.GitHubApp.PrivateKeyBytes)
+		if c.config.GitHubApp.PrivateKeyPath != "" {
+			var err error
+			privateKey, err = os.ReadFile(c.config.GitHubApp.PrivateKeyPath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read private key for api auth: %w", err)
+			}
+		}
+		appTokenSource, err := githubauth.NewApplicationTokenSource(c.config.GitHubApp.ClientID, privateKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to setup Github App token for api auth: %w", err)
+		}
+		ops := make([]githubauth.InstallationTokenSourceOpt, 0, 1)
+		if c.config.GitHubApp.ApiURL != "" {
+			ops = append(ops, githubauth.WithEnterpriseURL(c.config.GitHubApp.ApiURL))
+		}
+		return githubauth.NewInstallationTokenSource(c.config.GitHubApp.InstallationID, appTokenSource, ops...), nil
+	default:
+		return nil, fmt.Errorf("unsupported api auth type: %s", c.config.Type)
+	}
 }
 
 // Type returns the credential type.

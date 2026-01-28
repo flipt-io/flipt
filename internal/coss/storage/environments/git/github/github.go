@@ -7,7 +7,6 @@ package github
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"iter"
 	"net/http"
@@ -17,9 +16,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v75/github"
-	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
-	"go.flipt.io/flipt/internal/credentials"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -49,9 +46,9 @@ type SCM struct {
 }
 
 type gitHubOptions struct {
+	ctx        context.Context
 	apiURL     *url.URL
 	httpClient *http.Client
-	apiAuth    *credentials.APIAuth
 }
 
 type ClientOption func(*gitHubOptions)
@@ -72,15 +69,16 @@ func WithApiURL(apiURL *url.URL) ClientOption {
 	}
 }
 
-func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
+func WithApiAuth(apiAuth oauth2.TokenSource) ClientOption {
 	return func(c *gitHubOptions) {
-		c.apiAuth = apiAuth
+		c.httpClient = oauth2.NewClient(c.ctx, apiAuth)
 	}
 }
 
 // NewSCM creates a new GitHub SCM instance.
 func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, opts ...ClientOption) (*SCM, error) {
 	githubOpts := &gitHubOptions{
+		ctx:        ctx,
 		httpClient: http.DefaultClient,
 	}
 
@@ -89,29 +87,8 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 	}
 
 	client := github.NewClient(githubOpts.httpClient)
-
 	if githubOpts.apiURL != nil {
 		client.BaseURL = githubOpts.apiURL
-	}
-
-	if githubOpts.apiAuth != nil {
-		// Configure API client authentication
-		apiAuth := githubOpts.apiAuth
-		switch apiAuth.Type() {
-		case config.CredentialTypeAccessToken:
-			// Use token for API operations
-			client = client.WithAuthToken(apiAuth.Token)
-		case config.CredentialTypeBasic:
-			// Use basic auth for API operations - convert to OAuth2 token format
-			client = github.NewClient(oauth2.NewClient(ctx, oauth2.StaticTokenSource(
-				&oauth2.Token{
-					TokenType:   "Basic",
-					AccessToken: base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", apiAuth.Username, apiAuth.Password)),
-				}),
-			))
-		default:
-			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
-		}
 	}
 
 	return &SCM{

@@ -56,12 +56,39 @@ const (
 	CredentialTypeBasic       = CredentialType("basic")
 	CredentialTypeSSH         = CredentialType("ssh")
 	CredentialTypeAccessToken = CredentialType("access_token")
+	CredentialTypeGithubApp   = CredentialType("github_app")
 )
+
+// GitHubAppConfig provides configuration for GitHub App authentication.
+type GitHubAppConfig struct {
+	ClientID        string `json:"-" mapstructure:"client_id" yaml:"-" `
+	InstallationID  int64  `json:"-" mapstructure:"installation_id" yaml:"-" `
+	PrivateKeyPath  string `json:"-" mapstructure:"private_key_path" yaml:"-" `
+	PrivateKeyBytes string `json:"-" mapstructure:"private_key_bytes" yaml:"-" `
+	ApiURL          string `json:"apiUrl,omitempty" mapstructure:"api_url" yaml:"api_url,omitempty"`
+}
+
+func (g *GitHubAppConfig) validate() error {
+	if g.ClientID == "" {
+		return errFieldRequired("credentials", "github_app client_id")
+	}
+	if g.InstallationID == 0 {
+		return errFieldRequired("credentials", "github_app installation_id")
+	}
+	if g.PrivateKeyPath == "" && g.PrivateKeyBytes == "" {
+		return errFieldRequired("credentials", "github_app private_key_path or private_key_bytes")
+	}
+	if g.PrivateKeyPath != "" && g.PrivateKeyBytes != "" {
+		return errFieldWrap("credentials", "github_app", fmt.Errorf("please provide exclusively one of private_key_path or private_key_bytes"))
+	}
+	return nil
+}
 
 type CredentialConfig struct {
 	Type        CredentialType   `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
 	Basic       *BasicAuthConfig `json:"basic,omitempty" mapstructure:"basic" yaml:"basic,omitempty"`
 	SSH         *SSHAuthConfig   `json:"-" mapstructure:"ssh,omitempty" yaml:"-"`
+	GitHubApp   *GitHubAppConfig `json:"github_app,omitempty" mapstructure:"github_app,omitempty" yaml:"github_app,omitempty"`
 	AccessToken *string          `json:"-" mapstructure:"access_token" yaml:"-"`
 }
 
@@ -86,6 +113,14 @@ func (c *CredentialConfig) validate() error {
 	case CredentialTypeAccessToken:
 		if c.AccessToken == nil || *c.AccessToken == "" {
 			return errFieldRequired("credentials", "access token")
+		}
+	case CredentialTypeGithubApp:
+		if c.GitHubApp == nil {
+			return errFieldRequired("credentials", "github_app configuration")
+		}
+
+		if err := c.GitHubApp.validate(); err != nil {
+			return errFieldWrap("credentials", "github_app", err)
 		}
 	default:
 		return errFieldWrap("credentials", "type", fmt.Errorf("unexpected credential type %q", c.Type))

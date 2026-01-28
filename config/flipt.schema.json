@@ -8,40 +8,26 @@
   "properties": {
     "version": {
       "type": "string",
-      "enum": [
-        "2.0"
-      ],
+      "enum": ["2.0"],
       "default": "2.0"
     },
     "experimental": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Experimental",
       "additionalProperties": false,
       "properties": {}
     },
     "analytics": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Analytics",
       "additionalProperties": false,
       "properties": {
         "storage": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "additionalProperties": false,
           "properties": {
             "clickhouse": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -55,10 +41,7 @@
               }
             },
             "prometheus": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -70,10 +53,7 @@
                   "default": ""
                 },
                 "headers": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": {
                     "type": "string"
                   }
@@ -83,10 +63,7 @@
           }
         },
         "buffer": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "additionalProperties": false,
           "properties": {
             "capacity": {
@@ -102,10 +79,7 @@
       }
     },
     "authentication": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Authentication",
       "additionalProperties": false,
       "properties": {
@@ -136,10 +110,7 @@
           }
         },
         "session": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "additionalProperties": false,
           "properties": {
             "domain": {
@@ -159,10 +130,7 @@
               "default": "10m"
             },
             "csrf": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "key": {
@@ -172,34 +140,22 @@
                   "type": "boolean"
                 },
                 "trusted_origins": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "default": []
                 }
               }
             },
             "storage": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "memory",
-                    "redis"
-                  ],
+                  "enum": ["memory", "redis"],
                   "default": "memory"
                 },
                 "cleanup": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
                     "grace_period": {
@@ -210,10 +166,7 @@
                   }
                 },
                 "redis": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
                     "host": {
@@ -268,10 +221,7 @@
                     },
                     "mode": {
                       "type": "string",
-                      "enum": [
-                        "single",
-                        "cluster"
-                      ],
+                      "enum": ["single", "cluster"],
                       "default": "single"
                     },
                     "prefix": {
@@ -285,17 +235,11 @@
           }
         },
         "methods": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "additionalProperties": false,
           "properties": {
             "token": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -303,38 +247,24 @@
                   "default": false
                 },
                 "storage": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
                     "type": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
+                      "type": ["string", "null"],
                       "default": "static"
                     },
                     "tokens": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
+                      "type": ["object", "null"],
                       "additionalProperties": {
                         "type": "object",
-                        "required": [
-                          "credential"
-                        ],
+                        "required": ["credential"],
                         "properties": {
                           "credential": {
                             "type": "string"
                           },
                           "metadata": {
-                            "type": [
-                              "object",
-                              "null"
-                            ],
+                            "type": ["object", "null"],
                             "additionalProperties": {
                               "type": "string"
                             }
@@ -347,10 +277,7 @@
               }
             },
             "oidc": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -374,10 +301,7 @@
                   ]
                 },
                 "providers": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": false,
                   "patternProperties": {
                     "^.*$": {
@@ -400,10 +324,7 @@
                           "type": "string"
                         },
                         "scopes": {
-                          "type": [
-                            "array",
-                            "null"
-                          ],
+                          "type": ["array", "null"],
                           "items": {
                             "type": "string"
                           }
@@ -446,10 +367,7 @@
               }
             },
             "kubernetes": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -468,10 +386,7 @@
               }
             },
             "github": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -494,28 +409,19 @@
                   "type": "string"
                 },
                 "scopes": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "string"
                   }
                 },
                 "allowed_organizations": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "string"
                   }
                 },
                 "allowed_teams": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": {
                     "type": "array",
                     "items": {
@@ -526,10 +432,7 @@
               }
             },
             "jwt": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -537,10 +440,7 @@
                   "default": false
                 },
                 "validate_claims": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
                     "issuer": {
@@ -550,10 +450,7 @@
                       "type": "string"
                     },
                     "audiences": {
-                      "type": [
-                        "array",
-                        "null"
-                      ],
+                      "type": ["array", "null"],
                       "items": {
                         "type": "string"
                       }
@@ -561,10 +458,7 @@
                   }
                 },
                 "claims_mapping": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
                     "email": {
@@ -597,10 +491,7 @@
       }
     },
     "authorization": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Authorization",
       "additionalProperties": false,
       "properties": {
@@ -610,24 +501,14 @@
         },
         "backend": {
           "type": "string",
-          "enum": [
-            "",
-            "local",
-            "bundle"
-          ],
+          "enum": ["", "local", "bundle"],
           "default": ""
         },
         "local": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "policy": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "properties": {
                 "poll_interval": {
                   "type": "string",
@@ -640,10 +521,7 @@
               }
             },
             "data": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "properties": {
                 "poll_interval": {
                   "type": "string",
@@ -658,10 +536,7 @@
           }
         },
         "bundle": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "configuration": {
               "type": "string"
@@ -671,10 +546,7 @@
       }
     },
     "cors": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "CORS",
       "additionalProperties": false,
       "properties": {
@@ -683,22 +555,14 @@
           "default": false
         },
         "allowed_origins": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "string"
           },
-          "default": [
-            "*"
-          ]
+          "default": ["*"]
         },
         "allowed_headers": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "string"
           },
@@ -732,10 +596,7 @@
       }
     },
     "evaluation": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Evaluation",
       "additionalProperties": false,
       "properties": {
@@ -746,17 +607,12 @@
       }
     },
     "environments": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "additionalProperties": false,
       "patternProperties": {
         "^.*$": {
           "type": "object",
-          "required": [
-            "storage"
-          ],
+          "required": ["storage"],
           "properties": {
             "name": {
               "type": "string"
@@ -775,20 +631,11 @@
             "scm": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "type",
-                "credentials"
-              ],
+              "required": ["type", "credentials"],
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "github",
-                    "gitea",
-                    "gitlab",
-                    "azure",
-                    "bitbucket"
-                  ],
+                  "enum": ["github", "gitea", "gitlab", "azure", "bitbucket"],
                   "default": "github"
                 },
                 "credentials": {
@@ -804,10 +651,7 @@
       }
     },
     "storage": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "additionalProperties": false,
       "patternProperties": {
         "^.*$": {
@@ -823,18 +667,12 @@
               "default": "strict"
             },
             "backend": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "memory",
-                    "local"
-                  ],
+                  "enum": ["memory", "local"],
                   "default": "memory"
                 },
                 "path": {
@@ -847,10 +685,7 @@
               "default": "main"
             },
             "signature": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "key": {
@@ -871,16 +706,9 @@
                   "default": "gpg"
                 },
                 "key_ref": {
-                  "type": [
-                    "object",
-                    "null"
-                  ],
+                  "type": ["object", "null"],
                   "additionalProperties": false,
-                  "required": [
-                    "provider",
-                    "path",
-                    "key"
-                  ],
+                  "required": ["provider", "path", "key"],
                   "properties": {
                     "provider": {
                       "type": "string"
@@ -921,10 +749,7 @@
       }
     },
     "templates": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Templates",
       "additionalProperties": false,
       "description": "Server-wide custom templates for commit messages and pull requests. These override built-in defaults but can be overridden by repository-level templates in flipt.yaml.",
@@ -944,16 +769,17 @@
       }
     },
     "credentials": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "patternProperties": {
         "^.*$": {
           "oneOf": [
             {
               "type": "object",
               "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "basic"
+                },
                 "basic": {
                   "type": "object",
                   "properties": {
@@ -964,86 +790,141 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "username",
-                    "password"
-                  ]
+                  "required": ["username", "password"]
                 }
-              }
+              },
+              "required": ["type", "basic"]
             },
             {
               "type": "object",
               "properties": {
-                "token": {
-                  "type": "object",
-                  "properties": {
-                    "access_token": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "access_token"
-                  ]
+                "type": {
+                  "type": "string",
+                  "const": "access_token"
+                },
+                "access_token": {
+                  "type": "string"
                 }
-              }
+              },
+              "required": ["type", "access_token"]
             },
             {
               "type": "object",
               "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "ssh"
+                },
                 "ssh": {
                   "type": "object",
-                  "properties": {
-                    "user": {
-                      "type": "string",
-                      "default": "git"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "private_key_bytes": {
+                          "type": "string"
+                        },
+                        "insecure_ignore_host_key": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["password", "private_key_bytes"]
                     },
-                    "password": {
-                      "type": "string"
-                    },
-                    "private_key_path": {
-                      "type": "string"
+                    {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "private_key_path": {
+                          "type": "string"
+                        },
+                        "insecure_ignore_host_key": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["password", "private_key_path"]
                     }
-                  },
-                  "required": [
-                    "password",
-                    "private_key_path"
                   ]
                 }
-              }
+              },
+              "required": ["type", "ssh"]
             },
             {
               "type": "object",
               "properties": {
-                "ssh": {
+                "type": {
+                  "type": "string",
+                  "const": "github_app"
+                },
+
+                "github_app": {
                   "type": "object",
-                  "properties": {
-                    "user": {
-                      "type": "string",
-                      "default": "git"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "client_id": {
+                          "type": "string"
+                        },
+                        "installation_id": {
+                          "type": "integer"
+                        },
+                        "private_key_path": {
+                          "type": "string"
+                        },
+                        "api_url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "client_id",
+                        "installation_id",
+                        "private_key_path"
+                      ]
                     },
-                    "password": {
-                      "type": "string"
-                    },
-                    "private_key_bytes": {
-                      "type": "string"
+                    {
+                      "type": "object",
+                      "properties": {
+                        "client_id": {
+                          "type": "string"
+                        },
+                        "installation_id": {
+                          "type": "integer"
+                        },
+                        "private_key_bytes": {
+                          "type": "string"
+                        },
+                        "api_url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "client_id",
+                        "installation_id",
+                        "private_key_bytes"
+                      ]
                     }
-                  },
-                  "required": [
-                    "password",
-                    "private_key_bytes"
                   ]
                 }
-              }
+              },
+              "required": ["type", "github_app"]
             }
           ]
         }
       }
     },
     "log": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Log",
       "additionalProperties": false,
       "properties": {
@@ -1052,10 +933,7 @@
         },
         "encoding": {
           "type": "string",
-          "enum": [
-            "console",
-            "json"
-          ],
+          "enum": ["console", "json"],
           "default": "console"
         },
         "level": {
@@ -1093,10 +971,7 @@
           ]
         },
         "keys": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "time": {
               "type": "string",
@@ -1115,10 +990,7 @@
       }
     },
     "meta": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Meta",
       "additionalProperties": false,
       "properties": {
@@ -1137,19 +1009,13 @@
       }
     },
     "server": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Server",
       "additionalProperties": false,
       "properties": {
         "protocol": {
           "type": "string",
-          "enum": [
-            "http",
-            "https"
-          ],
+          "enum": ["http", "https"],
           "default": "http"
         },
         "host": {
@@ -1189,10 +1055,7 @@
       }
     },
     "metrics": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Metrics",
       "additionalProperties": false,
       "properties": {
@@ -1202,19 +1065,13 @@
         },
         "exporter": {
           "type": "string",
-          "enum": [
-            "prometheus",
-            "otlp"
-          ],
+          "enum": ["prometheus", "otlp"],
           "default": "prometheus"
         }
       }
     },
     "tracing": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Tracing",
       "additionalProperties": false,
       "properties": {
@@ -1225,10 +1082,7 @@
       }
     },
     "ui": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "UI",
       "additionalProperties": false,
       "properties": {
@@ -1238,18 +1092,11 @@
         },
         "default_theme": {
           "type": "string",
-          "enum": [
-            "light",
-            "dark",
-            "system"
-          ],
+          "enum": ["light", "dark", "system"],
           "default": "system"
         },
         "topbar": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "additionalProperties": false,
           "properties": {
             "color": {
@@ -1263,10 +1110,7 @@
       }
     },
     "license": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "License",
       "additionalProperties": false,
       "properties": {
@@ -1279,25 +1123,16 @@
       }
     },
     "secrets": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "title": "Secrets",
       "additionalProperties": false,
       "properties": {
         "providers": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "additionalProperties": false,
           "properties": {
             "file": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -1311,10 +1146,7 @@
               }
             },
             "vault": {
-              "type": [
-                "object",
-                "null"
-              ],
+              "type": ["object", "null"],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
