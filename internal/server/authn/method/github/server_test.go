@@ -474,7 +474,7 @@ func Test_Server(t *testing.T) {
 			})
 
 		_, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
-		assert.ErrorContains(t, err, "account does not satisfy the security requirements")
+		assert.ErrorContains(t, err, "account does not satisfy the organization requirements")
 	})
 
 	t.Run("should authorize successfully when the user is a member of one of the allowed organizations and it's inside the allowed team", func(t *testing.T) {
@@ -573,7 +573,7 @@ func Test_Server(t *testing.T) {
 			})
 
 		_, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
-		require.ErrorIs(t, err, status.Error(codes.Unauthenticated, "account does not satisfy the security requirements"))
+		require.ErrorIs(t, err, status.Error(codes.Unauthenticated, "account does not satisfy the team requirements"))
 	})
 
 	t.Run("should return an internal error when github user route returns a code different from 200 (OK)", func(t *testing.T) {
