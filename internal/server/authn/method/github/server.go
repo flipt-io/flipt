@@ -325,7 +325,7 @@ func authnOrgsAndTeams(orgs map[string]bool, userTeamsByOrg map[string]map[strin
 		}
 	}
 
-	return errors.ErrUnauthenticatedf("request was not authenticated")
+	return errors.ErrUnauthenticatedf("account does not satisfy the security requirements")
 }
 
 // parseOrgsForMetadata returns a JSON encoded list of organizations that the user is in.
