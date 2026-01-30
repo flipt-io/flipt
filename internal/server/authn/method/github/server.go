@@ -302,6 +302,8 @@ func authnOrgsAndTeams(orgs map[string]bool, userTeamsByOrg map[string]map[strin
 		return nil
 	}
 
+	hasOrganization := false
+
 	for _, org := range config.AllowedOrganizations {
 		if !orgs[org] {
 			continue
@@ -311,6 +313,8 @@ func authnOrgsAndTeams(orgs map[string]bool, userTeamsByOrg map[string]map[strin
 		if len(config.AllowedTeams) == 0 {
 			return nil
 		}
+
+		hasOrganization = true
 
 		// Check if user is in any of the allowed teams for this org
 		var (
@@ -325,7 +329,11 @@ func authnOrgsAndTeams(orgs map[string]bool, userTeamsByOrg map[string]map[strin
 		}
 	}
 
-	return errors.ErrUnauthenticatedf("request was not authenticated")
+	if hasOrganization {
+		return errors.ErrUnauthenticatedf("account does not satisfy the team requirements")
+	}
+
+	return errors.ErrUnauthenticatedf("account does not satisfy the organization requirements")
 }
 
 // parseOrgsForMetadata returns a JSON encoded list of organizations that the user is in.
