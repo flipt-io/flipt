@@ -631,17 +631,35 @@ func (c *activateCommand) runLicenseTypeStep() error {
 }
 
 func (c *activateCommand) runLicenseKeyStep() error {
-	// Key format guidance section
-	guidanceSection := &contentSection{
-		badge:      BadgeInfoStyle,
-		badgeText:  "FORMAT",
-		heading:    "License Key Information",
-		helperText: "Your license key should be in the format XXXXX-XXXXX-XXXXX-XXXXX",
-		bulletItems: []string{
+	// Key format guidance varies by license type
+	var formatDescription, placeholder string
+	var bulletItems []string
+
+	if c.licenseType == LicenseTypeProAnnual {
+		formatDescription = "Your license key should begin with 'key/' followed by encoded license data"
+		placeholder = "key/eXhYbGljZW5zZS..."
+		bulletItems = []string{
+			"The key will be hidden as you type for security",
+			"Annual keys start with 'key/' and are longer than monthly keys",
+			"Check your purchase confirmation email for the key",
+			"Contact support@flipt.io if you can't find your key",
+		}
+	} else {
+		formatDescription = "Your license key should be in the format XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-V3"
+		placeholder = "XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-V3"
+		bulletItems = []string{
 			"The key will be hidden as you type for security",
 			"Check your purchase confirmation email for the key",
 			"Contact support@flipt.io if you can't find your key",
-		},
+		}
+	}
+
+	guidanceSection := &contentSection{
+		badge:       BadgeInfoStyle,
+		badgeText:   "FORMAT",
+		heading:     "License Key Information",
+		helperText:  formatDescription,
+		bulletItems: bulletItems,
 	}
 
 	guidanceContent := guidanceSection.render()
@@ -652,17 +670,11 @@ func (c *activateCommand) runLicenseKeyStep() error {
 		huh.NewInput().
 			Title(InputLabelStyle.Render("License Key")).
 			Description("Enter your Flipt Pro license key").
-			Placeholder("XXXXX-XXXXX-XXXXX-XXXXX").
+			Placeholder(placeholder).
 			Value(&c.licenseKey).
 			EchoMode(huh.EchoModePassword).
 			Validate(func(s string) error {
-				if s == "" {
-					return fmt.Errorf("license key is required")
-				}
-				if len(strings.ReplaceAll(s, "-", "")) < 20 {
-					return fmt.Errorf("license key appears too short")
-				}
-				return nil
+				return validateLicenseKey(s, c.licenseType)
 			}),
 	)
 
@@ -972,6 +984,28 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	c.currentStep = LicenseStepComplete
 	c.renderSuccessScreen()
 
+	return nil
+}
+
+// validateLicenseKey validates a license key based on the license type.
+// Monthly keys use the format XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-V3.
+// Annual keys use the format key/<base64-payload>.<base64-signature>.
+func validateLicenseKey(key, licenseType string) error {
+	if key == "" {
+		return fmt.Errorf("license key is required")
+	}
+	if licenseType == LicenseTypeProAnnual {
+		if !strings.HasPrefix(key, "key/") {
+			return fmt.Errorf("annual license key should start with 'key/'")
+		}
+		// Annual keys have format: key/<base64-payload>.<base64-signature>
+		payload := key[len("key/"):]
+		if !strings.Contains(payload, ".") {
+			return fmt.Errorf("annual license key format appears invalid")
+		}
+	} else if len(strings.ReplaceAll(key, "-", "")) < 20 {
+		return fmt.Errorf("license key appears too short")
+	}
 	return nil
 }
 
