@@ -48,6 +48,7 @@ func TestParseGitURL(t *testing.T) {
 			"https://gitlab.com/flipt-io/flipt",
 			"https://www.gitlab.com/flipt-io/flipt",
 			"git@gitlab.com:flipt-io/flipt.git",
+			"git@localhost:6022:flipt-io/flipt.git",
 		}
 
 		for i, ex := range tests {

@@ -158,6 +158,12 @@ func TestNormalizeSSHRemoteURL(t *testing.T) {
 			sshUser:   "git",
 			want:      "git@gitlab.com:group/subgroup/project.git",
 		},
+		{
+			name:      "ssh with self-holted gitlab",
+			remoteURL: "ssh://git@gitlab.localhost:6022/root/demo.git",
+			sshUser:   "git",
+			want:      "git@gitlab.localhost:6022:root/demo.git",
+		},
 
 		// Error cases
 		{

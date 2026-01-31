@@ -117,7 +117,9 @@ func convertSSHProtocolURL(url, sshUser string) (string, error) {
 	// Strip port from host if present (e.g., github.com:22 -> github.com)
 	host := hostPort
 	if colonIndex := strings.LastIndex(hostPort, ":"); colonIndex != -1 {
-		host = hostPort[:colonIndex]
+		if hostPort[colonIndex+1:] == "22" {
+			host = hostPort[:colonIndex]
+		}
 	}
 
 	return sshUser + "@" + host + ":" + path, nil
