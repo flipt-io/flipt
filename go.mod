@@ -4,9 +4,9 @@ go 1.25.0
 
 require (
 	code.gitea.io/sdk/gitea v0.22.1
-	cuelang.org/go v0.15.3
+	cuelang.org/go v0.15.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/ClickHouse/clickhouse-go/v2 v2.42.0
+	github.com/ClickHouse/clickhouse-go/v2 v2.43.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/ProtonMail/go-crypto v1.3.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.95.1
@@ -33,9 +33,9 @@ require (
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
+	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.5
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7
 	github.com/h2non/gock v1.2.0
 	github.com/hashicorp/cap v0.12.0
 	github.com/hashicorp/go-retryablehttp v0.7.8
@@ -49,7 +49,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/open-policy-agent/opa v1.12.3
+	github.com/open-policy-agent/opa v1.13.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.5
 	github.com/redis/go-redis/extra/redisotel/v9 v9.17.3
@@ -89,7 +89,7 @@ require (
 	golang.org/x/oauth2 v0.34.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/term v0.39.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20260120221211-b8f7ae30c516
+	google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
@@ -144,7 +144,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.1 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.4.2 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
-	github.com/ClickHouse/ch-go v0.69.0 // indirect
+	github.com/ClickHouse/ch-go v0.71.0 // indirect
 	github.com/Djarvur/go-err113 v0.1.1 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.30.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.53.0 // indirect
@@ -260,7 +260,6 @@ require (
 	github.com/go-faster/errors v0.7.1 // indirect
 	github.com/go-fed/httpsig v1.1.0 // indirect
 	github.com/go-git/gcfg/v2 v2.0.2 // indirect
-	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -337,7 +336,7 @@ require (
 	github.com/keygen-sh/jsonapi-go v1.2.1 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
-	github.com/klauspost/compress v1.18.1 // indirect
+	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/knadh/koanf/maps v0.1.1 // indirect
@@ -361,9 +360,8 @@ require (
 	github.com/lestrrat-go/dsig v1.0.0 // indirect
 	github.com/lestrrat-go/dsig-secp256k1 v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
-	github.com/lestrrat-go/httprc/v3 v3.0.1 // indirect
-	github.com/lestrrat-go/jwx/v3 v3.0.12 // indirect
-	github.com/lestrrat-go/option v1.0.1 // indirect
+	github.com/lestrrat-go/httprc/v3 v3.0.2 // indirect
+	github.com/lestrrat-go/jwx/v3 v3.0.13 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20240513124658-fba389f38bae // indirect
@@ -409,7 +407,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/paulmach/orb v0.12.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/pierrec/lz4/v4 v4.1.22 // indirect
+	github.com/pierrec/lz4/v4 v4.1.25 // indirect
 	github.com/pjbgf/sha1cd v0.5.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -452,7 +450,7 @@ require (
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.11 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
-	github.com/sirupsen/logrus v1.9.4-0.20230606125235-dd1b4c2e81af // indirect
+	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/sivchari/containedctx v1.0.3 // indirect
 	github.com/sonatard/noctx v0.4.0 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
@@ -468,7 +466,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.3 // indirect
 	github.com/tetafro/godot v1.5.4 // indirect
-	github.com/tetratelabs/wazero v1.9.0 // indirect
+	github.com/tetratelabs/wazero v1.10.1 // indirect
 	github.com/timakin/bodyclose v0.0.0-20241222091800-1db5c5ca4d67 // indirect
 	github.com/timonwong/loggercheck v0.11.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
@@ -479,7 +477,7 @@ require (
 	github.com/ultraware/whitespace v0.2.0 // indirect
 	github.com/uudashr/gocognit v1.2.0 // indirect
 	github.com/uudashr/iface v1.4.1 // indirect
-	github.com/valyala/fastjson v1.6.4 // indirect
+	github.com/valyala/fastjson v1.6.7 // indirect
 	github.com/vbatts/tar-split v0.12.1 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.31 // indirect
 	github.com/vektra/mockery/v3 v3.2.5 // indirect
@@ -534,8 +532,9 @@ require (
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.247.0 // indirect
 	google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260120221211-b8f7ae30c516 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260128011058-8636f8732409 // indirect
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1 // indirect
+	gopkg.in/ini.v1 v1.67.1 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
 	mvdan.cc/gofumpt v0.9.2 // indirect
 	mvdan.cc/unparam v0.0.0-20251027182757-5beb8c8f8f15 // indirect
