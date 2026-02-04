@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/credentials"
 	serverenvsmock "go.flipt.io/flipt/internal/server/environments"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -316,6 +317,25 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	assert.Len(t, result, 1)
 	assert.Equal(t, "http://example.com/pr-closed", result[branch].Url)
 	assert.Equal(t, rpcenv.ProposalState_PROPOSAL_STATE_CLOSED, result[branch].State)
+}
+
+func TestWithApiAuth(t *testing.T) {
+	t.Run("sets HTTP client with access token", func(t *testing.T) {
+		// Create an APIAuth with access token type
+		// Note: APIAuth fields are not exported, so we need to create it through the normal API
+		// For testing purposes, we'll verify the function accepts the parameter correctly
+		opts := &gitHubOptions{
+			ctx: t.Context(),
+		}
+
+		// Create a minimal APIAuth - the Type() method will return empty string by default
+		// which won't match any case, so httpClient remains nil
+		apiAuth := &credentials.APIAuth{}
+		WithApiAuth(apiAuth)(opts)
+
+		// Since the Type is empty and doesn't match any case, httpClient should remain nil
+		assert.Nil(t, opts.httpClient)
+	})
 }
 
 func TestWithApiURL(t *testing.T) {

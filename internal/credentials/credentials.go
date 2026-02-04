@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -90,31 +89,84 @@ func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) 
 			Password: *c.config.AccessToken,
 		}, nil
 	case config.CredentialTypeGithubApp:
-		return newGitHubAppAuth(c.logger, c.config.GitHubApp)
+		return NewGitHubAppCredentials(c.logger, c.config.GitHubApp)
 	}
 
 	return nil, fmt.Errorf("unexpected credential type: %q", c.config.Type)
 }
 
-var _ githttp.AuthMethod = (*GitHubAppAuth)(nil)
+var _ githttp.AuthMethod = (*GitHubAppCredentials)(nil)
 
-type GitHubAppAuth struct {
+// GitHubAppCredentials holds the configuration and token source for GitHub App authentication.
+// This centralizes the GitHub App auth logic for both Git operations and API operations.
+type GitHubAppCredentials struct {
 	logger         *zap.Logger
 	clientID       string
-	tokenSource    oauth2.TokenSource
 	installationID int64
+	privateKey     []byte
+	apiURL         string
+	tokenSource    oauth2.TokenSource
 }
 
-func (*GitHubAppAuth) Name() string {
+// NewGitHubAppCredentials creates a GitHubAppCredentials from a GitHubAppConfig.
+// This function centralizes the private key reading and token source creation.
+func NewGitHubAppCredentials(logger *zap.Logger, c *config.GitHubAppConfig) (*GitHubAppCredentials, error) {
+	privateKey := []byte(c.PrivateKeyBytes)
+	if c.PrivateKeyPath != "" {
+		var err error
+		privateKey, err = os.ReadFile(c.PrivateKeyPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read private key: %w", err)
+		}
+	}
+
+	appTokenSource, err := githubauth.NewApplicationTokenSource(c.ClientID, privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create GitHub App application token source: %w", err)
+	}
+
+	ops := make([]githubauth.InstallationTokenSourceOpt, 0, 1)
+	if c.ApiURL != "" {
+		ops = append(ops, githubauth.WithEnterpriseURL(c.ApiURL))
+	}
+
+	installationTokenSource := githubauth.NewInstallationTokenSource(c.InstallationID, appTokenSource, ops...)
+
+	return &GitHubAppCredentials{
+		logger:         logger,
+		clientID:       c.ClientID,
+		installationID: c.InstallationID,
+		privateKey:     privateKey,
+		apiURL:         c.ApiURL,
+		tokenSource:    installationTokenSource,
+	}, nil
+}
+
+// TokenSource returns the oauth2.TokenSource for GitHub App authentication.
+func (g *GitHubAppCredentials) TokenSource() oauth2.TokenSource {
+	return g.tokenSource
+}
+
+// ClientID returns the GitHub App client ID.
+func (g *GitHubAppCredentials) ClientID() string {
+	return g.clientID
+}
+
+// InstallationID returns the GitHub App installation ID.
+func (g *GitHubAppCredentials) InstallationID() int64 {
+	return g.installationID
+}
+
+func (*GitHubAppCredentials) Name() string {
 	return "http-github-app"
 }
 
-func (g *GitHubAppAuth) String() string {
-	return fmt.Sprintf("%s - %s/%d", g.Name(), g.clientID, g.installationID)
+func (g *GitHubAppCredentials) String() string {
+	return fmt.Sprintf("%s - %s/%d", g.Name(), g.ClientID(), g.InstallationID())
 }
 
-func (g *GitHubAppAuth) SetAuth(r *http.Request) {
-	token, err := g.tokenSource.Token()
+func (g *GitHubAppCredentials) SetAuth(r *http.Request) {
+	token, err := g.TokenSource().Token()
 	if err != nil {
 		g.logger.Error("failed to get GitHub App token", zap.Error(err))
 		return
@@ -126,33 +178,8 @@ func (g *GitHubAppAuth) SetAuth(r *http.Request) {
 	r.SetBasicAuth("x-token-auth", token.AccessToken)
 }
 
-func newGitHubAppAuth(logger *zap.Logger, c *config.GitHubAppConfig) (*GitHubAppAuth, error) {
-	privateKey := []byte(c.PrivateKeyBytes)
-	if c.PrivateKeyPath != "" {
-		var err error
-		privateKey, err = os.ReadFile(c.PrivateKeyPath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read private key: %w", err)
-		}
-	}
-	appToken, err := githubauth.NewApplicationTokenSource(c.ClientID, privateKey)
-	if err != nil {
-		return nil, err
-	}
-	ops := make([]githubauth.InstallationTokenSourceOpt, 0, 1)
-	if c.ApiURL != "" {
-		ops = append(ops, githubauth.WithEnterpriseURL(c.ApiURL))
-	}
-
-	return &GitHubAppAuth{
-		logger:         logger,
-		tokenSource:    githubauth.NewInstallationTokenSource(c.InstallationID, appToken, ops...),
-		clientID:       c.ClientID,
-		installationID: c.InstallationID,
-	}, nil
-}
-
-// APIAuth represents different ways to authenticate with SCM APIs
+// APIAuth represents different ways to authenticate with SCM APIs.
+// For GitHub App authentication, use the GitHubAppCredentials method.
 type APIAuth struct {
 	// Type of authentication
 	typ config.CredentialType
@@ -161,6 +188,8 @@ type APIAuth struct {
 	// Username and Password for basic authentication
 	Username string
 	Password string
+	// GitHubAppCreds holds GitHub App credentials for CredentialTypeGithubApp
+	githubAppCreds *GitHubAppCredentials
 }
 
 // Type returns the credential type.
@@ -168,63 +197,53 @@ func (a *APIAuth) Type() config.CredentialType {
 	return a.typ
 }
 
+// GitHubAppTokenSource returns the oauth2.TokenSource for GitHub App authentication.
+// Returns nil if the auth type is not CredentialTypeGithubApp.
+func (a *APIAuth) GitHubAppTokenSource() oauth2.TokenSource {
+	if a.githubAppCreds == nil {
+		return &failingTokenSource{}
+	}
+	return a.githubAppCreds.TokenSource()
+}
+
+// failingTokenSource is a mock token source that always returns an error
+type failingTokenSource struct{}
+
+func (f *failingTokenSource) Token() (*oauth2.Token, error) {
+	return nil, fmt.Errorf("token source error")
+}
+
 // APIAuthentication returns authentication information for SCM API operations.
 // This provides a clean abstraction for different authentication methods.
-func (c *Credential) APIAuthentication() *APIAuth {
+func (c *Credential) APIAuthentication() (*APIAuth, error) {
 	switch c.config.Type {
 	case config.CredentialTypeBasic:
 		return &APIAuth{
 			typ:      c.config.Type,
 			Username: c.config.Basic.Username,
 			Password: c.config.Basic.Password,
-		}
+		}, nil
 	case config.CredentialTypeAccessToken:
 		return &APIAuth{
 			typ:   c.config.Type,
 			Token: *c.config.AccessToken,
-		}
+		}, nil
 	case config.CredentialTypeSSH:
 		// SSH is not used for API operations, return empty auth
 		return &APIAuth{
 			typ: c.config.Type,
-		}
-	}
-	return &APIAuth{}
-}
-
-func (c *Credential) APIAuthTokenSource() (oauth2.TokenSource, error) {
-	switch c.config.Type {
-	case config.CredentialTypeBasic:
-		return oauth2.StaticTokenSource(&oauth2.Token{
-			TokenType:   "Basic",
-			AccessToken: base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", c.config.Basic.Username, c.config.Basic.Password)),
-		}), nil
-
-	case config.CredentialTypeAccessToken:
-		return oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: *c.config.AccessToken},
-		), nil
+		}, nil
 	case config.CredentialTypeGithubApp:
-		privateKey := []byte(c.config.GitHubApp.PrivateKeyBytes)
-		if c.config.GitHubApp.PrivateKeyPath != "" {
-			var err error
-			privateKey, err = os.ReadFile(c.config.GitHubApp.PrivateKeyPath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read private key for api auth: %w", err)
-			}
-		}
-		appTokenSource, err := githubauth.NewApplicationTokenSource(c.config.GitHubApp.ClientID, privateKey)
+		creds, err := NewGitHubAppCredentials(c.logger, c.config.GitHubApp)
 		if err != nil {
-			return nil, fmt.Errorf("failed to setup Github App token for api auth: %w", err)
+			return nil, err
 		}
-		ops := make([]githubauth.InstallationTokenSourceOpt, 0, 1)
-		if c.config.GitHubApp.ApiURL != "" {
-			ops = append(ops, githubauth.WithEnterpriseURL(c.config.GitHubApp.ApiURL))
-		}
-		return githubauth.NewInstallationTokenSource(c.config.GitHubApp.InstallationID, appTokenSource, ops...), nil
-	default:
-		return nil, fmt.Errorf("unsupported api auth type: %s", c.config.Type)
+		return &APIAuth{
+			typ:            c.config.Type,
+			githubAppCreds: creds,
+		}, nil
 	}
+	return &APIAuth{}, nil
 }
 
 // Type returns the credential type.

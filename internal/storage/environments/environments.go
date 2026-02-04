@@ -307,11 +307,11 @@ func (f *EnvironmentFactory) createGitHubSCM(ctx context.Context, scmConfig *con
 		if err != nil {
 			return nil, err
 		}
-		ts, err := creds.APIAuthTokenSource()
+		apiAuth, err := creds.APIAuthentication()
 		if err != nil {
 			return nil, err
 		}
-		opts = append(opts, github.WithApiAuth(ts))
+		opts = append(opts, github.WithApiAuth(apiAuth))
 	}
 
 	scm, err := github.NewSCM(ctx, f.logger, repoOwner, repoName, opts...)
@@ -345,7 +345,11 @@ func (f *EnvironmentFactory) createGitLabSCM(ctx context.Context, scmConfig *con
 		if err != nil {
 			return nil, err
 		}
-		opts = append(opts, gitlab.WithApiAuth(creds.APIAuthentication()))
+		apiAuth, err := creds.APIAuthentication()
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, gitlab.WithApiAuth(apiAuth))
 	}
 
 	scm, err := gitlab.NewSCM(ctx, f.logger, repoOwner, repoName, opts...)
@@ -386,7 +390,11 @@ func (f *EnvironmentFactory) createAzureSCM(ctx context.Context, scmConfig *conf
 		if err != nil {
 			return nil, err
 		}
-		opts = append(opts, azure.WithApiAuth(creds.APIAuthentication()))
+		apiAuth, err := creds.APIAuthentication()
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, azure.WithApiAuth(apiAuth))
 	}
 
 	scm, err := azure.NewSCM(ctx, f.logger, repoOwner, azureURL.GetProjectName(), repoName, opts...)
@@ -411,7 +419,11 @@ func (f *EnvironmentFactory) createGiteaSCM(ctx context.Context, scmConfig *conf
 		if err != nil {
 			return nil, err
 		}
-		opts = append(opts, gitea.WithApiAuth(creds.APIAuthentication()))
+		apiAuth, err := creds.APIAuthentication()
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, gitea.WithApiAuth(apiAuth))
 	}
 
 	scm, err := gitea.NewSCM(ctx, f.logger, scmConfig.ApiURL, repoOwner, repoName, opts...)
@@ -441,7 +453,11 @@ func (f *EnvironmentFactory) createBitBucketSCM(ctx context.Context, scmConfig *
 		if err != nil {
 			return nil, err
 		}
-		opts = append(opts, bitbucket.WithApiAuth(creds.APIAuthentication()))
+		apiAuth, err := creds.APIAuthentication()
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, bitbucket.WithApiAuth(apiAuth))
 	}
 
 	scm, err := bitbucket.NewSCM(ctx, f.logger, repoOwner, repoName, opts...)

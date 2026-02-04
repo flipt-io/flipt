@@ -7,6 +7,7 @@ package github
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"iter"
 	"net/http"
@@ -16,7 +17,9 @@ import (
 	"time"
 
 	"github.com/google/go-github/v75/github"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/credentials"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -69,9 +72,22 @@ func WithApiURL(apiURL *url.URL) ClientOption {
 	}
 }
 
-func WithApiAuth(apiAuth oauth2.TokenSource) ClientOption {
+func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	return func(c *gitHubOptions) {
-		c.httpClient = oauth2.NewClient(c.ctx, apiAuth)
+		switch apiAuth.Type() {
+		case config.CredentialTypeAccessToken:
+			c.httpClient = oauth2.NewClient(c.ctx, oauth2.StaticTokenSource(
+				&oauth2.Token{TokenType: "Bearer", AccessToken: apiAuth.Token},
+			))
+		case config.CredentialTypeBasic:
+			// Convert basic auth to Basic auth header
+			encoded := base64.StdEncoding.EncodeToString([]byte(apiAuth.Username + ":" + apiAuth.Password))
+			c.httpClient = oauth2.NewClient(c.ctx, oauth2.StaticTokenSource(
+				&oauth2.Token{TokenType: "Basic", AccessToken: encoded},
+			))
+		case config.CredentialTypeGithubApp:
+			c.httpClient = oauth2.NewClient(c.ctx, apiAuth.GitHubAppTokenSource())
+		}
 	}
 }
 
