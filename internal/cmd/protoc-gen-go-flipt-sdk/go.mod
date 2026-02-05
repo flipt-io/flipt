@@ -2,7 +2,7 @@ module go.flipt.io/protoc-gen-go-flipt-sdk
 
 go 1.24.0
 
-toolchain go1.25.6
+toolchain go1.25.7
 
 require (
 	go.flipt.io/flipt/rpc/flipt v1.54.0
