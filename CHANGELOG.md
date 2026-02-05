@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1](https://github.com/flipt-io/flipt/releases/tag/v2.5.1) - 2026-02-05
+
+### Fixed
+
+- **Git ref update after fetch**: Complete ref update after fetch for both bare and normal repositories, ensuring refs/heads are properly created and maintained for shallow fetches (#5144)
+- **Annual license key format**: Handle annual license key format correctly in the activation wizard (#5335)
+- **GitHub auth error messages**: Improve error message specificity when users fail to meet organization/team security requirements during GitHub authentication (#5331)
+- **SSH URLs with non-standard ports**: Support SSH URLs with non-standard ports in Git configuration (#5298)
+
+### Changed
+
+- **gRPC Prometheus metrics**: Migrate from deprecated go-grpc-prometheus to go-grpc-middleware/providers/prometheus (#5272)
+
+### Dependencies
+
+- Updated various dependencies including OPA, ClickHouse client, gRPC ecosystem, and UI libraries
+
 ## [2.5.0](https://github.com/flipt-io/flipt/releases/tag/v2.5.0) - 2026-01-09
 
 ### Added
