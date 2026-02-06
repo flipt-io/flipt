@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -126,6 +127,11 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		}
 	}
 
+	providerCfg, err := s.configFor(req.Provider)
+	if err != nil {
+		return nil, err
+	}
+
 	provider, oidcRequest, err := s.providerFor(req.Provider, req.State)
 	if err != nil {
 		return nil, err
@@ -145,6 +151,18 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	rawClaims := make(map[string]any)
 	if err := responseToken.IDToken().Claims(&rawClaims); err != nil {
 		return nil, err
+	}
+
+	if providerCfg.FetchExtraUserInfo {
+		// Get the user's claims via the provider's UserInfo endpoint
+		if sub, ok := rawClaims["sub"].(string); ok {
+			infoClaims := make(map[string]any)
+			err := provider.UserInfo(ctx, responseToken.StaticTokenSource(), sub, &infoClaims)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get user info: %w", err)
+			}
+			maps.Copy(rawClaims, infoClaims)
+		}
 	}
 
 	// marshal raw claims to JSON
