@@ -144,6 +144,7 @@ JsonPath: string
 			nonce?:            string
 			scopes?: [...string]
 			use_pkce?: bool
+			algorithms?: [...("RS256" | "RS384" | "RS512" | "ES256" | "ES384" | "ES512" | "PS256" | "PS384" | "PS512")] | *["RS256"]
 		}
 
 	}

@@ -533,10 +533,12 @@ type AuthenticationMethodOIDCProvider struct {
 	Nonce           string   `json:"nonce,omitempty" mapstructure:"nonce" yaml:"nonce,omitempty"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
 	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
+	Algorithms      []string `json:"algorithms,omitempty" mapstructure:"algorithms" yaml:"algorithms,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {
 	defaults["nonce"] = "static"
+	defaults["algorithms"] = []string{"RS256"}
 }
 
 func (a AuthenticationMethodOIDCProvider) validate() error {
