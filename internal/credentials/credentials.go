@@ -103,7 +103,6 @@ type GitHubAppCredentials struct {
 	logger         *zap.Logger
 	clientID       string
 	installationID int64
-	privateKey     []byte
 	apiURL         string
 	tokenSource    oauth2.TokenSource
 }
@@ -136,7 +135,6 @@ func NewGitHubAppCredentials(logger *zap.Logger, c *config.GitHubAppConfig) (*Gi
 		logger:         logger,
 		clientID:       c.ClientID,
 		installationID: c.InstallationID,
-		privateKey:     privateKey,
 		apiURL:         c.ApiURL,
 		tokenSource:    installationTokenSource,
 	}, nil
