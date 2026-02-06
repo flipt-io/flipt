@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	capoidc "github.com/hashicorp/cap/oidc"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
@@ -206,13 +205,21 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 		return nil, nil, err
 	}
 
+	algorithms := make([]capoidc.Alg, len(providerCfg.Algorithms))
+	for i, algorithm := range providerCfg.Algorithms {
+		algorithms[i] = capoidc.Alg(algorithm)
+	}
+	if len(algorithms) == 0 {
+		algorithms = []capoidc.Alg{capoidc.RS256}
+	}
+
 	callback = callbackURL(providerCfg.RedirectAddress, provider)
 
 	config, err = capoidc.NewConfig(
 		providerCfg.IssuerURL,
 		providerCfg.ClientID,
 		capoidc.ClientSecret(providerCfg.ClientSecret),
-		[]capoidc.Alg{oidc.RS256},
+		algorithms,
 		[]string{callback},
 	)
 	if err != nil {
