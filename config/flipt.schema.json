@@ -434,6 +434,10 @@
                           "default": [
                             "RS256"
                           ]
+                        },
+                        "fetch_extra_user_info": {
+                          "type": "boolean",
+                          "default": false
                         }
                       }
                     }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -59,10 +60,6 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
-				UserInfo: map[string]any{
-					"email": "mark@flipt.io",
-					"name":  "Mark Phelps",
-				},
 				CustomClaims: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
@@ -71,10 +68,6 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 			},
 			"george": {
 				Password: "macrorie",
-				UserInfo: map[string]any{
-					"email": "george@flipt.io",
-					"name":  "George MacRorie",
-				},
 				CustomClaims: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
@@ -139,7 +132,7 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 }
 
 func Test_Server_PKCE(t *testing.T) {
@@ -166,10 +159,6 @@ func Test_Server_PKCE(t *testing.T) {
 		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
-				UserInfo: map[string]any{
-					"email": "mark@flipt.io",
-					"name":  "Mark Phelps",
-				},
 				CustomClaims: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
@@ -178,10 +167,6 @@ func Test_Server_PKCE(t *testing.T) {
 			},
 			"george": {
 				Password: "macrorie",
-				UserInfo: map[string]any{
-					"email": "george@flipt.io",
-					"name":  "George MacRorie",
-				},
 				CustomClaims: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
@@ -248,7 +233,7 @@ func Test_Server_PKCE(t *testing.T) {
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 }
 
 func Test_Server_Nonce(t *testing.T) {
@@ -272,10 +257,6 @@ func Test_Server_Nonce(t *testing.T) {
 		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
-				UserInfo: map[string]any{
-					"email": "mark@flipt.io",
-					"name":  "Mark Phelps",
-				},
 				CustomClaims: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
@@ -284,10 +265,6 @@ func Test_Server_Nonce(t *testing.T) {
 			},
 			"george": {
 				Password: "macrorie",
-				UserInfo: map[string]any{
-					"email": "george@flipt.io",
-					"name":  "George MacRorie",
-				},
 				CustomClaims: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
@@ -352,10 +329,124 @@ func Test_Server_Nonce(t *testing.T) {
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 }
 
-func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress string, client *http.Client, server *oidctesting.HTTPServer) {
+func Test_Server_FetchExtraUserInfoClaims(t *testing.T) {
+	var (
+		id, secret = "client_id", "client_secret"
+		nonce      = "static"
+
+		logger = zaptest.NewLogger(t)
+		ctx    = t.Context()
+	)
+
+	groupsFromToken := []string{"platform", "admins", "qa"}
+	groupsFromUserInfo := []string{
+		"platform", "admins", "qa", "security", "infra",
+		"frontend", "backend", "data", "mobile", "support",
+	}
+
+	claimGroups := func(groups []string) map[string]any {
+		values := make([]any, 0, len(groups))
+		for _, group := range groups {
+			values = append(values, group)
+		}
+		return map[string]any{"groups": values}
+	}
+
+	run := func(t *testing.T, fetchExtra bool, expectedGroups []string) {
+		router := chi.NewRouter()
+		httpServer := httptest.NewServer(router)
+		clientAddress := strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
+		t.Cleanup(httpServer.Close)
+
+		priv, err := rsa.GenerateKey(rand.Reader, 4096)
+		require.NoError(t, err)
+
+		tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+			CustomClaims: map[string]any{},
+			SubjectInfo: map[string]*oidc.TestSubject{
+				"mark": {
+					Password: "phelps",
+					UserInfo: map[string]any{
+						"email":  "mark@flipt.io",
+						"name":   "Mark Phelps",
+						"groups": groupsFromUserInfo,
+					},
+					CustomClaims: map[string]any{
+						"email":  "mark@flipt.io",
+						"name":   "Mark Phelps",
+						"groups": groupsFromToken,
+					},
+				},
+			},
+			SigningKey: &oidc.TestSigningKey{
+				PrivKey: priv,
+				PubKey:  priv.Public(),
+				Alg:     oidc.RS256,
+			},
+			AllowedRedirectURIs: []string{
+				fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
+			},
+			ClientID:      &id,
+			ClientSecret:  &secret,
+			ExpectedNonce: &nonce,
+		}))
+		t.Cleanup(func() { tp.Stop() })
+
+		authConfig := config.AuthenticationConfig{
+			Session: config.AuthenticationSessionConfig{
+				Domain:        "localhost",
+				Secure:        false,
+				TokenLifetime: 1 * time.Hour,
+				StateLifetime: 10 * time.Minute,
+			},
+			Methods: config.AuthenticationMethodsConfig{
+				OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+					Enabled: true,
+					Method: config.AuthenticationMethodOIDCConfig{
+						Providers: map[string]config.AuthenticationMethodOIDCProvider{
+							"google": {
+								IssuerURL:          tp.Addr(),
+								ClientID:           id,
+								ClientSecret:       secret,
+								RedirectAddress:    clientAddress,
+								Nonce:              nonce,
+								FetchExtraUserInfo: fetchExtra,
+							},
+						},
+					},
+				},
+			},
+		}
+
+		server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router)
+		t.Cleanup(func() { _ = server.Stop() })
+
+		jar, err := cookiejar.New(&cookiejar.Options{})
+		require.NoError(t, err)
+
+		client := &http.Client{
+			// skip redirects
+			CheckRedirect: func(*http.Request, []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+			Jar: jar,
+		}
+
+		testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, claimGroups(expectedGroups))
+	}
+
+	t.Run("FetchExtraUserInfo enabled", func(t *testing.T) {
+		run(t, true, groupsFromUserInfo)
+	})
+	t.Run("FetchExtraUserInfo disabled", func(t *testing.T) {
+		run(t, false, groupsFromToken)
+	})
+}
+
+func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress string, client *http.Client, server *oidctesting.HTTPServer, expectedUserInfoClaims map[string]any) {
 	var authURL *url.URL
 
 	t.Run("AuthorizeURL", func(t *testing.T) {
@@ -468,6 +559,13 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 		}, response.Authentication.Metadata)
 
 		assert.NotEmpty(t, claims)
+		if expectedUserInfoClaims != nil {
+			var claimSet map[string]any
+			require.NoError(t, json.Unmarshal([]byte(claims), &claimSet))
+			for key, expected := range expectedUserInfoClaims {
+				assert.Equal(t, expected, claimSet[key])
+			}
+		}
 
 		// ensure expiry is set
 		assert.NotNil(t, response.Authentication.ExpiresAt)
