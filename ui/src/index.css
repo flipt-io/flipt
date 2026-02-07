@@ -2,7 +2,7 @@
 
 @plugin '@tailwindcss/forms';
 @plugin 'tailwindcss-animate';
-@plugin "tailwindcss-radix";
+@plugin 'tailwindcss-radix';
 
 @custom-variant dark (&:is(.dark *));
 
