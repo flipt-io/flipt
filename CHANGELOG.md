@@ -3,6 +3,29 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0](https://github.com/flipt-io/flipt/releases/tag/v2.6.0) - 2026-02-07
+
+### Added
+
+- **GitHub App authentication**: Support GitHub App authentication as an alternative to personal access tokens for Git SCM integration (#5327)
+- **OIDC UserInfo claims merging**: Optionally fetch and merge claims from the OIDC UserInfo endpoint into the auth session, useful for providers that keep ID token claims minimal (#5364)
+- **OIDC configurable signing algorithms**: Add `algorithms` field to OIDC provider configuration to support ID tokens signed with algorithms other than RS256 (#5362)
+
+### Fixed
+
+- **Git ref update after fetch**: Complete ref update after fetch for both bare and normal repositories, fixing issues where shallow fetches did not persist references to `refs/heads/` (#5144)
+- **License key format handling**: Fix license activation wizard to properly handle annual license key format in addition to monthly keys (#5335)
+- **GitHub auth error messages**: Improve error message when GitHub authentication fails due to organization/team security requirements (#5331)
+- **SSH URLs with non-standard ports**: Support SSH URLs with non-standard ports in Git repository configuration (#5298)
+
+### Changed
+
+- **gRPC metrics modernization**: Migrate from deprecated `go-grpc-prometheus` to `go-grpc-middleware/providers/prometheus` for gRPC metrics instrumentation (#5272)
+
+### Dependencies
+
+- Updated various dependencies including OpenTelemetry, OPA, gRPC ecosystem, ClickHouse client, and UI libraries
+
 ## [2.5.0](https://github.com/flipt-io/flipt/releases/tag/v2.5.0) - 2026-01-09
 
 ### Added
