@@ -28,6 +28,9 @@
     <a href="https://flipt.io/discord">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat" />
     </a>
+    <a href="https://deepwiki.com/flipt-io/flipt">
+      <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
+    </a>
 </div>
 
 <div align="center">
