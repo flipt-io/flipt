@@ -49,9 +49,9 @@ type SCM struct {
 }
 
 type gitHubOptions struct {
+	ctx        context.Context
 	apiURL     *url.URL
 	httpClient *http.Client
-	apiAuth    *credentials.APIAuth
 }
 
 type ClientOption func(*gitHubOptions)
@@ -74,13 +74,27 @@ func WithApiURL(apiURL *url.URL) ClientOption {
 
 func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	return func(c *gitHubOptions) {
-		c.apiAuth = apiAuth
+		switch apiAuth.Type() {
+		case config.CredentialTypeAccessToken:
+			c.httpClient = oauth2.NewClient(c.ctx, oauth2.StaticTokenSource(
+				&oauth2.Token{TokenType: "Bearer", AccessToken: apiAuth.Token},
+			))
+		case config.CredentialTypeBasic:
+			// Convert basic auth to Basic auth header
+			encoded := base64.StdEncoding.EncodeToString([]byte(apiAuth.Username + ":" + apiAuth.Password))
+			c.httpClient = oauth2.NewClient(c.ctx, oauth2.StaticTokenSource(
+				&oauth2.Token{TokenType: "Basic", AccessToken: encoded},
+			))
+		case config.CredentialTypeGithubApp:
+			c.httpClient = oauth2.NewClient(c.ctx, apiAuth.GitHubAppTokenSource())
+		}
 	}
 }
 
 // NewSCM creates a new GitHub SCM instance.
 func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, opts ...ClientOption) (*SCM, error) {
 	githubOpts := &gitHubOptions{
+		ctx:        ctx,
 		httpClient: http.DefaultClient,
 	}
 
@@ -89,29 +103,8 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 	}
 
 	client := github.NewClient(githubOpts.httpClient)
-
 	if githubOpts.apiURL != nil {
 		client.BaseURL = githubOpts.apiURL
-	}
-
-	if githubOpts.apiAuth != nil {
-		// Configure API client authentication
-		apiAuth := githubOpts.apiAuth
-		switch apiAuth.Type() {
-		case config.CredentialTypeAccessToken:
-			// Use token for API operations
-			client = client.WithAuthToken(apiAuth.Token)
-		case config.CredentialTypeBasic:
-			// Use basic auth for API operations - convert to OAuth2 token format
-			client = github.NewClient(oauth2.NewClient(ctx, oauth2.StaticTokenSource(
-				&oauth2.Token{
-					TokenType:   "Basic",
-					AccessToken: base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", apiAuth.Username, apiAuth.Password)),
-				}),
-			))
-		default:
-			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
-		}
 	}
 
 	return &SCM{

@@ -1,6 +1,14 @@
 package credentials
 
 import (
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/go-git/go-git/v6/plumbing/transport"
@@ -10,6 +18,8 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
+	"golang.org/x/oauth2"
 )
 
 func TestNew(t *testing.T) {
@@ -297,9 +307,10 @@ func TestCredential_APIAuthentication(t *testing.T) {
 	logger := zap.NewNop()
 
 	tests := []struct {
-		name      string
-		config    *config.CredentialConfig
-		checkAuth func(*testing.T, *APIAuth)
+		name       string
+		config     *config.CredentialConfig
+		checkAuth  func(*testing.T, *APIAuth)
+		checkToken func(*testing.T, oauth2.TokenSource, error)
 	}{
 		{
 			name: "access token credential",
@@ -316,6 +327,14 @@ func TestCredential_APIAuthentication(t *testing.T) {
 				assert.Empty(t, auth.Username)
 				assert.Empty(t, auth.Password)
 			},
+			checkToken: func(t *testing.T, ts oauth2.TokenSource, err error) {
+				require.NoError(t, err)
+				require.NotNil(t, ts)
+				token, err := ts.Token()
+				require.NoError(t, err)
+				assert.Equal(t, "token", token.Type())
+				assert.Equal(t, "glpat-abc123", token.AccessToken)
+			},
 		},
 		{
 			name: "basic auth credential",
@@ -331,6 +350,14 @@ func TestCredential_APIAuthentication(t *testing.T) {
 				assert.Empty(t, auth.Token)
 				assert.Equal(t, "user", auth.Username)
 				assert.Equal(t, "pass", auth.Password)
+			},
+			checkToken: func(t *testing.T, ts oauth2.TokenSource, err error) {
+				require.NoError(t, err)
+				require.NotNil(t, ts)
+				token, err := ts.Token()
+				require.NoError(t, err)
+				assert.Equal(t, "Basic", token.Type())
+				assert.Equal(t, "dXNlcjpwYXNz", token.AccessToken)
 			},
 		},
 		{
@@ -350,6 +377,10 @@ func TestCredential_APIAuthentication(t *testing.T) {
 				assert.Empty(t, auth.Username)
 				assert.Empty(t, auth.Password)
 			},
+			checkToken: func(t *testing.T, ts oauth2.TokenSource, err error) {
+				require.Error(t, err)
+				assert.Nil(t, ts)
+			},
 		},
 	}
 
@@ -360,7 +391,8 @@ func TestCredential_APIAuthentication(t *testing.T) {
 				config: tt.config,
 			}
 
-			auth := c.APIAuthentication()
+			auth, err := c.APIAuthentication()
+			require.NoError(t, err)
 			assert.NotNil(t, auth)
 
 			if tt.checkAuth != nil {
@@ -368,4 +400,166 @@ func TestCredential_APIAuthentication(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGithubAppCredentials(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /app/installations/10/access_tokens", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		_, err := w.Write([]byte(`
+	{
+  "token": "ghs_MockAccessToken",
+  "expires_at": "2046-01-29T14:12:34Z",
+  "permissions": {
+    "contents": "read",
+    "metadata": "read"
+  }}`))
+		assert.NoError(t, err)
+	})
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	c := &Credential{
+		config: &config.CredentialConfig{
+			Type: config.CredentialTypeGithubApp,
+			GitHubApp: &config.GitHubAppConfig{
+				ClientID:       "1234",
+				InstallationID: 10,
+				ApiURL:         srv.URL,
+				PrivateKeyBytes: func(t *testing.T) string {
+					key, err := rsa.GenerateKey(rand.Reader, 2048)
+					require.NoError(t, err)
+					der := x509.MarshalPKCS1PrivateKey(key)
+					block := &pem.Block{
+						Type:  "RSA PRIVATE KEY",
+						Bytes: der,
+					}
+					var buf bytes.Buffer
+					err = pem.Encode(&buf, block)
+					require.NoError(t, err)
+					return buf.String()
+				}(t),
+			},
+		},
+	}
+	t.Run("auth token for SCM", func(t *testing.T) {
+		ts, err := c.APIAuthentication()
+		require.NoError(t, err)
+		require.NotNil(t, ts)
+		token, err := ts.GitHubAppTokenSource().Token()
+		require.NoError(t, err)
+		assert.Equal(t, "Bearer", token.Type())
+		assert.Equal(t, "ghs_MockAccessToken", token.AccessToken)
+	})
+
+	t.Run("auth token for go-git http client", func(t *testing.T) {
+		ghau, err := NewGitHubAppCredentials(zaptest.NewLogger(t), c.config.GitHubApp)
+		require.NoError(t, err)
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		ghau.SetAuth(r)
+		assert.Equal(t, "Basic eC10b2tlbi1hdXRoOmdoc19Nb2NrQWNjZXNzVG9rZW4=", r.Header.Get("Authorization"))
+	})
+}
+
+func TestGitHubAppAuth_SetAuth_Errors(t *testing.T) {
+	// Test with a token source that always returns an error
+	logger := zaptest.NewLogger(t)
+
+	// Create a GitHubAppCredentials with a mock token source that will fail
+	creds := &GitHubAppCredentials{
+		logger:         logger,
+		clientID:       "test-client",
+		tokenSource:    &failingTokenSource{},
+		installationID: 12345,
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	// SetAuth should handle the error gracefully and log it
+	creds.SetAuth(r)
+
+	// The request should not have Authorization header set due to the error
+	assert.Empty(t, r.Header.Get("Authorization"))
+}
+
+func TestNewGitHubAppAuth_PrivateKeyFilePath(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	t.Run("success with private key file path", func(t *testing.T) {
+		// Generate a valid SSH key for testing
+		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+		der := x509.MarshalPKCS1PrivateKey(privateKey)
+		block := &pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: der,
+		}
+		var buf bytes.Buffer
+		err = pem.Encode(&buf, block)
+		require.NoError(t, err)
+		validSSHKey := buf.String()
+
+		certFile, err := os.CreateTemp(t.TempDir(), "test_key_*.pem")
+		require.NoError(t, err)
+
+		_, err = certFile.Write([]byte(validSSHKey))
+		require.NoError(t, err)
+		err = certFile.Close()
+		require.NoError(t, err)
+
+		config := &config.GitHubAppConfig{
+			ClientID:       "test-client",
+			InstallationID: 12345,
+			PrivateKeyPath: certFile.Name(),
+		}
+
+		ghCreds, err := NewGitHubAppCredentials(logger, config)
+		require.NoError(t, err)
+		assert.NotNil(t, ghCreds)
+		assert.Equal(t, "test-client", ghCreds.ClientID())
+		assert.Equal(t, int64(12345), ghCreds.InstallationID())
+	})
+
+	t.Run("error with nonexistent private key file", func(t *testing.T) {
+		config := &config.GitHubAppConfig{
+			ClientID:       "test-client",
+			InstallationID: 12345,
+			PrivateKeyPath: "/nonexistent/path/key.pem",
+		}
+
+		ghCreds, err := NewGitHubAppCredentials(logger, config)
+		require.Error(t, err)
+		assert.Nil(t, ghCreds)
+		assert.Contains(t, err.Error(), "failed to read private key")
+	})
+}
+
+func TestNewGitHubAppAuth_EnterpriseURL(t *testing.T) {
+	// Generate a valid SSH key for testing
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	der := x509.MarshalPKCS1PrivateKey(privateKey)
+	block := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: der,
+	}
+	var buf bytes.Buffer
+	err = pem.Encode(&buf, block)
+	require.NoError(t, err)
+	validSSHKey := buf.String()
+
+	logger := zaptest.NewLogger(t)
+
+	t.Run("with enterprise URL", func(t *testing.T) {
+		config := &config.GitHubAppConfig{
+			ClientID:        "test-client",
+			InstallationID:  12345,
+			PrivateKeyBytes: validSSHKey,
+			ApiURL:          "https://github.enterprise.com",
+		}
+
+		ghCreds, err := NewGitHubAppCredentials(logger, config)
+		require.NoError(t, err)
+		assert.NotNil(t, ghCreds)
+		assert.Equal(t, "test-client", ghCreds.ClientID())
+		assert.Equal(t, int64(12345), ghCreds.InstallationID())
+	})
 }

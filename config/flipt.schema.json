@@ -819,7 +819,10 @@
             },
             "fetch_policy": {
               "type": "string",
-              "enum": ["strict", "lenient"],
+              "enum": [
+                "strict",
+                "lenient"
+              ],
               "default": "strict"
             },
             "backend": {
@@ -954,6 +957,10 @@
             {
               "type": "object",
               "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "basic"
+                },
                 "basic": {
                   "type": "object",
                   "properties": {
@@ -969,71 +976,149 @@
                     "password"
                   ]
                 }
-              }
+              },
+              "required": [
+                "type",
+                "basic"
+              ]
             },
             {
               "type": "object",
               "properties": {
-                "token": {
-                  "type": "object",
-                  "properties": {
-                    "access_token": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "access_token"
-                  ]
+                "type": {
+                  "type": "string",
+                  "const": "access_token"
+                },
+                "access_token": {
+                  "type": "string"
                 }
-              }
+              },
+              "required": [
+                "type",
+                "access_token"
+              ]
             },
             {
               "type": "object",
               "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "ssh"
+                },
                 "ssh": {
                   "type": "object",
-                  "properties": {
-                    "user": {
-                      "type": "string",
-                      "default": "git"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "private_key_bytes": {
+                          "type": "string"
+                        },
+                        "insecure_ignore_host_key": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "password",
+                        "private_key_bytes"
+                      ]
                     },
-                    "password": {
-                      "type": "string"
-                    },
-                    "private_key_path": {
-                      "type": "string"
+                    {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "private_key_path": {
+                          "type": "string"
+                        },
+                        "insecure_ignore_host_key": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "password",
+                        "private_key_path"
+                      ]
                     }
-                  },
-                  "required": [
-                    "password",
-                    "private_key_path"
                   ]
                 }
-              }
+              },
+              "required": [
+                "type",
+                "ssh"
+              ]
             },
             {
               "type": "object",
               "properties": {
-                "ssh": {
+                "type": {
+                  "type": "string",
+                  "const": "github_app"
+                },
+                "github_app": {
                   "type": "object",
-                  "properties": {
-                    "user": {
-                      "type": "string",
-                      "default": "git"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "client_id": {
+                          "type": "string"
+                        },
+                        "installation_id": {
+                          "type": "integer"
+                        },
+                        "private_key_path": {
+                          "type": "string"
+                        },
+                        "api_url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "client_id",
+                        "installation_id",
+                        "private_key_path"
+                      ]
                     },
-                    "password": {
-                      "type": "string"
-                    },
-                    "private_key_bytes": {
-                      "type": "string"
+                    {
+                      "type": "object",
+                      "properties": {
+                        "client_id": {
+                          "type": "string"
+                        },
+                        "installation_id": {
+                          "type": "integer"
+                        },
+                        "private_key_bytes": {
+                          "type": "string"
+                        },
+                        "api_url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "client_id",
+                        "installation_id",
+                        "private_key_bytes"
+                      ]
                     }
-                  },
-                  "required": [
-                    "password",
-                    "private_key_bytes"
                   ]
                 }
-              }
+              },
+              "required": [
+                "type",
+                "github_app"
+              ]
             }
           ]
         }

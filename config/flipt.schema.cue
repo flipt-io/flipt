@@ -263,7 +263,20 @@ JsonPath: string
 	} | {
 		type:         "access_token"
 		access_token: string
-	}
+  } | {
+    type: "github_app",
+    github_app: {
+      client_id: string
+      installation_id: int
+      private_key_path: string
+      api_url?:          string
+    } | {
+      client_id: string
+      installation_id: int
+      private_key_bytes: string
+      api_url?:          string
+    }
+  }
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "warn"]
 	_#all: list.Concat([_#lower, [for x in _#lower {strings.ToUpper(x)}]])
