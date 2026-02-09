@@ -3,7 +3,7 @@ module go.flipt.io/flipt
 go 1.25.0
 
 require (
-	code.gitea.io/sdk/gitea v0.22.1
+	code.gitea.io/sdk/gitea v0.23.2
 	cuelang.org/go v0.15.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/ClickHouse/clickhouse-go/v2 v2.43.0
