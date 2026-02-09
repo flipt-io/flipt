@@ -87,7 +87,7 @@ require (
 	golang.org/x/crypto v0.47.0
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
 	golang.org/x/net v0.49.0
-	golang.org/x/oauth2 v0.34.0
+	golang.org/x/oauth2 v0.35.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/term v0.39.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409
