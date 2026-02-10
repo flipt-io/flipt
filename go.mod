@@ -21,8 +21,8 @@ require (
 	github.com/fullstorydev/grpchan v1.1.2
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/go-chi/cors v1.2.2
-	github.com/go-git/go-billy/v6 v6.0.0-20251126203821-7f9c95185ee0
-	github.com/go-git/go-git/v6 v6.0.0-20251202212438-5d40cdde8ca0
+	github.com/go-git/go-billy/v6 v6.0.0-20260209124918-37866f83c2d3
+	github.com/go-git/go-git/v6 v6.0.0-20260210102253-e4d10f0e569a
 	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-openapi/jsonpointer v0.22.4
 	github.com/gobwas/glob v0.2.3
@@ -218,7 +218,7 @@ require (
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/chigopher/pathlib v0.19.1 // indirect
 	github.com/ckaznocha/intrange v0.3.1 // indirect
-	github.com/cloudflare/circl v1.6.1 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cncf/xds/go v0.0.0-20251210132809-ee656c7534f5 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
