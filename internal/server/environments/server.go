@@ -7,9 +7,11 @@ import (
 	"github.com/samber/lo"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/authz"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -377,6 +379,66 @@ func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteRes
 	if resp.Revision, err = env.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) (err error) {
 		return sv.DeleteResource(ctx, req.NamespaceKey, req.Key)
 	}); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (s *Server) CopyFlag(ctx context.Context, req *environments.CopyFlagRequest) (resp *environments.ResourceResponse, err error) {
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	fromNamespaceKey := req.FromNamespaceKey
+	toNamespaceKey := req.ToNamespaceKey
+	if toNamespaceKey == "" {
+		toNamespaceKey = fromNamespaceKey
+	}
+
+	fromFlagKey := req.FromFlagKey
+	toFlagKey := req.ToFlagKey
+	if toFlagKey == "" {
+		toFlagKey = fromFlagKey
+	}
+
+	resp = &environments.ResourceResponse{}
+	typ := NewResourceType("flipt.core", "Flag")
+	resp.Revision, err = env.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
+		resource, err := sv.GetResource(ctx, fromNamespaceKey, fromFlagKey)
+		if err != nil {
+			return err
+		}
+
+		_, err = sv.GetResource(ctx, toNamespaceKey, toFlagKey)
+		if err == nil {
+			return errors.ErrAlreadyExistsf("flag %s/%s", toNamespaceKey, toFlagKey)
+		}
+		if !errors.AsMatch[errors.ErrNotFound](err) {
+			return err
+		}
+
+		payload := resource.Resource.Payload
+		var flag core.Flag
+		if err := payload.UnmarshalTo(&flag); err != nil {
+			return err
+		}
+		flag.Key = toFlagKey
+		payload, err = anypb.New(&flag)
+		if err != nil {
+			return err
+		}
+
+		resp.Resource = &environments.Resource{
+			NamespaceKey: toNamespaceKey,
+			Key:          toFlagKey,
+			Payload:      payload,
+		}
+
+		return sv.CreateResource(ctx, resp.Resource)
+	})
+	if err != nil {
 		return nil, err
 	}
 
