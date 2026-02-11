@@ -60,7 +60,7 @@ func withBaseCommit(hash plumbing.Hash) containers.Option[filesystemOption] {
 func withSignature(name, email string) containers.Option[filesystemOption] {
 	return func(o *filesystemOption) {
 		o.sigName = cmp.Or(name, "flipt")
-		o.sigEmail = cmp.Or(email, "dev@flipt.io")
+		o.sigEmail = cmp.Or(email, "flipt[bot]@noreply.flipt.io")
 	}
 }
 
@@ -91,7 +91,7 @@ func newFilesystem(logger *zap.Logger, storer gitstorage.Storer, opts ...contain
 	var (
 		fopts = filesystemOption{
 			sigName:  "flipt",
-			sigEmail: "dev@flipt.io",
+			sigEmail: "flipt[bot]@noreply.flipt.io",
 		}
 		commit *object.Commit
 	)
