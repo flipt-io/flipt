@@ -129,6 +129,15 @@ service EnvironmentsService {
     option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteResource"};
   }
+
+  // Copy a flag between namespaces.
+  rpc CopyFlag(CopyFlagRequest) returns (ResourceResponse) {
+    option (google.api.http) = {
+      post: "/api/v2/environments/{environment_key}/namespaces/{from_namespace_key}/flags/{from_flag_key}:copy"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "copyFlag"};
+  }
 }
 
 /* Environments */
@@ -449,6 +458,22 @@ message DeleteResourceRequest {
 
 // The response message for deleting a resource.
 message DeleteResourceResponse {
+  // The resource revision for optimistic concurrency.
+  string revision = 100;
+}
+
+// The request message for copying a flag between namespaces.
+message CopyFlagRequest {
+  // The environment identifier, e.g. 'production'.
+  string environment_key = 1;
+  // The source namespace key.
+  string from_namespace_key = 2;
+  // The source flag key.
+  string from_flag_key = 3;
+  // The destination namespace key.
+  string to_namespace_key = 4;
+  // The destination flag key.
+  string to_flag_key = 5;
   // The resource revision for optimistic concurrency.
   string revision = 100;
 }
