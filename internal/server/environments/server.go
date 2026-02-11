@@ -386,7 +386,18 @@ func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteRes
 }
 
 func (s *Server) CopyFlag(ctx context.Context, req *environments.CopyFlagRequest) (resp *environments.ResourceResponse, err error) {
-	env, err := s.envs.Get(ctx, req.EnvironmentKey)
+	fromEnvironmentKey := req.FromEnvironmentKey
+	toEnvironmentKey := req.ToEnvironmentKey
+	if toEnvironmentKey == "" {
+		toEnvironmentKey = fromEnvironmentKey
+	}
+
+	fromEnv, err := s.envs.Get(ctx, fromEnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	toEnv, err := s.envs.Get(ctx, toEnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -398,22 +409,23 @@ func (s *Server) CopyFlag(ctx context.Context, req *environments.CopyFlagRequest
 	}
 
 	fromFlagKey := req.FromFlagKey
-	toFlagKey := req.ToFlagKey
-	if toFlagKey == "" {
-		toFlagKey = fromFlagKey
-	}
 
 	resp = &environments.ResourceResponse{}
 	typ := NewResourceType("flipt.core", "Flag")
-	resp.Revision, err = env.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
-		resource, err := sv.GetResource(ctx, fromNamespaceKey, fromFlagKey)
-		if err != nil {
-			return err
-		}
 
-		_, err = sv.GetResource(ctx, toNamespaceKey, toFlagKey)
+	var resource *environments.ResourceResponse
+	if err := fromEnv.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) error {
+		var err error
+		resource, err = sv.GetResource(ctx, fromNamespaceKey, fromFlagKey)
+		return err
+	}); err != nil {
+		return nil, err
+	}
+
+	resp.Revision, err = toEnv.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
+		_, err := sv.GetResource(ctx, toNamespaceKey, fromFlagKey)
 		if err == nil {
-			return errors.ErrAlreadyExistsf("flag %s/%s", toNamespaceKey, toFlagKey)
+			return errors.ErrAlreadyExistsf("flag %s/%s", toNamespaceKey, fromFlagKey)
 		}
 		if !errors.AsMatch[errors.ErrNotFound](err) {
 			return err
@@ -424,7 +436,7 @@ func (s *Server) CopyFlag(ctx context.Context, req *environments.CopyFlagRequest
 		if err := payload.UnmarshalTo(&flag); err != nil {
 			return err
 		}
-		flag.Key = toFlagKey
+		flag.Key = fromFlagKey
 		payload, err = anypb.New(&flag)
 		if err != nil {
 			return err
@@ -432,7 +444,7 @@ func (s *Server) CopyFlag(ctx context.Context, req *environments.CopyFlagRequest
 
 		resp.Resource = &environments.Resource{
 			NamespaceKey: toNamespaceKey,
-			Key:          toFlagKey,
+			Key:          fromFlagKey,
 			Payload:      payload,
 		}
 
