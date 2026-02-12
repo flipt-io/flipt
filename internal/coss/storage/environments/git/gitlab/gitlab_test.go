@@ -188,8 +188,8 @@ func TestSCM_ListProposals(t *testing.T) {
 	mrsList := []*gitlab.BasicMergeRequest{mr}
 	resp := &gitlab.Response{NextPage: 0}
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
-		TargetBranch: gitlab.Ptr("main"),
-		State:        gitlab.Ptr("all"),
+		TargetBranch: new("main"),
+		State:        new("all"),
 		ListOptions:  gitlab.ListOptions{PerPage: 100},
 	}).Return(mrsList, resp, nil)
 
@@ -223,8 +223,8 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 	mrsList := []*gitlab.BasicMergeRequest{mr}
 	resp := &gitlab.Response{NextPage: 0}
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
-		TargetBranch: gitlab.Ptr("main"),
-		State:        gitlab.Ptr("all"),
+		TargetBranch: new("main"),
+		State:        new("all"),
 		ListOptions:  gitlab.ListOptions{PerPage: 100},
 	}).Return(mrsList, resp, nil)
 
@@ -261,8 +261,8 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 	mrsList := []*gitlab.BasicMergeRequest{mrClosed, mrOpen}
 	resp := &gitlab.Response{NextPage: 0}
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
-		TargetBranch: gitlab.Ptr("main"),
-		State:        gitlab.Ptr("all"),
+		TargetBranch: new("main"),
+		State:        new("all"),
 		ListOptions:  gitlab.ListOptions{PerPage: 100},
 	}).Return(mrsList, resp, nil)
 
@@ -296,8 +296,8 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 	mrsList := []*gitlab.BasicMergeRequest{mrClosedMerged}
 	resp := &gitlab.Response{NextPage: 0}
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
-		TargetBranch: gitlab.Ptr("main"),
-		State:        gitlab.Ptr("all"),
+		TargetBranch: new("main"),
+		State:        new("all"),
 		ListOptions:  gitlab.ListOptions{PerPage: 100},
 	}).Return(mrsList, resp, nil)
 
@@ -331,8 +331,8 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	mrsList := []*gitlab.BasicMergeRequest{mrClosed}
 	resp := &gitlab.Response{NextPage: 0}
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
-		TargetBranch: gitlab.Ptr("main"),
-		State:        gitlab.Ptr("all"),
+		TargetBranch: new("main"),
+		State:        new("all"),
 		ListOptions:  gitlab.ListOptions{PerPage: 100},
 	}).Return(mrsList, resp, nil)
 

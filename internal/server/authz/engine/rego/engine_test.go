@@ -59,7 +59,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 				},
 				"request": flipt.Request{
 					Scope:       flipt.ScopeEnvironment,
-					Environment: ptr("default"),
+					Environment: new("default"),
 					Action:      flipt.ActionCreate,
 				},
 			},
@@ -75,7 +75,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 				},
 				"request": flipt.Request{
 					Scope:       flipt.ScopeEnvironment,
-					Environment: ptr("development"),
+					Environment: new("development"),
 					Action:      flipt.ActionCreate,
 				},
 			},
@@ -91,8 +91,8 @@ func TestEngine_IsAllowed(t *testing.T) {
 				},
 				"request": flipt.Request{
 					Scope:       flipt.ScopeNamespace,
-					Environment: ptr("development"),
-					Namespace:   ptr("frontend"),
+					Environment: new("development"),
+					Namespace:   new("frontend"),
 					Action:      flipt.ActionCreate,
 				},
 			},
@@ -108,8 +108,8 @@ func TestEngine_IsAllowed(t *testing.T) {
 				},
 				"request": flipt.Request{
 					Scope:       flipt.ScopeNamespace,
-					Environment: ptr("production"),
-					Namespace:   ptr("analytics"),
+					Environment: new("production"),
+					Namespace:   new("analytics"),
 					Action:      flipt.ActionRead,
 				},
 			},
@@ -125,8 +125,8 @@ func TestEngine_IsAllowed(t *testing.T) {
 				},
 				"request": flipt.Request{
 					Scope:       flipt.ScopeNamespace,
-					Environment: ptr("production"),
-					Namespace:   ptr("analytics"),
+					Environment: new("production"),
+					Namespace:   new("analytics"),
 					Action:      flipt.ActionCreate,
 				},
 			},
@@ -316,8 +316,4 @@ type dataSource string
 
 func (d dataSource) Get(context.Context, source.Hash) (data map[string]any, _ source.Hash, _ error) {
 	return data, nil, json.Unmarshal([]byte(d), &data)
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }

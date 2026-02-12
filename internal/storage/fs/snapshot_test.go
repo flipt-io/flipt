@@ -21,10 +21,6 @@ import (
 //go:embed testdata
 var testdata embed.FS
 
-func ptr[P any](p P) *P {
-	return &p
-}
-
 func TestSnapshot_GetFlag(t *testing.T) {
 	conf := DefaultFliptConfig(config.TemplatesConfig{})
 	snap, err := SnapshotFromFS(zaptest.NewLogger(t), conf, testdata)
@@ -46,7 +42,7 @@ func TestSnapshot_GetFlag(t *testing.T) {
 				Name:           "Prod Flag 1",
 				Description:    "description",
 				Enabled:        true,
-				DefaultVariant: ptr("prod-variant"),
+				DefaultVariant: new("prod-variant"),
 				Variants: []*core.Variant{
 					{
 						Key:  "prod-variant",
@@ -211,7 +207,7 @@ func TestSnapshot_ListFlags(t *testing.T) {
 					Name:           "Prod Flag 1",
 					Description:    "description",
 					Enabled:        true,
-					DefaultVariant: ptr("prod-variant"),
+					DefaultVariant: new("prod-variant"),
 					Variants: []*core.Variant{
 						{
 							Key:  "prod-variant",

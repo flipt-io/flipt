@@ -570,13 +570,13 @@ func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager s
 		}
 
 	case reflect.Struct:
-		for i := 0; i < v.NumField(); i++ {
-			if err := walkConfigForSecrets(ctx, v.Field(i), secretsManager); err != nil {
+		for _, field := range v.Fields() {
+			if err := walkConfigForSecrets(ctx, field, secretsManager); err != nil {
 				return err
 			}
 		}
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if !v.IsNil() {
 			if err := walkConfigForSecrets(ctx, v.Elem(), secretsManager); err != nil {
 				return err

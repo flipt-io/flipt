@@ -224,15 +224,15 @@ func TestSCM_ListChanges(t *testing.T) {
 						Revision:   "abc123",
 						Message:    "feat: add new feature",
 						Timestamp:  "2024-01-01T12:00:00Z",
-						ScmUrl:     stringPtr("https://bitbucket.org/owner/repo/commits/abc123"),
-						AuthorName: stringPtr("John Doe"),
+						ScmUrl:     new("https://bitbucket.org/owner/repo/commits/abc123"),
+						AuthorName: new("John Doe"),
 					},
 					{
 						Revision:   "def456",
 						Message:    "fix: bug fix",
 						Timestamp:  "2024-01-01T11:00:00Z",
-						ScmUrl:     stringPtr("https://bitbucket.org/owner/repo/commits/def456"),
-						AuthorName: stringPtr("Jane Smith"),
+						ScmUrl:     new("https://bitbucket.org/owner/repo/commits/def456"),
+						AuthorName: new("Jane Smith"),
 					},
 				},
 			},
@@ -499,8 +499,4 @@ func TestListProposalsWithMultiplePRs(t *testing.T) {
 
 	assert.Equal(t, environments.ProposalState_PROPOSAL_STATE_OPEN, result["flipt/production/feature-1"].State)
 	assert.Equal(t, environments.ProposalState_PROPOSAL_STATE_MERGED, result["flipt/production/feature-2"].State)
-}
-
-func stringPtr(s string) *string {
-	return &s
 }
