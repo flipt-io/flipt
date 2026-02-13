@@ -1,9 +1,13 @@
 name: Proto Push
 on:
+  pull_request:
   push:
     tags:
       - "v2*"
 
+permissions:
+  contents: read
+  pull-requests: write
 jobs:
   proto-push:
     name: "Push Protos"
@@ -14,25 +18,25 @@ jobs:
       - uses: bufbuild/buf-action@v1
         with:
           setup_only: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      # TODO: also include v2/environments
       - uses: bufbuild/buf-action@v1
         with:
-          input: "rpc/flipt"
+          input: "rpc"
           lint: true
 
-      # TODO: also include v2/environments
+      - uses: bufbuild/buf-action@v1
+        with:
+          input: "rpc"
+          breaking: true
+          breaking_against: "https://github.com/${{ github.repository }}.git#branch=v2,subdir=rpc"
+
       - uses: bufbuild/buf-action@v1
         with:
           input: "rpc/flipt"
-          breaking: true
-          breaking_against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=v2"
-
-      # TODO: we need to version the protos for pushing
-      # TODO: also include v2/environments
-#       - uses: bufbuild/buf-action@v1
-#         with:
-#           input: "rpc/flipt"
-#           push: true
-#           token: ${{ secrets.BUF_TOKEN }}
+          push: true
+          token: ${{ secrets.BUF_TOKEN }}
+      - uses: bufbuild/buf-action@v1
+        with:
+          input: "rpc/v2/environments"
+          push: true
+          token: ${{ secrets.BUF_TOKEN }}
