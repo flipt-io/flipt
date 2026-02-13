@@ -318,11 +318,8 @@ func bindEnvVars(v envBinder, env, prefixes []string, typ reflect.Type) {
 			}
 		}
 
-		for i := range typ.NumField() {
-			var (
-				structField = typ.Field(i)
-				key         = fieldKey(structField)
-			)
+		for structField := range typ.Fields() {
+			key := fieldKey(structField)
 
 			bind(env, prefixes, key, func(prefixes []string) {
 				bindEnvVars(v, env, prefixes, structField.Type)

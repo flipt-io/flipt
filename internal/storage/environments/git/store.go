@@ -124,7 +124,7 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 
 	var remote *string
 	if e.repo.GetRemote() != "" {
-		remote = ptr(e.repo.GetRemote())
+		remote = new(e.repo.GetRemote())
 	}
 
 	var directory *string
@@ -136,15 +136,15 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 	if e.cfg.SCM != nil {
 		switch e.cfg.SCM.Type {
 		case config.GitHubSCMType:
-			scm = ptr(rpcenvironments.SCM_SCM_GITHUB)
+			scm = new(rpcenvironments.SCM_SCM_GITHUB)
 		case config.GitLabSCMType:
-			scm = ptr(rpcenvironments.SCM_SCM_GITLAB)
+			scm = new(rpcenvironments.SCM_SCM_GITLAB)
 		case config.GiteaSCMType:
-			scm = ptr(rpcenvironments.SCM_SCM_GITEA)
+			scm = new(rpcenvironments.SCM_SCM_GITEA)
 		case config.AzureSCMType:
-			scm = ptr(rpcenvironments.SCM_SCM_AZURE)
+			scm = new(rpcenvironments.SCM_SCM_AZURE)
 		case config.BitBucketSCMType:
-			scm = ptr(rpcenvironments.SCM_SCM_BITBUCKET)
+			scm = new(rpcenvironments.SCM_SCM_BITBUCKET)
 		}
 	}
 
@@ -798,8 +798,4 @@ func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (sn
 		snap, err = storagefs.SnapshotFromFS(e.logger, conf, iofs)
 		return err
 	}, storagegit.ViewWithHash(hash))
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }

@@ -10,10 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 type mockGithubReleaseService struct {
 	release  *github.RepositoryRelease
 	response *github.Response
@@ -38,8 +34,8 @@ func TestGetLatestRelease(t *testing.T) {
 			htmlURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
 			err:     nil,
 			want: &github.RepositoryRelease{
-				TagName: strPtr("0.17.1"),
-				HTMLURL: strPtr("https://github.com/flipt-io/flipt/releases/tag/0.17.2"),
+				TagName: new("0.17.1"),
+				HTMLURL: new("https://github.com/flipt-io/flipt/releases/tag/0.17.2"),
 			},
 		},
 		{
@@ -52,8 +48,8 @@ func TestGetLatestRelease(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			srv := &mockGithubReleaseService{
 				release: &github.RepositoryRelease{
-					TagName: strPtr(tt.tagName),
-					HTMLURL: strPtr(tt.htmlURL),
+					TagName: new(tt.tagName),
+					HTMLURL: new(tt.htmlURL),
 				},
 				err: tt.err,
 			}

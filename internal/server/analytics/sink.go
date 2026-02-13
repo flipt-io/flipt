@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
-	"k8s.io/utils/ptr"
 )
 
 var errNotTransformable = errors.New("event not transformable into evaluation response")
@@ -74,12 +73,12 @@ func transformSpanEventToEvaluationResponses(event sdktrace.Event) ([]*Evaluatio
 			r.EntityId = v.Value.AsString()
 		case tracing.AttributeMatch:
 			if v.Value.Type() == attribute.BOOL {
-				r.Match = ptr.To(v.Value.AsBool())
+				r.Match = new(v.Value.AsBool())
 			}
 		case tracing.AttributeReason:
 			r.Reason = tracing.ReasonFromValue(v.Value.AsString()).String()
 		case tracing.AttributeVariant:
-			r.EvaluationValue = ptr.To(v.Value.AsString())
+			r.EvaluationValue = new(v.Value.AsString())
 		}
 	}
 	return []*EvaluationResponse{r}, nil

@@ -22,14 +22,14 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 
 	// Use cache if available
 	if len(registryCache) > 0 && registryCache[0] != "" {
-		baseImageRef := fmt.Sprintf("%s:golang-%s", registryCache[0], "base-1.25")
+		baseImageRef := fmt.Sprintf("%s:golang-%s", registryCache[0], "base-1.26")
 		// Try cached base first
 		cachedBase := golang.From(baseImageRef)
 		if _, err := cachedBase.Sync(ctx); err == nil {
 			golang = cachedBase
 		} else {
 			// Build fresh base and cache it
-			golang = golang.From("golang:1.25-alpine3.21").
+			golang = golang.From("golang:1.26-alpine").
 				WithEnvVariable("GOCACHE", goBuildCachePath).
 				WithEnvVariable("GOMODCACHE", goModCachePath).
 				WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
@@ -38,7 +38,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		}
 	} else {
 		// No cache - use regular build
-		golang = golang.From("golang:1.25-alpine3.21").
+		golang = golang.From("golang:1.26-alpine").
 			WithEnvVariable("GOCACHE", goBuildCachePath).
 			WithEnvVariable("GOMODCACHE", goModCachePath).
 			WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
@@ -103,7 +103,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 	//
 	// Note: We inline the content here rather than copying from build/go.work.container
 	// to ensure it's always available regardless of mount ordering issues
-	goWorkContent := `go 1.25.0
+	goWorkContent := `go 1.26.0
 
 use (
 	.
@@ -118,7 +118,7 @@ use (
 )
 `
 	golang = golang.WithNewFile("/src/go.work", goWorkContent, dagger.ContainerWithNewFileOpts{
-		Permissions: 0644,
+		Permissions: 0o644,
 	})
 
 	// Sync the workspace to generate go.work.sum and validate the configuration
