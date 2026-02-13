@@ -52,6 +52,45 @@ func TestNew(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestNewWithSigV4(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify that the Authorization header contains AWS SigV4 signature
+		auth := r.Header.Get("Authorization")
+		assert.Contains(t, auth, "AWS4-HMAC-SHA256")
+
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte(`{
+       "status":"success",
+       "data":{
+          "resultType":"matrix",
+          "result":[{"metric":{},"values":[[1732699504.975,"0"]]}]
+       }}`))
+		if err != nil {
+			t.Fatalf("failed to write response: %v", err)
+		}
+	}))
+	t.Cleanup(srv.Close)
+
+	logger := zaptest.NewLogger(t)
+	cfg := config.Default()
+	cfg.Analytics.Storage.Prometheus.URL = srv.URL
+	cfg.Analytics.Storage.Prometheus.SigV4 = config.PrometheusSigV4Config{
+		Enabled:     true,
+		Region:      "us-east-1",
+		AccessKey:   "AKIAIOSFODNN7EXAMPLE",
+		SecretKey:   "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+		ServiceName: "aps",
+	}
+
+	s, err := New(logger, cfg)
+	require.NoError(t, err)
+	assert.Equal(t, "prometheus", s.String())
+
+	// Verify the client can make requests with SigV4 signing
+	_, _, err = s.GetFlagEvaluationsCount(t.Context(), &panalytics.FlagEvaluationsCountRequest{})
+	require.NoError(t, err)
+}
+
 func TestGetFlagEvaluationsCount(t *testing.T) {
 	ctx := t.Context()
 	from := time.Now().Add(-time.Hour).UTC()

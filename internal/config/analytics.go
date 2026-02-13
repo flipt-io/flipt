@@ -46,11 +46,25 @@ func (c ClickhouseConfig) Options() (*clickhouse.Options, error) {
 	return options, nil
 }
 
+// PrometheusSigV4Config defines the SigV4 authentication configuration for Prometheus.
+type PrometheusSigV4Config struct {
+	Enabled            bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	Region             string `json:"-" mapstructure:"region" yaml:"-"`
+	AccessKey          string `json:"-" mapstructure:"access_key" yaml:"-"`
+	SecretKey          string `json:"-" mapstructure:"secret_key" yaml:"-"`
+	Profile            string `json:"-" mapstructure:"profile" yaml:"-"`
+	RoleARN            string `json:"-" mapstructure:"role_arn" yaml:"-"`
+	ExternalID         string `json:"-" mapstructure:"external_id" yaml:"-"`
+	UseFIPSSTSEndpoint bool   `json:"-" mapstructure:"use_fips_sts_endpoint" yaml:"-"`
+	ServiceName        string `json:"-" mapstructure:"service_name" yaml:"-"`
+}
+
 // PrometheusConfig defines the connection details for connecting Flipt to Prometheus.
 type PrometheusConfig struct {
-	Enabled bool              `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	URL     string            `json:"-" mapstructure:"url" yaml:"-"`
-	Headers map[string]string `json:"-" mapstructure:"headers" yaml:"-"`
+	Enabled bool                  `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	URL     string                `json:"-" mapstructure:"url" yaml:"-"`
+	Headers map[string]string     `json:"-" mapstructure:"headers" yaml:"-"`
+	SigV4   PrometheusSigV4Config `json:"-" mapstructure:"sigv4" yaml:"-"`
 }
 
 // AnalyticsBufferConfig holds configuration for the buffering of sending the analytics

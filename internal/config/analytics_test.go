@@ -40,3 +40,25 @@ func TestAnalyticsPrometheusConfiguration(t *testing.T) {
 	assert.True(t, cfg.Enabled())
 	assert.Equal(t, "prometheus", cfg.Storage.String())
 }
+
+func TestAnalyticsPrometheusSigV4Configuration(t *testing.T) {
+	cfg := &AnalyticsConfig{
+		Storage: AnalyticsStorageConfig{
+			Prometheus: PrometheusConfig{
+				Enabled: true,
+				URL:     "http://localhost:9090",
+				SigV4: PrometheusSigV4Config{
+					Enabled:     true,
+					Region:      "us-east-1",
+					AccessKey:   "AKIAIOSFODNN7EXAMPLE",
+					SecretKey:   "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+					ServiceName: "aps",
+				},
+			},
+		},
+	}
+	assert.True(t, cfg.Enabled())
+	assert.True(t, cfg.Storage.Prometheus.SigV4.Enabled)
+	assert.Equal(t, "us-east-1", cfg.Storage.Prometheus.SigV4.Region)
+	assert.Equal(t, "aps", cfg.Storage.Prometheus.SigV4.ServiceName)
+}
