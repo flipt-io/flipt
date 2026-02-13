@@ -8,7 +8,10 @@
   scripts.hello.exec = "echo 'hello from Flipt v2!'";
 
   # https://devenv.sh/languages/
-  languages.go.enable = true;
+  languages.go = {
+    enable = true;
+    package = pkgs.go_1_26;
+  };
   languages.typescript.enable = true;
 
   # https://devenv.sh/pre-commit-hooks/
@@ -17,6 +20,7 @@
   # https://devenv.sh/processes/
   processes = {
     backend.exec = "mage -keep dev";
+    backend.notify.enable = true;
     frontend.exec = "mage -keep ui:dev";
   };
 

@@ -56,8 +56,8 @@ func Test_NamespaceStorage_GetNamespace(t *testing.T) {
 		assert.Equal(t, &rpcenvironments.Namespace{
 			Key:         "default",
 			Name:        "Default",
-			Description: ptr("The default namespace"),
-			Protected:   ptr(true),
+			Description: new("The default namespace"),
+			Protected:   new(true),
 		}, ns)
 	})
 
@@ -68,8 +68,8 @@ func Test_NamespaceStorage_GetNamespace(t *testing.T) {
 		assert.Equal(t, &rpcenvironments.Namespace{
 			Key:         "team_a",
 			Name:        "Team A",
-			Description: ptr("The Team A namespace"),
-			Protected:   ptr(false),
+			Description: new("The Team A namespace"),
+			Protected:   new(false),
 		}, ns)
 	})
 
@@ -92,14 +92,14 @@ func Test_NamespaceStorage_ListNamespaces(t *testing.T) {
 		{
 			Key:         "default",
 			Name:        "Default",
-			Description: ptr("The default namespace"),
-			Protected:   ptr(true),
+			Description: new("The default namespace"),
+			Protected:   new(true),
 		},
 		{
 			Key:         "team_a",
 			Name:        "Team A",
-			Description: ptr("The Team A namespace"),
-			Protected:   ptr(false),
+			Description: new("The Team A namespace"),
+			Protected:   new(false),
 		},
 	}, items)
 
@@ -120,11 +120,11 @@ func Test_NamespaceStorage_PutNamespace(t *testing.T) {
 	require.NoError(t, storage.PutNamespace(ctx, fs, &rpcenvironments.Namespace{
 		Key:         "team_b",
 		Name:        "Team B",
-		Description: ptr("The Team B namespace"),
+		Description: new("The Team B namespace"),
 	}))
 
 	t.Run("ensure file has expected contents", func(t *testing.T) {
-		fi, err := fs.OpenFile("team_b/features.yaml", os.O_RDONLY, 0644)
+		fi, err := fs.OpenFile("team_b/features.yaml", os.O_RDONLY, 0o644)
 		require.NoError(t, err)
 
 		data, err := io.ReadAll(fi)
@@ -178,11 +178,11 @@ flags:
 		require.NoError(t, storage.PutNamespace(ctx, testFs, &rpcenvironments.Namespace{
 			Key:         "test_ns",
 			Name:        "Updated Name",
-			Description: ptr("Updated description"),
+			Description: new("Updated description"),
 		}))
 
 		// Read the file content to make sure flags are preserved
-		fi, err := testFs.OpenFile("test_ns/features.yaml", os.O_RDONLY, 0644)
+		fi, err := testFs.OpenFile("test_ns/features.yaml", os.O_RDONLY, 0o644)
 		require.NoError(t, err)
 		defer fi.Close()
 
@@ -245,8 +245,8 @@ namespace:
 		assert.Equal(t, &rpcenvironments.Namespace{
 			Key:         "default",
 			Name:        "Default",
-			Description: ptr("The default namespace"),
-			Protected:   ptr(true),
+			Description: new("The default namespace"),
+			Protected:   new(true),
 		}, ns)
 
 		ns2, err := storage.GetNamespace(ctx, ymlFilesystem, "team_b")
@@ -255,8 +255,8 @@ namespace:
 		assert.Equal(t, &rpcenvironments.Namespace{
 			Key:         "team_b",
 			Name:        "Team B",
-			Description: ptr("Team B with yml extension"),
-			Protected:   ptr(false),
+			Description: new("Team B with yml extension"),
+			Protected:   new(false),
 		}, ns2)
 	})
 
@@ -274,11 +274,11 @@ namespace:
 		require.NoError(t, storage.PutNamespace(ctx, ymlFilesystem, &rpcenvironments.Namespace{
 			Key:         "team_b",
 			Name:        "Updated Team B",
-			Description: ptr("Updated description"),
+			Description: new("Updated description"),
 		}))
 
 		// Verify file is still .yml and has updated content
-		fi, err := ymlFilesystem.OpenFile("team_b/features.yml", os.O_RDONLY, 0644)
+		fi, err := ymlFilesystem.OpenFile("team_b/features.yml", os.O_RDONLY, 0o644)
 		require.NoError(t, err)
 		defer fi.Close()
 
@@ -378,11 +378,11 @@ func Test_NamespaceStorage_NewNamespaceDefaultsToYAML(t *testing.T) {
 		require.NoError(t, storage.PutNamespace(ctx, emptyFs, &rpcenvironments.Namespace{
 			Key:         "new_team",
 			Name:        "New Team",
-			Description: ptr("New team namespace"),
+			Description: new("New team namespace"),
 		}))
 
 		// Verify .yaml file was created (not .yml)
-		fi, err := emptyFs.OpenFile("new_team/features.yaml", os.O_RDONLY, 0644)
+		fi, err := emptyFs.OpenFile("new_team/features.yaml", os.O_RDONLY, 0o644)
 		require.NoError(t, err)
 		defer fi.Close()
 
@@ -396,8 +396,4 @@ func Test_NamespaceStorage_NewNamespaceDefaultsToYAML(t *testing.T) {
 		_, err = emptyFs.Stat("new_team/features.yml")
 		assert.ErrorIs(t, err, os.ErrNotExist)
 	})
-}
-
-func ptr[T any](t T) *T {
-	return &t
 }

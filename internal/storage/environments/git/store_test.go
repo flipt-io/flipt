@@ -309,7 +309,7 @@ func Test_Environment_CreateUpdateDeleteNamespace(t *testing.T) {
 	ns := &rpcenvironments.Namespace{
 		Key:         "team-a",
 		Name:        "Team A",
-		Description: ptr("Team A namespace"),
+		Description: new("Team A namespace"),
 	}
 	newRev, err := env.CreateNamespace(ctx, rev, ns)
 	require.NoError(t, err)
@@ -330,7 +330,7 @@ func Test_Environment_CreateUpdateDeleteNamespace(t *testing.T) {
 
 	// Update the namespace
 	ns.Name = "Team A Updated"
-	ns.Description = ptr("Updated desc")
+	ns.Description = new("Updated desc")
 	updatedRev, err := env.UpdateNamespace(ctx, resp.Revision, ns)
 	require.NoError(t, err)
 	assert.NotEmpty(t, updatedRev)

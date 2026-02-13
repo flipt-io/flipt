@@ -87,8 +87,8 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			authzInput: map[string]any{
 				"request": flipt.Request{
 					Scope:       flipt.ScopeNamespace,
-					Environment: ptr("default"),
-					Namespace:   ptr("default"),
+					Environment: new("default"),
+					Namespace:   new("default"),
 					Action:      flipt.ActionUpdate,
 				},
 				"authentication": adminAuth,
@@ -142,7 +142,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			authzInput: map[string]any{
 				"request": flipt.Request{
 					Scope:       flipt.ScopeEnvironment,
-					Environment: ptr("default"),
+					Environment: new("default"),
 					Action:      flipt.ActionRead,
 				},
 				"authentication": adminAuth,
@@ -189,8 +189,4 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }

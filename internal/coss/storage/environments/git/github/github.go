@@ -121,11 +121,11 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
 
 	pr, _, err := s.prs.Create(ctx, s.owner, s.repository, &github.NewPullRequest{
-		Base:  github.Ptr(req.Base),
-		Head:  github.Ptr(req.Head),
-		Title: github.Ptr(req.Title),
-		Body:  github.Ptr(req.Body),
-		Draft: github.Ptr(req.Draft),
+		Base:  new(req.Base),
+		Head:  new(req.Head),
+		Title: new(req.Title),
+		Body:  new(req.Body),
+		Draft: new(req.Draft),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
@@ -166,12 +166,12 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		change := &environments.Change{
 			Revision: commit.GetSHA(),
 			Message:  commit.GetCommit().GetMessage(),
-			ScmUrl:   github.Ptr(commit.GetHTMLURL()),
+			ScmUrl:   new(commit.GetHTMLURL()),
 		}
 
 		if commit.GetCommit().GetAuthor() != nil {
-			change.AuthorName = github.Ptr(commit.GetCommit().GetAuthor().GetName())
-			change.AuthorEmail = github.Ptr(commit.GetCommit().GetAuthor().GetEmail())
+			change.AuthorName = new(commit.GetCommit().GetAuthor().GetName())
+			change.AuthorEmail = new(commit.GetCommit().GetAuthor().GetEmail())
 			change.Timestamp = commit.GetCommit().GetAuthor().GetDate().Format(time.RFC3339)
 		}
 

@@ -21,8 +21,8 @@ const (
 var defaultNamespace = &rpcenvironments.Namespace{
 	Key:         defaultKey,
 	Name:        "default",
-	Description: ptr("The default namespace"),
-	Protected:   ptr(true),
+	Description: new("The default namespace"),
+	Protected:   new(true),
 }
 
 type NamespaceStorage struct {
@@ -122,7 +122,7 @@ func (s *NamespaceStorage) ListNamespaces(ctx context.Context, fs Filesystem) (i
 }
 
 func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *rpcenvironments.Namespace) error {
-	if err := fs.MkdirAll(ns.Key, 0755); err != nil {
+	if err := fs.MkdirAll(ns.Key, 0o755); err != nil {
 		return fmt.Errorf("creating directory %q: %w", ns.Key, err)
 	}
 
@@ -139,7 +139,7 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 	// If the file already exists, read it to preserve existing flags and data
 	var docs []*ext.Document
 	if err == nil {
-		fi, err := fs.OpenFile(filePath, os.O_RDONLY, 0644)
+		fi, err := fs.OpenFile(filePath, os.O_RDONLY, 0o644)
 		if err != nil {
 			return err
 		}
@@ -159,7 +159,7 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 	}
 
 	// Create output file
-	fi, err := fs.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	fi, err := fs.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}
@@ -245,12 +245,8 @@ func rpcNamespaceFor(ns *ext.NamespaceEmbed) *rpcenvironments.Namespace {
 		Key:         ns.GetKey(),
 		Name:        name,
 		Description: &description,
-		Protected:   ptr(ns.GetKey() == defaultKey),
+		Protected:   new(ns.GetKey() == defaultKey),
 	}
-}
-
-func ptr[T any](t T) *T {
-	return &t
 }
 
 func derefOrZero[T any](t *T) (v T) {

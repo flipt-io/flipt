@@ -131,14 +131,14 @@ func (f *Flipt) Test(
 		// Use a lightweight base container for test execution when using cache
 		// Lightweight test runner - just needs Go toolchain, not full build environment
 		f.BaseContainer = dag.Container().
-			From("golang:1.25-alpine3.21").
+			From("golang:1.26-alpine").
 			WithExec([]string{"apk", "add", "--no-cache", "bash", "git"}).
 			WithMountedDirectory("/src", source).
 			WithWorkdir("/src")
 
 		// Setup Go workspace for test execution
 		// This is needed for tests that run commands in submodules (e.g., go run ./build/internal/cmd/gitea/...)
-		goWorkContent := `go 1.25.0
+		goWorkContent := `go 1.26.0
 
 use (
 	.
@@ -154,7 +154,7 @@ use (
 `
 		f.BaseContainer = f.BaseContainer.
 			WithNewFile("/src/go.work", goWorkContent, dagger.ContainerWithNewFileOpts{
-				Permissions: 0644,
+				Permissions: 0o644,
 			}).
 			WithExec([]string{"go", "work", "sync"}).
 			WithExec([]string{"go", "mod", "download"})
