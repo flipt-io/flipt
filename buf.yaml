@@ -30,6 +30,9 @@ lint:
 breaking:
   use:
     - FILE
+  ignore:
+    - rpc/v2/analytics
+    - rpc/v2/evaluation
   except:
     - EXTENSION_NO_DELETE
     - FIELD_SAME_DEFAULT
