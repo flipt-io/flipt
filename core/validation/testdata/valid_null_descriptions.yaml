@@ -1,0 +1,45 @@
+version: "1.5"
+namespace:
+  key: test_namespace
+  name: Test Namespace
+  description: null
+flags:
+- key: variant_flag_with_null_desc
+  name: Variant Flag
+  description: null
+  enabled: true
+  type: VARIANT_FLAG_TYPE
+  variants:
+  - key: control
+    name: Control
+    description: null
+  - key: treatment
+    name: Treatment
+    description: null
+  rules:
+  - segment: test-segment
+    distributions:
+    - variant: control
+      rollout: 50
+    - variant: treatment
+      rollout: 50
+- key: boolean_flag_with_null_rollout_desc
+  name: Boolean Flag
+  type: BOOLEAN_FLAG_TYPE
+  enabled: true
+  rollouts:
+  - description: null
+    threshold:
+      percentage: 50.0
+      value: true
+segments:
+- key: test-segment
+  name: Test Segment
+  description: null
+  match_type: ALL_MATCH_TYPE
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: user_id
+    operator: eq
+    value: "123"
+    description: null
