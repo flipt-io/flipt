@@ -53,6 +53,7 @@ require (
 	github.com/open-policy-agent/opa v1.13.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.5
+	github.com/prometheus/sigv4 v0.4.1
 	github.com/redis/go-redis/extra/redisotel/v9 v9.17.3
 	github.com/redis/go-redis/v9 v9.17.3
 	github.com/samber/lo v1.52.0
@@ -422,7 +423,6 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/otlptranslator v1.0.0 // indirect
 	github.com/prometheus/procfs v0.19.2 // indirect
-	github.com/prometheus/sigv4 v0.4.1 // indirect
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20251016062345-16587c79cd91 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.5 // indirect
 	github.com/quasilyte/go-ruleguard/dsl v0.3.23 // indirect
