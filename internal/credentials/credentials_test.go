@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 
@@ -404,7 +405,7 @@ func TestCredential_APIAuthentication(t *testing.T) {
 
 func TestGithubAppCredentials(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /app/installations/10/access_tokens", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/v3/app/installations/10/access_tokens", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		_, err := w.Write([]byte(`
 	{
@@ -418,13 +419,15 @@ func TestGithubAppCredentials(t *testing.T) {
 	})
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
+	apiURL, err := url.JoinPath(srv.URL, "/api/v3/")
+	require.NoError(t, err)
 	c := &Credential{
 		config: &config.CredentialConfig{
 			Type: config.CredentialTypeGithubApp,
 			GitHubApp: &config.GitHubAppConfig{
 				ClientID:       "1234",
 				InstallationID: 10,
-				ApiURL:         srv.URL,
+				ApiURL:         apiURL,
 				PrivateKeyBytes: func(t *testing.T) string {
 					key, err := rsa.GenerateKey(rand.Reader, 2048)
 					require.NoError(t, err)
@@ -553,7 +556,7 @@ func TestNewGitHubAppAuth_EnterpriseURL(t *testing.T) {
 			ClientID:        "test-client",
 			InstallationID:  12345,
 			PrivateKeyBytes: validSSHKey,
-			ApiURL:          "https://github.enterprise.com",
+			ApiURL:          "https://github.enterprise.com/api/v3/",
 		}
 
 		ghCreds, err := NewGitHubAppCredentials(logger, config)
