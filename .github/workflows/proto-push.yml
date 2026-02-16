@@ -1,6 +1,5 @@
 name: Proto Push
 on:
-  pull_request:
   push:
     tags:
       - "v2*"
