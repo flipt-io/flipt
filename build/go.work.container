@@ -1,4 +1,4 @@
-go 1.25.0
+go 1.26.0
 
 // This go.work file is used by the Dagger build container to enable
 // multi-module workspace support. It allows commands like

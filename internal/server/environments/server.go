@@ -43,7 +43,7 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 		el.Environments = append(el.Environments, &environments.Environment{
 			Key:           env.Key(),
 			Name:          env.Key(),
-			Default:       ptr(env.Default()),
+			Default:       new(env.Default()),
 			Configuration: cfg,
 		})
 	}
@@ -74,7 +74,7 @@ func (s *Server) BranchEnvironment(ctx context.Context, req *environments.Branch
 	return &environments.Environment{
 		Key:           env.Key(),
 		Name:          env.Key(),
-		Default:       ptr(env.Default()),
+		Default:       new(env.Default()),
 		Configuration: env.Configuration(),
 	}, nil
 }
@@ -381,8 +381,4 @@ func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteRes
 	}
 
 	return resp, nil
-}
-
-func ptr[T any](t T) *T {
-	return &t
 }

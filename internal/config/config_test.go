@@ -778,7 +778,7 @@ func TestLoad(t *testing.T) {
 						Default: true,
 						SCM: &SCMConfig{
 							Type:        GitHubSCMType,
-							Credentials: ptr("git"),
+							Credentials: new("git"),
 						},
 					},
 				}
@@ -1435,9 +1435,7 @@ func isSnakeCase(s string) bool {
 func getStructTags(t reflect.Type) map[string]map[string]string {
 	tags := make(map[string]map[string]string)
 
-	for i := range t.NumField() {
-		field := t.Field(i)
-
+	for field := range t.Fields() {
 		// Get the field name.
 		fieldName := field.Name
 
@@ -1462,10 +1460,6 @@ func getStructTags(t reflect.Type) map[string]map[string]string {
 	}
 
 	return tags
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }
 
 func TestLicenseConfig_validate(t *testing.T) {

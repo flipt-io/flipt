@@ -124,7 +124,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 	if req.Draft {
 		// gitlab's way of marking a MR as a draft via the API
 		// https://forum.gitlab.com/t/creating-draft-mr-with-the-api/55019/3
-		createOpts.Title = gitlab.Ptr(fmt.Sprintf("Draft: %s", req.Title))
+		createOpts.Title = new(fmt.Sprintf("Draft: %s", req.Title))
 	}
 
 	mr, _, err := s.mrs.CreateMergeRequest(s.projectID, createOpts)
@@ -277,7 +277,7 @@ func (m *mrs) All() iter.Seq[*gitlab.BasicMergeRequest] {
 
 		opts := &gitlab.ListProjectMergeRequestsOptions{
 			TargetBranch: &m.base,
-			State:        gitlab.Ptr("all"),
+			State:        new("all"),
 			ListOptions: gitlab.ListOptions{
 				PerPage: 100,
 			},
