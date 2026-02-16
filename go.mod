@@ -44,7 +44,7 @@ require (
 	github.com/jferrl/go-githubauth v1.5.0
 	github.com/keygen-sh/keygen-go/v3 v3.3.0
 	github.com/keygen-sh/machineid v1.1.2
-	github.com/ktrysmt/go-bitbucket v0.9.89
+	github.com/ktrysmt/go-bitbucket v0.9.91
 	github.com/kubescape/go-git-url v0.0.31
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-isatty v0.0.20
