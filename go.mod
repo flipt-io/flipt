@@ -22,7 +22,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/go-chi/cors v1.2.2
 	github.com/go-git/go-billy/v6 v6.0.0-20260209124918-37866f83c2d3
-	github.com/go-git/go-git/v6 v6.0.0-20260210102253-e4d10f0e569a
+	github.com/go-git/go-git/v6 v6.0.0-20260216160506-e6a3f881772f
 	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-openapi/jsonpointer v0.22.4
 	github.com/gobwas/glob v0.2.3
@@ -335,7 +335,7 @@ require (
 	github.com/julz/importas v0.2.0 // indirect
 	github.com/karamaru-alpha/copyloopvar v1.2.2 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/kevinburke/ssh_config v1.4.0 // indirect
+	github.com/kevinburke/ssh_config v1.6.0 // indirect
 	github.com/keygen-sh/go-update v1.0.0 // indirect
 	github.com/keygen-sh/jsonapi-go v1.2.1 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect

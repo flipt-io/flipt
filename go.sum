@@ -468,6 +468,8 @@ github.com/go-git/go-git-fixtures/v5 v5.1.2-0.20260122163445-0622d7459a67 h1:3hu
 github.com/go-git/go-git-fixtures/v5 v5.1.2-0.20260122163445-0622d7459a67/go.mod h1:xKt0pNHST9tYHvbiLxSY27CQWFwgIxBJuDrOE0JvbZw=
 github.com/go-git/go-git/v6 v6.0.0-20260210102253-e4d10f0e569a h1:LLju0NuXQqR4WmGl1Dm86b9ZXsvXgLYbx/aaAjdQr6w=
 github.com/go-git/go-git/v6 v6.0.0-20260210102253-e4d10f0e569a/go.mod h1:IdXOePSwsMKGpuAbpczsm+f0Uy5fdHHjwgDPOymKA78=
+github.com/go-git/go-git/v6 v6.0.0-20260216160506-e6a3f881772f h1:TBkCJv9YwPOuXq1OG0r01bcxRrvs15Hp/DtZuPt4H6s=
+github.com/go-git/go-git/v6 v6.0.0-20260216160506-e6a3f881772f/go.mod h1:B88nWzfnhTlIikoJ4d84Nc9noKS5mJoA7SgDdkt0aPU=
 github.com/go-jose/go-jose/v3 v3.0.4 h1:Wp5HA7bLQcKnf6YYao/4kpRpVMp/yf6+pJKV8WFSaNY=
 github.com/go-jose/go-jose/v3 v3.0.4/go.mod h1:5b+7YgP7ZICgJDBdfjZaIt+H/9L9T/YQrVfLAMboGkQ=
 github.com/go-jose/go-jose/v4 v4.1.3 h1:CVLmWDhDVRa6Mi/IgCgaopNosCaHz7zrMeF9MlZRkrs=
@@ -712,6 +714,8 @@ github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNU
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:CzGEWj7cYgsdH8dAjBGEr58BoE7ScuLd+fwFZ44+/x8=
 github.com/kevinburke/ssh_config v1.4.0 h1:6xxtP5bZ2E4NF5tuQulISpTO2z8XbtH8cg1PWkxoFkQ=
 github.com/kevinburke/ssh_config v1.4.0/go.mod h1:q2RIzfka+BXARoNexmF9gkxEX7DmvbW9P4hIVx2Kg4M=
+github.com/kevinburke/ssh_config v1.6.0 h1:J1FBfmuVosPHf5GRdltRLhPJtJpTlMdKTBjRgTaQBFY=
+github.com/kevinburke/ssh_config v1.6.0/go.mod h1:q2RIzfka+BXARoNexmF9gkxEX7DmvbW9P4hIVx2Kg4M=
 github.com/keybase/go-keychain v0.0.1 h1:way+bWYa6lDppZoZcgMbYsvC7GxljxrskdNInRtuthU=
 github.com/keybase/go-keychain v0.0.1/go.mod h1:PdEILRW3i9D8JcdM+FmY6RwkHGnhHxXwkPPMeUgOK1k=
 github.com/keygen-sh/go-update v1.0.0 h1:M65sTVUHUO07tEK4l1Hq7u5D4kdEqkcgfdzUt3q3S08=
