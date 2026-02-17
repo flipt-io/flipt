@@ -12,11 +12,6 @@ import (
 	"go.flipt.io/flipt/errors"
 )
 
-//go:fix inline
-func errPtr[E error](e E) *E {
-	return new(e)
-}
-
 func Test_AdaptError(t *testing.T) {
 	for _, test := range []struct {
 		driver   Driver
@@ -30,32 +25,32 @@ func Test_AdaptError(t *testing.T) {
 		{
 			driver:      SQLite,
 			inputErr:    sql.ErrNoRows,
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			driver:      SQLite,
 			inputErr:    fmt.Errorf("wrapped no rows: %w", sql.ErrNoRows),
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			driver:      Postgres,
 			inputErr:    sql.ErrNoRows,
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			driver:      Postgres,
 			inputErr:    fmt.Errorf("wrapped no rows: %w", sql.ErrNoRows),
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			driver:      MySQL,
 			inputErr:    sql.ErrNoRows,
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			driver:      MySQL,
 			inputErr:    fmt.Errorf("wrapped no rows: %w", sql.ErrNoRows),
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		// SQLite
 		// Unchanged errors
@@ -75,7 +70,7 @@ func Test_AdaptError(t *testing.T) {
 				Code:         sqlite3.ErrConstraint,
 				ExtendedCode: sqlite3.ErrConstraintCheck,
 			},
-			outputErrAs: errPtr(errors.ErrInvalid("")),
+			outputErrAs: new(errors.ErrInvalid("")),
 		},
 		{
 			driver: SQLite,
@@ -83,7 +78,7 @@ func Test_AdaptError(t *testing.T) {
 				Code:         sqlite3.ErrConstraint,
 				ExtendedCode: sqlite3.ErrConstraintForeignKey,
 			},
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			driver: SQLite,
@@ -91,7 +86,7 @@ func Test_AdaptError(t *testing.T) {
 				Code:         sqlite3.ErrConstraint,
 				ExtendedCode: sqlite3.ErrConstraintUnique,
 			},
-			outputErrAs: errPtr(errors.ErrInvalid("")),
+			outputErrAs: new(errors.ErrInvalid("")),
 		},
 		// Postgres
 		// Unchanged errors
@@ -109,13 +104,13 @@ func Test_AdaptError(t *testing.T) {
 			driver: Postgres,
 			// foreign_key_violation
 			inputErr:    &pgconn.PgError{Code: "23503"},
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			driver: Postgres,
 			// unique_violation
 			inputErr:    &pgconn.PgError{Code: "23505"},
-			outputErrAs: errPtr(errors.ErrInvalid("")),
+			outputErrAs: new(errors.ErrInvalid("")),
 		},
 		{
 			driver: Postgres,
@@ -139,13 +134,13 @@ func Test_AdaptError(t *testing.T) {
 			driver: MySQL,
 			// foreign_key_violation
 			inputErr:    &mysql.MySQLError{Number: uint16(1452)},
-			outputErrAs: errPtr(errors.ErrNotFound("")),
+			outputErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			driver: MySQL,
 			// unique_violation
 			inputErr:    &mysql.MySQLError{Number: uint16(1062)},
-			outputErrAs: errPtr(errors.ErrInvalid("")),
+			outputErrAs: new(errors.ErrInvalid("")),
 		},
 	} {
 

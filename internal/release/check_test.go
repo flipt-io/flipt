@@ -10,11 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:fix inline
-func strPtr(s string) *string {
-	return new(s)
-}
-
 type mockGithubReleaseService struct {
 	release  *github.RepositoryRelease
 	response *github.Response
@@ -26,34 +21,31 @@ func (m *mockGithubReleaseService) GetLatestRelease(ctx context.Context, owner, 
 }
 
 func TestGetLatestRelease(t *testing.T) {
-	var (
-		tests = []struct {
-			name    string
-			tagName string
-			htmlURL string
-			err     error
-			want    *github.RepositoryRelease
-		}{
-			{
-				name:    "success",
-				tagName: "0.17.1",
-				htmlURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
-				err:     nil,
-				want: &github.RepositoryRelease{
-					TagName: new("0.17.1"),
-					HTMLURL: new("https://github.com/flipt-io/flipt/releases/tag/0.17.2"),
-				},
+	tests := []struct {
+		name    string
+		tagName string
+		htmlURL string
+		err     error
+		want    *github.RepositoryRelease
+	}{
+		{
+			name:    "success",
+			tagName: "0.17.1",
+			htmlURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
+			err:     nil,
+			want: &github.RepositoryRelease{
+				TagName: new("0.17.1"),
+				HTMLURL: new("https://github.com/flipt-io/flipt/releases/tag/0.17.2"),
 			},
-			{
-				name: "error",
-				err:  fmt.Errorf("error getting release"),
-			},
-		}
-	)
+		},
+		{
+			name: "error",
+			err:  fmt.Errorf("error getting release"),
+		},
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			srv := &mockGithubReleaseService{
 				release: &github.RepositoryRelease{
 					TagName: new(tt.tagName),
@@ -76,7 +68,6 @@ func TestGetLatestRelease(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-
 }
 
 type mockReleaseChecker struct {
@@ -93,40 +84,38 @@ func (m *mockReleaseChecker) getLatestRelease(ctx context.Context) (*github.Repo
 }
 
 func TestCheck(t *testing.T) {
-	var (
-		tests = []struct {
-			name    string
-			version string
-			tagName string
-			htmlURL string
-			want    Info
-		}{
-			{
-				name:    "latest version",
-				version: "0.17.1",
-				tagName: "0.17.1",
-				htmlURL: "",
-				want: Info{
-					CurrentVersion:   "0.17.1",
-					LatestVersion:    "0.17.1",
-					UpdateAvailable:  false,
-					LatestVersionURL: "",
-				},
+	tests := []struct {
+		name    string
+		version string
+		tagName string
+		htmlURL string
+		want    Info
+	}{
+		{
+			name:    "latest version",
+			version: "0.17.1",
+			tagName: "0.17.1",
+			htmlURL: "",
+			want: Info{
+				CurrentVersion:   "0.17.1",
+				LatestVersion:    "0.17.1",
+				UpdateAvailable:  false,
+				LatestVersionURL: "",
 			},
-			{
-				name:    "new version",
-				version: "0.17.1",
-				tagName: "0.17.2",
-				htmlURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
-				want: Info{
-					CurrentVersion:   "0.17.1",
-					LatestVersion:    "0.17.2",
-					UpdateAvailable:  true,
-					LatestVersionURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
-				},
+		},
+		{
+			name:    "new version",
+			version: "0.17.1",
+			tagName: "0.17.2",
+			htmlURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
+			want: Info{
+				CurrentVersion:   "0.17.1",
+				LatestVersion:    "0.17.2",
+				UpdateAvailable:  true,
+				LatestVersionURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
 			},
-		}
-	)
+		},
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -140,41 +129,38 @@ func TestCheck(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-
 }
 
 func TestIs(t *testing.T) {
-	var (
-		tests = []struct {
-			version string
-			want    bool
-		}{
-			{
-				version: "0.17.1",
-				want:    true,
-			},
-			{
-				version: "1.0.0",
-				want:    true,
-			},
-			{
-				version: "dev",
-				want:    false,
-			},
-			{
-				version: "1.0.0-snapshot",
-				want:    false,
-			},
-			{
-				version: "1.0.0-rc1",
-				want:    false,
-			},
-			{
-				version: "1.0.0-rc.1",
-				want:    false,
-			},
-		}
-	)
+	tests := []struct {
+		version string
+		want    bool
+	}{
+		{
+			version: "0.17.1",
+			want:    true,
+		},
+		{
+			version: "1.0.0",
+			want:    true,
+		},
+		{
+			version: "dev",
+			want:    false,
+		},
+		{
+			version: "1.0.0-snapshot",
+			want:    false,
+		},
+		{
+			version: "1.0.0-rc1",
+			want:    false,
+		},
+		{
+			version: "1.0.0-rc.1",
+			want:    false,
+		},
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.version, func(t *testing.T) {

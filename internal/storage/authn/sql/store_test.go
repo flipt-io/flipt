@@ -118,7 +118,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					"io.flipt.auth.token.description": "The keys to the castle",
 				},
 			},
-			expectedErrAs: errPtr(errors.ErrInvalid("")),
+			expectedErrAs: new(errors.ErrInvalid("")),
 		},
 		{
 			name: "fails token uniqueness constraint",
@@ -138,7 +138,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					"io.flipt.auth.token.description": "The keys to the castle",
 				},
 			},
-			expectedErrAs: errPtr(errors.ErrInvalid("")),
+			expectedErrAs: new(errors.ErrInvalid("")),
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -175,7 +175,7 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 		{
 			name:          "error not found for unexpected clientToken",
 			clientToken:   "unknown",
-			expectedErrAs: errPtr(errors.ErrNotFound("")),
+			expectedErrAs: new(errors.ErrNotFound("")),
 		},
 		{
 			name:        "successfully retrieves authentication by clientToken",
@@ -406,9 +406,4 @@ func newStaticGenerator(t *testing.T, purpose string) func() string {
 	return func() string {
 		return fmt.Sprintf("%s:%s", purpose, t.Name())
 	}
-}
-
-//go:fix inline
-func errPtr[E error](e E) *E {
-	return new(e)
 }
