@@ -14,9 +14,9 @@ We use GitHub Actions and [GoReleaser Pro](https://goreleaser.com/) to build and
 
 We support three main types of releases:
 
-- Stable releases (e.g. `v1.0.0`)
-- Snapshot releases (e.g. `v1.0.0-snapshot`)
-- Nightly releases (e.g. `v1.0.0-nightly`)
+- Stable releases (e.g. `v2.0.0`)
+- Snapshot releases (e.g. `v2.0.0-snapshot`)
+- Nightly releases (e.g. `v2.0.0-nightly`)
 
 The process for each looks roughly the same using GitHub Actions and GoReleaser Pro, but there are some differences in how the release is tagged and how the release is published.
 
@@ -24,13 +24,20 @@ The process for each looks roughly the same using GitHub Actions and GoReleaser 
 
 ### Stable Releases
 
-1. Create a new branch from `main` named `release/vX.Y.Z` (e.g. `release/v1.0.0`).
-2. Update the CHANGELOG.md with the release notes for the new version. (We have a `mage` task to help with this in the `build` directory.)
+1. Create a new branch from `v2` named `release/vX.Y.Z` (e.g. `release/v2.0.0`).
+2. Update the CHANGELOG.md with the release notes for the new version.
 3. Commit the changes and push the branch to GitHub.
-4. Create a pull request from the release branch to `main`.
-5. Once the pull request is merged, create a new tag on `main` with the version number (e.g. `v1.0.0`).
+4. Create a pull request from the release branch to `v2`.
+5. Once the pull request is merged, create a new **annotated tag** (`git tag -a v2.x.y`) on `v2` with the version number (e.g. `v2.0.0`).
 6. Push the tag to GitHub.
 7. CI will build and publish the release to GitHub and Docker Hub.
+
+#### Using Claude Code
+
+The stable release process can be automated using [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Two commands are available in `.claude/commands/`:
+
+- **`/release <version>`** — Walks through the full release process step-by-step (branch, changelog, PR, tag) with confirmations at each stage.
+- **`/changelog <version>`** — Generates the changelog entry for a given version. This is called automatically by `/release` but can also be used standalone.
 
 ### Snapshot Releases
 
