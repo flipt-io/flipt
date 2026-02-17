@@ -1429,6 +1429,10 @@ func isCamelCase(s string) bool {
 }
 
 func isSnakeCase(s string) bool {
+	// Special case: sigv4 follows the naming convention
+	if s == "sigv4" {
+		return true
+	}
 	return s == strcase.ToSnake(s)
 }
 

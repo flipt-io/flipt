@@ -364,6 +364,17 @@ JsonPath: string
 				enabled?: bool | *false
 				url?:     string | *""
 				headers?: [string]: string
+				sigv4?: {
+					enabled?:             bool | *false
+					region?:              string
+					access_key?:          string
+					secret_key?:          string
+					profile?:             string
+					role_arn?:            string
+					external_id?:         string
+					use_fips_sts_endpoint?: bool | *false
+					service_name?:        string
+				}
 			}
 		}
 		buffer?: {

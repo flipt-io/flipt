@@ -11,7 +11,9 @@ import (
 
 	"github.com/prometheus/client_golang/api"
 	promapi "github.com/prometheus/client_golang/api/prometheus/v1"
+	promconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	sigv4 "github.com/prometheus/sigv4"
 	"go.flipt.io/flipt/internal/config"
 	panalytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.uber.org/zap"
@@ -27,14 +29,35 @@ type client struct {
 }
 
 func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
+	promCfg := cfg.Analytics.Storage.Prometheus
+
+	var rt http.RoundTripper = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		for k, v := range promCfg.Headers {
+			r.Header.Set(k, v)
+		}
+		return api.DefaultRoundTripper.RoundTrip(r)
+	})
+
+	if promCfg.SigV4.Enabled {
+		sigV4RT, err := sigv4.NewSigV4RoundTripper(&sigv4.SigV4Config{
+			Region:             promCfg.SigV4.Region,
+			AccessKey:          promCfg.SigV4.AccessKey,
+			SecretKey:          promconfig.Secret(promCfg.SigV4.SecretKey),
+			Profile:            promCfg.SigV4.Profile,
+			RoleARN:            promCfg.SigV4.RoleARN,
+			ExternalID:         promCfg.SigV4.ExternalID,
+			UseFIPSSTSEndpoint: promCfg.SigV4.UseFIPSSTSEndpoint,
+			ServiceName:        promCfg.SigV4.ServiceName,
+		}, rt)
+		if err != nil {
+			return nil, fmt.Errorf("creating sigv4 round tripper: %w", err)
+		}
+		rt = sigV4RT
+	}
+
 	apiClient, err := api.NewClient(api.Config{
-		Address: cfg.Analytics.Storage.Prometheus.URL,
-		RoundTripper: roundTripFunc(func(r *http.Request) (*http.Response, error) {
-			for k, v := range cfg.Analytics.Storage.Prometheus.Headers {
-				r.Header.Set(k, v)
-			}
-			return api.DefaultRoundTripper.RoundTrip(r)
-		}),
+		Address:      promCfg.URL,
+		RoundTripper: rt,
 	})
 	if err != nil {
 		return nil, err

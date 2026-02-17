@@ -77,6 +77,44 @@
                   "additionalProperties": {
                     "type": "string"
                   }
+                },
+                "sigv4": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "region": {
+                      "type": "string"
+                    },
+                    "access_key": {
+                      "type": "string"
+                    },
+                    "secret_key": {
+                      "type": "string"
+                    },
+                    "profile": {
+                      "type": "string"
+                    },
+                    "role_arn": {
+                      "type": "string"
+                    },
+                    "external_id": {
+                      "type": "string"
+                    },
+                    "use_fips_sts_endpoint": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "service_name": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
