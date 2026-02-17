@@ -48,7 +48,7 @@ func TestCleanup(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		// run five instances of service
 		// it should be a safe operation given they share the same lock service
 		service := NewAuthenticationService(logger, lock, authstore, authConfig)
@@ -65,7 +65,6 @@ func TestCleanup(t *testing.T) {
 	})
 
 	for _, info := range authConfig.Methods.AllMethods(ctx) {
-		info := info
 		if !info.RequiresDatabase {
 			continue
 		}

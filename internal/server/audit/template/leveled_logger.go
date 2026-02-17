@@ -14,18 +14,18 @@ type LeveledLogger struct {
 	logger *zap.Logger
 }
 
-func (l *LeveledLogger) Error(msg string, keyvals ...interface{}) {
+func (l *LeveledLogger) Error(msg string, keyvals ...any) {
 	if l.logger.Core().Enabled(zapcore.ErrorLevel) {
 		l.logger.Error(msg, l.fields(keyvals)...)
 	}
 }
 
-func (l *LeveledLogger) Info(msg string, keyvals ...interface{}) {
+func (l *LeveledLogger) Info(msg string, keyvals ...any) {
 	if l.logger.Core().Enabled(zapcore.InfoLevel) {
 		l.logger.Info(msg, l.fields(keyvals)...)
 	}
 }
-func (l *LeveledLogger) Debug(msg string, keyvals ...interface{}) {
+func (l *LeveledLogger) Debug(msg string, keyvals ...any) {
 	if l.logger.Core().Enabled(zapcore.DebugLevel) {
 		l.logger.Debug(msg, l.fields(keyvals)...)
 	}

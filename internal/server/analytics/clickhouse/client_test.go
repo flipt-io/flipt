@@ -55,7 +55,7 @@ func (a *AnalyticsDBTestSuite) TestAnalyticsMutationAndQuery() {
 	t := a.T()
 
 	now := time.Now().UTC()
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		err := a.client.IncrementFlagEvaluationCounts(context.TODO(), []*panalytics.EvaluationResponse{
 			{
 				NamespaceKey: "default",

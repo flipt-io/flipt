@@ -83,7 +83,7 @@ func TestCredential(t *testing.T) {
 			cache:      map[string]cacheItem{},
 			clientFunc: func(serverAddress string) Client { return m },
 		}
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			credential, err := r.Get(context.Background(), "")
 			require.NoError(t, err)
 			assert.Equal(t, "user_name", credential.Username)

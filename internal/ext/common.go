@@ -26,11 +26,11 @@ type Flag struct {
 }
 
 type Variant struct {
-	Default     bool        `yaml:"default,omitempty" json:"default,omitempty"`
-	Key         string      `yaml:"key,omitempty" json:"key,omitempty"`
-	Name        string      `yaml:"name,omitempty" json:"name,omitempty"`
-	Description string      `yaml:"description,omitempty" json:"description,omitempty"`
-	Attachment  interface{} `yaml:"attachment,omitempty" json:"attachment,omitempty"`
+	Default     bool   `yaml:"default,omitempty" json:"default,omitempty"`
+	Key         string `yaml:"key,omitempty" json:"key,omitempty"`
+	Name        string `yaml:"name,omitempty" json:"name,omitempty"`
+	Description string `yaml:"description,omitempty" json:"description,omitempty"`
+	Attachment  any    `yaml:"attachment,omitempty" json:"attachment,omitempty"`
 }
 
 type Rule struct {
@@ -84,7 +84,7 @@ type SegmentEmbed struct {
 
 // MarshalYAML tries to type assert to either of the following types that implement
 // IsSegment, and returns the marshaled value.
-func (s *SegmentEmbed) MarshalYAML() (interface{}, error) {
+func (s *SegmentEmbed) MarshalYAML() (any, error) {
 	switch t := s.IsSegment.(type) {
 	case SegmentKey:
 		return string(t), nil
@@ -101,7 +101,7 @@ func (s *SegmentEmbed) MarshalYAML() (interface{}, error) {
 
 // UnmarshalYAML attempts to unmarshal a string or `SegmentKeys`, and fails if it can not
 // do so.
-func (s *SegmentEmbed) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (s *SegmentEmbed) UnmarshalYAML(unmarshal func(any) error) error {
 	var sk SegmentKey
 
 	if err := unmarshal(&sk); err == nil {
@@ -190,7 +190,7 @@ func (n *NamespaceEmbed) String() string {
 
 // MarshalYAML tries to type assert to either of the following types that implement
 // IsNamespace, and returns the marshaled value.
-func (n *NamespaceEmbed) MarshalYAML() (interface{}, error) {
+func (n *NamespaceEmbed) MarshalYAML() (any, error) {
 	switch t := n.IsNamespace.(type) {
 	case NamespaceKey:
 		return string(t), nil
@@ -208,7 +208,7 @@ func (n *NamespaceEmbed) MarshalYAML() (interface{}, error) {
 
 // UnmarshalYAML attempts to unmarshal a string or `Namespace`, and fails if it can not
 // do so.
-func (n *NamespaceEmbed) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (n *NamespaceEmbed) UnmarshalYAML(unmarshal func(any) error) error {
 	var nk NamespaceKey
 
 	if err := unmarshal(&nk); err == nil {

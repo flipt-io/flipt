@@ -30,9 +30,9 @@ func TestIsReadOnly(t *testing.T) {
 		expected bool
 	}{
 		{StorageConfig{Type: DatabaseStorageType}, false},
-		{StorageConfig{Type: DatabaseStorageType, ReadOnly: ptr(true)}, true},
+		{StorageConfig{Type: DatabaseStorageType, ReadOnly: new(true)}, true},
 		{StorageConfig{Type: LocalStorageType}, true},
-		{StorageConfig{Type: LocalStorageType, ReadOnly: ptr(true)}, true},
+		{StorageConfig{Type: LocalStorageType, ReadOnly: new(true)}, true},
 	}
 
 	for _, tt := range tests {
@@ -40,8 +40,4 @@ func TestIsReadOnly(t *testing.T) {
 			assert.Equal(t, tt.expected, tt.config.IsReadOnly())
 		})
 	}
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }

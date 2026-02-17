@@ -65,7 +65,7 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 
 	// After mounting the cloned release, we need to recreate the go.work file
 	// and download dependencies for the cloned version's modules
-	goWorkContent := `go 1.25.0
+	goWorkContent := `go 1.26.0
 
 use (
 	.

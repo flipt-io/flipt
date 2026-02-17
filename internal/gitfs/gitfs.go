@@ -134,7 +134,6 @@ func (f FS) Open(name string) (_ fs.File, err error) {
 
 		var entries []fs.DirEntry
 		for _, entry := range tree.Entries {
-			entry := entry
 			mode, err := entry.Mode.ToOSFileMode()
 			if err != nil {
 				return nil, err

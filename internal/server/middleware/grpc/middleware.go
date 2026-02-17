@@ -29,7 +29,7 @@ import (
 )
 
 // ValidationUnaryInterceptor validates incoming requests
-func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func ValidationUnaryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	if v, ok := req.(flipt.Validator); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
@@ -40,7 +40,7 @@ func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 }
 
 // ErrorUnaryInterceptor intercepts known errors and returns the appropriate GRPC status code
-func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func ErrorUnaryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	resp, err = handler(ctx, req)
 	if err == nil {
 		return resp, nil
@@ -95,7 +95,7 @@ type ResponseDurationRecordable interface {
 // EvaluationUnaryInterceptor sets required request/response fields.
 // Note: this should be added before any caching interceptor to ensure the request id/response fields are unique.
 func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		startTime := time.Now().UTC()
 
 		// set request ID if not present
@@ -239,7 +239,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 
 // AuditEventUnaryInterceptor captures events and adds them to the trace span to be consumed downstream.
 func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.EventPairChecker) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		var requests []flipt.Request
 		r, ok := req.(flipt.Requester)
 
@@ -364,7 +364,7 @@ func FliptAcceptServerVersionFromContext(ctx context.Context) semver.Version {
 
 // FliptAcceptServerVersionUnaryInterceptor is a grpc client interceptor that sets the flipt-accept-server-version in the context if provided in the metadata/header.
 func FliptAcceptServerVersionUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return handler(ctx, req)

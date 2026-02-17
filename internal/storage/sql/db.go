@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	"slices"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	sq "github.com/Masterminds/squirrel"
@@ -137,14 +138,7 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 		attrs = []attribute.KeyValue{semconv.DBSystemNameMySQL}
 	}
 
-	registered := false
-
-	for _, dd := range sql.Drivers() {
-		if dd == driverName {
-			registered = true
-			break
-		}
-	}
+	registered := slices.Contains(sql.Drivers(), driverName)
 
 	if !registered {
 		sql.Register(driverName, otelsql.WrapDriver(dr, otelsql.WithAttributes(attrs...)))

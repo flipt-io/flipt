@@ -1,6 +1,6 @@
 module go.flipt.io/flipt
 
-go 1.25.0
+go 1.26.0
 
 require (
 	cloud.google.com/go/storage v1.59.2
@@ -48,7 +48,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/magefile/mage v1.15.0
-	github.com/mattn/go-sqlite3 v1.14.33
+	github.com/mattn/go-sqlite3 v1.14.34
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20251121063942-072ce8ac20fe
 	github.com/open-policy-agent/opa v1.13.1

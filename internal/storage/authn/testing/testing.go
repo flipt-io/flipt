@@ -41,7 +41,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 
 	t.Run(fmt.Sprintf("Create %d authentications", len(created)), func(t *testing.T) {
 		uniqueTokens := make(map[string]struct{}, len(created))
-		for i := 0; i < len(created); i++ {
+		for i := range len(created) {
 			// the first token will have a null expiration
 			var expires *timestamppb.Timestamp
 			if i > 0 {
