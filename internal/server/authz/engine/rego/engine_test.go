@@ -212,7 +212,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var input map[string]interface{}
+			var input map[string]any
 
 			err = json.Unmarshal([]byte(tt.input), &input)
 			require.NoError(t, err)

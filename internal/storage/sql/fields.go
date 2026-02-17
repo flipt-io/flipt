@@ -13,7 +13,7 @@ type Timestamp struct {
 	*timestamppb.Timestamp
 }
 
-func (t *Timestamp) Scan(value interface{}) error {
+func (t *Timestamp) Scan(value any) error {
 	if v, ok := value.(time.Time); ok {
 		val := timestamppb.New(v)
 		if err := val.CheckValid(); err != nil {
@@ -32,7 +32,7 @@ func (t *Timestamp) Value() (driver.Value, error) {
 
 type NullableTimestamp Timestamp
 
-func (t *NullableTimestamp) Scan(value interface{}) error {
+func (t *NullableTimestamp) Scan(value any) error {
 	if value == nil {
 		return nil
 	}

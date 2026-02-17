@@ -10,8 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//go:fix inline
 func strPtr(s string) *string {
-	return &s
+	return new(s)
 }
 
 type mockGithubReleaseService struct {
@@ -39,8 +40,8 @@ func TestGetLatestRelease(t *testing.T) {
 				htmlURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
 				err:     nil,
 				want: &github.RepositoryRelease{
-					TagName: strPtr("0.17.1"),
-					HTMLURL: strPtr("https://github.com/flipt-io/flipt/releases/tag/0.17.2"),
+					TagName: new("0.17.1"),
+					HTMLURL: new("https://github.com/flipt-io/flipt/releases/tag/0.17.2"),
 				},
 			},
 			{
@@ -51,13 +52,12 @@ func TestGetLatestRelease(t *testing.T) {
 	)
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 
 			srv := &mockGithubReleaseService{
 				release: &github.RepositoryRelease{
-					TagName: strPtr(tt.tagName),
-					HTMLURL: strPtr(tt.htmlURL),
+					TagName: new(tt.tagName),
+					HTMLURL: new(tt.htmlURL),
 				},
 				err: tt.err,
 			}
@@ -129,7 +129,6 @@ func TestCheck(t *testing.T) {
 	)
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			rc := &mockReleaseChecker{
 				tagName: tt.tagName,
@@ -178,7 +177,6 @@ func TestIs(t *testing.T) {
 	)
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.version, func(t *testing.T) {
 			assert.Equal(t, tt.want, Is(tt.version))
 		})

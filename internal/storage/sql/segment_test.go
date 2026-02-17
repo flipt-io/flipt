@@ -376,7 +376,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 		pageSize      = uint64(3)
 	)
 
-	for i := 0; i < totalSegments; i++ {
+	for i := range totalSegments {
 		req := flipt.CreateSegmentRequest{
 			NamespaceKey: namespace,
 			Key:          fmt.Sprintf("segment_%03d", i),
@@ -387,7 +387,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 		_, err := s.store.CreateSegment(ctx, &req)
 		require.NoError(t, err)
 
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			if i > 0 && s.db.Driver == fliptsql.MySQL {
 				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
 				time.Sleep(time.Second)
@@ -424,7 +424,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 
 	require.Len(t, found, totalSegments)
 
-	for i := 0; i < totalSegments; i++ {
+	for i := range totalSegments {
 		assert.Equal(t, namespace, found[i].NamespaceKey)
 
 		expectedSegment := fmt.Sprintf("segment_%03d", i)
@@ -1301,7 +1301,7 @@ func BenchmarkListSegments(b *testing.B) {
 	s.SetT(t)
 	s.SetupSuite()
 
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		reqs := []*flipt.CreateSegmentRequest{
 			{
 				Key:  uuid.NewString(),
@@ -1314,7 +1314,7 @@ func BenchmarkListSegments(b *testing.B) {
 			require.NoError(t, err)
 			assert.NotNil(t, ss)
 
-			for j := 0; j < 10; j++ {
+			for j := range 10 {
 				v, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 					SegmentKey: ss.Key,
 					Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,

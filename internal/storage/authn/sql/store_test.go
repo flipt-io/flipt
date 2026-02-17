@@ -141,7 +141,6 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			expectedErrAs: errPtr(errors.ErrInvalid("")),
 		},
 	} {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			store := storeFn(test.opts(t)...)
 
@@ -370,7 +369,6 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 
 	// seed any authentication fixtures
 	for _, a := range seed {
-		a := a
 		opts := []Option{
 			WithNowFunc(func() *timestamppb.Timestamp {
 				return someTimestamp
@@ -410,6 +408,7 @@ func newStaticGenerator(t *testing.T, purpose string) func() string {
 	}
 }
 
+//go:fix inline
 func errPtr[E error](e E) *E {
-	return &e
+	return new(e)
 }

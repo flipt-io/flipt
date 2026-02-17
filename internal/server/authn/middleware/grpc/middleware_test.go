@@ -70,7 +70,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 		{
 			name: "successful authentication",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"aud": "flipt",
 					"sub": "sunglasses",
@@ -92,7 +92,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 		{
 			name: "successful authentication (with custom user claims)",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"aud": "flipt",
 					"iat": nowUnix,
@@ -125,7 +125,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 		{
 			name: "successful authentication (with custom user claims and arbitrary role)",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"aud": "flipt",
 					"iat": nowUnix,
@@ -160,7 +160,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 		{
 			name: "invalid issuer",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "foo.com",
 					"iat": nowUnix,
 					"exp": futureUnix,
@@ -179,7 +179,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 		{
 			name: "invalid subject",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"iat": nowUnix,
 					"exp": futureUnix,
@@ -200,7 +200,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 		{
 			name: "invalid audience",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"iat": nowUnix,
 					"exp": futureUnix,
@@ -245,7 +245,6 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			expectedErr: errUnauthenticated,
 		},
 	} {
-		tt := tt
 
 		t.Run(fmt.Sprintf("%s/static", tt.name), func(t *testing.T) {
 			ks, err := jwt.NewStaticKeySet(pub)
@@ -258,7 +257,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				logger = zaptest.NewLogger(t)
 
 				ctx     = context.Background()
-				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, req any) (any, error) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
 
@@ -302,7 +301,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				logger = zaptest.NewLogger(t)
 
 				ctx     = context.Background()
-				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, req any) (any, error) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
 
@@ -429,14 +428,13 @@ func TestClientTokenAuthenticationInterceptor(t *testing.T) {
 			expectedErr: errUnauthenticated,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
 
 				ctx          = context.Background()
 				retrievedCtx = ctx
-				handler      = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler      = func(ctx context.Context, req any) (any, error) {
 					// update retrievedCtx to the one delegated to the handler
 					retrievedCtx = ctx
 					return nil, nil
@@ -469,7 +467,7 @@ func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
 		logger = zaptest.NewLogger(t)
 
 		ctx     = context.Background()
-		handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+		handler = func(ctx context.Context, req any) (any, error) {
 			return nil, nil
 		}
 	)
@@ -586,13 +584,12 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 			expectedErr: errUnauthenticated,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
 
 				ctx     = ContextWithAuthentication(context.Background(), tt.auth)
-				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, req any) (any, error) {
 					return nil, nil
 				}
 				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}
@@ -627,7 +624,7 @@ func TestNamespaceMatchingInterceptorWithNoAuth(t *testing.T) {
 		logger = zaptest.NewLogger(t)
 
 		ctx     = context.Background()
-		handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+		handler = func(ctx context.Context, req any) (any, error) {
 			return nil, nil
 		}
 	)
@@ -833,7 +830,6 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			expectedErr: errUnauthenticated,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				logger        = zaptest.NewLogger(t)
@@ -849,7 +845,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 
 			var (
 				ctx     = ContextWithAuthentication(context.Background(), storedAuth)
-				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, req any) (any, error) {
 					assert.True(t, tt.wantCalled)
 					return nil, nil
 				}

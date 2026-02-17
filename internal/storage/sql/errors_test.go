@@ -12,8 +12,9 @@ import (
 	"go.flipt.io/flipt/errors"
 )
 
+//go:fix inline
 func errPtr[E error](e E) *E {
-	return &e
+	return new(e)
 }
 
 func Test_AdaptError(t *testing.T) {
@@ -120,7 +121,7 @@ func Test_AdaptError(t *testing.T) {
 			driver: Postgres,
 			// connection error
 			inputErr:    &pgconn.ConnectError{},
-			outputErrAs: errPtr(errConnectionFailed),
+			outputErrAs: new(errConnectionFailed),
 		},
 		// MySQL
 		// Unchanged errors
@@ -147,7 +148,6 @@ func Test_AdaptError(t *testing.T) {
 			outputErrAs: errPtr(errors.ErrInvalid("")),
 		},
 	} {
-		test := test
 
 		outputs := test.outputErrAs
 		if outputs == nil {

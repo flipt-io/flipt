@@ -70,7 +70,7 @@ func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*En
 	}, nil
 }
 
-func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (bool, error) {
+func (e *Engine) IsAllowed(ctx context.Context, input map[string]any) (bool, error) {
 	e.logger.Debug("evaluating policy", zap.Any("input", input))
 	dec, err := e.opa.Decision(ctx, sdk.DecisionOptions{
 		Path:  "flipt/authz/v1/allow",
@@ -84,7 +84,7 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 	return allow, nil
 }
 
-func (e *Engine) Namespaces(ctx context.Context, input map[string]interface{}) ([]string, error) {
+func (e *Engine) Namespaces(ctx context.Context, input map[string]any) ([]string, error) {
 	dec, err := e.opa.Decision(ctx, sdk.DecisionOptions{
 		Path:  "flipt/authz/v1/viewable_namespaces",
 		Input: input,

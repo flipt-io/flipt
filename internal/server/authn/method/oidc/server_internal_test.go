@@ -40,7 +40,6 @@ func TestCallbackURL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := callbackURL(tt.host, "foo")
 			assert.Equal(t, tt.want, got)

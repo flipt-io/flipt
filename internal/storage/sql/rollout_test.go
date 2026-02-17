@@ -877,7 +877,7 @@ func (s *DBTestSuite) TestDeleteRollout() {
 	var rollouts []*flipt.Rollout
 
 	// create 3 rollouts
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 			FlagKey: flag.Key,
 			Rank:    int32(i + 1),
@@ -935,7 +935,7 @@ func (s *DBTestSuite) TestDeleteRolloutNamespace() {
 	var rollouts []*flipt.Rollout
 
 	// create 3 rollouts
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
@@ -1039,7 +1039,7 @@ func (s *DBTestSuite) TestOrderRollouts() {
 	var rollouts []*flipt.Rollout
 
 	// create 3 rollouts
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 			FlagKey: flag.Key,
 			Rank:    int32(i + 1),
@@ -1111,7 +1111,7 @@ func (s *DBTestSuite) TestOrderRolloutsNamespace() {
 	var rollouts []*flipt.Rollout
 
 	// create 3 rollouts
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
