@@ -1,15 +1,23 @@
 ---
-argument-hint: [version]
+argument-hint: [version, e.g. 2.5.0]
 ---
 
-Please update the current changelog @CHANGELOG.md with details about this upcoming version.
-
-version: $ARGUMENTS
+Update the changelog for Flipt version: $ARGUMENTS
 
 ## Steps
 
-- Gather the commits/pull requests between the current top version in @CHANGELOG.md and the
-  new version
-- Update the changelog accordingly, matching the format in @CHANGELOG.template.md
-- Do not include detailed dependency updates! Keep dependency updates brief unless they're security-related or major version changes
-- Include links to the PRs that implemented the feature/fix/change where applicable, matching the existing style/examples in @CHANGELOG.md
+### Step 1: Gather changes
+
+- Identify the most recent version in CHANGELOG.md
+- Gather all commits and pull requests between that version and HEAD using `git log` and `gh`
+- Group changes by category (features, fixes, etc.)
+
+### Step 2: Generate changelog entry
+
+- Update CHANGELOG.md with the new version entry, matching the format in CHANGELOG.template.md
+- Include links to the PRs that implemented each change, matching the existing style in CHANGELOG.md
+- Do not include detailed dependency updates — keep them brief unless they are security-related or major version changes
+
+### Step 3: Review
+
+- Show the user the generated changelog entry and ask them to review it before proceeding
