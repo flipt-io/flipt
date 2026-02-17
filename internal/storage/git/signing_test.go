@@ -148,7 +148,7 @@ func TestFilesystem_CommitSigning_MockBehavior(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.NotNil(t, commit)
-		assert.Equal(t, expectedSignature, commit.PGPSignature)
+		assert.Equal(t, expectedSignature, commit.Signature)
 
 		mockSigner.AssertExpectations(t)
 	})
@@ -209,7 +209,7 @@ func TestFilesystem_CommitSigning_MockBehavior(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.NotNil(t, commit)
-		assert.Empty(t, commit.PGPSignature, "Commit should not have PGP signature when no signer is configured")
+		assert.Empty(t, commit.Signature, "Commit should not have PGP signature when no signer is configured")
 		assert.Equal(t, "Test commit message", commit.Message)
 		// The actual author/email will be overridden by the authentication system
 		// but the key point is that no PGP signature is set when no signer is configured
@@ -347,7 +347,7 @@ func TestCommitSigning_SignerDataValidation(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.NotNil(t, commit)
-		assert.Equal(t, expectedSignature, commit.PGPSignature)
+		assert.Equal(t, expectedSignature, commit.Signature)
 
 		mockSigner.AssertExpectations(t)
 	})

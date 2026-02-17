@@ -166,7 +166,7 @@ func (f *filesystem) MkdirAll(filename string, perm os.FileMode) error {
 		f.logger.Debug("mkdirAll Finished", zap.Stringer("tree", f.tree.Hash))
 	}()
 
-	entry, err := f.tree.FindEntry(filename)
+	entry, err := f.findEntry(filename)
 	if err == nil {
 		if entry.Mode.IsFile() {
 			return fmt.Errorf("path %q: %w and is not a directory", filename, fs.ErrExist)
@@ -226,7 +226,7 @@ func (f *filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envf
 			Mode: filemode.Dir,
 		}
 	} else {
-		entry, err = f.tree.FindEntry(filename)
+		entry, err = f.findEntry(filename)
 	}
 
 	if err != nil {
@@ -324,7 +324,7 @@ func (f *filesystem) Stat(filename string) (_ os.FileInfo, err error) {
 	}
 
 	if filename != "." {
-		entry, err = f.tree.FindEntry(filename)
+		entry, err = f.findEntry(filename)
 		if err != nil {
 			if errorIsNotFound(err) {
 				return nil, fmt.Errorf("path %q: %w", filename, os.ErrNotExist)
@@ -346,7 +346,7 @@ func (f *filesystem) Stat(filename string) (_ os.FileInfo, err error) {
 
 // Remove removes the named file or directory.
 func (f *filesystem) Remove(filename string) error {
-	entry, err := f.tree.FindEntry(filename)
+	entry, err := f.findEntry(filename)
 	if err != nil {
 		if errorIsNotFound(err) {
 			return nil
@@ -368,6 +368,56 @@ func (f *filesystem) Remove(filename string) error {
 		false,
 		hash,
 	)
+}
+
+// findEntry finds an entry by path without relying on the tree's internal cache.
+// This is a workaround for issues with the tree cache becoming stale after modifications.
+func (f *filesystem) findEntry(path string) (*object.TreeEntry, error) {
+	parts := strings.Split(path, "/")
+	if len(parts) == 0 || (len(parts) == 1 && parts[0] == "") {
+		return nil, object.ErrEntryNotFound
+	}
+
+	// Start with the root tree
+	tree := f.tree
+
+	for i, part := range parts {
+		if part == "" {
+			continue
+		}
+
+		// Search for the entry in the current tree
+		var found *object.TreeEntry
+		for j := range tree.Entries {
+			if tree.Entries[j].Name == part {
+				found = &tree.Entries[j]
+				break
+			}
+		}
+
+		if found == nil {
+			return nil, object.ErrEntryNotFound
+		}
+
+		// If this is the last part, return the entry
+		if i == len(parts)-1 {
+			return found, nil
+		}
+
+		// Otherwise, descend into the directory
+		if !found.Mode.IsFile() {
+			var err error
+			tree, err = object.GetTree(f.storage, found.Hash)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			// Can't descend into a file
+			return nil, object.ErrEntryNotFound
+		}
+	}
+
+	return nil, object.ErrEntryNotFound
 }
 
 func (f *filesystem) entryToFileInfo(entry *object.TreeEntry) (*fileInfo, error) {
@@ -654,12 +704,20 @@ func updatePath(logger *zap.Logger, storage gitstorage.Storer, node *object.Tree
 			}
 		} else {
 			// inserting or updating tree
-			child := &object.Tree{}
+			var child *object.Tree
 			if ok {
 				// updating existing tree
+				var err error
 				child, err = object.GetTree(storage, node.Entries[i].Hash)
 				if err != nil {
 					return fmt.Errorf("getting tree %q (%s): %w", target.Name, node.Entries[i].Hash, err)
+				}
+			} else {
+				// creating new tree - decode empty tree to get proper storage reference
+				var err error
+				child, err = object.DecodeTree(storage, emptyTreeObj{})
+				if err != nil {
+					return fmt.Errorf("creating new tree: %w", err)
 				}
 			}
 
@@ -777,7 +835,7 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 		if err != nil {
 			return nil, fmt.Errorf("signing commit: %w", err)
 		}
-		commit.PGPSignature = pgpSig
+		commit.Signature = pgpSig
 
 		f.logger.Debug("signed commit",
 			zap.String("tree_hash", commit.TreeHash.String()),
@@ -807,8 +865,8 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 
 	// Preserve the original PGP signature if it exists
 	// (GetCommit might add trailing whitespace when decoding)
-	if commit.PGPSignature != "" {
-		storedCommit.PGPSignature = commit.PGPSignature
+	if commit.Signature != "" {
+		storedCommit.Signature = commit.Signature
 	}
 
 	return storedCommit, nil
