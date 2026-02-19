@@ -101,6 +101,25 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 		}
 	}
 
+	// Initialize GCP provider if enabled (Pro feature)
+	if cfg.Secrets.Providers.GCP != nil && cfg.Secrets.Providers.GCP.Enabled {
+		if factory, exists := manager.factories["gcp"]; exists {
+			provider, err := factory(cfg, logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to initialize gcp secret provider: %w", err)
+			}
+
+			if err := manager.RegisterProvider("gcp", provider); err != nil {
+				return nil, fmt.Errorf("failed to register gcp secret provider: %w", err)
+			}
+
+			logger.Info("registered gcp secret provider",
+				zap.String("project", cfg.Secrets.Providers.GCP.Project))
+		} else {
+			return nil, fmt.Errorf("gcp provider factory not registered")
+		}
+	}
+
 	// Initialize Vault provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
 		if factory, exists := manager.factories["vault"]; exists {

@@ -1465,6 +1465,28 @@
                   "type": "string"
                 }
               }
+            },
+            "gcp": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "project": {
+                  "type": "string"
+                },
+                "location": {
+                  "type": "string"
+                },
+                "credentials": {
+                  "type": "string"
+                }
+              }
             }
           }
         }

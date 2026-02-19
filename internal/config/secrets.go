@@ -15,6 +15,7 @@ type SecretsConfig struct {
 type ProvidersConfig struct {
 	File  *FileProviderConfig  `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
 	Vault *VaultProviderConfig `json:"vault,omitempty" mapstructure:"vault" yaml:"vault,omitempty"`
+	GCP   *GCPProviderConfig   `json:"gcp,omitempty" mapstructure:"gcp" yaml:"gcp,omitempty"`
 }
 
 // FileProviderConfig contains configuration for the file-based secret provider.
@@ -34,6 +35,14 @@ type VaultProviderConfig struct {
 	Namespace  string `json:"namespace,omitempty" mapstructure:"namespace" yaml:"namespace,omitempty"`
 }
 
+// GCPProviderConfig contains configuration for Google Cloud Secret Manager provider.
+type GCPProviderConfig struct {
+	Enabled     bool   `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
+	Project     string `json:"project,omitempty" mapstructure:"project" yaml:"project,omitempty"`
+	Location    string `json:"location,omitempty" mapstructure:"location" yaml:"location,omitempty"`
+	Credentials string `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
+}
+
 // SecretReference represents a reference to a secret value.
 type SecretReference struct {
 	Provider string `json:"provider" mapstructure:"provider" yaml:"provider"`
@@ -50,6 +59,9 @@ func (s *SecretsConfig) setDefaults(v *viper.Viper) { //nolint:unused // used by
 	v.SetDefault("secrets.providers.vault.enabled", false)
 	v.SetDefault("secrets.providers.vault.mount", "secret")
 	v.SetDefault("secrets.providers.vault.auth_method", "token")
+
+	// GCP provider defaults
+	v.SetDefault("secrets.providers.gcp.enabled", false)
 }
 
 func (s *SecretsConfig) validate() error {
@@ -87,6 +99,13 @@ func (s *SecretsConfig) validate() error {
 		// This allows the config to be valid but the feature to fail if no license is present
 	}
 
+	// Validate GCP provider
+	if s.Providers.GCP != nil && s.Providers.GCP.Enabled {
+		if s.Providers.GCP.Project == "" {
+			return errFieldRequired("secrets.providers.gcp", "project")
+		}
+	}
+
 	return nil
 }
 
@@ -100,6 +119,10 @@ func (s *SecretsConfig) EnabledProviders() []string {
 
 	if s.Providers.Vault != nil && s.Providers.Vault.Enabled {
 		providers = append(providers, "vault")
+	}
+
+	if s.Providers.GCP != nil && s.Providers.GCP.Enabled {
+		providers = append(providers, "gcp")
 	}
 
 	return providers

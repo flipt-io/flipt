@@ -158,6 +158,102 @@ func TestNewManager(t *testing.T) {
 		assert.Contains(t, providers, "vault")
 	})
 
+	t.Run("creates manager with gcp provider", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+
+		providerFactories = map[string]ProviderFactory{
+			"gcp": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+				return &MockProvider{}, nil
+			},
+		}
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					GCP: &config.GCPProviderConfig{
+						Enabled: true,
+						Project: "my-project",
+					},
+				},
+			},
+		}
+
+		manager, err := NewManager(logger, cfg)
+
+		require.NoError(t, err)
+		assert.NotNil(t, manager)
+
+		providers := manager.ListProviders()
+		assert.Contains(t, providers, "gcp")
+	})
+
+	t.Run("creates manager with all providers", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+
+		providerFactories = map[string]ProviderFactory{
+			"file": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+				return &MockProvider{}, nil
+			},
+			"vault": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+				return &MockProvider{}, nil
+			},
+			"gcp": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+				return &MockProvider{}, nil
+			},
+		}
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					File: &config.FileProviderConfig{
+						Enabled:  true,
+						BasePath: "/tmp/secrets",
+					},
+					Vault: &config.VaultProviderConfig{
+						Enabled:    true,
+						Address:    "https://vault.example.com",
+						AuthMethod: "token",
+						Mount:      "secret",
+						Token:      "test-token",
+					},
+					GCP: &config.GCPProviderConfig{
+						Enabled: true,
+						Project: "my-project",
+					},
+				},
+			},
+		}
+
+		manager, err := NewManager(logger, cfg)
+
+		require.NoError(t, err)
+		assert.NotNil(t, manager)
+
+		providers := manager.ListProviders()
+		assert.Len(t, providers, 3)
+		assert.Contains(t, providers, "file")
+		assert.Contains(t, providers, "vault")
+		assert.Contains(t, providers, "gcp")
+	})
+
 	t.Run("fails when file factory not registered", func(t *testing.T) {
 		// Clear factories
 		factoryMu.Lock()
@@ -221,6 +317,66 @@ func TestNewManager(t *testing.T) {
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "vault provider factory not registered")
+	})
+
+	t.Run("fails when GCP factory not registered", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+		providerFactories = make(map[string]ProviderFactory)
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					GCP: &config.GCPProviderConfig{
+						Enabled: true,
+						Project: "my-project",
+					},
+				},
+			},
+		}
+
+		_, err := NewManager(logger, cfg)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "gcp provider factory not registered")
+	})
+
+	t.Run("skips disabled gcp provider", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+		providerFactories = make(map[string]ProviderFactory)
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					GCP: &config.GCPProviderConfig{
+						Enabled: false,
+						Project: "my-project",
+					},
+				},
+			},
+		}
+
+		manager, err := NewManager(logger, cfg)
+
+		require.NoError(t, err)
+		assert.Empty(t, manager.ListProviders())
 	})
 }
 

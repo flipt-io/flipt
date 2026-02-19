@@ -77,3 +77,6 @@ _tools
 # Go workspace files
 go.work
 go.work.sum
+
+# Planning
+docs/plans

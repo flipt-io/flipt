@@ -195,7 +195,7 @@ JsonPath: string
 	}
 
 	#evaluation: {
-		include_flag_metadata?:   bool | *false
+		include_flag_metadata?: bool | *false
 	}
 
 	#environments: [string]: {
@@ -207,7 +207,7 @@ JsonPath: string
 	}
 
 	#storage: [string]: {
-		remote?: string
+		remote?:       string
 		fetch_policy?: *"strict" | "lenient"
 		backend?: {
 			type:  *"memory" | "local"
@@ -263,20 +263,20 @@ JsonPath: string
 	} | {
 		type:         "access_token"
 		access_token: string
-  } | {
-    type: "github_app",
-    github_app: {
-      client_id: string
-      installation_id: int
-      private_key_path: string
-      api_url?:          string
-    } | {
-      client_id: string
-      installation_id: int
-      private_key_bytes: string
-      api_url?:          string
-    }
-  }
+	} | {
+		type: "github_app"
+		github_app: {
+			client_id:        string
+			installation_id:  int
+			private_key_path: string
+			api_url?:         string
+		} | {
+			client_id:         string
+			installation_id:   int
+			private_key_bytes: string
+			api_url?:          string
+		}
+	}
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "warn"]
 	_#all: list.Concat([_#lower, [for x in _#lower {strings.ToUpper(x)}]])
@@ -351,6 +351,12 @@ JsonPath: string
 				token?:       string
 				namespace?:   string
 			} | null
+			gcp?: {
+				enabled?:     bool | *false
+				project?:     string
+				location?:    string
+				credentials?: string
+			} | null
 		}
 	}
 
@@ -365,15 +371,15 @@ JsonPath: string
 				url?:     string | *""
 				headers?: [string]: string
 				sigv4?: {
-					enabled?:             bool | *false
-					region?:              string
-					access_key?:          string
-					secret_key?:          string
-					profile?:             string
-					role_arn?:            string
-					external_id?:         string
+					enabled?:               bool | *false
+					region?:                string
+					access_key?:            string
+					secret_key?:            string
+					profile?:               string
+					role_arn?:              string
+					external_id?:           string
 					use_fips_sts_endpoint?: bool | *false
-					service_name?:        string
+					service_name?:          string
 				}
 			}
 		}

@@ -66,6 +66,59 @@ func TestSecretReference_Validate(t *testing.T) {
 	}
 }
 
+func TestSecretsConfig_ValidateGCP(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  SecretsConfig
+		wantErr bool
+	}{
+		{
+			name: "valid gcp config",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					GCP: &GCPProviderConfig{
+						Enabled: true,
+						Project: "my-project",
+					},
+				},
+			},
+		},
+		{
+			name: "missing project",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					GCP: &GCPProviderConfig{
+						Enabled: true,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "disabled skips validation",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					GCP: &GCPProviderConfig{
+						Enabled: false,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.validate()
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "project")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestSecretsConfig_EnabledProviders(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -116,6 +169,50 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 				},
 			},
 			expected: []string{"file", "vault"},
+		},
+		{
+			name: "gcp provider enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					GCP: &GCPProviderConfig{
+						Enabled: true,
+						Project: "my-project",
+					},
+				},
+			},
+			expected: []string{"gcp"},
+		},
+		{
+			name: "all providers enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					File: &FileProviderConfig{
+						Enabled:  true,
+						BasePath: "/etc/secrets",
+					},
+					Vault: &VaultProviderConfig{
+						Enabled: true,
+						Address: "https://vault.example.com",
+					},
+					GCP: &GCPProviderConfig{
+						Enabled: true,
+						Project: "my-project",
+					},
+				},
+			},
+			expected: []string{"file", "vault", "gcp"},
+		},
+		{
+			name: "gcp provider configured but not enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					GCP: &GCPProviderConfig{
+						Enabled: false,
+						Project: "my-project",
+					},
+				},
+			},
+			expected: nil,
 		},
 		{
 			name: "providers configured but not enabled",

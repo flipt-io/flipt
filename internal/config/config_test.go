@@ -883,6 +883,72 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("secrets.providers.vault: auth_method unsupported auth method: ldap"),
 		},
 		{
+			name: "secrets config with gcp provider",
+			path: "./testdata/secrets/gcp_provider.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						GCP: &GCPProviderConfig{
+							Enabled:     true,
+							Project:     "my-gcp-project",
+							Credentials: "/path/to/credentials.json",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "secrets config with gcp provider no credentials (uses ADC)",
+			path: "./testdata/secrets/gcp_provider_no_credentials.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						GCP: &GCPProviderConfig{
+							Enabled: true,
+							Project: "my-gcp-project",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "secrets config gcp provider missing project",
+			path:    "./testdata/secrets/gcp_provider_missing_project.yml",
+			wantErr: errors.New("secrets.providers.gcp: project non-empty value is required"),
+		},
+		{
+			name: "secrets config with all providers",
+			path: "./testdata/secrets/all_providers.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						File: &FileProviderConfig{
+							Enabled:  true,
+							BasePath: "/etc/flipt/secrets",
+						},
+						Vault: &VaultProviderConfig{
+							Enabled:    true,
+							Address:    "https://vault.example.com",
+							AuthMethod: "kubernetes",
+							Role:       "flipt-role",
+							Mount:      "secret",
+						},
+						GCP: &GCPProviderConfig{
+							Enabled:     true,
+							Project:     "my-gcp-project",
+							Credentials: "/path/to/credentials.json",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
 			name: "git signing config enabled",
 			path: "./testdata/storage/git_signing_enabled.yml",
 			expected: func() *Config {
@@ -1654,6 +1720,11 @@ func TestStringToReferenceHookFunc(t *testing.T) {
 				name:     "complex secret reference left as-is",
 				input:    "${secret:vault:auth/oauth:client_secret}",
 				expected: "${secret:vault:auth/oauth:client_secret}",
+			},
+			{
+				name:     "gcp secret reference left as-is",
+				input:    "${secret:gcp:my-project-secret}",
+				expected: "${secret:gcp:my-project-secret}",
 			},
 			{
 				name:     "non-reference string",
