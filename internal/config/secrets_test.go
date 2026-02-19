@@ -183,6 +183,38 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 			expected: []string{"gcp"},
 		},
 		{
+			name: "all providers enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					File: &FileProviderConfig{
+						Enabled:  true,
+						BasePath: "/etc/secrets",
+					},
+					Vault: &VaultProviderConfig{
+						Enabled: true,
+						Address: "https://vault.example.com",
+					},
+					GCP: &GCPProviderConfig{
+						Enabled: true,
+						Project: "my-project",
+					},
+				},
+			},
+			expected: []string{"file", "vault", "gcp"},
+		},
+		{
+			name: "gcp provider configured but not enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					GCP: &GCPProviderConfig{
+						Enabled: false,
+						Project: "my-project",
+					},
+				},
+			},
+			expected: nil,
+		},
+		{
 			name: "providers configured but not enabled",
 			config: SecretsConfig{
 				Providers: ProvidersConfig{

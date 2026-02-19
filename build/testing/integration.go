@@ -54,6 +54,7 @@ var (
 		"ofrep":         ofrepAPI(),
 		"signing/vault": signingAPI(vaultSecretProvider),
 		"signing/file":  signingAPI(fileSecretProvider),
+		"signing/gcp":   signingAPI(gcpSecretProvider),
 		"snapshot":      snapshotAPI(),
 	}
 )
@@ -229,6 +230,7 @@ type secretProvider string
 const (
 	vaultSecretProvider = "vault"
 	fileSecretProvider  = "file"
+	gcpSecretProvider   = "gcp"
 )
 
 func signingAPI(provider secretProvider) testCaseFn {
@@ -266,6 +268,15 @@ func signingAPI(provider secretProvider) testCaseFn {
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_AUTH_METHOD", "token").
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_TOKEN", "test-root-token").
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_MOUNT", "secret")
+		case gcpSecretProvider:
+			// Configure for GCP Secret Manager secrets
+			flipt = flipt.
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "gcp").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt-signing-key").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "value").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_GCP_ENABLED", "true").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_GCP_PROJECT", "test-project").
+				WithEnvVariable("SECRET_MANAGER_EMULATOR_HOST", "gcp-secretmanager:9090")
 		}
 
 		return suite(ctx, "signing", base, flipt, conf)
@@ -278,6 +289,9 @@ func signingAPI(provider secretProvider) testCaseFn {
 	case vaultSecretProvider:
 		// Vault secrets need the Vault service
 		return withVaultSecrets(baseTestFn)
+	case gcpSecretProvider:
+		// GCP secrets need the Secret Manager emulator service
+		return withGCPSecrets(baseTestFn)
 	}
 
 	panic("unknown secretProvider: " + string(provider))
@@ -769,6 +783,108 @@ func withVaultSecrets(fn testCaseFn) testCaseFn {
 				client,
 				base,
 				flipt.WithServiceBinding("vault", vault),
+				conf,
+			)()
+		}
+	}
+}
+
+func withGCPSecrets(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// Build GCP Secret Manager emulator from source
+		gcpEmulator := client.Container().
+			From("golang:1.26-alpine").
+			WithExec([]string{"go", "install", "github.com/blackwell-systems/gcp-secret-manager-emulator/cmd/server@latest"}).
+			WithExposedPort(9090).
+			WithDefaultArgs([]string{"server", "--port", "9090"}).
+			AsService()
+
+		// Setup container to generate GPG key and store it in the emulator via gRPC
+		_, err := client.Container().
+			From("golang:1.26-alpine").
+			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
+			WithServiceBinding("gcp-secretmanager", gcpEmulator).
+			WithExec([]string{
+				"sh", "-c",
+				gpgKeyGenerationScript + `
+				gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
+
+				# Use a Go program to create the secret via the emulator gRPC API
+				mkdir -p /tmp/setup && cat > /tmp/setup/main.go << 'GOEOF'
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"google.golang.org/api/option"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+func main() {
+	ctx := context.Background()
+	conn, err := grpc.NewClient("gcp-secretmanager:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "grpc connect: %v\n", err)
+		os.Exit(1)
+	}
+	client, err := secretmanager.NewClient(ctx, option.WithGRPCConn(conn))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "client: %v\n", err)
+		os.Exit(1)
+	}
+	defer client.Close()
+
+	keyData, err := os.ReadFile("/tmp/private-key.asc")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "read key: %v\n", err)
+		os.Exit(1)
+	}
+
+	secret, err := client.CreateSecret(ctx, &secretmanagerpb.CreateSecretRequest{
+		Parent:   "projects/test-project",
+		SecretId: "flipt-signing-key",
+		Secret: &secretmanagerpb.Secret{
+			Replication: &secretmanagerpb.Replication{
+				Replication: &secretmanagerpb.Replication_Automatic_{
+					Automatic: &secretmanagerpb.Replication_Automatic{},
+				},
+			},
+		},
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "create secret: %v\n", err)
+		os.Exit(1)
+	}
+
+	_, err = client.AddSecretVersion(ctx, &secretmanagerpb.AddSecretVersionRequest{
+		Parent:  secret.Name,
+		Payload: &secretmanagerpb.SecretPayload{Data: keyData},
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "add version: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Secret stored successfully in GCP emulator")
+}
+GOEOF
+				cd /tmp/setup && go mod init setup && go mod tidy && go run main.go
+			`,
+			}).Sync(ctx)
+		if err != nil {
+			return func() error { return err }
+		}
+
+		return func() error {
+			return fn(
+				ctx,
+				client,
+				base,
+				flipt.WithServiceBinding("gcp-secretmanager", gcpEmulator),
 				conf,
 			)()
 		}

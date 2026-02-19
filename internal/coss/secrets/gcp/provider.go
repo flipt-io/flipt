@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
@@ -18,6 +19,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func init() {
@@ -39,12 +42,31 @@ type Provider struct {
 }
 
 // NewProvider creates a new GCP Secret Manager provider.
+// If the SECRET_MANAGER_EMULATOR_HOST environment variable is set, the client
+// connects to the emulator using insecure credentials instead of real GCP.
 func NewProvider(project, credentials string, logger *zap.Logger) (*Provider, error) {
 	ctx := context.Background()
 
 	var opts []option.ClientOption
-	if credentials != "" {
-		opts = append(opts, option.WithCredentialsFile(credentials))
+
+	if emulatorHost := os.Getenv("SECRET_MANAGER_EMULATOR_HOST"); emulatorHost != "" {
+		// Connect to emulator with insecure credentials
+		logger.Info("connecting to GCP Secret Manager emulator",
+			zap.String("host", emulatorHost))
+
+		conn, err := grpc.NewClient(
+			emulatorHost,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("creating grpc connection to emulator: %w", err)
+		}
+
+		opts = append(opts, option.WithGRPCConn(conn))
+	} else {
+		if credentials != "" {
+			opts = append(opts, option.WithCredentialsFile(credentials))
+		}
 	}
 
 	client, err := secretmanager.NewClient(ctx, opts...)
