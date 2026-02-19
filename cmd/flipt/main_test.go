@@ -157,6 +157,70 @@ func TestWalkConfigForSecrets_MapWithMultipleProviders(t *testing.T) {
 	assert.Equal(t, "google-client-secret", google.Secret)
 }
 
+func TestWalkConfigForSecrets_GCPProvider(t *testing.T) {
+	cfg := &testConfig{
+		SimpleField: "${secret:gcp:my-api-key}",
+	}
+
+	manager := newMockManager(map[string][]byte{
+		"gcp:my-api-key": []byte("gcp-resolved-value"),
+	})
+
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
+	require.NoError(t, err)
+	assert.Equal(t, "gcp-resolved-value", cfg.SimpleField)
+}
+
+func TestWalkConfigForSecrets_GCPProviderInMap(t *testing.T) {
+	cfg := &testConfig{
+		MapField: map[string]testMapValue{
+			"provider1": {
+				ID:     "${secret:gcp:client-id}",
+				Secret: "${secret:gcp:client-secret}",
+			},
+		},
+	}
+
+	manager := newMockManager(map[string][]byte{
+		"gcp:client-id":     []byte("gcp-client-id"),
+		"gcp:client-secret": []byte("gcp-client-secret"),
+	})
+
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
+	require.NoError(t, err)
+
+	provider := cfg.MapField["provider1"]
+	assert.Equal(t, "gcp-client-id", provider.ID)
+	assert.Equal(t, "gcp-client-secret", provider.Secret)
+}
+
+func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
+	cfg := &testConfig{
+		SimpleField: "${secret:vault:db-password}",
+		MapField: map[string]testMapValue{
+			"keycloak": {
+				ID:     "${secret:file:keycloak-id}",
+				Secret: "${secret:gcp:keycloak-secret}",
+			},
+		},
+	}
+
+	manager := newMockManager(map[string][]byte{
+		"vault:db-password":    []byte("vault-db-pass"),
+		"file:keycloak-id":     []byte("file-keycloak-id"),
+		"gcp:keycloak-secret":  []byte("gcp-keycloak-secret"),
+	})
+
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
+	require.NoError(t, err)
+
+	assert.Equal(t, "vault-db-pass", cfg.SimpleField)
+
+	keycloak := cfg.MapField["keycloak"]
+	assert.Equal(t, "file-keycloak-id", keycloak.ID)
+	assert.Equal(t, "gcp-keycloak-secret", keycloak.Secret)
+}
+
 func TestWalkConfigForSecrets_NoSecretReferences(t *testing.T) {
 	cfg := &testConfig{
 		SimpleField: "plain-value",

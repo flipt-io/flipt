@@ -1722,6 +1722,11 @@ func TestStringToReferenceHookFunc(t *testing.T) {
 				expected: "${secret:vault:auth/oauth:client_secret}",
 			},
 			{
+				name:     "gcp secret reference left as-is",
+				input:    "${secret:gcp:my-project-secret}",
+				expected: "${secret:gcp:my-project-secret}",
+			},
+			{
 				name:     "non-reference string",
 				input:    "normal_string",
 				expected: "normal_string",
