@@ -452,6 +452,15 @@ func TestFeature(t *testing.T) {
 - **Use meaningful assertions**: Assert on the specific values that matter to the business logic
 - **Mock verification**: Use `mock.AssertExpectations(t)` to ensure mocks were called with expected parameters
 
+### Integration Tests
+
+Integration tests are defined in `build/testing/` and run as Mage targets. For details on available integration test targets, helpers, and how to add new integration tests, see the files in that directory:
+
+- `build/testing/integration.go` - Integration test Mage targets and configuration
+- `build/testing/integration/` - Individual integration test suites
+- `build/testing/helpers.go` - Shared test helpers
+- `build/testing/test.go` - Core test utilities
+
 ## Git Workflow & Commits
 
 ### Creating Effective Commits

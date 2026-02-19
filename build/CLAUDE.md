@@ -1,6 +1,6 @@
-# CLAUDE.md - Build & Integration Testing
+# AGENTS.md - Build & Integration Testing
 
-This file provides guidance to Claude Code for working with Flipt's build system and integration testing infrastructure.
+This file provides guidance to AI Agents for working with Flipt's build system and integration testing infrastructure.
 
 ## Build System Overview
 

@@ -63,10 +63,8 @@ func NewProvider(project, credentials string, logger *zap.Logger) (*Provider, er
 		}
 
 		opts = append(opts, option.WithGRPCConn(conn))
-	} else {
-		if credentials != "" {
-			opts = append(opts, option.WithCredentialsFile(credentials))
-		}
+	} else if credentials != "" {
+		opts = append(opts, option.WithCredentialsFile(credentials))
 	}
 
 	client, err := secretmanager.NewClient(ctx, opts...)
