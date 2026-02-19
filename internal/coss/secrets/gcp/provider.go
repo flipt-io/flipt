@@ -30,21 +30,23 @@ func init() {
 			return nil, fmt.Errorf("gcp provider configuration not found")
 		}
 
-		return NewProvider(cfg.Secrets.Providers.GCP.Project, cfg.Secrets.Providers.GCP.Credentials, logger)
+		return NewProvider(cfg.Secrets.Providers.GCP.Project, cfg.Secrets.Providers.GCP.Location, cfg.Secrets.Providers.GCP.Credentials, logger)
 	})
 }
 
 // Provider implements secrets.Provider for Google Cloud Secret Manager.
 type Provider struct {
-	client  *secretmanager.Client
-	project string
-	logger  *zap.Logger
+	client   *secretmanager.Client
+	project  string
+	location string
+	logger   *zap.Logger
 }
 
 // NewProvider creates a new GCP Secret Manager provider.
-// If the SECRET_MANAGER_EMULATOR_HOST environment variable is set, the client
-// connects to the emulator using insecure credentials instead of real GCP.
-func NewProvider(project, credentials string, logger *zap.Logger) (*Provider, error) {
+// If location is set, the provider uses the regional endpoint and location-scoped
+// resource names. If the SECRET_MANAGER_EMULATOR_HOST environment variable is set,
+// the client connects to the emulator using insecure credentials instead of real GCP.
+func NewProvider(project, location, credentials string, logger *zap.Logger) (*Provider, error) {
 	ctx := context.Background()
 
 	var opts []option.ClientOption
@@ -59,8 +61,16 @@ func NewProvider(project, credentials string, logger *zap.Logger) (*Provider, er
 			option.WithoutAuthentication(),
 			option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 		)
-	} else if credentials != "" {
-		opts = append(opts, option.WithCredentialsFile(credentials))
+	} else {
+		if location != "" {
+			// Use regional endpoint for location-scoped secrets.
+			endpoint := fmt.Sprintf("secretmanager.%s.rep.googleapis.com:443", location)
+			opts = append(opts, option.WithEndpoint(endpoint))
+		}
+
+		if credentials != "" {
+			opts = append(opts, option.WithCredentialsFile(credentials))
+		}
 	}
 
 	client, err := secretmanager.NewClient(ctx, opts...)
@@ -69,25 +79,32 @@ func NewProvider(project, credentials string, logger *zap.Logger) (*Provider, er
 	}
 
 	return &Provider{
-		client:  client,
-		project: project,
-		logger:  logger,
+		client:   client,
+		project:  project,
+		location: location,
+		logger:   logger,
 	}, nil
 }
 
 // secretVersionName returns the full resource name for accessing a secret version.
-func secretVersionName(project, path string) string {
+func secretVersionName(project, location, path string) string {
+	if location != "" {
+		return fmt.Sprintf("projects/%s/locations/%s/secrets/%s/versions/latest", project, location, path)
+	}
 	return fmt.Sprintf("projects/%s/secrets/%s/versions/latest", project, path)
 }
 
 // secretParent returns the parent resource name for listing secrets.
-func secretParent(project string) string {
+func secretParent(project, location string) string {
+	if location != "" {
+		return fmt.Sprintf("projects/%s/locations/%s", project, location)
+	}
 	return fmt.Sprintf("projects/%s", project)
 }
 
 // GetSecret retrieves a secret from GCP Secret Manager.
 func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret, error) {
-	name := secretVersionName(p.project, path)
+	name := secretVersionName(p.project, p.location, path)
 
 	p.logger.Debug("reading secret from gcp secret manager",
 		zap.String("path", path),
@@ -113,7 +130,7 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 
 // ListSecrets returns all secret paths matching the prefix in GCP Secret Manager.
 func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string, error) {
-	parent := secretParent(p.project)
+	parent := secretParent(p.project, p.location)
 
 	p.logger.Debug("listing secrets from gcp secret manager",
 		zap.String("prefix", pathPrefix),
@@ -129,7 +146,7 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 		Filter: filter,
 	})
 
-	secretPrefix := fmt.Sprintf("projects/%s/secrets/", p.project)
+	secretPrefix := parent + "/secrets/"
 
 	var paths []string
 	for {

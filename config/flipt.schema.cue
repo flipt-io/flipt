@@ -354,6 +354,7 @@ JsonPath: string
 			gcp?: {
 				enabled?:     bool | *false
 				project?:     string
+				location?:    string
 				credentials?: string
 			} | null
 		}

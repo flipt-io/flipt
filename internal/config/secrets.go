@@ -39,6 +39,7 @@ type VaultProviderConfig struct {
 type GCPProviderConfig struct {
 	Enabled     bool   `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
 	Project     string `json:"project,omitempty" mapstructure:"project" yaml:"project,omitempty"`
+	Location    string `json:"location,omitempty" mapstructure:"location" yaml:"location,omitempty"`
 	Credentials string `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
 }
 

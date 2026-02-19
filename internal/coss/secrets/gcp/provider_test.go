@@ -33,13 +33,23 @@ func TestProvider_ImplementsInterface(t *testing.T) {
 func TestProvider_ResourceNameGeneration(t *testing.T) {
 	const project = "my-project"
 
-	t.Run("secret version path", func(t *testing.T) {
-		got := secretVersionName(project, "my-secret")
+	t.Run("global secret version path", func(t *testing.T) {
+		got := secretVersionName(project, "", "my-secret")
 		assert.Equal(t, "projects/my-project/secrets/my-secret/versions/latest", got)
 	})
 
-	t.Run("list parent path", func(t *testing.T) {
-		got := secretParent(project)
+	t.Run("regional secret version path", func(t *testing.T) {
+		got := secretVersionName(project, "us-central1", "my-secret")
+		assert.Equal(t, "projects/my-project/locations/us-central1/secrets/my-secret/versions/latest", got)
+	})
+
+	t.Run("global list parent path", func(t *testing.T) {
+		got := secretParent(project, "")
 		assert.Equal(t, "projects/my-project", got)
+	})
+
+	t.Run("regional list parent path", func(t *testing.T) {
+		got := secretParent(project, "us-central1")
+		assert.Equal(t, "projects/my-project/locations/us-central1", got)
 	})
 }
