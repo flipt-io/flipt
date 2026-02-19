@@ -194,6 +194,43 @@ func TestWalkConfigForSecrets_GCPProviderInMap(t *testing.T) {
 	assert.Equal(t, "gcp-client-secret", provider.Secret)
 }
 
+func TestWalkConfigForSecrets_AWSProvider(t *testing.T) {
+	cfg := &testConfig{
+		SimpleField: "${secret:aws:my-api-key}",
+	}
+
+	manager := newMockManager(map[string][]byte{
+		"aws:my-api-key": []byte("aws-resolved-value"),
+	})
+
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
+	require.NoError(t, err)
+	assert.Equal(t, "aws-resolved-value", cfg.SimpleField)
+}
+
+func TestWalkConfigForSecrets_AWSProviderInMap(t *testing.T) {
+	cfg := &testConfig{
+		MapField: map[string]testMapValue{
+			"provider1": {
+				ID:     "${secret:aws:client-id}",
+				Secret: "${secret:aws:client-secret}",
+			},
+		},
+	}
+
+	manager := newMockManager(map[string][]byte{
+		"aws:client-id":     []byte("aws-client-id"),
+		"aws:client-secret": []byte("aws-client-secret"),
+	})
+
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
+	require.NoError(t, err)
+
+	provider := cfg.MapField["provider1"]
+	assert.Equal(t, "aws-client-id", provider.ID)
+	assert.Equal(t, "aws-client-secret", provider.Secret)
+}
+
 func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
 	cfg := &testConfig{
 		SimpleField: "${secret:vault:db-password}",
@@ -202,6 +239,10 @@ func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
 				ID:     "${secret:file:keycloak-id}",
 				Secret: "${secret:gcp:keycloak-secret}",
 			},
+			"aws-service": {
+				ID:     "${secret:aws:service-id}",
+				Secret: "${secret:aws:service-secret}",
+			},
 		},
 	}
 
@@ -209,6 +250,8 @@ func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
 		"vault:db-password":    []byte("vault-db-pass"),
 		"file:keycloak-id":     []byte("file-keycloak-id"),
 		"gcp:keycloak-secret":  []byte("gcp-keycloak-secret"),
+		"aws:service-id":       []byte("aws-service-id"),
+		"aws:service-secret":   []byte("aws-service-secret"),
 	})
 
 	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
@@ -219,6 +262,10 @@ func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
 	keycloak := cfg.MapField["keycloak"]
 	assert.Equal(t, "file-keycloak-id", keycloak.ID)
 	assert.Equal(t, "gcp-keycloak-secret", keycloak.Secret)
+
+	awsService := cfg.MapField["aws-service"]
+	assert.Equal(t, "aws-service-id", awsService.ID)
+	assert.Equal(t, "aws-service-secret", awsService.Secret)
 }
 
 func TestWalkConfigForSecrets_NoSecretReferences(t *testing.T) {
