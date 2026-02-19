@@ -119,6 +119,59 @@ func TestSecretsConfig_ValidateGCP(t *testing.T) {
 	}
 }
 
+func TestSecretsConfig_ValidateAWS(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  SecretsConfig
+		wantErr bool
+	}{
+		{
+			name: "valid aws config",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					AWS: &AWSProviderConfig{
+						Enabled: true,
+						Region:  "us-east-1",
+					},
+				},
+			},
+		},
+		{
+			name: "missing region",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					AWS: &AWSProviderConfig{
+						Enabled: true,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "disabled skips validation",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					AWS: &AWSProviderConfig{
+						Enabled: false,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.validate()
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "region")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestSecretsConfig_EnabledProviders(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -183,6 +236,18 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 			expected: []string{"gcp"},
 		},
 		{
+			name: "aws provider enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					AWS: &AWSProviderConfig{
+						Enabled: true,
+						Region:  "us-east-1",
+					},
+				},
+			},
+			expected: []string{"aws"},
+		},
+		{
 			name: "all providers enabled",
 			config: SecretsConfig{
 				Providers: ProvidersConfig{
@@ -198,9 +263,13 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 						Enabled: true,
 						Project: "my-project",
 					},
+					AWS: &AWSProviderConfig{
+						Enabled: true,
+						Region:  "us-east-1",
+					},
 				},
 			},
-			expected: []string{"file", "vault", "gcp"},
+			expected: []string{"file", "vault", "gcp", "aws"},
 		},
 		{
 			name: "gcp provider configured but not enabled",
