@@ -357,6 +357,11 @@ JsonPath: string
 				location?:    string
 				credentials?: string
 			} | null
+			aws?: {
+				enabled?:      bool | *false
+				region?:       string
+				endpoint_url?: string
+			} | null
 		}
 	}
 
