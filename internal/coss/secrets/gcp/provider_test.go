@@ -17,7 +17,8 @@ func TestFactoryRegistration(t *testing.T) {
 }
 
 func TestFactory_MissingConfig(t *testing.T) {
-	factory, _ := secrets.GetProviderFactory("gcp")
+	factory, exists := secrets.GetProviderFactory("gcp")
+	require.True(t, exists, "gcp provider factory should be registered")
 
 	cfg := &config.Config{}
 	_, err := factory(cfg, zap.NewNop())
@@ -33,13 +34,12 @@ func TestProvider_ResourceNameGeneration(t *testing.T) {
 	const project = "my-project"
 
 	t.Run("secret version path", func(t *testing.T) {
-		path := "my-secret"
-		expected := "projects/my-project/secrets/my-secret/versions/latest"
-		assert.Equal(t, expected, "projects/"+project+"/secrets/"+path+"/versions/latest")
+		got := secretVersionName(project, "my-secret")
+		assert.Equal(t, "projects/my-project/secrets/my-secret/versions/latest", got)
 	})
 
 	t.Run("list parent path", func(t *testing.T) {
-		expected := "projects/my-project"
-		assert.Equal(t, expected, "projects/"+project)
+		got := secretParent(project)
+		assert.Equal(t, "projects/my-project", got)
 	})
 }

@@ -50,19 +50,15 @@ func NewProvider(project, credentials string, logger *zap.Logger) (*Provider, er
 	var opts []option.ClientOption
 
 	if emulatorHost := os.Getenv("SECRET_MANAGER_EMULATOR_HOST"); emulatorHost != "" {
-		// Connect to emulator with insecure credentials
+		// Connect to emulator with insecure credentials and no authentication.
 		logger.Info("connecting to GCP Secret Manager emulator",
 			zap.String("host", emulatorHost))
 
-		conn, err := grpc.NewClient(
-			emulatorHost,
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		opts = append(opts,
+			option.WithEndpoint(emulatorHost),
+			option.WithoutAuthentication(),
+			option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 		)
-		if err != nil {
-			return nil, fmt.Errorf("creating grpc connection to emulator: %w", err)
-		}
-
-		opts = append(opts, option.WithGRPCConn(conn))
 	} else if credentials != "" {
 		opts = append(opts, option.WithCredentialsFile(credentials))
 	}
@@ -79,9 +75,19 @@ func NewProvider(project, credentials string, logger *zap.Logger) (*Provider, er
 	}, nil
 }
 
+// secretVersionName returns the full resource name for accessing a secret version.
+func secretVersionName(project, path string) string {
+	return fmt.Sprintf("projects/%s/secrets/%s/versions/latest", project, path)
+}
+
+// secretParent returns the parent resource name for listing secrets.
+func secretParent(project string) string {
+	return fmt.Sprintf("projects/%s", project)
+}
+
 // GetSecret retrieves a secret from GCP Secret Manager.
 func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret, error) {
-	name := fmt.Sprintf("projects/%s/secrets/%s/versions/latest", p.project, path)
+	name := secretVersionName(p.project, path)
 
 	p.logger.Debug("reading secret from gcp secret manager",
 		zap.String("path", path),
@@ -107,7 +113,7 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 
 // ListSecrets returns all secret paths matching the prefix in GCP Secret Manager.
 func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string, error) {
-	parent := fmt.Sprintf("projects/%s", p.project)
+	parent := secretParent(p.project)
 
 	p.logger.Debug("listing secrets from gcp secret manager",
 		zap.String("prefix", pathPrefix),

@@ -794,7 +794,7 @@ func withGCPSecrets(fn testCaseFn) testCaseFn {
 		// Build GCP Secret Manager emulator from source
 		gcpEmulator := client.Container().
 			From("golang:1.26-alpine").
-			WithExec([]string{"go", "install", "github.com/blackwell-systems/gcp-secret-manager-emulator/cmd/server@latest"}).
+			WithExec([]string{"go", "install", "github.com/blackwell-systems/gcp-secret-manager-emulator/cmd/server@v1.3.0"}).
 			WithExposedPort(9090).
 			WithDefaultArgs([]string{"server", "--port", "9090"}).
 			AsService()
@@ -827,12 +827,11 @@ import (
 
 func main() {
 	ctx := context.Background()
-	conn, err := grpc.NewClient("gcp-secretmanager:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "grpc connect: %v\n", err)
-		os.Exit(1)
-	}
-	client, err := secretmanager.NewClient(ctx, option.WithGRPCConn(conn))
+	client, err := secretmanager.NewClient(ctx,
+		option.WithEndpoint("gcp-secretmanager:9090"),
+		option.WithoutAuthentication(),
+		option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "client: %v\n", err)
 		os.Exit(1)
