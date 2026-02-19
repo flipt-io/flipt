@@ -16,6 +16,7 @@ type ProvidersConfig struct {
 	File  *FileProviderConfig  `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
 	Vault *VaultProviderConfig `json:"vault,omitempty" mapstructure:"vault" yaml:"vault,omitempty"`
 	GCP   *GCPProviderConfig   `json:"gcp,omitempty" mapstructure:"gcp" yaml:"gcp,omitempty"`
+	AWS   *AWSProviderConfig   `json:"aws,omitempty" mapstructure:"aws" yaml:"aws,omitempty"`
 }
 
 // FileProviderConfig contains configuration for the file-based secret provider.
@@ -43,6 +44,13 @@ type GCPProviderConfig struct {
 	Credentials string `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
 }
 
+// AWSProviderConfig contains configuration for AWS Secrets Manager provider.
+type AWSProviderConfig struct {
+	Enabled     bool   `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
+	Region      string `json:"region,omitempty" mapstructure:"region" yaml:"region,omitempty"`
+	EndpointURL string `json:"endpoint_url,omitempty" mapstructure:"endpoint_url" yaml:"endpoint_url,omitempty"`
+}
+
 // SecretReference represents a reference to a secret value.
 type SecretReference struct {
 	Provider string `json:"provider" mapstructure:"provider" yaml:"provider"`
@@ -62,6 +70,9 @@ func (s *SecretsConfig) setDefaults(v *viper.Viper) { //nolint:unused // used by
 
 	// GCP provider defaults
 	v.SetDefault("secrets.providers.gcp.enabled", false)
+
+	// AWS provider defaults
+	v.SetDefault("secrets.providers.aws.enabled", false)
 }
 
 func (s *SecretsConfig) validate() error {
@@ -106,6 +117,13 @@ func (s *SecretsConfig) validate() error {
 		}
 	}
 
+	// Validate AWS provider
+	if s.Providers.AWS != nil && s.Providers.AWS.Enabled {
+		if s.Providers.AWS.Region == "" {
+			return errFieldRequired("secrets.providers.aws", "region")
+		}
+	}
+
 	return nil
 }
 
@@ -123,6 +141,10 @@ func (s *SecretsConfig) EnabledProviders() []string {
 
 	if s.Providers.GCP != nil && s.Providers.GCP.Enabled {
 		providers = append(providers, "gcp")
+	}
+
+	if s.Providers.AWS != nil && s.Providers.AWS.Enabled {
+		providers = append(providers, "aws")
 	}
 
 	return providers
