@@ -69,7 +69,7 @@ func NewProvider(project, location, credentials string, logger *zap.Logger) (*Pr
 		}
 
 		if credentials != "" {
-			opts = append(opts, option.WithCredentialsFile(credentials))
+			opts = append(opts, option.WithAuthCredentialsFile(option.ServiceAccount, credentials))
 		}
 	}
 

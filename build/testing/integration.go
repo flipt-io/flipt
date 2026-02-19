@@ -791,10 +791,9 @@ func withVaultSecrets(fn testCaseFn) testCaseFn {
 
 func withGCPSecrets(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-		// Build GCP Secret Manager emulator from source
+		// Use pre-built GCP Secret Manager emulator image
 		gcpEmulator := client.Container().
-			From("golang:1.26-alpine").
-			WithExec([]string{"go", "install", "github.com/blackwell-systems/gcp-secret-manager-emulator/cmd/server@v1.3.0"}).
+			From("ghcr.io/blackwell-systems/gcp-secret-manager-emulator:1.3").
 			WithExposedPort(9090).
 			WithDefaultArgs([]string{"server", "--port", "9090"}).
 			AsService()
