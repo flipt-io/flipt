@@ -247,11 +247,11 @@ func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
 	}
 
 	manager := newMockManager(map[string][]byte{
-		"vault:db-password":    []byte("vault-db-pass"),
-		"file:keycloak-id":     []byte("file-keycloak-id"),
-		"gcp:keycloak-secret":  []byte("gcp-keycloak-secret"),
-		"aws:service-id":       []byte("aws-service-id"),
-		"aws:service-secret":   []byte("aws-service-secret"),
+		"vault:db-password":   []byte("vault-db-pass"),
+		"file:keycloak-id":    []byte("file-keycloak-id"),
+		"gcp:keycloak-secret": []byte("gcp-keycloak-secret"),
+		"aws:service-id":      []byte("aws-service-id"),
+		"aws:service-secret":  []byte("aws-service-secret"),
 	})
 
 	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
