@@ -921,6 +921,44 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("secrets.providers.gcp: project non-empty value is required"),
 		},
 		{
+			name: "secrets config with aws provider",
+			path: "./testdata/secrets/aws_provider.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						AWS: &AWSProviderConfig{
+							Enabled: true,
+							Region:  "us-east-1",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "secrets config with aws provider custom endpoint",
+			path: "./testdata/secrets/aws_provider_custom_endpoint.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						AWS: &AWSProviderConfig{
+							Enabled:     true,
+							Region:      "us-east-1",
+							EndpointURL: "http://localhost:4566",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "secrets config aws provider missing region",
+			path:    "./testdata/secrets/aws_provider_missing_region.yml",
+			wantErr: errors.New("secrets.providers.aws: region non-empty value is required"),
+		},
+		{
 			name: "secrets config with all providers",
 			path: "./testdata/secrets/all_providers.yml",
 			expected: func() *Config {
@@ -942,6 +980,10 @@ func TestLoad(t *testing.T) {
 							Enabled:     true,
 							Project:     "my-gcp-project",
 							Credentials: "/path/to/credentials.json",
+						},
+						AWS: &AWSProviderConfig{
+							Enabled: true,
+							Region:  "us-east-1",
 						},
 					},
 				}
