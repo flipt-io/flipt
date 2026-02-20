@@ -929,7 +929,6 @@ func TestLoad(t *testing.T) {
 					Providers: ProvidersConfig{
 						AWS: &AWSProviderConfig{
 							Enabled: true,
-							Region:  "us-east-1",
 						},
 					},
 				}
@@ -945,7 +944,6 @@ func TestLoad(t *testing.T) {
 					Providers: ProvidersConfig{
 						AWS: &AWSProviderConfig{
 							Enabled:     true,
-							Region:      "us-east-1",
 							EndpointURL: "http://localhost:4566",
 						},
 					},
@@ -983,7 +981,6 @@ func TestLoad(t *testing.T) {
 						},
 						AWS: &AWSProviderConfig{
 							Enabled: true,
-							Region:  "us-east-1",
 						},
 					},
 				}

@@ -219,7 +219,6 @@ func TestNewManager(t *testing.T) {
 				Providers: config.ProvidersConfig{
 					AWS: &config.AWSProviderConfig{
 						Enabled: true,
-						Region:  "us-east-1",
 					},
 				},
 			},
@@ -281,7 +280,6 @@ func TestNewManager(t *testing.T) {
 					},
 					AWS: &config.AWSProviderConfig{
 						Enabled: true,
-						Region:  "us-east-1",
 					},
 				},
 			},
@@ -413,7 +411,6 @@ func TestNewManager(t *testing.T) {
 				Providers: config.ProvidersConfig{
 					AWS: &config.AWSProviderConfig{
 						Enabled: true,
-						Region:  "us-east-1",
 					},
 				},
 			},
@@ -443,7 +440,6 @@ func TestNewManager(t *testing.T) {
 				Providers: config.ProvidersConfig{
 					AWS: &config.AWSProviderConfig{
 						Enabled: false,
-						Region:  "us-east-1",
 					},
 				},
 			},

@@ -121,23 +121,11 @@ func TestSecretsConfig_ValidateGCP(t *testing.T) {
 
 func TestSecretsConfig_ValidateAWS(t *testing.T) {
 	tests := []struct {
-		name    string
-		config  SecretsConfig
-		wantErr bool
+		name   string
+		config SecretsConfig
 	}{
 		{
-			name: "valid aws config",
-			config: SecretsConfig{
-				Providers: ProvidersConfig{
-					AWS: &AWSProviderConfig{
-						Enabled: true,
-						Region:  "us-east-1",
-					},
-				},
-			},
-		},
-		{
-			name: "missing region",
+			name: "valid aws config enabled",
 			config: SecretsConfig{
 				Providers: ProvidersConfig{
 					AWS: &AWSProviderConfig{
@@ -145,7 +133,6 @@ func TestSecretsConfig_ValidateAWS(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
 		},
 		{
 			name: "disabled skips validation",
@@ -162,12 +149,7 @@ func TestSecretsConfig_ValidateAWS(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.config.validate()
-			if tt.wantErr {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "region")
-			} else {
-				require.NoError(t, err)
-			}
+			require.NoError(t, err)
 		})
 	}
 }
@@ -241,7 +223,6 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 				Providers: ProvidersConfig{
 					AWS: &AWSProviderConfig{
 						Enabled: true,
-						Region:  "us-east-1",
 					},
 				},
 			},
@@ -265,7 +246,6 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 					},
 					AWS: &AWSProviderConfig{
 						Enabled: true,
-						Region:  "us-east-1",
 					},
 				},
 			},

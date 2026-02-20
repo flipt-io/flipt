@@ -132,8 +132,7 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 				return nil, fmt.Errorf("failed to register aws secret provider: %w", err)
 			}
 
-			logger.Info("registered aws secret provider",
-				zap.String("region", cfg.Secrets.Providers.AWS.Region))
+			logger.Info("registered aws secret provider")
 		} else {
 			return nil, fmt.Errorf("aws provider factory not registered")
 		}

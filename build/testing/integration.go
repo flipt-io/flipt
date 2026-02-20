@@ -286,7 +286,6 @@ func signingAPI(provider secretProvider) testCaseFn {
 				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt-signing-key").
 				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "value").
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AWS_ENABLED", "true").
-				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AWS_REGION", "us-east-1").
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AWS_ENDPOINT_URL", "http://localstack:4566")
 		}
 
@@ -907,7 +906,7 @@ func withAWSSecrets(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		// LocalStack container for AWS Secrets Manager emulation
 		localstack := client.Container().
-			From("localstack/localstack:latest").
+			From("localstack/localstack:4.4").
 			WithEnvVariable("SERVICES", "secretsmanager").
 			WithEnvVariable("DEFAULT_REGION", "us-east-1").
 			WithExposedPort(4566).

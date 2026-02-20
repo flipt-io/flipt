@@ -45,9 +45,9 @@ type GCPProviderConfig struct {
 }
 
 // AWSProviderConfig contains configuration for AWS Secrets Manager provider.
+// Region is determined by the AWS SDK's default configuration (e.g., AWS_DEFAULT_REGION environment variable).
 type AWSProviderConfig struct {
 	Enabled     bool   `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
-	Region      string `json:"region,omitempty" mapstructure:"region" yaml:"region,omitempty"`
 	EndpointURL string `json:"endpoint_url,omitempty" mapstructure:"endpoint_url" yaml:"endpoint_url,omitempty"`
 }
 
@@ -117,12 +117,8 @@ func (s *SecretsConfig) validate() error {
 		}
 	}
 
-	// Validate AWS provider
-	if s.Providers.AWS != nil && s.Providers.AWS.Enabled {
-		if s.Providers.AWS.Region == "" {
-			return errFieldRequired("secrets.providers.aws", "region")
-		}
-	}
+	// AWS provider has no required fields beyond "enabled".
+	// Region is resolved by the AWS SDK from the environment (e.g., AWS_DEFAULT_REGION).
 
 	return nil
 }

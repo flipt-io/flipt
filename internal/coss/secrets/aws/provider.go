@@ -25,7 +25,7 @@ func init() {
 			return nil, fmt.Errorf("aws provider configuration not found")
 		}
 
-		return NewProvider(cfg.Secrets.Providers.AWS.Region, cfg.Secrets.Providers.AWS.EndpointURL, logger)
+		return NewProvider(cfg.Secrets.Providers.AWS.EndpointURL, logger)
 	})
 }
 
@@ -36,10 +36,11 @@ type Provider struct {
 }
 
 // NewProvider creates a new AWS Secrets Manager provider.
-func NewProvider(region, endpointURL string, logger *zap.Logger) (*Provider, error) {
+// Region is determined by the AWS SDK's default configuration (e.g., AWS_DEFAULT_REGION environment variable).
+func NewProvider(endpointURL string, logger *zap.Logger) (*Provider, error) {
 	ctx := context.Background()
 
-	cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(region))
+	cfg, err := awsconfig.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("loading aws config: %w", err)
 	}
