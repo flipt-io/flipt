@@ -93,7 +93,7 @@ require (
 	golang.org/x/sync v0.19.0
 	golang.org/x/term v0.40.0
 	google.golang.org/api v0.267.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57
+	google.golang.org/genproto/googleapis/api v0.0.0-20260217215200-42d3e9bedb6d
 	google.golang.org/grpc v1.79.1
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
