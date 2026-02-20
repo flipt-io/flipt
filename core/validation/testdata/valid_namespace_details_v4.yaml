@@ -69,6 +69,7 @@ flags:
       rollout: 100
 - key: boolean
   name: Boolean
+  type: BOOLEAN_FLAG_TYPE
   description: Boolean flag
   enabled: false
   rollouts:

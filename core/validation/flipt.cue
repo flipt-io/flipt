@@ -10,19 +10,21 @@ close({
 #Namespace: {
 	key:          string & =~"^[-_,A-Za-z0-9]+$" | *"default"
 	name?:        string & =~"^.+$"
-	description?: string
+	description?: string | null
 } | string & =~"^[-_,A-Za-z0-9]+$"
 
 #Flag: {
 	key:          string & =~"^[-_,A-Za-z0-9]+$"
 	name:         string & =~"^.+$"
-	description?: string
+	description?: string | null
 	enabled:      bool | *false
 	variants: [...#Variant]
 	rules: [...#Rule]
 	if version == "1.1" || version == "1.2" || version == "1.3" || version == "1.4" || version == "1.5" {
 		type: "BOOLEAN_FLAG_TYPE" | *"VARIANT_FLAG_TYPE"
-		#FlagBoolean | *{}
+		if type == "BOOLEAN_FLAG_TYPE" {
+			#FlagBoolean
+		}
 	}
 	if version == "1.3" || version == "1.4" || version == "1.5" {
 		metadata: [string]: !=null
@@ -32,7 +34,7 @@ close({
 #FlagBoolean: {
 	type: "BOOLEAN_FLAG_TYPE"
 	rollouts: [...{
-		description?: string
+		description?: string | null
 		#Rollout
 	}]
 }
@@ -40,7 +42,7 @@ close({
 #Variant: {
 	key:          string & =~"^.+$"
 	name?:        string & =~"^.+$"
-	description?: string
+	description?: string | null
 	attachment: {...} | [...] | *null
 	if version == "1.3" || version == "1.4" || version == "1.5" {
 		default: bool | *false
@@ -83,7 +85,7 @@ close({
 	key:          string & =~"^[-_,A-Za-z0-9]+$"
 	name:         string & =~"^.+$"
 	match_type:   "ANY_MATCH_TYPE" | "ALL_MATCH_TYPE"
-	description?: string
+	description?: string | null
 	constraints: [...#Constraint]
 }
 
@@ -91,30 +93,30 @@ close({
 	type:         "STRING_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
 	value?:       string
-	description?: string
+	description?: string | null
 	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof" | "contains" | "notcontains"
 } | {
 	type:         "NUMBER_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
 	value?:       string
-	description?: string
+	description?: string | null
 	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte" | "isoneof" | "isnotoneof"
 } | {
 	type:         "BOOLEAN_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
 	value?:       string
-	description?: string
+	description?: string | null
 	operator:     "true" | "false" | "present" | "notpresent"
 } | {
 	type:         "DATETIME_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
 	value?:       string
-	description?: string
+	description?: string | null
 	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
 } | {
 	type:         "ENTITY_ID_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
 	value?:       string
-	description?: string
+	description?: string | null
 	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof" | "contains" | "notcontains"
 })
