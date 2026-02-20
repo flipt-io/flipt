@@ -2,9 +2,6 @@
 
 The following are instructions for setting up your local machine for Flipt development.
 
-> [!TIP]
-> Try our new [devenv](#devenv) solution to quickly get setup developing Flipt!
-
 Also check out our [Contributing](CONTRIBUTING.md) guide for more information on how to get changes merged into the project.
 
 ## Requirements
@@ -103,6 +100,39 @@ This will start two Docker containers:
 - `ui` will run the UI development server, mounting the `ui` directory as a bind mount. This means that any changes made to the UI will be picked up by the development server and the UI will be reloaded (thanks to Vite).
 
 To start the containers, run `docker-compose up` from the root of this repository. After the containers are started, you can visit `http://localhost:8080` to see the UI.
+
+## Dev Containers
+
+[Dev Containers](https://containers.dev/) provide a fully configured development environment running in a Docker container. This is especially useful for working with AI coding agents, as you can run them in autonomous modes (e.g. `claude --dangerously-skip-permissions` or `codex --full-auto`) without risking changes to your host OS.
+
+We provide three dev container configurations:
+
+| Configuration | Description |
+|---|---|
+| **Flipt Dev** | Base development environment with Go, Node.js, Mage, and standard tooling |
+| **Flipt Dev (Claude Code)** | Base + [Claude Code](https://docs.anthropic.com/en/docs/claude-code) with skills and agents mounted from your host |
+| **Flipt Dev (Codex)** | Base + [OpenAI Codex](https://github.com/openai/codex) with config and skills mounted from your host |
+
+### Getting Started
+
+1. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) for VS Code (or use GitHub Codespaces).
+2. Open the repository in VS Code.
+3. When prompted, select which dev container configuration to use.
+4. The container will build and run `mage bootstrap` automatically to install all project tools.
+
+### AI Agent Mounts
+
+The Claude and Codex configurations mount your host's agent config directories into the container so you can reuse your skills and settings:
+
+**Claude Code** mounts:
+- `~/.claude/skills` — your Claude Code skills
+- `~/.claude/agents` — your Claude Code agents
+
+**Codex** mounts:
+- `~/.codex` — your Codex config (config.toml, AGENTS.md, etc.)
+- `~/.agents/skills` — your Codex user-level skills
+
+These directories are created automatically on first launch if they don't exist.
 
 ## devenv
 
