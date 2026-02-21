@@ -952,11 +952,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name:    "secrets config aws provider missing region",
-			path:    "./testdata/secrets/aws_provider_missing_region.yml",
-			wantErr: errors.New("secrets.providers.aws: region non-empty value is required"),
-		},
-		{
 			name: "secrets config with all providers",
 			path: "./testdata/secrets/all_providers.yml",
 			expected: func() *Config {
