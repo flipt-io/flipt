@@ -55,6 +55,7 @@ var (
 		"signing/vault": signingAPI(vaultSecretProvider),
 		"signing/file":  signingAPI(fileSecretProvider),
 		"signing/gcp":   signingAPI(gcpSecretProvider),
+		"signing/aws":   signingAPI(awsSecretProvider),
 		"snapshot":      snapshotAPI(),
 	}
 )
@@ -231,6 +232,7 @@ const (
 	vaultSecretProvider = "vault"
 	fileSecretProvider  = "file"
 	gcpSecretProvider   = "gcp"
+	awsSecretProvider   = "aws"
 )
 
 func signingAPI(provider secretProvider) testCaseFn {
@@ -277,6 +279,14 @@ func signingAPI(provider secretProvider) testCaseFn {
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_GCP_ENABLED", "true").
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_GCP_PROJECT", "test-project").
 				WithEnvVariable("SECRET_MANAGER_EMULATOR_HOST", "gcp-secretmanager:9090")
+		case awsSecretProvider:
+			// Configure for AWS Secrets Manager secrets
+			flipt = flipt.
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "aws").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt-signing-key").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "value").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AWS_ENABLED", "true").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AWS_ENDPOINT_URL", "http://localstack:4566")
 		}
 
 		return suite(ctx, "signing", base, flipt, conf)
@@ -292,6 +302,9 @@ func signingAPI(provider secretProvider) testCaseFn {
 	case gcpSecretProvider:
 		// GCP secrets need the Secret Manager emulator service
 		return withGCPSecrets(baseTestFn)
+	case awsSecretProvider:
+		// AWS secrets need the LocalStack service
+		return withAWSSecrets(baseTestFn)
 	}
 
 	panic("unknown secretProvider: " + string(provider))
@@ -883,6 +896,68 @@ GOEOF
 				client,
 				base,
 				flipt.WithServiceBinding("gcp-secretmanager", gcpEmulator),
+				conf,
+			)()
+		}
+	}
+}
+
+func withAWSSecrets(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// LocalStack container for AWS Secrets Manager emulation
+		localstack := client.Container().
+			From("localstack/localstack:4.4").
+			WithEnvVariable("SERVICES", "secretsmanager").
+			WithEnvVariable("DEFAULT_REGION", "us-east-1").
+			WithExposedPort(4566).
+			AsService()
+
+		// Setup container to generate GPG key and store it in LocalStack
+		_, err := client.Container().
+			From("amazon/aws-cli:latest").
+			WithExec([]string{"yum", "install", "-y", "gnupg2"}).
+			WithServiceBinding("localstack", localstack).
+			WithEnvVariable("AWS_ACCESS_KEY_ID", "test").
+			WithEnvVariable("AWS_SECRET_ACCESS_KEY", "test").
+			WithEnvVariable("AWS_DEFAULT_REGION", "us-east-1").
+			WithExec([]string{
+				"sh", "-c",
+				gpgKeyGenerationScript + `
+				gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
+
+				# Wait for LocalStack to be ready
+				for i in $(seq 1 30); do
+					aws --endpoint-url=http://localstack:4566 secretsmanager list-secrets > /dev/null 2>&1 && break
+					sleep 1
+				done
+
+				aws --endpoint-url=http://localstack:4566 secretsmanager create-secret \
+					--name flipt-signing-key \
+					--secret-string "$(cat /tmp/private-key.asc)"
+
+				# Verify
+				aws --endpoint-url=http://localstack:4566 secretsmanager get-secret-value \
+					--secret-id flipt-signing-key > /dev/null 2>&1 || {
+					echo "ERROR: Failed to store key in LocalStack"
+					exit 1
+				}
+				echo "Secret stored successfully in LocalStack"
+			`,
+			}).Sync(ctx)
+		if err != nil {
+			return func() error { return err }
+		}
+
+		return func() error {
+			return fn(
+				ctx,
+				client,
+				base,
+				flipt.
+					WithServiceBinding("localstack", localstack).
+					WithEnvVariable("AWS_ACCESS_KEY_ID", "test").
+					WithEnvVariable("AWS_SECRET_ACCESS_KEY", "test").
+					WithEnvVariable("AWS_DEFAULT_REGION", "us-east-1"),
 				conf,
 			)()
 		}

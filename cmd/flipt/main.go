@@ -25,6 +25,7 @@ import (
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/license"
+	_ "go.flipt.io/flipt/internal/coss/secrets/aws"   // Register AWS Secrets Manager provider for Pro features
 	_ "go.flipt.io/flipt/internal/coss/secrets/gcp"   // Register GCP Secret Manager provider for Pro features
 	_ "go.flipt.io/flipt/internal/coss/secrets/vault" // Register vault provider for Pro features
 	"go.flipt.io/flipt/internal/info"
