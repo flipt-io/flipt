@@ -1499,9 +1499,6 @@
                   "type": "boolean",
                   "default": false
                 },
-                "region": {
-                  "type": "string"
-                },
                 "endpoint_url": {
                   "type": "string"
                 }
