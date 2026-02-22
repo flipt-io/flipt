@@ -915,7 +915,7 @@ func withAWSSecrets(fn testCaseFn) testCaseFn {
 		// Setup container to generate GPG key and store it in LocalStack
 		_, err := client.Container().
 			From("amazon/aws-cli:latest").
-			WithExec([]string{"yum", "install", "-y", "gnupg2"}).
+			WithExec([]string{"yum", "install", "-y", "--allowerasing", "gnupg2"}).
 			WithServiceBinding("localstack", localstack).
 			WithEnvVariable("AWS_ACCESS_KEY_ID", "test").
 			WithEnvVariable("AWS_SECRET_ACCESS_KEY", "test").
