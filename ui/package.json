@@ -108,7 +108,7 @@
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "tailwindcss": "^4.1.16",
+    "tailwindcss": "^4.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
