@@ -1,6 +1,6 @@
 module go.flipt.io/build
 
-go 1.25
+go 1.25.0
 
 require (
 	code.gitea.io/sdk/gitea v0.21.0
