@@ -359,7 +359,6 @@ JsonPath: string
 			} | null
 			aws?: {
 				enabled?:      bool | *false
-				region?:       string
 				endpoint_url?: string
 			} | null
 		}
