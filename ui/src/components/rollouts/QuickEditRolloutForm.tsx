@@ -66,12 +66,12 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     if (rollout.type === RolloutType.THRESHOLD && rollout.threshold) {
       if (percentageInputRef.current) {
         percentageInputRef.current.value = String(
-          rollout.threshold.percentage || 50
+          rollout.threshold.percentage || 0
         );
       }
       if (percentageRangeRef.current) {
         percentageRangeRef.current.value = String(
-          rollout.threshold.percentage || 50
+          rollout.threshold.percentage || 0
         );
       }
     }
@@ -192,7 +192,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 min="0"
                 max="100"
                 className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-secondary align-middle sm:block"
-                defaultValue={String(rollout.threshold?.percentage || 50)}
+                defaultValue={String(rollout.threshold?.percentage || 0)}
                 onChange={(e) => {
                   // Update the number input when slider changes
                   if (percentageInputRef.current) {
@@ -212,7 +212,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   min="0"
                   max="100"
                   className="text-center pl-7"
-                  defaultValue={String(rollout.threshold?.percentage || 50)}
+                  defaultValue={String(rollout.threshold?.percentage || 0)}
                   onChange={(e) => {
                     // Update the range slider when number input changes
                     if (percentageRangeRef.current) {
