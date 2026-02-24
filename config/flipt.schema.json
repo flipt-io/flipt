@@ -1487,6 +1487,22 @@
                   "type": "string"
                 }
               }
+            },
+            "aws": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "endpoint_url": {
+                  "type": "string"
+                }
+              }
             }
           }
         }

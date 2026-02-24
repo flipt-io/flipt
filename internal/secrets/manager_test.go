@@ -196,6 +196,43 @@ func TestNewManager(t *testing.T) {
 		assert.Contains(t, providers, "gcp")
 	})
 
+	t.Run("creates manager with aws provider", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+
+		providerFactories = map[string]ProviderFactory{
+			"aws": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+				return &MockProvider{}, nil
+			},
+		}
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					AWS: &config.AWSProviderConfig{
+						Enabled: true,
+					},
+				},
+			},
+		}
+
+		manager, err := NewManager(logger, cfg)
+
+		require.NoError(t, err)
+		assert.NotNil(t, manager)
+
+		providers := manager.ListProviders()
+		assert.Contains(t, providers, "aws")
+	})
+
 	t.Run("creates manager with all providers", func(t *testing.T) {
 		factoryMu.Lock()
 		originalFactories := make(map[string]ProviderFactory)
@@ -209,6 +246,9 @@ func TestNewManager(t *testing.T) {
 				return &MockProvider{}, nil
 			},
 			"gcp": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+				return &MockProvider{}, nil
+			},
+			"aws": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
 				return &MockProvider{}, nil
 			},
 		}
@@ -238,6 +278,9 @@ func TestNewManager(t *testing.T) {
 						Enabled: true,
 						Project: "my-project",
 					},
+					AWS: &config.AWSProviderConfig{
+						Enabled: true,
+					},
 				},
 			},
 		}
@@ -248,10 +291,11 @@ func TestNewManager(t *testing.T) {
 		assert.NotNil(t, manager)
 
 		providers := manager.ListProviders()
-		assert.Len(t, providers, 3)
+		assert.Len(t, providers, 4)
 		assert.Contains(t, providers, "file")
 		assert.Contains(t, providers, "vault")
 		assert.Contains(t, providers, "gcp")
+		assert.Contains(t, providers, "aws")
 	})
 
 	t.Run("fails when file factory not registered", func(t *testing.T) {
@@ -347,6 +391,64 @@ func TestNewManager(t *testing.T) {
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "gcp provider factory not registered")
+	})
+
+	t.Run("fails when AWS factory not registered", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+		providerFactories = make(map[string]ProviderFactory)
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					AWS: &config.AWSProviderConfig{
+						Enabled: true,
+					},
+				},
+			},
+		}
+
+		_, err := NewManager(logger, cfg)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "aws provider factory not registered")
+	})
+
+	t.Run("skips disabled aws provider", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+		providerFactories = make(map[string]ProviderFactory)
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					AWS: &config.AWSProviderConfig{
+						Enabled: false,
+					},
+				},
+			},
+		}
+
+		manager, err := NewManager(logger, cfg)
+
+		require.NoError(t, err)
+		assert.Empty(t, manager.ListProviders())
 	})
 
 	t.Run("skips disabled gcp provider", func(t *testing.T) {

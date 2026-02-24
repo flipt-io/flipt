@@ -119,6 +119,41 @@ func TestSecretsConfig_ValidateGCP(t *testing.T) {
 	}
 }
 
+func TestSecretsConfig_ValidateAWS(t *testing.T) {
+	tests := []struct {
+		name   string
+		config SecretsConfig
+	}{
+		{
+			name: "valid aws config enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					AWS: &AWSProviderConfig{
+						Enabled: true,
+					},
+				},
+			},
+		},
+		{
+			name: "disabled skips validation",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					AWS: &AWSProviderConfig{
+						Enabled: false,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.validate()
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestSecretsConfig_EnabledProviders(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -183,6 +218,17 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 			expected: []string{"gcp"},
 		},
 		{
+			name: "aws provider enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					AWS: &AWSProviderConfig{
+						Enabled: true,
+					},
+				},
+			},
+			expected: []string{"aws"},
+		},
+		{
 			name: "all providers enabled",
 			config: SecretsConfig{
 				Providers: ProvidersConfig{
@@ -198,9 +244,12 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 						Enabled: true,
 						Project: "my-project",
 					},
+					AWS: &AWSProviderConfig{
+						Enabled: true,
+					},
 				},
 			},
-			expected: []string{"file", "vault", "gcp"},
+			expected: []string{"file", "vault", "gcp", "aws"},
 		},
 		{
 			name: "gcp provider configured but not enabled",

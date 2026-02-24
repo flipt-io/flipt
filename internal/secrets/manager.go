@@ -120,6 +120,24 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 		}
 	}
 
+	// Initialize AWS provider if enabled (Pro feature)
+	if cfg.Secrets.Providers.AWS != nil && cfg.Secrets.Providers.AWS.Enabled {
+		if factory, exists := manager.factories["aws"]; exists {
+			provider, err := factory(cfg, logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to initialize aws secret provider: %w", err)
+			}
+
+			if err := manager.RegisterProvider("aws", provider); err != nil {
+				return nil, fmt.Errorf("failed to register aws secret provider: %w", err)
+			}
+
+			logger.Info("registered aws secret provider")
+		} else {
+			return nil, fmt.Errorf("aws provider factory not registered")
+		}
+	}
+
 	// Initialize Vault provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
 		if factory, exists := manager.factories["vault"]; exists {
