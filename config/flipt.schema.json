@@ -1113,7 +1113,10 @@
                           "type": "string"
                         },
                         "installation_id": {
-                          "type": "integer"
+                          "oneOf": [
+                            { "type": "integer" },
+                            { "type": "string" }
+                          ]
                         },
                         "private_key_path": {
                           "type": "string"
@@ -1135,7 +1138,10 @@
                           "type": "string"
                         },
                         "installation_id": {
-                          "type": "integer"
+                          "oneOf": [
+                            { "type": "integer" },
+                            { "type": "string" }
+                          ]
                         },
                         "private_key_bytes": {
                           "type": "string"
