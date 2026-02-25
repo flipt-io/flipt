@@ -982,7 +982,7 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 		// Lowkey Vault container for Azure Key Vault emulation.
 		// Uses assumed identity mode which accepts any bearer token.
 		lowkeyVault := client.Container().
-			From("nagyesta/lowkey-vault:2.4.108").
+			From("nagyesta/lowkey-vault:7.1.13").
 			WithExposedPort(8443).
 			AsService()
 
