@@ -1404,6 +1404,9 @@
         },
         "file": {
           "type": "string"
+        },
+        "machine_id": {
+          "type": "string"
         }
       }
     },

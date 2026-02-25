@@ -332,8 +332,9 @@ JsonPath: string
 	}
 
 	#license: {
-		key?:  string
-		file?: string
+		key?:        string
+		file?:       string
+		machine_id?: string
 	}
 
 	#secrets: {
