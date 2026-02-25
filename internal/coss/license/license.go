@@ -281,6 +281,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID st
 		ctx, cancel := context.WithCancel(ctx)
 		fingerprinter := fingerprintFunc(machineid.ProtectedID)
 		if config.MachineID != "" {
+			logger.Info("using configured machine ID for license fingerprinting")
 			fingerprinter = func(appID string) (string, error) {
 				return ProtectedMachineID(appID, config.MachineID), nil
 			}
