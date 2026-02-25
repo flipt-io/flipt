@@ -65,6 +65,7 @@ func NewProvider(vaultURL string, logger *zap.Logger) (*Provider, error) {
 					},
 				},
 			},
+			DisableChallengeResourceVerification: true,
 		}
 	} else {
 		var err error

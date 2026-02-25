@@ -1041,6 +1041,7 @@ func main() {
 					},
 				},
 			},
+			DisableChallengeResourceVerification: true,
 		},
 	)
 	if err != nil {
