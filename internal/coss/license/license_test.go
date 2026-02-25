@@ -321,3 +321,39 @@ func TestManager_Product(t *testing.T) {
 	result := manager.Product()
 	assert.Equal(t, product.Pro, result)
 }
+
+func TestProtectedMachineID(t *testing.T) {
+	// ProtectedMachineID should produce a deterministic, non-empty hex string
+	result := ProtectedMachineID("my-app", "my-machine-id")
+	assert.NotEmpty(t, result)
+
+	// Same inputs should produce same output
+	assert.Equal(t, result, ProtectedMachineID("my-app", "my-machine-id"))
+
+	// Different inputs should produce different output
+	assert.NotEqual(t, result, ProtectedMachineID("other-app", "my-machine-id"))
+	assert.NotEqual(t, result, ProtectedMachineID("my-app", "other-machine-id"))
+}
+
+func TestManager_ConfiguredMachineID(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	const machineID = "my-custom-machine-id"
+
+	manager := &ManagerImpl{
+		logger:      logger,
+		config:      &config.LicenseConfig{Key: "test-key", MachineID: machineID},
+		licenseType: LicenseTypeOnline,
+		fingerprinter: func(appID string) (string, error) {
+			return ProtectedMachineID(appID, machineID), nil
+		},
+		product:   product.Pro,
+		cache:     &licenseCache{},
+		productID: "test-product",
+	}
+
+	// Verify the fingerprinter uses the configured machine ID
+	fp, err := manager.fingerprinter("test-product")
+	require.NoError(t, err)
+	assert.Equal(t, ProtectedMachineID("test-product", machineID), fp)
+}

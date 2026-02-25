@@ -893,9 +893,15 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get machine fingerprint
-	fingerprint, err := machineid.ProtectedID(keygenProductID)
-	if err != nil {
-		return fmt.Errorf("getting machine fingerprint: %w", err)
+	var fingerprint string
+	if c.cfg != nil && c.cfg.License.MachineID != "" {
+		fingerprint = license.ProtectedMachineID(keygenProductID, c.cfg.License.MachineID)
+	} else {
+		var err error
+		fingerprint, err = machineid.ProtectedID(keygenProductID)
+		if err != nil {
+			return fmt.Errorf("getting machine fingerprint: %w", err)
+		}
 	}
 
 	// Validate and activate license

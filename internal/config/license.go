@@ -5,8 +5,9 @@ import (
 )
 
 type LicenseConfig struct {
-	Key  string `json:"key,omitempty" mapstructure:"key" yaml:"key,omitempty"`
-	File string `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
+	Key       string `json:"key,omitempty" mapstructure:"key" yaml:"key,omitempty"`
+	File      string `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
+	MachineID string `json:"machineId,omitempty" mapstructure:"machine_id" yaml:"machine_id,omitempty"`
 }
 
 func (c *LicenseConfig) validate() error {
