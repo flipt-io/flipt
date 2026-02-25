@@ -17,6 +17,7 @@ type ProvidersConfig struct {
 	Vault *VaultProviderConfig `json:"vault,omitempty" mapstructure:"vault" yaml:"vault,omitempty"`
 	GCP   *GCPProviderConfig   `json:"gcp,omitempty" mapstructure:"gcp" yaml:"gcp,omitempty"`
 	AWS   *AWSProviderConfig   `json:"aws,omitempty" mapstructure:"aws" yaml:"aws,omitempty"`
+	Azure *AzureProviderConfig `json:"azure,omitempty" mapstructure:"azure" yaml:"azure,omitempty"`
 }
 
 // FileProviderConfig contains configuration for the file-based secret provider.
@@ -51,6 +52,15 @@ type AWSProviderConfig struct {
 	EndpointURL string `json:"endpoint_url,omitempty" mapstructure:"endpoint_url" yaml:"endpoint_url,omitempty"`
 }
 
+// AzureProviderConfig contains configuration for Azure Key Vault provider.
+// Authentication uses DefaultAzureCredential which supports managed identity,
+// environment variables (AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_CLIENT_SECRET),
+// Azure CLI, and other credential sources.
+type AzureProviderConfig struct {
+	Enabled  bool   `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
+	VaultURL string `json:"vault_url,omitempty" mapstructure:"vault_url" yaml:"vault_url,omitempty"`
+}
+
 // SecretReference represents a reference to a secret value.
 type SecretReference struct {
 	Provider string `json:"provider" mapstructure:"provider" yaml:"provider"`
@@ -73,6 +83,9 @@ func (s *SecretsConfig) setDefaults(v *viper.Viper) { //nolint:unused // used by
 
 	// AWS provider defaults
 	v.SetDefault("secrets.providers.aws.enabled", false)
+
+	// Azure provider defaults
+	v.SetDefault("secrets.providers.azure.enabled", false)
 }
 
 func (s *SecretsConfig) validate() error {
@@ -120,6 +133,13 @@ func (s *SecretsConfig) validate() error {
 	// AWS provider has no required fields beyond "enabled".
 	// Region is resolved by the AWS SDK from the environment (e.g., AWS_DEFAULT_REGION).
 
+	// Validate Azure provider
+	if s.Providers.Azure != nil && s.Providers.Azure.Enabled {
+		if s.Providers.Azure.VaultURL == "" {
+			return errFieldRequired("secrets.providers.azure", "vault_url")
+		}
+	}
+
 	return nil
 }
 
@@ -141,6 +161,10 @@ func (s *SecretsConfig) EnabledProviders() []string {
 
 	if s.Providers.AWS != nil && s.Providers.AWS.Enabled {
 		providers = append(providers, "aws")
+	}
+
+	if s.Providers.Azure != nil && s.Providers.Azure.Enabled {
+		providers = append(providers, "azure")
 	}
 
 	return providers

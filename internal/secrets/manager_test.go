@@ -233,6 +233,44 @@ func TestNewManager(t *testing.T) {
 		assert.Contains(t, providers, "aws")
 	})
 
+	t.Run("creates manager with azure provider", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+
+		providerFactories = map[string]ProviderFactory{
+			"azure": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+				return &MockProvider{}, nil
+			},
+		}
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					Azure: &config.AzureProviderConfig{
+						Enabled:  true,
+						VaultURL: "https://my-vault.vault.azure.net/",
+					},
+				},
+			},
+		}
+
+		manager, err := NewManager(logger, cfg)
+
+		require.NoError(t, err)
+		assert.NotNil(t, manager)
+
+		providers := manager.ListProviders()
+		assert.Contains(t, providers, "azure")
+	})
+
 	t.Run("creates manager with all providers", func(t *testing.T) {
 		factoryMu.Lock()
 		originalFactories := make(map[string]ProviderFactory)
@@ -249,6 +287,9 @@ func TestNewManager(t *testing.T) {
 				return &MockProvider{}, nil
 			},
 			"aws": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+				return &MockProvider{}, nil
+			},
+			"azure": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
 				return &MockProvider{}, nil
 			},
 		}
@@ -281,6 +322,10 @@ func TestNewManager(t *testing.T) {
 					AWS: &config.AWSProviderConfig{
 						Enabled: true,
 					},
+					Azure: &config.AzureProviderConfig{
+						Enabled:  true,
+						VaultURL: "https://my-vault.vault.azure.net/",
+					},
 				},
 			},
 		}
@@ -291,11 +336,12 @@ func TestNewManager(t *testing.T) {
 		assert.NotNil(t, manager)
 
 		providers := manager.ListProviders()
-		assert.Len(t, providers, 4)
+		assert.Len(t, providers, 5)
 		assert.Contains(t, providers, "file")
 		assert.Contains(t, providers, "vault")
 		assert.Contains(t, providers, "gcp")
 		assert.Contains(t, providers, "aws")
+		assert.Contains(t, providers, "azure")
 	})
 
 	t.Run("fails when file factory not registered", func(t *testing.T) {
@@ -422,6 +468,36 @@ func TestNewManager(t *testing.T) {
 		assert.Contains(t, err.Error(), "aws provider factory not registered")
 	})
 
+	t.Run("fails when Azure factory not registered", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+		providerFactories = make(map[string]ProviderFactory)
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					Azure: &config.AzureProviderConfig{
+						Enabled:  true,
+						VaultURL: "https://my-vault.vault.azure.net/",
+					},
+				},
+			},
+		}
+
+		_, err := NewManager(logger, cfg)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "azure provider factory not registered")
+	})
+
 	t.Run("skips disabled aws provider", func(t *testing.T) {
 		factoryMu.Lock()
 		originalFactories := make(map[string]ProviderFactory)
@@ -470,6 +546,36 @@ func TestNewManager(t *testing.T) {
 					GCP: &config.GCPProviderConfig{
 						Enabled: false,
 						Project: "my-project",
+					},
+				},
+			},
+		}
+
+		manager, err := NewManager(logger, cfg)
+
+		require.NoError(t, err)
+		assert.Empty(t, manager.ListProviders())
+	})
+
+	t.Run("skips disabled azure provider", func(t *testing.T) {
+		factoryMu.Lock()
+		originalFactories := make(map[string]ProviderFactory)
+		maps.Copy(originalFactories, providerFactories)
+		providerFactories = make(map[string]ProviderFactory)
+		factoryMu.Unlock()
+
+		t.Cleanup(func() {
+			factoryMu.Lock()
+			providerFactories = originalFactories
+			factoryMu.Unlock()
+		})
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					Azure: &config.AzureProviderConfig{
+						Enabled:  false,
+						VaultURL: "https://my-vault.vault.azure.net/",
 					},
 				},
 			},
