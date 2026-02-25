@@ -267,12 +267,12 @@ JsonPath: string
 		type: "github_app"
 		github_app: {
 			client_id:        string
-			installation_id:  int
+			installation_id:  int | string
 			private_key_path: string
 			api_url?:         string
 		} | {
 			client_id:         string
-			installation_id:   int
+			installation_id:   int | string
 			private_key_bytes: string
 			api_url?:          string
 		}
@@ -332,8 +332,9 @@ JsonPath: string
 	}
 
 	#license: {
-		key?:  string
-		file?: string
+		key?:        string
+		file?:       string
+		machine_id?: string
 	}
 
 	#secrets: {

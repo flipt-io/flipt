@@ -2,6 +2,9 @@ package license
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -25,6 +28,14 @@ var (
 )
 
 type fingerprintFunc func(string) (string, error)
+
+// ProtectedMachineID computes an HMAC-SHA256 of appID keyed by the given id,
+// matching the behavior of machineid.ProtectedID but with a caller-supplied id.
+func ProtectedMachineID(appID, id string) string {
+	mac := hmac.New(sha256.New, []byte(id))
+	mac.Write([]byte(appID))
+	return hex.EncodeToString(mac.Sum(nil))
+}
 
 // isRateLimitError checks if the error indicates a rate limit has been reached
 func isRateLimitError(err error) bool {
@@ -268,13 +279,21 @@ func WithVerificationKey(verifyKey string) LicenseManagerOption {
 func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID string, config *config.LicenseConfig, opts ...LicenseManagerOption) (*ManagerImpl, func(context.Context) error) {
 	managerOnce.Do(func() {
 		ctx, cancel := context.WithCancel(ctx)
+		fingerprinter := fingerprintFunc(machineid.ProtectedID)
+		if config.MachineID != "" {
+			logger.Info("using configured machine ID for license fingerprinting")
+			fingerprinter = func(appID string) (string, error) {
+				return ProtectedMachineID(appID, config.MachineID), nil
+			}
+		}
+
 		lm := &ManagerImpl{
 			logger:         logger,
 			accountID:      accountID,
 			productID:      productID,
 			config:         config,
 			licenseType:    LicenseTypeOnline,
-			fingerprinter:  machineid.ProtectedID,
+			fingerprinter:  fingerprinter,
 			cancel:         cancel,
 			force:          false,
 			done:           make(chan struct{}),
