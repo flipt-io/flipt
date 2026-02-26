@@ -40,7 +40,7 @@ export default function Toggle(props: ToggleProps) {
         onCheckedChange={(e: boolean) => {
           onChange && onChange(e);
         }}
-        className="data-[state=checked]:bg-success data-[state=unchecked]:bg-brand"
+        className="data-[state=checked]:bg-success"
       />
     </div>
   );
