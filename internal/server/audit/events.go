@@ -33,7 +33,7 @@ type Event struct {
 
 	Metadata Metadata `json:"metadata" avro:"metadata"`
 
-	Payload interface{} `json:"payload" avro:"payload"`
+	Payload any `json:"payload" avro:"payload"`
 
 	Timestamp string `json:"timestamp" avro:"timestamp"`
 
@@ -41,7 +41,7 @@ type Event struct {
 }
 
 // NewEvent is the constructor for an event.
-func NewEvent(r flipt.Request, actor *Actor, payload interface{}) *Event {
+func NewEvent(r flipt.Request, actor *Actor, payload any) *Event {
 	var action string
 
 	switch r.Action {
@@ -205,7 +205,7 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 			}
 			e.Metadata.Actor = &actor
 		case eventPayloadKey:
-			var payload interface{}
+			var payload any
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {
 				return nil, err
 			}

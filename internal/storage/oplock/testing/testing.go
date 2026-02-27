@@ -36,7 +36,7 @@ func Harness(t *testing.T, s oplock.Service) {
 
 	errgroup, ctx := errgroup.WithContext(ctx)
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		var acquiredUntil = time.Now().UTC()
 
 		errgroup.Go(func() error {

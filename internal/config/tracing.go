@@ -91,7 +91,7 @@ func (e TracingExporter) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
-func (e TracingExporter) MarshalYAML() (interface{}, error) {
+func (e TracingExporter) MarshalYAML() (any, error) {
 	return e.String(), nil
 }
 

@@ -75,7 +75,7 @@ func (c CacheBackend) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c.String())
 }
 
-func (c CacheBackend) MarshalYAML() (interface{}, error) {
+func (c CacheBackend) MarshalYAML() (any, error) {
 	return c.String(), nil
 }
 

@@ -182,7 +182,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 				}
 
 				for _, v := range f.Variants {
-					var attachment interface{}
+					var attachment any
 
 					if v.Attachment != "" {
 						if err := json.Unmarshal([]byte(v.Attachment), &attachment); err != nil {

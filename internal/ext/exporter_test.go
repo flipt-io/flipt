@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
@@ -49,9 +49,7 @@ func (m mockLister) ListNamespaces(_ context.Context, _ *flipt.ListNamespaceRequ
 		keys = append(keys, k)
 	}
 
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
+	slices.Sort(keys)
 
 	// remove the index prefix from the key
 	for _, k := range keys {
@@ -1714,7 +1712,6 @@ func TestExport(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		for _, ext := range extensions {
 			t.Run(fmt.Sprintf("%s (%s)", tc.name, ext), func(t *testing.T) {
 				var (

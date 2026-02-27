@@ -120,6 +120,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		fliptotel.AttributeFlagKey(r.FlagKey),
 		fliptotel.AttributeProviderName,
 		fliptotel.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
+		fliptotel.AttributeSegments.StringSlice(resp.SegmentKeys),
 	}
 
 	// add otel attributes to span
@@ -209,7 +210,6 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 			)
 
 			for k, v := range rollout.Segment.Segments {
-				segmentKeys = append(segmentKeys, k)
 				matched, reason, err := s.evaluator.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 				if err != nil {
 					return nil, err
@@ -218,6 +218,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 				// if we don't match the segment, fall through to the next rollout.
 				if matched {
 					s.logger.Debug(reason)
+					segmentKeys = append(segmentKeys, k)
 					segmentMatches++
 				}
 			}
@@ -238,6 +239,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 			resp.Enabled = rollout.Segment.Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 			resp.FlagKey = flag.Key
+			resp.SegmentKeys = segmentKeys
 
 			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.Strings("segments", segmentKeys))
 			return resp, nil

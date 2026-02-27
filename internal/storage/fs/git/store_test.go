@@ -127,7 +127,6 @@ func Test_Store_View_WithFilesystemStorage(t *testing.T) {
 
 	// run 3 times to ensure we can handle case where directory is not empty
 	for i := range []int{1, 2, 3} {
-		i := i
 		t.Run(fmt.Sprintf("test-%d", i), func(t *testing.T) {
 			ch := make(chan struct{})
 			store, skip := testStore(t, gitRepoURL,

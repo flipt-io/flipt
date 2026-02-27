@@ -18,7 +18,7 @@ import (
 var _ Executer = (*webhookTemplate)(nil)
 
 var funcMap = template.FuncMap{
-	"toJson": func(v interface{}) (string, error) {
+	"toJson": func(v any) (string, error) {
 		jsonData, err := json.Marshal(v)
 		if err != nil {
 			return "", err

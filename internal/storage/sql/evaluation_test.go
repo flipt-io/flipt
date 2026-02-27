@@ -887,7 +887,7 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 
 	flagKeys := make([]string, 0, 10)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		var flagKey string
 
 		num := rand.Intn(50) + 1

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -88,13 +89,7 @@ func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptio
 	}
 
 	// TODO: refactor to remove this check
-	for _, s := range o.skippedServers {
-		if s == info.Server {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(o.skippedServers, info.Server)
 }
 
 // WithServerSkipsAuthentication can be used to configure an auth unary interceptor
@@ -123,7 +118,7 @@ func AuthenticationRequiredInterceptor(logger *zap.Logger, o ...containers.Optio
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
@@ -158,7 +153,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
@@ -213,7 +208,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 			}
 
 			if k == "user" {
-				userClaims, ok := v.(map[string]interface{})
+				userClaims, ok := v.(map[string]any)
 				if ok {
 					for _, fields := range [][2]string{
 						{"email", "email"},
@@ -258,7 +253,7 @@ func ClientTokenAuthenticationInterceptor(logger *zap.Logger, authenticator Clie
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
@@ -317,7 +312,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
@@ -361,7 +356,7 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
@@ -474,7 +469,7 @@ func jwtFromMetadata(md metadata.MD) (string, error) {
 
 func fromAuthorization(auth string, scheme authenticationScheme) (string, error) {
 	// Ensure auth is prefixed with the scheme
-	if a := strings.TrimPrefix(auth, scheme.String()+" "); auth != a {
+	if a, ok := strings.CutPrefix(auth, scheme.String()+" "); ok {
 		return a, nil
 	}
 

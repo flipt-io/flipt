@@ -1,17 +1,17 @@
 { pkgs, ... }:
 
 {
-  # https://devenv.sh/basics/
-  # env.GREET = "devenv";
-
   # https://devenv.sh/packages/
-  packages = [ pkgs.git pkgs.mage pkgs.gcc pkgs.sqlite pkgs.nodejs ];
+  packages = [ pkgs.git pkgs.mage pkgs.gcc pkgs.nodejs ];
 
   # https://devenv.sh/scripts/
-  scripts.hello.exec = "echo 'hello from Flipt!'";
+  scripts.hello.exec = "echo 'hello from Flipt v2!'";
 
   # https://devenv.sh/languages/
-  languages.go.enable = true;
+  languages.go = {
+    enable = true;
+    package = pkgs.go_1_26;
+  };
   languages.typescript.enable = true;
 
   # https://devenv.sh/pre-commit-hooks/
@@ -19,8 +19,15 @@
 
   # https://devenv.sh/processes/
   processes = {
-    backend.exec = "mage dev";
-    frontend.exec = "mage ui:dev";
+    backend.exec = "mage -keep dev";
+    backend.notify.enable = true;
+    frontend.exec = "mage -keep ui:dev";
+  };
+
+  # https://devenv.sh/tasks/
+  tasks."app:cleanup" = {
+    exec = "rm mage_output_file.go";
+    after = [ "devenv:processes:backend" ];
   };
 
   # See full reference at https://devenv.sh/reference/options/

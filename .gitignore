@@ -61,3 +61,7 @@ build/mage_output_file.go
 
 release-notes.md
 config/dev.yml
+
+# Go workspace files
+go.work
+go.work.sum

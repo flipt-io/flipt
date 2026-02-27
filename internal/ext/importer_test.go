@@ -1119,7 +1119,6 @@ func TestImport(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		for _, ext := range extensions {
 			t.Run(fmt.Sprintf("%s (%s)", tc.name, ext), func(t *testing.T) {
 				creator := &mockCreator{}
@@ -1250,7 +1249,6 @@ func TestImport_Namespaces_Mix_And_Match(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		for _, ext := range extensions {
 			t.Run(fmt.Sprintf("%s (%s)", tc.name, ext), func(t *testing.T) {
 				var (

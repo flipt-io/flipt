@@ -618,7 +618,7 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 		pageSize   = uint64(3)
 	)
 
-	for i := 0; i < totalRules; i++ {
+	for i := range totalRules {
 		req := flipt.CreateRuleRequest{
 			NamespaceKey: namespace,
 			FlagKey:      flag.Key,
@@ -629,7 +629,7 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 		rule, err := s.store.CreateRule(ctx, &req)
 		require.NoError(t, err)
 
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			if i > 0 && s.db.Driver == fliptsql.MySQL {
 				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
 				time.Sleep(time.Second)
@@ -673,7 +673,7 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 
 	require.Len(t, found, totalRules)
 
-	for i := 0; i < totalRules; i++ {
+	for i := range totalRules {
 		assert.Equal(t, namespace, found[i].NamespaceKey)
 		assert.Equal(t, flag.Key, found[i].FlagKey)
 		assert.Equal(t, segment.Key, found[i].SegmentKey)
@@ -1342,7 +1342,7 @@ func (s *DBTestSuite) TestDeleteRule() {
 	var rules []*flipt.Rule
 
 	// create 3 rules
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 			FlagKey:    flag.Key,
 			SegmentKey: segment.Key,
@@ -1415,7 +1415,7 @@ func (s *DBTestSuite) TestDeleteRuleNamespace() {
 	var rules []*flipt.Rule
 
 	// create 3 rules
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
@@ -1531,7 +1531,7 @@ func (s *DBTestSuite) TestOrderRules() {
 	var rules []*flipt.Rule
 
 	// create 3 rules
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 			FlagKey:    flag.Key,
 			SegmentKey: segment.Key,
@@ -1618,7 +1618,7 @@ func (s *DBTestSuite) TestOrderRulesNamespace() {
 	var rules []*flipt.Rule
 
 	// create 3 rules
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,

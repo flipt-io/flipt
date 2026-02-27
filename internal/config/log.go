@@ -57,6 +57,6 @@ func (e LogEncoding) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
-func (e LogEncoding) MarshalYAML() (interface{}, error) {
+func (e LogEncoding) MarshalYAML() (any, error) {
 	return e.String(), nil
 }

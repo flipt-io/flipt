@@ -65,6 +65,7 @@ message BooleanEvaluationResponse {
   double request_duration_millis = 4;
   google.protobuf.Timestamp timestamp = 5;
   string flag_key = 6;
+  repeated string segment_keys = 7;
 }
 
 message VariantEvaluationResponse {

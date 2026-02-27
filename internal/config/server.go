@@ -75,7 +75,7 @@ func (s Scheme) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
 }
 
-func (s Scheme) MarshalYAML() (interface{}, error) {
+func (s Scheme) MarshalYAML() (any, error) {
 	return s.String(), nil
 }
 

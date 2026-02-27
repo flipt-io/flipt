@@ -396,7 +396,7 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 		pageSize   = uint64(3)
 	)
 
-	for i := 0; i < totalFlags; i++ {
+	for i := range totalFlags {
 		req := flipt.CreateFlagRequest{
 			NamespaceKey: namespace,
 			Key:          fmt.Sprintf("flag_%03d", i),
@@ -407,7 +407,7 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 		_, err := s.store.CreateFlag(ctx, &req)
 		require.NoError(t, err)
 
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			if i > 0 && s.db.Driver == fliptsql.MySQL {
 				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
 				time.Sleep(time.Second)
@@ -442,7 +442,7 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 
 	require.Len(t, found, totalFlags)
 
-	for i := 0; i < totalFlags; i++ {
+	for i := range totalFlags {
 		assert.Equal(t, namespace, found[i].NamespaceKey)
 
 		expectedFlag := fmt.Sprintf("flag_%03d", i)
@@ -1757,7 +1757,7 @@ func BenchmarkListFlags(b *testing.B) {
 	s.SetT(t)
 	s.SetupSuite()
 
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		reqs := []*flipt.CreateFlagRequest{
 			{
 				Key:     uuid.NewString(),
@@ -1771,7 +1771,7 @@ func BenchmarkListFlags(b *testing.B) {
 			require.NoError(t, err)
 			assert.NotNil(t, f)
 
-			for j := 0; j < 10; j++ {
+			for j := range 10 {
 				v, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 					FlagKey: f.Key,
 					Key:     uuid.NewString(),

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	"slices"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	sq "github.com/Masterminds/squirrel"
@@ -18,7 +19,7 @@ import (
 	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 )
 
 func init() {
@@ -67,7 +68,7 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 		return nil, 0, err
 	}
 
-	err = otelsql.RegisterDBStatsMetrics(sql,
+	_, err = otelsql.RegisterDBStatsMetrics(sql,
 		otelsql.WithAttributes(
 			attribute.Key("driver").String(driver.String()),
 		))
@@ -137,14 +138,7 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 		attrs = []attribute.KeyValue{semconv.DBSystemNameMySQL}
 	}
 
-	registered := false
-
-	for _, dd := range sql.Drivers() {
-		if dd == driverName {
-			registered = true
-			break
-		}
-	}
+	registered := slices.Contains(sql.Drivers(), driverName)
 
 	if !registered {
 		sql.Register(driverName, otelsql.WrapDriver(dr, otelsql.WithAttributes(attrs...)))

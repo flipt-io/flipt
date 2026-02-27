@@ -1714,7 +1714,6 @@ func Test_mustBindEnv(t *testing.T) {
 			},
 		},
 	} {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			binder := sliceEnvBinder{}
 
@@ -1825,7 +1824,7 @@ var camelCaseMatchers = map[string]string{
 }
 
 func TestStructTags(t *testing.T) {
-	configType := reflect.TypeOf(Config{})
+	configType := reflect.TypeFor[Config]()
 	configTags := getStructTags(configType)
 
 	for k, v := range camelCaseMatchers {
@@ -1879,8 +1878,8 @@ func isSnakeCase(s string) bool {
 func getStructTags(t reflect.Type) map[string]map[string]string {
 	tags := make(map[string]map[string]string)
 
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
+	for field := range t.Fields() {
+		field := field
 
 		// Get the field name.
 		fieldName := field.Name

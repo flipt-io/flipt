@@ -14,7 +14,7 @@ import (
 	"go.flipt.io/flipt/internal/info"
 	"go.uber.org/zap/zaptest"
 
-	segment "gopkg.in/segmentio/analytics-go.v3"
+	segment "github.com/segmentio/analytics-go/v3"
 )
 
 var _ segment.Client = &mockAnalytics{}

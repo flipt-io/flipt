@@ -196,7 +196,7 @@ func Test_SnapshotCache_Concurrently(t *testing.T) {
 			group.Go(func() error {
 				// each goroutine will make a bunch of attempts
 				// to store their respective ref / revision pair
-				for i := 0; i < 10; i++ {
+				for range 10 {
 					// add a little entropy to the order
 					time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
 

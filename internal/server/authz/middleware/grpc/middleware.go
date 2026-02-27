@@ -2,6 +2,7 @@ package grpc_middleware
 
 import (
 	"context"
+	"slices"
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
@@ -44,13 +45,7 @@ func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptio
 	}
 
 	// TODO: refactor to remove this check
-	for _, s := range o.skippedServers {
-		if s == info.Server {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(o.skippedServers, info.Server)
 }
 
 // WithServerSkipsAuthorization can be used to configure an auth unary interceptor
@@ -69,7 +64,7 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip authz for any preconfigured servers
 		if skipped(ctx, info, opts) {
 			logger.Debug("skipping authorization for server", zap.String("method", info.FullMethod))
@@ -89,7 +84,7 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 		}
 
 		for _, request := range requester.Request() {
-			allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
+			allowed, err := policyVerifier.IsAllowed(ctx, map[string]any{
 				"request":        request,
 				"authentication": auth,
 			})
