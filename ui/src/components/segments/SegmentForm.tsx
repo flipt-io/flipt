@@ -231,7 +231,10 @@ export default function SegmentForm(props: SegmentFormProps) {
                       id="key"
                       onChange={(e) => {
                         const formatted = stringAsKey(e.target.value);
-                        formik.setFieldValue('key', formatted);
+                        formik.setFieldValue('key', formatted, true);
+                        if (!formik.touched.key) {
+                          formik.setFieldTouched('key', true, false);
+                        }
                       }}
                     />
                   </div>
