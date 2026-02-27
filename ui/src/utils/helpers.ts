@@ -62,7 +62,12 @@ export function titleCase(str: string) {
 
 export function stringAsKey(str: string) {
   if (!str) return '';
-  return str.toLowerCase().split(/\s+/).join('-');
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-_]+|[-_]+$/g, '');
 }
 
 const namespaces = '/namespaces/';
