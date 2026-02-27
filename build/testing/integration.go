@@ -983,6 +983,10 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 		// Uses assumed identity mode which accepts any bearer token.
 		lowkeyVault := client.Container().
 			From("nagyesta/lowkey-vault:7.1.13").
+			// Register the vault with an alias matching the service hostname used by Dagger.
+			// Lowkey Vault creates vaults at https://<name>.localhost:<port> by default,
+			// so we alias it to the hostname that Flipt and the setup container will use.
+			WithEnvVariable("LOWKEY_ARGS", "--LOWKEY_VAULT_NAMES=default --LOWKEY_VAULT_ALIASES=default.localhost=lowkey-vault:<port>").
 			WithExposedPort(8443).
 			AsService()
 
