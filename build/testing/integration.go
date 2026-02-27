@@ -986,6 +986,7 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 			// Register the vault with an alias matching the service hostname used by Dagger.
 			// Lowkey Vault creates vaults at https://<name>.localhost:<port> by default,
 			// so we alias it to the hostname that Flipt and the setup container will use.
+			// Note: <port> is a Lowkey Vault placeholder that is replaced at runtime with the --server.port value (8443).
 			WithEnvVariable("LOWKEY_ARGS", "--LOWKEY_VAULT_NAMES=default --LOWKEY_VAULT_ALIASES=default.localhost=lowkey-vault:<port>").
 			WithExposedPort(8443).
 			AsService()
