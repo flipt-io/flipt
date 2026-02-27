@@ -175,6 +175,9 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                     onChange={(e) => {
                       const formatted = stringAsKey(e.target.value);
                       formik.setFieldValue('key', formatted, true);
+                      if (!formik.touched.key) {
+                        formik.setFieldTouched('key', true, false);
+                      }
                     }}
                   />
                 </div>

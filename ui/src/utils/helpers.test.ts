@@ -59,4 +59,9 @@ describe('stringAsKey', () => {
     const result = stringAsKey('Test Is Done');
     expect(result).toEqual('test-is-done');
   });
+
+  it('should remove unsupported characters from generated keys', () => {
+    const result = stringAsKey('My / Test #1!');
+    expect(result).toEqual('my-test-1');
+  });
 });
