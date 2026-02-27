@@ -1,4 +1,10 @@
-import { ChevronsUpDown, Folder, GitBranch, Server } from 'lucide-react';
+import {
+  ChevronsUpDown,
+  Folder,
+  FolderMinus,
+  GitBranch,
+  Server
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
@@ -171,10 +177,12 @@ function EnvironmentBranchList({
 function NamespaceList({
   namespaces,
   currentNamespace,
+  isProtected,
   setOpen
 }: {
   namespaces: INamespace[];
   currentNamespace: INamespace;
+  isProtected: boolean;
   setOpen: (open: boolean) => void;
 }) {
   const dispatch = useAppDispatch();
@@ -209,7 +217,11 @@ function NamespaceList({
               className={`w-full gap-2 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
               onClick={() => handleSelectNamespace(ns.key)}
             >
-              <Folder className="w-4 h-4" />
+              {isProtected ? (
+                <FolderMinus className="w-4 h-4" />
+              ) : (
+                <Folder className="w-4 h-4" />
+              )}
               <span className="truncate">{ns.name}</span>
             </Button>
           </div>
@@ -293,6 +305,7 @@ export function EnvironmentNamespaceSwitcher() {
             <NamespaceList
               namespaces={namespaces}
               currentNamespace={currentNamespace}
+              isProtected={currentEnvironment.protected ?? false}
               setOpen={setOpen}
             />
           </PopoverContent>

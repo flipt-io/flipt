@@ -13,12 +13,14 @@ import { IVariant } from '~/types/Variant';
 
 type VariantTableProps = {
   variants: IVariant[];
+  isProtected: boolean;
   onEdit: (variant: IVariant) => void;
   onDelete: (variant: IVariant) => void;
 };
 
 export default function VariantTable({
   variants,
+  isProtected,
   onEdit,
   onDelete
 }: VariantTableProps) {
@@ -99,11 +101,12 @@ export default function VariantTable({
           <div className="relative group/delete inline-block">
             <button
               type="button"
+              disabled={isProtected}
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(info.row.original);
               }}
-              className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label={`Delete variant ${info.row.original.key}`}
             >
               <XIcon className="h-4 w-4" />

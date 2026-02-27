@@ -138,6 +138,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
   const revision = getRevision();
+  const isProtected = environment.protected ?? false;
 
   const [createFlag] = useCreateFlagMutation();
   const [updateFlag] = useUpdateFlagMutation();
@@ -488,7 +489,12 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     variant="primary"
                     className="ml-3 min-w-[80px]"
                     type="submit"
-                    disabled={disableSave || hasMetadataErrors}
+                    disabled={disableSave || hasMetadataErrors || isProtected}
+                    title={
+                      isProtected
+                        ? 'Not allowed in protected environment'
+                        : undefined
+                    }
                   >
                     {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}
                   </Button>

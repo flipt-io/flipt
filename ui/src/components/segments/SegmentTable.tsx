@@ -72,7 +72,13 @@ function SegmentListItem({ item, path }: { item: ISegment; path: string }) {
   );
 }
 
-function EmptySegmentList({ path }: { path: string }) {
+function EmptySegmentList({
+  path,
+  isProtected
+}: {
+  path: string;
+  isProtected?: boolean;
+}) {
   const navigate = useNavigate();
 
   return (
@@ -86,6 +92,10 @@ function EmptySegmentList({ path }: { path: string }) {
           variant="primary"
           onClick={() => navigate(path)}
           aria-label="New Segment"
+          disabled={isProtected}
+          title={
+            isProtected ? 'Not allowed in protected environment' : undefined
+          }
         >
           Create Your First Segment
         </Button>
@@ -127,6 +137,8 @@ export default function SegmentTable(props: SegmentTableProps) {
   const dispatch = useDispatch();
 
   const path = `/namespaces/${namespace.key}/segments`;
+
+  const isProtected = environment.protected ?? false;
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -190,7 +202,7 @@ export default function SegmentTable(props: SegmentTableProps) {
         </div>
 
         {table.getRowCount() === 0 && filter.length === 0 && (
-          <EmptySegmentList path={`${path}/new`} />
+          <EmptySegmentList path={`${path}/new`} isProtected={isProtected} />
         )}
         {table.getRowCount() === 0 && filter.length > 0 && (
           <Well>

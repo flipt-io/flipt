@@ -1,5 +1,8 @@
 import { SlidersHorizontalIcon } from 'lucide-react';
 import { useContext, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
 import Slideover from '~/components/Slideover';
@@ -25,6 +28,9 @@ export default function Variants({ variants }: VariantsProps) {
   const variantFormRef = useRef(null);
 
   const { deleteVariant } = useContext(FlagFormContext);
+
+  const environment = useSelector(selectCurrentEnvironment);
+  const isProtected = environment.protected ?? false;
 
   return (
     <>
@@ -82,6 +88,12 @@ export default function Variants({ variants }: VariantsProps) {
               <ButtonWithPlus
                 variant="primary"
                 type="button"
+                disabled={isProtected}
+                title={
+                  isProtected
+                    ? 'Not allowed in protected environment'
+                    : undefined
+                }
                 onClick={() => {
                   setEditingVariant(null);
                   setShowVariantForm(true);
@@ -96,6 +108,7 @@ export default function Variants({ variants }: VariantsProps) {
           {variants && variants.length > 0 ? (
             <VariantTable
               variants={variants}
+              isProtected={isProtected}
               onEdit={(variant) => {
                 setEditingVariant(variant);
                 setShowVariantForm(true);
@@ -114,6 +127,12 @@ export default function Variants({ variants }: VariantsProps) {
               <Button
                 variant="primary"
                 aria-label="New Variant"
+                disabled={isProtected}
+                title={
+                  isProtected
+                    ? 'Not allowed in protected environment'
+                    : undefined
+                }
                 onClick={(e) => {
                   e.preventDefault();
                   setEditingVariant(null);

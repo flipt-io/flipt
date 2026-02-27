@@ -204,6 +204,7 @@ JsonPath: string
 		storage:   string
 		directory: string | *""
 		scm?:      #scm
+		protected: bool | *false
 	}
 
 	#storage: [string]: {

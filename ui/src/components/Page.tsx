@@ -1,7 +1,9 @@
 import { cn } from '~/components/utils';
 
-export interface PageHeaderProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+export interface PageHeaderProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'title'
+> {
   title: React.ReactNode;
 }
 

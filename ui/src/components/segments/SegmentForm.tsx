@@ -112,6 +112,7 @@ export default function SegmentForm(props: SegmentFormProps) {
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
   const revision = getRevision();
+  const isProtected = environment.protected ?? false;
 
   const [createSegment] = useCreateSegmentMutation();
   const [updateSegment] = useUpdateSegmentMutation();
@@ -274,7 +275,12 @@ export default function SegmentForm(props: SegmentFormProps) {
                     variant="primary"
                     className="ml-3 min-w-[80px]"
                     type="submit"
-                    disabled={disableSave}
+                    disabled={disableSave || isProtected}
+                    title={
+                      isProtected
+                        ? 'Not allowed in protected environment'
+                        : undefined
+                    }
                   >
                     {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}
                   </Button>

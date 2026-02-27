@@ -13,12 +13,14 @@ type SortableRuleProps = {
   segments: ISegment[];
   index?: number;
   variants: IVariant[];
+  isProtected: boolean;
   onSuccess: () => void;
   onDelete: () => void;
 };
 
 export default function SortableRule(props: SortableRuleProps) {
-  const { variants, rule, segments, index, onSuccess, onDelete } = props;
+  const { variants, rule, segments, index, isProtected, onSuccess, onDelete } =
+    props;
   const {
     isDragging,
     attributes,
@@ -51,6 +53,7 @@ export default function SortableRule(props: SortableRuleProps) {
       rule={rule}
       segments={segments}
       index={index}
+      isProtected={isProtected}
       onSuccess={onSuccess}
       onDelete={onDelete}
     />

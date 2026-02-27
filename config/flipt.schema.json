@@ -836,6 +836,10 @@
                   "type": "string"
                 }
               }
+            },
+            "protected": {
+              "type": "boolean",
+              "default": false
             }
           }
         }

@@ -44,10 +44,11 @@ type RulesProps = {
   flag: IFlag;
   rules: IRule[];
   variants: IVariant[];
+  isProtected?: boolean;
 };
 
 export function DefaultVariant(props: RulesProps) {
-  const { variants, flag } = props;
+  const { variants, flag, isProtected } = props;
 
   const { updateFlag } = useContext(FlagFormContext);
 
@@ -99,7 +100,8 @@ export function DefaultVariant(props: RulesProps) {
                   id: 'rule-delete',
                   label: 'Delete',
                   variant: 'destructive',
-                  disabled: formik.isSubmitting || !selectedVariant,
+                  disabled:
+                    formik.isSubmitting || !selectedVariant || isProtected,
                   onClick: () => {
                     handleRemove();
                   }
@@ -153,6 +155,7 @@ export default function Rules({ flag, variants, rules }: RulesProps) {
 
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
+  const isProtected = environment.protected ?? false;
 
   const segmentsList = useListSegmentsQuery({
     environmentKey: environment.key,
@@ -267,6 +270,12 @@ export default function Rules({ flag, variants, rules }: RulesProps) {
               <ButtonWithPlus
                 variant="primary"
                 type="button"
+                disabled={isProtected}
+                title={
+                  isProtected
+                    ? 'Not allowed in protected environment'
+                    : undefined
+                }
                 onClick={() => setShowRuleForm(true)}
               >
                 New Rule
@@ -301,6 +310,7 @@ export default function Rules({ flag, variants, rules }: RulesProps) {
                               segments={segments}
                               index={index}
                               variants={variants}
+                              isProtected={isProtected}
                               onDelete={() => {
                                 setActiveRule(null);
                                 setDeletingRule(rule);
@@ -328,6 +338,7 @@ export default function Rules({ flag, variants, rules }: RulesProps) {
                     flag={flag}
                     rules={rules}
                     variants={variants}
+                    isProtected={isProtected}
                   />
                 )}
               </div>
@@ -340,7 +351,12 @@ export default function Rules({ flag, variants, rules }: RulesProps) {
               </h3>
               <Button
                 variant="primary"
-                disabled={(flag.variants?.length || 0) < 1}
+                disabled={(flag.variants?.length || 0) < 1 || isProtected}
+                title={
+                  isProtected
+                    ? 'Not allowed in protected environment'
+                    : undefined
+                }
                 aria-label="New Rule"
                 onClick={() => {
                   setShowRuleForm(true);

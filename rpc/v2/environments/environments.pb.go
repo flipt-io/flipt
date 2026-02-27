@@ -159,6 +159,8 @@ type Environment struct {
 	Default *bool `protobuf:"varint,3,opt,name=default,proto3,oneof" json:"default,omitempty"`
 	// The environment configuration.
 	Configuration *EnvironmentConfiguration `protobuf:"bytes,4,opt,name=configuration,proto3,oneof" json:"configuration,omitempty"`
+	// The protected indicates if this environment is protected.
+	Protected     bool `protobuf:"varint,5,opt,name=protected,proto3" json:"protected,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -219,6 +221,13 @@ func (x *Environment) GetConfiguration() *EnvironmentConfiguration {
 		return x.Configuration
 	}
 	return nil
+}
+
+func (x *Environment) GetProtected() bool {
+	if x != nil {
+		return x.Protected
+	}
+	return false
 }
 
 // The EnvironmentConfiguration represents the configuration for an environment.
@@ -2019,12 +2028,13 @@ var File_environments_proto protoreflect.FileDescriptor
 
 const file_environments_proto_rawDesc = "" +
 	"\n" +
-	"\x12environments.proto\x12\fenvironments\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/protobuf/any.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xc3\x01\n" +
+	"\x12environments.proto\x12\fenvironments\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/protobuf/any.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xe1\x01\n" +
 	"\vEnvironment\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
 	"\adefault\x18\x03 \x01(\bH\x00R\adefault\x88\x01\x01\x12Q\n" +
-	"\rconfiguration\x18\x04 \x01(\v2&.environments.EnvironmentConfigurationH\x01R\rconfiguration\x88\x01\x01B\n" +
+	"\rconfiguration\x18\x04 \x01(\v2&.environments.EnvironmentConfigurationH\x01R\rconfiguration\x88\x01\x01\x12\x1c\n" +
+	"\tprotected\x18\x05 \x01(\bR\tprotectedB\n" +
 	"\n" +
 	"\b_defaultB\x10\n" +
 	"\x0e_configuration\"\xd9\x01\n" +
