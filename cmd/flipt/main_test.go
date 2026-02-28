@@ -243,6 +243,10 @@ func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
 				ID:     "${secret:aws:service-id}",
 				Secret: "${secret:aws:service-secret}",
 			},
+			"azure-service": {
+				ID:     "${secret:azure:azure-id}",
+				Secret: "${secret:azure:azure-secret}",
+			},
 		},
 	}
 
@@ -252,6 +256,8 @@ func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
 		"gcp:keycloak-secret": []byte("gcp-keycloak-secret"),
 		"aws:service-id":      []byte("aws-service-id"),
 		"aws:service-secret":  []byte("aws-service-secret"),
+		"azure:azure-id":      []byte("azure-service-id"),
+		"azure:azure-secret":  []byte("azure-service-secret"),
 	})
 
 	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
@@ -266,6 +272,10 @@ func TestWalkConfigForSecrets_MixedProviders(t *testing.T) {
 	awsService := cfg.MapField["aws-service"]
 	assert.Equal(t, "aws-service-id", awsService.ID)
 	assert.Equal(t, "aws-service-secret", awsService.Secret)
+
+	azureService := cfg.MapField["azure-service"]
+	assert.Equal(t, "azure-service-id", azureService.ID)
+	assert.Equal(t, "azure-service-secret", azureService.Secret)
 }
 
 func TestWalkConfigForSecrets_NoSecretReferences(t *testing.T) {
@@ -313,4 +323,41 @@ func TestWalkConfigForSecrets_MixedValues(t *testing.T) {
 	provider := cfg.MapField["provider1"]
 	assert.Equal(t, "resolved-client-id", provider.ID)
 	assert.Equal(t, "hardcoded-secret", provider.Secret)
+}
+
+func TestWalkConfigForSecrets_AzureProvider(t *testing.T) {
+	cfg := &testConfig{
+		SimpleField: "${secret:azure:my-api-key}",
+	}
+
+	manager := newMockManager(map[string][]byte{
+		"azure:my-api-key": []byte("azure-resolved-value"),
+	})
+
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
+	require.NoError(t, err)
+	assert.Equal(t, "azure-resolved-value", cfg.SimpleField)
+}
+
+func TestWalkConfigForSecrets_AzureProviderInMap(t *testing.T) {
+	cfg := &testConfig{
+		MapField: map[string]testMapValue{
+			"provider1": {
+				ID:     "${secret:azure:client-id}",
+				Secret: "${secret:azure:client-secret}",
+			},
+		},
+	}
+
+	manager := newMockManager(map[string][]byte{
+		"azure:client-id":     []byte("azure-client-id"),
+		"azure:client-secret": []byte("azure-client-secret"),
+	})
+
+	err := walkConfigForSecrets(t.Context(), reflect.ValueOf(cfg).Elem(), manager)
+	require.NoError(t, err)
+
+	provider := cfg.MapField["provider1"]
+	assert.Equal(t, "azure-client-id", provider.ID)
+	assert.Equal(t, "azure-client-secret", provider.Secret)
 }

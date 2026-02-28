@@ -362,6 +362,10 @@ JsonPath: string
 				enabled?:      bool | *false
 				endpoint_url?: string
 			} | null
+			azure?: {
+				enabled?:   bool | *false
+				vault_url?: string
+			} | null
 		}
 	}
 

@@ -56,6 +56,7 @@ var (
 		"signing/file":  signingAPI(fileSecretProvider),
 		"signing/gcp":   signingAPI(gcpSecretProvider),
 		"signing/aws":   signingAPI(awsSecretProvider),
+		"signing/azure": signingAPI(azureSecretProvider),
 		"snapshot":      snapshotAPI(),
 	}
 )
@@ -233,6 +234,7 @@ const (
 	fileSecretProvider  = "file"
 	gcpSecretProvider   = "gcp"
 	awsSecretProvider   = "aws"
+	azureSecretProvider = "azure"
 )
 
 func signingAPI(provider secretProvider) testCaseFn {
@@ -287,6 +289,14 @@ func signingAPI(provider secretProvider) testCaseFn {
 				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "value").
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AWS_ENABLED", "true").
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AWS_ENDPOINT_URL", "http://localstack:4566")
+		case azureSecretProvider:
+			// Configure for Azure Key Vault secrets
+			flipt = flipt.
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "azure").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt-signing-key").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "value").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AZURE_ENABLED", "true").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_AZURE_VAULT_URL", "https://lowkey-vault:8443")
 		}
 
 		return suite(ctx, "signing", base, flipt, conf)
@@ -305,6 +315,9 @@ func signingAPI(provider secretProvider) testCaseFn {
 	case awsSecretProvider:
 		// AWS secrets need the LocalStack service
 		return withAWSSecrets(baseTestFn)
+	case azureSecretProvider:
+		// Azure secrets need the Lowkey Vault emulator service
+		return withAzureSecrets(baseTestFn)
 	}
 
 	panic("unknown secretProvider: " + string(provider))
@@ -958,6 +971,122 @@ func withAWSSecrets(fn testCaseFn) testCaseFn {
 					WithEnvVariable("AWS_ACCESS_KEY_ID", "test").
 					WithEnvVariable("AWS_SECRET_ACCESS_KEY", "test").
 					WithEnvVariable("AWS_DEFAULT_REGION", "us-east-1"),
+				conf,
+			)()
+		}
+	}
+}
+
+func withAzureSecrets(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// Lowkey Vault container for Azure Key Vault emulation.
+		// Uses assumed identity mode which accepts any bearer token.
+		lowkeyVault := client.Container().
+			From("nagyesta/lowkey-vault:7.1.13").
+			// Register the vault with an alias matching the service hostname used by Dagger.
+			// Lowkey Vault creates vaults at https://<name>.localhost:<port> by default,
+			// so we alias it to the hostname that Flipt and the setup container will use.
+			// Note: <port> is a Lowkey Vault placeholder that is replaced at runtime with the --server.port value (8443).
+			WithEnvVariable("LOWKEY_ARGS", "--LOWKEY_VAULT_NAMES=default --LOWKEY_VAULT_ALIASES=default.localhost=lowkey-vault:<port>").
+			WithExposedPort(8443).
+			AsService()
+
+		// Setup container to generate GPG key and store it in Lowkey Vault.
+		_, err := client.Container().
+			From("golang:1.26-alpine").
+			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
+			WithServiceBinding("lowkey-vault", lowkeyVault).
+			WithExec([]string{
+				"sh", "-c",
+				gpgKeyGenerationScript + `
+				gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
+
+				# Wait for Lowkey Vault to be ready
+				for i in $(seq 1 30); do
+					wget -q --no-check-certificate -O /dev/null https://lowkey-vault:8443/ping 2>/dev/null && break
+					sleep 1
+				done
+
+				# Use a Go program to create the secret via the Azure SDK
+				mkdir -p /tmp/setup && cat > /tmp/setup/main.go << 'GOEOF'
+package main
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"net/http"
+	"os"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
+)
+
+// fakeCredential implements azcore.TokenCredential for testing.
+type fakeCredential struct{}
+
+func (f *fakeCredential) GetToken(_ context.Context, _ policy.TokenRequestOptions) (azcore.AccessToken, error) {
+	return azcore.AccessToken{Token: "fake-token"}, nil
+}
+
+func main() {
+	ctx := context.Background()
+
+	client, err := azsecrets.NewClient(
+		"https://lowkey-vault:8443",
+		&fakeCredential{},
+		&azsecrets.ClientOptions{
+			ClientOptions: azcore.ClientOptions{
+				Transport: &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
+					},
+				},
+			},
+			DisableChallengeResourceVerification: true,
+		},
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "client: %v\n", err)
+		os.Exit(1)
+	}
+
+	keyData, err := os.ReadFile("/tmp/private-key.asc")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "read key: %v\n", err)
+		os.Exit(1)
+	}
+
+	value := string(keyData)
+	_, err = client.SetSecret(ctx, "flipt-signing-key", azsecrets.SetSecretParameters{
+		Value: &value,
+	}, nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "set secret: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Secret stored successfully in Lowkey Vault")
+}
+GOEOF
+				cd /tmp/setup && go mod init setup && go mod tidy && go run main.go
+			`,
+			}).Sync(ctx)
+		if err != nil {
+			return func() error { return err }
+		}
+
+		return func() error {
+			return fn(
+				ctx,
+				client,
+				base,
+				flipt.
+					WithServiceBinding("lowkey-vault", lowkeyVault).
+					WithEnvVariable("AZURE_KEYVAULT_EMULATOR", "true"),
 				conf,
 			)()
 		}

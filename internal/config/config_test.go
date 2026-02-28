@@ -952,6 +952,27 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "secrets config with azure provider",
+			path: "./testdata/secrets/azure_provider.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						Azure: &AzureProviderConfig{
+							Enabled:  true,
+							VaultURL: "https://my-vault.vault.azure.net/",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "secrets config azure provider missing vault_url",
+			path:    "./testdata/secrets/azure_provider_missing_vault_url.yml",
+			wantErr: errors.New("secrets.providers.azure: vault_url non-empty value is required"),
+		},
+		{
 			name: "secrets config with all providers",
 			path: "./testdata/secrets/all_providers.yml",
 			expected: func() *Config {
@@ -976,6 +997,10 @@ func TestLoad(t *testing.T) {
 						},
 						AWS: &AWSProviderConfig{
 							Enabled: true,
+						},
+						Azure: &AzureProviderConfig{
+							Enabled:  true,
+							VaultURL: "https://my-vault.vault.azure.net/",
 						},
 					},
 				}

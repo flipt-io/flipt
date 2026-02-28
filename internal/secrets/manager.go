@@ -138,6 +138,25 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 		}
 	}
 
+	// Initialize Azure provider if enabled (Pro feature)
+	if cfg.Secrets.Providers.Azure != nil && cfg.Secrets.Providers.Azure.Enabled {
+		if factory, exists := manager.factories["azure"]; exists {
+			provider, err := factory(cfg, logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to initialize azure secret provider: %w", err)
+			}
+
+			if err := manager.RegisterProvider("azure", provider); err != nil {
+				return nil, fmt.Errorf("failed to register azure secret provider: %w", err)
+			}
+
+			logger.Info("registered azure secret provider",
+				zap.String("vault_url", cfg.Secrets.Providers.Azure.VaultURL))
+		} else {
+			return nil, fmt.Errorf("azure provider factory not registered")
+		}
+	}
+
 	// Initialize Vault provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
 		if factory, exists := manager.factories["vault"]; exists {

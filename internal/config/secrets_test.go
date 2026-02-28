@@ -154,6 +154,59 @@ func TestSecretsConfig_ValidateAWS(t *testing.T) {
 	}
 }
 
+func TestSecretsConfig_ValidateAzure(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  SecretsConfig
+		wantErr bool
+	}{
+		{
+			name: "valid azure config",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					Azure: &AzureProviderConfig{
+						Enabled:  true,
+						VaultURL: "https://my-vault.vault.azure.net/",
+					},
+				},
+			},
+		},
+		{
+			name: "missing vault_url",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					Azure: &AzureProviderConfig{
+						Enabled: true,
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "disabled skips validation",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					Azure: &AzureProviderConfig{
+						Enabled: false,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.validate()
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "vault_url")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestSecretsConfig_EnabledProviders(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -229,6 +282,18 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 			expected: []string{"aws"},
 		},
 		{
+			name: "azure provider enabled",
+			config: SecretsConfig{
+				Providers: ProvidersConfig{
+					Azure: &AzureProviderConfig{
+						Enabled:  true,
+						VaultURL: "https://my-vault.vault.azure.net/",
+					},
+				},
+			},
+			expected: []string{"azure"},
+		},
+		{
 			name: "all providers enabled",
 			config: SecretsConfig{
 				Providers: ProvidersConfig{
@@ -247,9 +312,13 @@ func TestSecretsConfig_EnabledProviders(t *testing.T) {
 					AWS: &AWSProviderConfig{
 						Enabled: true,
 					},
+					Azure: &AzureProviderConfig{
+						Enabled:  true,
+						VaultURL: "https://my-vault.vault.azure.net/",
+					},
 				},
 			},
-			expected: []string{"file", "vault", "gcp", "aws"},
+			expected: []string{"file", "vault", "gcp", "aws", "azure"},
 		},
 		{
 			name: "gcp provider configured but not enabled",
