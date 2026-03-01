@@ -3,7 +3,7 @@ module go.flipt.io/build
 go 1.24.0
 
 require (
-	cloud.google.com/go/storage v1.59.2
+	cloud.google.com/go/storage v1.60.0
 	code.gitea.io/sdk/gitea v0.23.2
 	dagger.io/dagger v0.19.11
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.4
