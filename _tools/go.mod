@@ -5,7 +5,7 @@ go 1.25.6
 require (
 	github.com/bufbuild/buf v1.66.0
 	github.com/golangci/golangci-lint/v2 v2.9.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0
 	github.com/rakyll/gotest v0.0.7
 	golang.org/x/tools v0.42.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.6.1
@@ -285,7 +285,7 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260217215200-42d3e9bedb6d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260217215200-42d3e9bedb6d // indirect
-	google.golang.org/grpc v1.78.0 // indirect
+	google.golang.org/grpc v1.79.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
