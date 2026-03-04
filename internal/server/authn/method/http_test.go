@@ -1,11 +1,23 @@
 package method
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestForwardCookies(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/foo", nil)
+	req.AddCookie(&http.Cookie{Name: stateCookieKey, Value: "state-value"})
+	req.AddCookie(&http.Cookie{Name: tokenCookieKey, Value: "token-value"})
+
+	md := ForwardCookies(t.Context(), req)
+
+	assert.Equal(t, []string{"state-value"}, md.Get(stateCookieKey))
+	assert.Equal(t, []string{"token-value"}, md.Get(tokenCookieKey))
+}
 
 func TestForwardPrefix(t *testing.T) {
 	tests := []struct {
