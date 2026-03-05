@@ -48,7 +48,7 @@ func ForwardCookies(ctx context.Context, req *http.Request) metadata.MD {
 	md := metadata.MD{}
 	for _, key := range []string{stateCookieKey, tokenCookieKey} {
 		if cookie, err := req.Cookie(key); err == nil {
-			md[stateCookieKey] = []string{cookie.Value}
+			md[key] = []string{cookie.Value}
 		}
 	}
 
