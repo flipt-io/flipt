@@ -51,7 +51,7 @@ require (
 	github.com/jferrl/go-githubauth v1.5.1
 	github.com/keygen-sh/keygen-go/v3 v3.3.0
 	github.com/keygen-sh/machineid v1.1.2
-	github.com/ktrysmt/go-bitbucket v0.9.93
+	github.com/ktrysmt/go-bitbucket v0.9.94
 	github.com/kubescape/go-git-url v0.0.31
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-isatty v0.0.20
@@ -94,7 +94,7 @@ require (
 	gocloud.dev v0.44.0
 	golang.org/x/crypto v0.48.0
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
-	golang.org/x/net v0.50.0
+	golang.org/x/net v0.51.0
 	golang.org/x/oauth2 v0.35.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/term v0.40.0
