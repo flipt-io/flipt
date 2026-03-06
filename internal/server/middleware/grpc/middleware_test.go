@@ -1613,7 +1613,6 @@ func TestFliptAcceptServerVersionUnaryInterceptor(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				ctx          = context.Background()
@@ -1649,7 +1648,7 @@ func TestFliptAcceptServerVersionUnaryInterceptor(t *testing.T) {
 }
 
 func TestForwardFliptAcceptServerVersion(t *testing.T) {
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/", nil)
 	md := ForwardFliptAcceptServerVersion(context.Background(), req)
 	assert.Empty(t, md.Get(fliptAcceptServerVersionHeaderKey))
 	req.Header.Add(fliptAcceptServerVersionHeaderKey, "v1.32.0")
@@ -1661,7 +1660,7 @@ func TestForwardFliptAcceptServerVersion(t *testing.T) {
 }
 
 func TestForwardFliptNamespace(t *testing.T) {
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/", nil)
 	md := ForwardFliptNamespace(context.Background(), req)
 	assert.Empty(t, md.Get(fliptAcceptServerVersionHeaderKey))
 	req.Header.Add(fliptNamespaceHeaderKey, "extra-namespace")

@@ -1505,7 +1505,7 @@ func TestLoad(t *testing.T) {
 func TestServeHTTP(t *testing.T) {
 	var (
 		cfg = Default()
-		req = httptest.NewRequest("GET", "http://example.com/foo", nil)
+		req = httptest.NewRequestWithContext(t.Context(), "GET", "http://example.com/foo", nil)
 		w   = httptest.NewRecorder()
 	)
 
@@ -1544,7 +1544,7 @@ func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
 		case []any:
 			builder := strings.Builder{}
 			for i, s := range v {
-				builder.WriteString(fmt.Sprintf("%v", s))
+				fmt.Fprintf(&builder, "%v", s)
 				if i < len(v)-1 {
 					builder.WriteByte(' ')
 				}

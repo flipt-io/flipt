@@ -78,7 +78,7 @@ func TestCrossOriginProtection(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPut, "https://docs.flipt.io", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "https://docs.flipt.io", nil)
 			if tt.origin != "" {
 				req.Header.Set("Origin", tt.origin)
 			}
