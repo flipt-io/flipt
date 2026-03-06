@@ -90,6 +90,15 @@ func FuzzEnvSubst(f *testing.F) {
 		}()
 
 		if len(envVar) > 0 {
+			// Skip inputs containing null bytes as they are invalid for env vars
+			if strings.ContainsRune(envVar, 0) || strings.ContainsRune(envValue, 0) {
+				t.Skip("null bytes not valid in environment variables")
+			}
+			// Skip inputs containing '=' in the name as they are invalid env var names
+			if strings.ContainsRune(envVar, '=') {
+				t.Skip("'=' not valid in environment variable names")
+			}
+
 			// Set the environment variable
 			t.Setenv(envVar, envValue)
 
@@ -183,6 +192,9 @@ func FuzzDecodeHooks(f *testing.F) {
 		// Setup environment variable if this appears to be an env var substitution
 		if strings.HasPrefix(input, "${") && strings.HasSuffix(input, "}") {
 			varName := strings.TrimPrefix(strings.TrimSuffix(input, "}"), "${")
+			if strings.ContainsRune(varName, 0) || strings.ContainsRune(varName, '=') {
+				t.Skip("invalid environment variable name")
+			}
 			t.Setenv(varName, "test-value")
 		}
 

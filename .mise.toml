@@ -264,6 +264,46 @@ echo " > Generating mocks..."
 go tool github.com/vektra/mockery/v3
 """
 
+[tasks."go:fuzz"]
+alias = "fuzz"
+description = "Run Go fuzz tests (set FLIPT_FUZZ_TIME to control duration, default 10s per target)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+echo " > Running fuzz tests..."
+
+FUZZ_TIME="${FLIPT_FUZZ_TIME:-10s}"
+
+# find_module_root returns the nearest parent directory containing a go.mod
+find_module_root() {
+  local dir="$1"
+  while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+    if [ -f "$dir/go.mod" ]; then
+      echo "$dir"
+      return
+    fi
+    dir="$(dirname "$dir")"
+  done
+  echo "."
+}
+
+# Find all packages containing fuzz tests, then run each fuzz target
+grep -rl --include='*_test.go' 'func Fuzz' . | while read -r file; do
+  dir="$(dirname "$file")"
+  mod_root="$(find_module_root "$dir")"
+  # Get the package path relative to the module root
+  pkg_rel="./${dir#"$mod_root"}"
+  pkg_rel="${pkg_rel#./}"
+  [ -z "$pkg_rel" ] && pkg_rel="."
+  pkg_rel="./$pkg_rel"
+
+  grep -o 'func Fuzz[A-Za-z0-9_]*' "$file" | sed 's/^func //' | while read -r func; do
+    echo " > Running $func in $mod_root ($pkg_rel) for $FUZZ_TIME..."
+    (cd "$mod_root" && go test -run='^$' -fuzz="^${func}$" -fuzztime="$FUZZ_TIME" "$pkg_rel")
+  done
+done
+"""
+
 [tasks."go:generate"]
 description = "Generate mocks and proto files"
 depends = ["go:mockery", "go:proto"]
