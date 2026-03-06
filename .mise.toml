@@ -299,7 +299,7 @@ grep -rl --include='*_test.go' 'func Fuzz' . | while read -r file; do
 
   grep -o 'func Fuzz[A-Za-z0-9_]*' "$file" | sed 's/^func //' | while read -r func; do
     echo " > Running $func in $mod_root ($pkg_rel) for $FUZZ_TIME..."
-    (cd "$mod_root" && go test -run='^$' -fuzz="^${func}$" -fuzztime="$FUZZ_TIME" "$pkg_rel")
+    (cd "$mod_root" && go test -run='^$' -fuzz="^${func}$" -fuzztime="$FUZZ_TIME" -timeout=0 "$pkg_rel")
   done
 done
 """

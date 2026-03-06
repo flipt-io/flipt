@@ -12,6 +12,12 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+// validEnvVar reports whether name is a valid environment variable name.
+// Empty names, names containing null bytes, and names containing '=' are invalid.
+func validEnvVar(s string) bool {
+	return len(s) > 0 && !strings.ContainsRune(s, 0) && !strings.ContainsRune(s, '=')
+}
+
 func FuzzConfigLoad(f *testing.F) {
 	// Add some seed corpus from existing test files
 	f.Add("./testdata/advanced.yml")
@@ -90,13 +96,8 @@ func FuzzEnvSubst(f *testing.F) {
 		}()
 
 		if len(envVar) > 0 {
-			// Skip inputs containing null bytes as they are invalid for env vars
-			if strings.ContainsRune(envVar, 0) || strings.ContainsRune(envValue, 0) {
-				t.Skip("null bytes not valid in environment variables")
-			}
-			// Skip inputs containing '=' in the name as they are invalid env var names
-			if strings.ContainsRune(envVar, '=') {
-				t.Skip("'=' not valid in environment variable names")
+			if !validEnvVar(envVar) || strings.ContainsRune(envValue, 0) {
+				t.Skip("invalid environment variable name or value")
 			}
 
 			// Set the environment variable
@@ -192,7 +193,7 @@ func FuzzDecodeHooks(f *testing.F) {
 		// Setup environment variable if this appears to be an env var substitution
 		if strings.HasPrefix(input, "${") && strings.HasSuffix(input, "}") {
 			varName := strings.TrimPrefix(strings.TrimSuffix(input, "}"), "${")
-			if strings.ContainsRune(varName, 0) || strings.ContainsRune(varName, '=') {
+			if !validEnvVar(varName) {
 				t.Skip("invalid environment variable name")
 			}
 			t.Setenv(varName, "test-value")
