@@ -2,57 +2,57 @@
  * @jest-environment jsdom
  * @jest-environment-options {"url": "https://test/"}
  */
-import { checkResponse, sessionKey } from './api';
+import * as api from './api';
 
 describe('checkResponse', () => {
-  let originalLocation: Location;
-  beforeEach(() => {
-    originalLocation = window.location;
-    delete (window as any).location;
-    (window as any).location = {
-      href: '',
-      reload: () => {}
-    };
+  const defaultURL = 'https://test/';
 
-    Object.defineProperty(window.location, 'href', {
-      writable: true,
-      value: 'https://test/'
-    });
-    jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+  beforeEach(() => {
+    window.history.replaceState({}, '', defaultURL);
+    jest.spyOn(api.browser, 'reloadPage').mockImplementation(() => {});
+    jest.spyOn(api.browser, 'navigateTo').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    window.location.href = originalLocation.href;
     jest.restoreAllMocks();
   });
 
   it('should not change the state', () => {
-    window.localStorage.setItem(sessionKey, 'value');
-    checkResponse({ status: 200, ok: true } as Response);
-    expect(window.location.href).toEqual('https://test/');
-    checkResponse({ status: 404, ok: false } as Response);
-    expect(window.location.href).toEqual('https://test/');
-    expect(window.localStorage.getItem(sessionKey)).toEqual('value');
+    window.localStorage.setItem(api.sessionKey, 'value');
+
+    api.checkResponse({ status: 200, ok: true } as Response);
+    api.checkResponse({ status: 404, ok: false } as Response);
+
+    expect(window.location.href).toEqual(defaultURL);
+    expect(window.localStorage.getItem(api.sessionKey)).toEqual('value');
+    expect(api.browser.reloadPage).not.toHaveBeenCalled();
+    expect(api.browser.navigateTo).not.toHaveBeenCalled();
   });
 
   it('should reload if method oauth', () => {
     window.localStorage.setItem(
-      sessionKey,
+      api.sessionKey,
       '{"authenticated":true,"required":true,"self":{"method":"METHOD_GITHUB", "metadata": {}}}'
     );
-    checkResponse({ status: 401, ok: false } as Response);
-    expect(window.location.href).toEqual('https://test/');
-    expect(window.localStorage.getItem(sessionKey)).toBe(null);
-    expect(window.location.reload).toHaveBeenCalled();
+
+    api.checkResponse({ status: 401, ok: false } as Response);
+
+    expect(window.location.href).toEqual(defaultURL);
+    expect(window.localStorage.getItem(api.sessionKey)).toBe(null);
+    expect(api.browser.reloadPage).toHaveBeenCalled();
+    expect(api.browser.navigateTo).not.toHaveBeenCalled();
   });
 
   it('should redirect back to issuer for jwt auth method', () => {
     window.localStorage.setItem(
-      sessionKey,
+      api.sessionKey,
       '{"authenticated":true,"required":true,"self":{"method":"METHOD_JWT", "metadata": {"io.flipt.auth.jwt.issuer":"flipt.issuer"}}}'
     );
-    checkResponse({ status: 401, ok: false } as Response);
-    expect(window.location.href).toEqual('//flipt.issuer');
-    expect(window.localStorage.getItem(sessionKey)).toBe(null);
+
+    api.checkResponse({ status: 401, ok: false } as Response);
+
+    expect(api.browser.navigateTo).toHaveBeenCalledWith('//flipt.issuer');
+    expect(api.browser.reloadPage).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem(api.sessionKey)).toBe(null);
   });
 });
