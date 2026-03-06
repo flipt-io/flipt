@@ -2,6 +2,7 @@ package method
 
 import (
 	"context"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -27,4 +28,15 @@ func TestForwardPrefix(t *testing.T) {
 			assert.Equal(t, tt.expected, md.Get(ForwardedPrefixKey))
 		})
 	}
+}
+
+func TestForwardCookies(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/auth/callback", nil)
+	req.AddCookie(&http.Cookie{Name: stateCookieKey, Value: "state-value"})
+	req.AddCookie(&http.Cookie{Name: tokenCookieKey, Value: "token-value"})
+
+	md := ForwardCookies(context.Background(), req)
+
+	assert.Equal(t, []string{"state-value"}, md.Get(stateCookieKey))
+	assert.Equal(t, []string{"token-value"}, md.Get(tokenCookieKey))
 }
