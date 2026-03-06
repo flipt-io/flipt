@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CI Node version**: Bump Node.js version from 18 to 20 in CI workflows (#5501)
+- **Integration test environment key**: Set EnvironmentKey on evaluation requests in environment integration tests (#5499)
 - **Authentication cookie forwarding**: Forward state and token cookies to distinct metadata keys during OIDC authentication to prevent cookie collision issues (#5479)
 - **UI key validation**: Sanitize generated keys and show key validation errors on first edit (#5434)
 - **UI toggle styling**: Remove background brand class for unchecked toggle state (#5430)
@@ -31,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 
-- Updated various dependencies including AWS SDK, Azure SDK, Redis, OPA, gRPC Gateway, OpenTelemetry, protobuf, and UI libraries
+- Updated various dependencies including AWS SDK, Azure SDK, Redis, OPA, gRPC Gateway, OpenTelemetry, protobuf, and UI libraries (#5478)
 
 ## [2.7.0](https://github.com/flipt-io/flipt/releases/tag/v2.7.0) - 2026-02-17
 
