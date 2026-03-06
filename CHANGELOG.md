@@ -3,6 +3,36 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0](https://github.com/flipt-io/flipt/releases/tag/v2.8.0) - 2026-03-06
+
+### Added
+
+- **Secret management providers**: Added support for external secret management providers, enabling secrets to be stored and retrieved from cloud-native services instead of local files:
+  - AWS Secrets Manager (#5411)
+  - GCP Secret Manager (#5404)
+  - Azure Key Vault (#5428)
+- **Configurable machine fingerprint**: Support configurable machine fingerprint for container environments to improve license activation reliability (#5427)
+
+### Fixed
+
+- **Authentication cookie forwarding**: Forward state and token cookies to distinct metadata keys during OIDC authentication to prevent cookie collision issues (#5479)
+- **UI key validation**: Sanitize generated keys and show key validation errors on first edit (#5434)
+- **UI toggle styling**: Remove background brand class for unchecked toggle state (#5430)
+- **UI threshold default**: Use 0 as default threshold percentage in quick edit form (#5408)
+- **Config schema relaxation**: Relax schema to allow `installation_id` from environment variables (#5425)
+
+### Changed
+
+- **React component refs**: Migrate to `React.ComponentRef` and cleanup deprecated ref patterns (#5435)
+
+### Security
+
+- Security updates in build/go and sdk/go modules (#5438)
+
+### Dependencies
+
+- Updated various dependencies including AWS SDK, Azure SDK, Redis, OPA, gRPC Gateway, OpenTelemetry, protobuf, and UI libraries
+
 ## [2.7.0](https://github.com/flipt-io/flipt/releases/tag/v2.7.0) - 2026-02-17
 
 ### Added
