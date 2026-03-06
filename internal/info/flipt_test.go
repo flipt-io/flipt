@@ -36,7 +36,7 @@ func TestNew(t *testing.T) {
 func TestHttpHandler(t *testing.T) {
 	f := New()
 	f.Storage.Type = config.DatabaseStorageType
-	r := httptest.NewRequest("GET", "/info", nil)
+	r := httptest.NewRequestWithContext(t.Context(), "GET", "/info", nil)
 	w := httptest.NewRecorder()
 	f.ServeHTTP(w, r)
 	assert.Equal(t, http.StatusOK, w.Code)
