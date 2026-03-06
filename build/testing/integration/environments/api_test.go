@@ -194,8 +194,9 @@ func TestAPI(t *testing.T) {
 								revision = enabled.Revision
 
 								resp, err := evalClient.Variant(ctx, &evaluation.EvaluationRequest{
-									NamespaceKey: namespace.Key,
-									FlagKey:      "test",
+									EnvironmentKey: env,
+									NamespaceKey:   namespace.Key,
+									FlagKey:        "test",
 								})
 								require.NoError(t, err)
 
@@ -280,8 +281,9 @@ func TestAPI(t *testing.T) {
 								assert.Equal(t, booleanEnabled, fetchedBooleanEnabled)
 
 								resp, err := evalClient.Boolean(ctx, &evaluation.EvaluationRequest{
-									NamespaceKey: namespace.Key,
-									FlagKey:      "boolean_enabled",
+									EnvironmentKey: env,
+									NamespaceKey:   namespace.Key,
+									FlagKey:        "boolean_enabled",
 								})
 								require.NoError(t, err)
 
