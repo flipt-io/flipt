@@ -98,7 +98,7 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 | **Merge Process** | Direct flag changes | Merge proposals with code review |
 | **Real-time Updates** | Polling required | Server-Sent Events (SSE) streaming API for instant updates |
 | **Multi-tenancy** | Manual namespace management | Environment-based isolation |
-| **Secrets Management** | None | File-based providers available in OSS, HashiCorp Vault (Pro feature), cloud secrets management (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault) coming soon |
+| **Secrets Management** | None | File-based providers available in OSS, HashiCorp Vault, cloud secrets management (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault) available in Pro |
 
 <br clear="both"/>
 
@@ -202,7 +202,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 ## Core Values
 
 - 🔒 **Security** - HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box
-- 🗝️ **Secrets Management** - Secure storage and retrieval of sensitive data with file-based providers (OSS) and HashiCorp Vault (Pro feature), with upcoming cloud provider support (AWS, GCP, Azure)
+- 🗝️ **Secrets Management** - Secure storage and retrieval of sensitive data with file-based providers (OSS) and HashiCorp Vault, AWS Secrets Manager, GCP Secret Manager, Azure Key Vault (Pro features)
 - 🎛️ **Control** - Your data stays in your Git repositories within your infrastructure  
 - 🚀 **Speed** - Co-located with your services, no external API calls required
 - ✅ **Simplicity** - Single binary with no external dependencies by default
@@ -228,7 +228,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 ### Secrets Management & Security
 
-- **Multi-provider secrets management**: File-based providers available in OSS, HashiCorp Vault (Pro feature), with AWS Secrets Manager, GCP Secret Manager, and Azure Key Vault support coming soon
+- **Multi-provider secrets management**: File-based providers available in OSS, HashiCorp Vault, AWS Secrets Manager, GCP Secret Manager, and Azure Key Vault (Pro features)
 - **GPG Commit Signing**: Cryptographically sign all flag changes with keys from secret providers (Pro feature)
 - **Secure key storage**: Private keys and sensitive data stored securely in Vault or local files
 - **Multiple auth methods**: Token, Kubernetes, and AppRole authentication for Vault
@@ -305,7 +305,7 @@ Ready to unlock the full potential of Git-native feature management? Flipt v2 Pr
 
 - **🔀 Enterprise DevOps Integration** - Native GitHub, GitLab, BitBucket, Azure DevOps, and Gitea workflows with merge proposals and automated PR/MR creation
 - **✍️ GPG Commit Signing** - Cryptographically sign all changes for maximum security and auditability with verified commit badges
-- **🔒 Integrated Secrets Management** - Built-in secure storage for GPG keys with HashiCorp Vault integration and upcoming cloud secrets management support (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault)
+- **🔒 Integrated Secrets Management** - Built-in secure storage for GPG keys with HashiCorp Vault, AWS Secrets Manager, GCP Secret Manager, and Azure Key Vault integration
 - **🌐 Air-Gapped Environment Support** - Annual licenses work seamlessly in air-gapped environments with offline validation
 - **🏢 Dedicated Support Channel** - Direct access to our engineering team via dedicated Slack channel for faster issue resolution
 - **⚡ Priority Development** - Your bug reports and feature requests get prioritized
