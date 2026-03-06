@@ -19,6 +19,8 @@ builds:
       - arm64
     goamd64:
       - v1
+    goarm64:
+      - v8.0
     prebuilt:
       path: tmp/dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}{{ with .Arm64 }}_{{ . }}{{ end }}/flipt
     binary: flipt
