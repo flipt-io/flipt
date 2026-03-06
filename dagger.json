@@ -1,6 +1,6 @@
 {
   "name": "flipt",
-  "engineVersion": "v0.18.12",
+  "engineVersion": "v0.20.1",
   "sdk": {
     "source": "go"
   },
@@ -12,5 +12,6 @@
     "!bin",
     "!ui/node_modules"
   ],
-  "source": "build"
+  "source": "build",
+  "disableDefaultFunctionCaching": true
 }

@@ -29,6 +29,7 @@ func redpandaTLSService(_ context.Context, client *dagger.Client, hostAlias, sup
 		WithExposedPort(9644, dagger.ContainerWithExposedPortOpts{
 			Description: "admin api endpoint",
 		}).
+		WithUser("root").
 		WithDefaultArgs([]string{
 			"redpanda",
 			"start",
