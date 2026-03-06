@@ -97,63 +97,64 @@ Multi-backend storage supporting:
 
 ### Initial Setup
 
+Tool versions (Go, Node) are defined in `.mise.toml`. Install [mise](https://mise.jdx.dev/) and run:
+
 ```bash
-# Install required development tools
-mage bootstrap
+# Install tool versions and development dependencies
+mise install
+mise run bootstrap
 ```
 
 ### Development Workflow
 
-1. **Setup**: Run `mage bootstrap` to install tools
+1. **Setup**: Run `mise install` then `mise run bootstrap` to install tools
 2. **Backend Development**:
-   - Use `mage go:run` for server
+   - Use `mise run dev` for server
    - Server runs on port 8080 (HTTP) and 9000 (gRPC)
 3. **Frontend Development**:
-   - Run `mage ui:run` for UI dev server on port 5173
+   - Run `mise run ui:dev` for UI dev server on port 5173
    - UI proxies API requests to backend on port 8080
 4. **Full Development**: Run both servers simultaneously
 
 ### Build & Run Commands
 
-- `mage build` - Builds the project similar to a release build (default target)
-- `mage go:build` - Builds Go server for development without bundling assets
-- `mage go:run` - Runs Go server in development mode with local config
-- `mage dev` - Alias for go:run
+- `mise run build` - Builds the project similar to a release build
+- `mise run go:build` - Builds Go server for development without bundling assets
+- `mise run dev` - Runs Go server in development mode with local config
 - `./bin/flipt server --config config/local.yml` - Run built binary with local config
 
 ### UI Development Commands
 
-- `mage ui:deps` - Install UI dependencies
-- `mage ui:run` - Run UI in development mode (port 5173)
-- `mage ui:dev` - Alias for ui:run
-- `mage ui:build` - Build UI assets for release
+- `mise run ui:deps` - Install UI dependencies
+- `mise run ui:dev` - Run UI in development mode (port 5173)
+- `mise run ui:build` - Build UI assets for release
 - `cd ui && npm run dev` - Alternative way to run UI dev server
 
 ### Testing Commands
 
-- `mage go:test` - Run all Go unit tests
+- `mise run test` - Run all Go unit tests (alias for `go:test`)
 - `go test -v {path} -run {test}` - Run a specific Go test
-- `mage go:bench` - Run Go benchmarking tests
-- `mage go:cover` - Run tests and generate coverage report
+- `mise run bench` - Run Go benchmarking tests (alias for `go:bench`)
+- `mise run go:cover` - Run tests and generate coverage report
 - `cd ui && npm run test` - Run UI unit tests (Jest)
 
 ### Code Quality Commands
 
-- `mage go:lint` - Run Go linters (golangci-lint and buf lint)
-- `mage go:fmt` - Format Go code with goimports
-- `mage ui:lint` - Run UI linters (ESLint)
-- `mage ui:fmt` - Format UI code (Prettier)
+- `mise run lint` - Run Go linters (alias for `go:lint`)
+- `mise run fmt` - Format Go code with goimports (alias for `go:fmt`)
+- `mise run ui:lint` - Run UI linters (ESLint)
+- `mise run ui:fmt` - Format UI code (Prettier)
 
 ### Code Generation Commands
 
-- `mage go:proto` - Generate protobuf files and gRPC stubs
-- `mage go:mockery` - Generate mocks
-- `mage go:generate` - Generate both mocks and proto files
+- `mise run proto` - Generate protobuf files and gRPC stubs (alias for `go:proto`)
+- `mise run go:mockery` - Generate mocks
+- `mise run go:generate` - Generate both mocks and proto files
 
 ### Cleanup Commands
 
-- `mage clean` - Clean built files and tidy go.mod
-- `mage prep` - Prepare project for building (clean + ui:build)
+- `mise run clean` - Clean built files and tidy go.mod
+- `mise run prep` - Prepare project for building (clean + ui:build)
 
 ### Build Process Notes
 
@@ -335,13 +336,13 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 
 ```bash
 # Format Go code
-mage go:fmt
+mise run fmt
 
 # Lint Go code
-mage go:lint
+mise run lint
 
 # Run modernize to update code to 1.24+ style
-mage go:modernize
+mise run go:modernize
 ```
 
 ### UI/React/TypeScript Code Style
@@ -372,10 +373,10 @@ mage go:modernize
 
 ```bash
 # Format UI code (TypeScript/React)
-mage ui:fmt
+mise run ui:fmt
 
 # Lint UI code (ESLint)
-mage ui:lint
+mise run ui:lint
 ```
 
 ### General Pre-commit Checks
@@ -564,7 +565,7 @@ Before creating a PR, ensure:
 
 - [ ] Code follows style guidelines
 - [ ] Tests are added and passing
-- [ ] Linting passes (`mage go:lint` / `mage ui:lint`)
-- [ ] Code is formatted (`mage go:fmt` / `mage ui:fmt`)
+- [ ] Linting passes (`mise run lint` / `mise run ui:lint`)
+- [ ] Code is formatted (`mise run fmt` / `mise run ui:fmt`)
 - [ ] Commit messages are clear and descriptive
 - [ ] PR description explains the change and its purpose
