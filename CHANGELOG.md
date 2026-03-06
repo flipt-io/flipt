@@ -3,6 +3,20 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.61.1](https://github.com/flipt-io/flipt/releases/tag/v1.61.1) - 2026-03-06
+
+### Fixed
+
+- **Authentication cookie forwarding**: Forward state and token cookies to distinct metadata keys during OIDC authentication to prevent cookie collision issues (#5480)
+
+### Changed
+
+- **Go 1.26**: Upgraded Go version to 1.26.1 (#5400)
+
+### Dependencies
+
+- Updated various dependencies including OpenTelemetry, gRPC, AWS SDK, Azure SDK, Redis, OPA, ClickHouse, protobuf, and UI libraries
+
 ## [v1.61.0](https://github.com/flipt-io/flipt/releases/tag/v1.61.0) - 2025-10-02
 
 ### Changed
