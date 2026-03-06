@@ -31,6 +31,15 @@ export class APIError extends Error {
   }
 }
 
+export const browser = {
+  navigateTo(url: string) {
+    window.location.href = url;
+  },
+  reloadPage() {
+    window.location.reload();
+  }
+};
+
 //
 // base methods
 function headerCsrf(): Record<string, string> {
@@ -50,14 +59,14 @@ export function checkResponse(response: Response) {
       try {
         const user = getUser(JSON.parse(session));
         if (user?.issuer) {
-          window.location.href = `//${user.issuer}`;
+          browser.navigateTo(`//${user.issuer}`);
           return;
         }
       } catch (e) {
         //
       }
     }
-    window.location.reload();
+    browser.reloadPage();
   }
 }
 
