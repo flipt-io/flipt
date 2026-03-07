@@ -796,8 +796,8 @@ github.com/twmb/franz-go/pkg/kadm v1.17.2 h1:g5f1sAxnTkYC6G96pV5u715HWhxd66hWaDZ
 github.com/twmb/franz-go/pkg/kadm v1.17.2/go.mod h1:ST55zUB+sUS+0y+GcKY/Tf1XxgVilaFpB9I19UubLmU=
 github.com/twmb/franz-go/pkg/kmsg v1.12.0 h1:CbatD7ers1KzDNgJqPbKOq0Bz/WLBdsTH75wgzeVaPc=
 github.com/twmb/franz-go/pkg/kmsg v1.12.0/go.mod h1:+DPt4NC8RmI6hqb8G09+3giKObE6uD2Eya6CfqBpeJY=
-github.com/twmb/franz-go/pkg/sr v1.6.0 h1:YcnD65hmdEuJljSM4O9Hldr/0oi+vrjPGHaRUuwwusA=
-github.com/twmb/franz-go/pkg/sr v1.6.0/go.mod h1:64CsHlsQnyFRq1sYPcCmlRrEG3PlLPb6cDddx2wGr28=
+github.com/twmb/franz-go/pkg/sr v1.7.0 h1:wHStlO6aOPWWgZ68ZYcdtQe9tRbkcTc1gRLbgs+8QAA=
+github.com/twmb/franz-go/pkg/sr v1.7.0/go.mod h1:64CsHlsQnyFRq1sYPcCmlRrEG3PlLPb6cDddx2wGr28=
 github.com/twmb/franz-go/plugin/kzap v1.1.2 h1:0arX5xJ0soUPX1LlDay6ZZoxuWkWk1lggQ5M/IgRXAE=
 github.com/twmb/franz-go/plugin/kzap v1.1.2/go.mod h1:53Cl9Uz1pbdOPDvUISIxLrZIWSa2jCuY1bTMauRMBmo=
 github.com/valyala/fastjson v1.6.7 h1:ZE4tRy0CIkh+qDc5McjatheGX2czdn8slQjomexVpBM=
