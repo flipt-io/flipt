@@ -1,6 +1,8 @@
 [tools]
 go = "1.26"
 node = "20"
+golangci-lint = "2.9.0"
+buf = "1.56.0"
 
 [tasks.bootstrap]
 description = "Install required development tools"
@@ -222,8 +224,8 @@ run = """
 #!/usr/bin/env bash
 set -euo pipefail
 echo " > Linting..."
-go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run
-go tool github.com/bufbuild/buf/cmd/buf lint
+golangci-lint run
+buf lint
 """
 
 [tasks."go:modernize"]
@@ -244,14 +246,8 @@ run = """
 set -euo pipefail
 echo " > Generating proto files..."
 
-if command -v buf &>/dev/null; then
-  BUF_CMD="buf"
-else
-  BUF_CMD="go tool github.com/bufbuild/buf/cmd/buf"
-fi
-
 for module in rpc/flipt rpc/v2/environments rpc/v2/analytics rpc/v2/evaluation; do
-  (cd "$module" && $BUF_CMD generate)
+  (cd "$module" && buf generate)
 done
 """
 
