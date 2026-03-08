@@ -315,8 +315,8 @@ Ready to unlock the full potential of Git-native feature management? Flipt v2 Pr
 ### Pricing & Trial
 
 - **Free 14-day trial** - No credit card required to start, includes all Pro features
-- **Monthly licenses** - $100/month with continuous internet connectivity for validation
-- **Annual licenses** - $1,000/year (save $200) with offline validation using license files for air-gapped environments
+- **Monthly licenses** - $200/month with continuous internet connectivity for validation
+- **Annual licenses** - $2,000/year (save $400) with offline validation using license files for air-gapped environments
 - **No instance limits** on paid plans - run Flipt v2 Pro on as many servers as you need
 - **Cancel anytime** - Prorated billing through our Stripe customer portal
 
