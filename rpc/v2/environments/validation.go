@@ -26,6 +26,24 @@ func (r *DeleteResourceRequest) Validate() error {
 	return requireKey(r)
 }
 
+func (r *CopyResourceRequest) Validate() error {
+	return requireKey(r)
+}
+
+func (r *CopyNamespaceRequest) Validate() error {
+	if r.GetNamespaceKey() == "" {
+		return errors.ErrInvalid("namespace_key must not be empty")
+	}
+	return nil
+}
+
+func (r *BulkApplyResourcesRequest) Validate() error {
+	if len(r.GetNamespaceKeys()) == 0 {
+		return errors.ErrInvalid("namespace_keys must not be empty")
+	}
+	return nil
+}
+
 func requireKey(k keyed) error {
 	if k.GetKey() == "" {
 		return errors.ErrInvalid("key must not be empty")
