@@ -20,6 +20,7 @@ import { INamespace } from '~/types/Namespace';
 
 type NamespaceDeleteActionProps = {
   row: Row<INamespace>;
+  isProtected: boolean;
   setEditingNamespace: (namespace: INamespace) => void;
   setShowEditNamespaceModal: (show: boolean) => void;
   setDeletingNamespace: (namespace: INamespace) => void;
@@ -29,6 +30,7 @@ type NamespaceDeleteActionProps = {
 function NamespaceDeleteAction(props: NamespaceDeleteActionProps) {
   const {
     row,
+    isProtected,
     setEditingNamespace,
     setShowEditNamespaceModal,
     setDeletingNamespace,
@@ -39,8 +41,9 @@ function NamespaceDeleteAction(props: NamespaceDeleteActionProps) {
     <div className="flex items-center justify-end gap-2">
       <div className="hidden group-hover/row:block">
         <span
-          className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer"
+          className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={(e) => {
+            if (isProtected) return;
             e.stopPropagation();
             setEditingNamespace(row.original);
             setShowEditNamespaceModal(true);
@@ -50,7 +53,7 @@ function NamespaceDeleteAction(props: NamespaceDeleteActionProps) {
           Edit
         </span>
       </div>
-      {row.original.protected ? (
+      {row.original.protected || isProtected ? (
         <div className="relative group/delete inline-block">
           <span className="text-gray-400 dark:text-gray-500 hover:cursor-not-allowed p-1 rounded-full">
             <XIcon className="h-4 w-4" />
@@ -77,6 +80,7 @@ function NamespaceDeleteAction(props: NamespaceDeleteActionProps) {
 
 type NamespaceTableProps = {
   namespaces: INamespace[];
+  isProtected: boolean;
   setEditingNamespace: (namespace: INamespace) => void;
   setShowEditNamespaceModal: (show: boolean) => void;
   setDeletingNamespace: (namespace: INamespace) => void;
@@ -86,6 +90,7 @@ type NamespaceTableProps = {
 export default function NamespaceTable(props: NamespaceTableProps) {
   const {
     namespaces,
+    isProtected,
     setEditingNamespace,
     setShowEditNamespaceModal,
     setDeletingNamespace,
@@ -156,6 +161,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
           <NamespaceDeleteAction
             // eslint-disable-next-line react/prop-types
             row={props.row}
+            isProtected={isProtected}
             setEditingNamespace={setEditingNamespace}
             setShowEditNamespaceModal={setShowEditNamespaceModal}
             setDeletingNamespace={setDeletingNamespace}

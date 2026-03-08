@@ -34,6 +34,7 @@ export default function Namespaces() {
   const environment = useSelector(selectCurrentEnvironment);
   const namespaces = useSelector(selectNamespaces);
   const revision = useSelector(getRevision);
+  const isProtected = environment.protected ?? false;
 
   const [deleteNamespace] = useDeleteNamespaceMutation();
   const namespaceFormRef = useRef(null);
@@ -98,6 +99,10 @@ export default function Namespaces() {
                 setEditingNamespace(null);
                 setShowNamespaceForm(true);
               }}
+              disabled={isProtected}
+              title={
+                isProtected ? 'Not allowed in protected environment' : undefined
+              }
             >
               New Namespace
             </ButtonWithPlus>
@@ -108,6 +113,7 @@ export default function Namespaces() {
           {namespaces && namespaces.length > 0 ? (
             <NamespaceTable
               namespaces={namespaces}
+              isProtected={isProtected}
               setEditingNamespace={setEditingNamespace}
               setShowEditNamespaceModal={setShowNamespaceForm}
               setDeletingNamespace={setDeletingNamespace}
@@ -129,6 +135,12 @@ export default function Namespaces() {
                   setEditingNamespace(null);
                   setShowNamespaceForm(true);
                 }}
+                disabled={isProtected}
+                title={
+                  isProtected
+                    ? 'Not allowed in protected environment'
+                    : undefined
+                }
               >
                 Create Namespace
               </Button>

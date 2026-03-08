@@ -58,6 +58,8 @@ export default function Flag() {
 
   const info = useSelector(selectInfo);
 
+  const isProtected = environment.protected ?? false;
+
   const {
     data: flag,
     error,
@@ -208,6 +210,10 @@ export default function Flag() {
             {
               id: 'flag-delete',
               label: 'Delete',
+              disabled: isProtected,
+              title: isProtected
+                ? 'Not allowed in protected environment'
+                : undefined,
               onClick: () => setShowDeleteFlagModal(true),
               icon: Trash2Icon,
               variant: 'destructive'

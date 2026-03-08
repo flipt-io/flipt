@@ -143,6 +143,8 @@ message Environment {
   optional bool default = 3;
   // The environment configuration.
   optional EnvironmentConfiguration configuration = 4;
+  // The protected indicates if this environment is protected.
+  bool protected = 5;
 }
 
 // The EnvironmentConfiguration represents the configuration for an environment.

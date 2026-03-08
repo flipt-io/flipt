@@ -3,6 +3,7 @@ export interface IEnvironment {
   name?: string;
   default?: boolean;
   configuration?: IEnvironmentConfiguration;
+  protected?: boolean;
 }
 
 export interface IEnvironmentConfiguration {

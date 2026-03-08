@@ -149,6 +149,7 @@ type EnvironmentConfig struct {
 	Storage   string     `json:"storage" mapstructure:"storage" yaml:"storage,omitempty"`
 	Directory string     `json:"directory" mapstructure:"directory" yaml:"directory,omitempty"`
 	SCM       *SCMConfig `json:"scm,omitempty" mapstructure:"scm" yaml:"scm,omitempty"`
+	Protected bool       `json:"protected" mapstructure:"protected" yaml:"protected,omitempty"`
 }
 
 func (e *EnvironmentConfig) validate() error {

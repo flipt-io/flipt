@@ -13,6 +13,7 @@ import QuickEditRuleForm from './QuickEditRuleForm';
 type RuleProps = {
   rule: IRule;
   segments: ISegment[];
+  isProtected?: boolean;
   onSuccess?: () => void;
   onDelete?: () => void;
   style?: React.CSSProperties;
@@ -26,6 +27,7 @@ const Rule = forwardRef(
     {
       rule,
       segments,
+      isProtected,
       onSuccess,
       onDelete,
       style,
@@ -72,6 +74,7 @@ const Rule = forwardRef(
                 id: 'rule-delete',
                 label: 'Delete',
                 variant: 'destructive',
+                disabled: isProtected,
                 onClick: () => {
                   onDelete && onDelete();
                 }

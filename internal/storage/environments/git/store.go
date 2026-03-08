@@ -108,6 +108,10 @@ func (e *Environment) Default() bool {
 	return e.cfg.Default
 }
 
+func (e *Environment) Protected() bool {
+	return e.cfg.Protected
+}
+
 func (e *Environment) Repository() *storagegit.Repository {
 	return e.repo
 }
