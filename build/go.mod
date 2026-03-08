@@ -23,7 +23,7 @@ require (
 	github.com/hashicorp/cap v0.12.0
 	github.com/magefile/mage v1.16.0
 	github.com/stretchr/testify v1.11.1
-	github.com/vektah/gqlparser/v2 v2.5.30
+	github.com/vektah/gqlparser/v2 v2.5.32
 	go.flipt.io/flipt/rpc/flipt v1.54.0
 	go.flipt.io/flipt/sdk/go v0.11.0
 	go.flipt.io/stew v0.0.0-20240109140408-33ad11ecef1c
