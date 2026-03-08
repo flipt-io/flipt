@@ -49,7 +49,7 @@ ui/
 
 ```bash
 # From repository root
-mage ui:run
+mise run ui:dev
 
 # Or from ui directory
 npm run dev
@@ -61,7 +61,7 @@ The development server runs on port 5173 and proxies API requests to the backend
 
 ```bash
 # From repository root
-mage ui:build
+mise run ui:build
 
 # Or from ui directory
 npm run build

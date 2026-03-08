@@ -12,9 +12,7 @@ Also check out our [Contributing](CONTRIBUTING.md) guide for more information on
 Before starting, make sure you have the following installed:
 
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
-- [Go 1.26+](https://golang.org/doc/install)
-- [NodeJS >= 22](https://nodejs.org/en/ )
-- [Mage](https://magefile.org/)
+- [mise](https://mise.jdx.dev/) (manages Go, Node, and other tool versions)
 - [Docker](https://docs.docker.com/install/) (for running unit tests)
 - [Playwright](https://playwright.dev/docs/intro) (optional, for running UI tests)
 - [Dagger](https://docs.dagger.io/install) (optional, for running integration tests)
@@ -22,10 +20,11 @@ Before starting, make sure you have the following installed:
 ## Setup
 
 1. Clone this repo: `git clone https://github.com/flipt-io/flipt`.
-1. Run `mage bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
-1. Run `mage go:test` to execute the Go test suite. For more information on tests, see also [here](build/README.md)
-1. Run `mage` to build the binary with embedded assets.
-1. Run `mage -l` to see a full list of possible commands.
+1. Run `mise install` to install required tool versions (Go, Node, etc.).
+1. Run `mise run bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
+1. Run `mise run test` to execute the Go test suite. For more information on tests, see also [here](build/README.md)
+1. Run `mise run build` to build the binary with embedded assets.
+1. Run `mise tasks` to see a full list of possible commands.
 
 ## Conventional Commits
 
@@ -37,7 +36,7 @@ Then run `pre-commit install` to install the git hook.
 
 ## Bootstrap
 
-The `bootstrap` task will install all of the necessary tools used for development and testing. It does this using a seperate tools modules as described here: [https://marcofranssen.nl/manage-go-tools-via-go-modules](https://marcofranssen.nl/manage-go-tools-via-go-modules)
+The `bootstrap` task will install all of the necessary tools used for development and testing. Run it with `mise run bootstrap`.
 
 ## Configuration
 
@@ -63,15 +62,15 @@ Changing certain types of files such as the proto or ui files require re-buildin
 
 ### Updating .proto Files
 
-After changing any proto files, you'll need to run `mage go:proto`. This will regenerate the necessary files in the `rpc` directory.
+After changing any proto files, you'll need to run `mise run proto`. This will regenerate the necessary files in the `rpc` directory.
 
 ## Tests
 
-To run the tests, you can use the `mage go:test` command. This will run the unit tests.
+To run the tests, you can use the `mise run test` command. This will run the unit tests.
 
 ### Mocks
 
-We use [mockery](https://github.com/vektra/mockery) to generate mocks for the tests. To regenerate mocks, you can use the `mage go:mockery` command.
+We use [mockery](https://github.com/vektra/mockery) to generate mocks for the tests. To regenerate mocks, you can use the `mise run go:mockery` command.
 
 ## UI
 
@@ -79,8 +78,8 @@ The UI is built using [NPM](https://nodejs.org/en/) and [Vite](https://vitejs.de
 
 To develop the project with the UI also in development mode (with hot reloading):
 
-1. Run `mage ui:dev` from the root of this repository. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
-2. In another terminal, run `mage dev` (or `mage go:run`) from the root of this repository. This will run the backend server making it accessible on port `8080`.
+1. Run `mise run ui:dev` from the root of this repository. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
+2. In another terminal, run `mise run dev` from the root of this repository. This will run the backend server making it accessible on port `8080`.
 3. Visit `http://localhost:8080` to see the UI.
 4. Any changes made in the `ui` directory will be picked up by the development server and the UI will be reloaded.
 

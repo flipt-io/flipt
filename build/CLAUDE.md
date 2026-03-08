@@ -224,11 +224,11 @@ flipt = flipt.
 Always run before committing:
 
 ```bash
-mage go:fmt        # Format Go code
-mage go:lint       # Lint Go code  
-mage go:modernize  # Update to modern Go style
-mage ui:fmt        # Format UI code
-mage ui:lint       # Lint UI code
+mise run fmt          # Format Go code
+mise run lint         # Lint Go code
+mise run go:modernize # Update to modern Go style
+mise run ui:fmt       # Format UI code
+mise run ui:lint      # Lint UI code
 ```
 
 ### Adding New Integration Tests
@@ -283,8 +283,8 @@ dagger call test-coverage --source=. integration-coverage --cases="snapshot" exp
 #### Build Failures
 
 1. **Go version mismatch**: Ensure Go 1.24+
-2. **Missing tools**: Run `mage bootstrap`
-3. **Dirty modules**: Run `mage clean`
+2. **Missing tools**: Run `mise run bootstrap`
+3. **Dirty modules**: Run `mise run clean`
 
 #### Integration Test Failures
 
