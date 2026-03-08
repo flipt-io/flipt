@@ -15,7 +15,8 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 		WithExposedPort(6379)
 
 	gitea := client.Container().
-		From("gitea/gitea:1.21.1").
+		From("gitea/gitea:1.25.4").
+		WithUser("root").
 		WithExposedPort(3000).
 		AsService()
 
