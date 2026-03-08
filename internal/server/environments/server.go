@@ -464,3 +464,134 @@ func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteRes
 
 	return resp, nil
 }
+
+// knownResourceTypes lists all resource types that should be copied during namespace copy.
+var knownResourceTypes = []ResourceType{
+	NewResourceType("flipt.core", "Flag"),
+	NewResourceType("flipt.core", "Segment"),
+}
+
+// CopyNamespace copies all resources from a source namespace/environment to a target.
+func (s *Server) CopyNamespace(ctx context.Context, req *environments.CopyNamespaceRequest) (*environments.CopyNamespaceResponse, error) {
+	if err := s.requirePro(); err != nil {
+		return nil, err
+	}
+
+	// Read all resources from source namespace.
+	srcEnv, err := s.envs.Get(ctx, req.SourceEnvironmentKey)
+	if err != nil {
+		return nil, fmt.Errorf("source environment: %w", err)
+	}
+
+	type typedResources struct {
+		typ       ResourceType
+		resources []*environments.Resource
+	}
+
+	var allResources []typedResources
+	for _, typ := range knownResourceTypes {
+		var resources []*environments.Resource
+		if err := srcEnv.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) error {
+			resp, err := sv.ListResources(ctx, req.SourceNamespaceKey)
+			if err != nil {
+				return err
+			}
+			resources = resp.Resources
+			return nil
+		}); err != nil {
+			return nil, fmt.Errorf("listing source %s resources: %w", typ, err)
+		}
+		if len(resources) > 0 {
+			allResources = append(allResources, typedResources{typ: typ, resources: resources})
+		}
+	}
+
+	// Resolve target environment.
+	tgtEnv, err := s.envs.Get(ctx, req.EnvironmentKey)
+	if err != nil {
+		return nil, fmt.Errorf("target environment: %w", err)
+	}
+
+	// Ensure target namespace exists.
+	_, err = tgtEnv.GetNamespace(ctx, req.NamespaceKey)
+	if errors.AsMatch[errors.ErrNotFound](err) {
+		rev, createErr := tgtEnv.CreateNamespace(ctx, req.Revision, &environments.Namespace{
+			Key:  req.NamespaceKey,
+			Name: req.NamespaceKey,
+		})
+		if createErr != nil {
+			return nil, fmt.Errorf("creating target namespace: %w", createErr)
+		}
+		req.Revision = rev
+	} else if err != nil {
+		return nil, fmt.Errorf("checking target namespace: %w", err)
+	}
+
+	resp := &environments.CopyNamespaceResponse{}
+
+	for _, tr := range allResources {
+		rev, err := tgtEnv.Update(ctx, req.Revision, tr.typ, func(ctx context.Context, sv ResourceStore) error {
+			for _, src := range tr.resources {
+				tgtResource := &environments.Resource{
+					NamespaceKey: req.NamespaceKey,
+					Key:          src.Key,
+					Payload:      src.Payload,
+				}
+
+				_, getErr := sv.GetResource(ctx, req.NamespaceKey, src.Key)
+				exists := getErr == nil
+
+				if getErr != nil && !errors.AsMatch[errors.ErrNotFound](getErr) {
+					msg := getErr.Error()
+					resp.Results = append(resp.Results, &environments.CopyNamespaceResourceResult{
+						TypeUrl: tr.typ.String(),
+						Key:     src.Key,
+						Status:  environments.OperationStatus_OPERATION_STATUS_FAILED,
+						Error:   &msg,
+					})
+					continue
+				}
+
+				result := &environments.CopyNamespaceResourceResult{
+					TypeUrl: tr.typ.String(),
+					Key:     src.Key,
+				}
+
+				switch {
+				case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL:
+					result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
+					msg := fmt.Sprintf("resource already exists: %s/%s", req.NamespaceKey, src.Key)
+					result.Error = &msg
+				case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
+					result.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
+				case exists: // OVERWRITE
+					if err := sv.UpdateResource(ctx, tgtResource); err != nil {
+						result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
+						msg := err.Error()
+						result.Error = &msg
+					} else {
+						result.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
+					}
+				default: // create
+					if err := sv.CreateResource(ctx, tgtResource); err != nil {
+						result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
+						msg := err.Error()
+						result.Error = &msg
+					} else {
+						result.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
+					}
+				}
+
+				resp.Results = append(resp.Results, result)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		req.Revision = rev
+	}
+
+	resp.Revision = req.Revision
+	return resp, nil
+}
