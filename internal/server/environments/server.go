@@ -595,3 +595,98 @@ func (s *Server) CopyNamespace(ctx context.Context, req *environments.CopyNamesp
 	resp.Revision = req.Revision
 	return resp, nil
 }
+
+// BulkApplyResources applies an operation to a resource across multiple namespaces.
+func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkApplyResourcesRequest) (*environments.BulkApplyResourcesResponse, error) {
+	if err := s.requirePro(); err != nil {
+		return nil, err
+	}
+
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	typeUrl := req.TypeUrl
+	if typeUrl == "" && req.Payload != nil {
+		typeUrl = req.Payload.GetTypeUrl()
+	}
+
+	typ, err := ParseResourceType(typeUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &environments.BulkApplyResourcesResponse{}
+
+	resp.Revision, err = env.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
+		for _, nsKey := range req.NamespaceKeys {
+			result := &environments.BulkApplyNamespaceResult{
+				NamespaceKey: nsKey,
+			}
+
+			var opErr error
+			switch req.Operation {
+			case environments.BulkOperation_BULK_OPERATION_CREATE:
+				resource := &environments.Resource{
+					NamespaceKey: nsKey,
+					Key:          req.Key,
+					Payload:      req.Payload,
+				}
+				_, getErr := sv.GetResource(ctx, nsKey, req.Key)
+				if getErr == nil {
+					switch req.OnConflict {
+					case environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
+						result.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
+					case environments.ConflictStrategy_CONFLICT_STRATEGY_OVERWRITE:
+						opErr = sv.UpdateResource(ctx, resource)
+					default:
+						opErr = errors.ErrAlreadyExistsf("resource %q in namespace %q", req.Key, nsKey)
+					}
+				} else {
+					opErr = sv.CreateResource(ctx, resource)
+				}
+
+			case environments.BulkOperation_BULK_OPERATION_UPDATE:
+				resource := &environments.Resource{
+					NamespaceKey: nsKey,
+					Key:          req.Key,
+					Payload:      req.Payload,
+				}
+				opErr = sv.UpdateResource(ctx, resource)
+
+			case environments.BulkOperation_BULK_OPERATION_DELETE:
+				opErr = sv.DeleteResource(ctx, nsKey, req.Key)
+
+			case environments.BulkOperation_BULK_OPERATION_UPSERT:
+				resource := &environments.Resource{
+					NamespaceKey: nsKey,
+					Key:          req.Key,
+					Payload:      req.Payload,
+				}
+				_, getErr := sv.GetResource(ctx, nsKey, req.Key)
+				if getErr == nil {
+					opErr = sv.UpdateResource(ctx, resource)
+				} else {
+					opErr = sv.CreateResource(ctx, resource)
+				}
+			}
+
+			if opErr != nil {
+				result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
+				msg := opErr.Error()
+				result.Error = &msg
+			} else if result.Status != environments.OperationStatus_OPERATION_STATUS_SKIPPED {
+				result.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
+			}
+
+			resp.Results = append(resp.Results, result)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
