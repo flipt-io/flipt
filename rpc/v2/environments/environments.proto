@@ -129,6 +129,33 @@ service EnvironmentsService {
     option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteResource"};
   }
+
+  // Copy a resource from one environment/namespace to another.
+  rpc CopyResource(CopyResourceRequest) returns (CopyResourceResponse) {
+    option (google.api.http) = {
+      post: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/copy"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "copyResource"};
+  }
+
+  // Copy all resources from one namespace to another.
+  rpc CopyNamespace(CopyNamespaceRequest) returns (CopyNamespaceResponse) {
+    option (google.api.http) = {
+      post: "/api/v2/environments/{environment_key}/namespaces/copy"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "copyNamespace"};
+  }
+
+  // Apply an operation to a resource across multiple namespaces.
+  rpc BulkApplyResources(BulkApplyResourcesRequest) returns (BulkApplyResourcesResponse) {
+    option (google.api.http) = {
+      post: "/api/v2/environments/{environment_key}/resources/bulk"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "bulkApplyResources"};
+  }
 }
 
 /* Environments */
@@ -450,5 +477,116 @@ message DeleteResourceRequest {
 // The response message for deleting a resource.
 message DeleteResourceResponse {
   // The resource revision for optimistic concurrency.
+  string revision = 100;
+}
+
+/* Cross-Environment Operations */
+
+// Conflict resolution strategy for copy/bulk operations.
+enum ConflictStrategy {
+  CONFLICT_STRATEGY_FAIL = 0;
+  CONFLICT_STRATEGY_OVERWRITE = 1;
+  CONFLICT_STRATEGY_SKIP = 2;
+}
+
+// Bulk operation type.
+enum BulkOperation {
+  BULK_OPERATION_CREATE = 0;
+  BULK_OPERATION_UPDATE = 1;
+  BULK_OPERATION_DELETE = 2;
+  BULK_OPERATION_UPSERT = 3;
+}
+
+// Per-resource/namespace operation result status.
+enum OperationStatus {
+  OPERATION_STATUS_SUCCESS = 0;
+  OPERATION_STATUS_SKIPPED = 1;
+  OPERATION_STATUS_FAILED = 2;
+}
+
+// Request to copy a resource from one environment/namespace to another.
+message CopyResourceRequest {
+  // Target environment.
+  string environment_key = 1;
+  // Target namespace.
+  string namespace_key = 2;
+  // Source coordinates.
+  string source_environment_key = 3;
+  string source_namespace_key = 4;
+  // Resource type and key.
+  string type_url = 5;
+  string key = 6;
+  // Conflict strategy.
+  ConflictStrategy on_conflict = 7;
+  // Revision for optimistic concurrency on the target environment.
+  string revision = 100;
+}
+
+// Response after copying a resource.
+message CopyResourceResponse {
+  Resource resource = 1;
+  OperationStatus status = 2;
+  string revision = 100;
+}
+
+// Request to copy all resources from one namespace to another.
+message CopyNamespaceRequest {
+  // Target environment.
+  string environment_key = 1;
+  // Target namespace key (created if it doesn't exist).
+  string namespace_key = 2;
+  // Source coordinates.
+  string source_environment_key = 3;
+  string source_namespace_key = 4;
+  // Conflict strategy.
+  ConflictStrategy on_conflict = 5;
+  // Revision for optimistic concurrency on the target environment.
+  string revision = 100;
+}
+
+// Per-resource result from a namespace copy.
+message CopyNamespaceResourceResult {
+  string type_url = 1;
+  string key = 2;
+  OperationStatus status = 3;
+  // Error message if status is FAILED.
+  optional string error = 4;
+}
+
+// Response after copying a namespace.
+message CopyNamespaceResponse {
+  repeated CopyNamespaceResourceResult results = 1;
+  string revision = 100;
+}
+
+// Request to apply an operation to a resource across multiple namespaces.
+message BulkApplyResourcesRequest {
+  string environment_key = 1;
+  // Explicit list of target namespace keys.
+  repeated string namespace_keys = 2;
+  // Operation to apply.
+  BulkOperation operation = 3;
+  // Resource type.
+  string type_url = 4;
+  // Resource key (for UPDATE, DELETE, UPSERT).
+  string key = 5;
+  // Resource payload (for CREATE, UPDATE, UPSERT).
+  optional google.protobuf.Any payload = 6;
+  // Conflict strategy (for CREATE, UPSERT).
+  ConflictStrategy on_conflict = 7;
+  // Revision for optimistic concurrency.
+  string revision = 100;
+}
+
+// Per-namespace result from a bulk apply.
+message BulkApplyNamespaceResult {
+  string namespace_key = 1;
+  OperationStatus status = 2;
+  optional string error = 3;
+}
+
+// Response after bulk applying resources.
+message BulkApplyResourcesResponse {
+  repeated BulkApplyNamespaceResult results = 1;
   string revision = 100;
 }
