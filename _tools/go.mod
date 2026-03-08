@@ -4,7 +4,7 @@ go 1.25.6
 
 require (
 	github.com/bufbuild/buf v1.66.0
-	github.com/golangci/golangci-lint/v2 v2.11.1
+	github.com/golangci/golangci-lint/v2 v2.11.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0
 	github.com/rakyll/gotest v0.0.7
 	golang.org/x/tools v0.42.0
