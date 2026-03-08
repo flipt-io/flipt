@@ -205,54 +205,6 @@ export const flagsApi = createApi({
           id: environmentKey + '/' + namespaceKey + '/' + flagKey
         }
       ]
-    }),
-    // copy the flag from one namespace to another one
-    copyFlag: builder.mutation<
-      void,
-      {
-        environmentKey: string;
-        from: { namespaceKey: string; flagKey: string };
-        to: { namespaceKey: string; flagKey: string };
-      }
-    >({
-      queryFn: async (
-        { environmentKey, from, to },
-        _api,
-        _extraOptions,
-        baseQuery
-      ) => {
-        let resp = await baseQuery({
-          url: `/${environmentKey}/namespaces/${from.namespaceKey}/resources/flipt.core.Flag/${from.flagKey}`,
-          method: 'GET'
-        });
-        if (resp.error) {
-          return { error: resp.error };
-        }
-
-        const res = resp.data as {
-          resource: { payload: IFlag; key: string };
-          revision: string;
-        };
-
-        let data = {
-          key: res.resource.key,
-          payload: res.resource.payload,
-          revision: res.revision
-        };
-
-        resp = await baseQuery({
-          url: `/${environmentKey}/namespaces/${to.namespaceKey}/resources`,
-          method: 'POST',
-          body: data
-        });
-        if (resp.error) {
-          return { error: resp.error };
-        }
-        return { data: undefined };
-      },
-      invalidatesTags: (_result, _error, { environmentKey, to }) => [
-        { type: 'Flag', id: environmentKey + '/' + to.namespaceKey }
-      ]
     })
   })
 });
@@ -262,6 +214,5 @@ export const {
   useGetFlagQuery,
   useCreateFlagMutation,
   useDeleteFlagMutation,
-  useUpdateFlagMutation,
-  useCopyFlagMutation
+  useUpdateFlagMutation
 } = flagsApi;

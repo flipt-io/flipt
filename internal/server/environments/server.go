@@ -373,9 +373,12 @@ func (s *Server) UpdateResource(ctx context.Context, req *environments.UpdateRes
 }
 
 // CopyResource copies a single resource from one environment/namespace to another.
+// Cross-environment copy requires a Pro license; same-environment copy is available to all users.
 func (s *Server) CopyResource(ctx context.Context, req *environments.CopyResourceRequest) (*environments.CopyResourceResponse, error) {
-	if err := s.requirePro(); err != nil {
-		return nil, err
+	if req.SourceEnvironmentKey != req.EnvironmentKey {
+		if err := s.requirePro(); err != nil {
+			return nil, err
+		}
 	}
 
 	typ, err := ParseResourceType(req.TypeUrl)
