@@ -372,6 +372,78 @@ func (s *Server) UpdateResource(ctx context.Context, req *environments.UpdateRes
 	return resp, nil
 }
 
+// CopyResource copies a single resource from one environment/namespace to another.
+func (s *Server) CopyResource(ctx context.Context, req *environments.CopyResourceRequest) (*environments.CopyResourceResponse, error) {
+	if err := s.requirePro(); err != nil {
+		return nil, err
+	}
+
+	typ, err := ParseResourceType(req.TypeUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	// Read from source environment.
+	srcEnv, err := s.envs.Get(ctx, req.SourceEnvironmentKey)
+	if err != nil {
+		return nil, fmt.Errorf("source environment: %w", err)
+	}
+
+	var srcResource *environments.Resource
+	if err := srcEnv.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) error {
+		resp, err := sv.GetResource(ctx, req.SourceNamespaceKey, req.Key)
+		if err != nil {
+			return fmt.Errorf("source resource %q/%q: %w", req.SourceNamespaceKey, req.Key, err)
+		}
+		srcResource = resp.Resource
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	// Write to target environment.
+	tgtEnv, err := s.envs.Get(ctx, req.EnvironmentKey)
+	if err != nil {
+		return nil, fmt.Errorf("target environment: %w", err)
+	}
+
+	resp := &environments.CopyResourceResponse{
+		Resource: &environments.Resource{
+			NamespaceKey: req.NamespaceKey,
+			Key:          srcResource.Key,
+			Payload:      srcResource.Payload,
+		},
+	}
+
+	resp.Revision, err = tgtEnv.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
+		_, err := sv.GetResource(ctx, req.NamespaceKey, req.Key)
+		exists := err == nil
+
+		if err != nil && !errors.AsMatch[errors.ErrNotFound](err) {
+			return err
+		}
+
+		switch {
+		case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL:
+			return errors.ErrAlreadyExistsf("resource %q/%q/%q", req.TypeUrl, req.NamespaceKey, req.Key)
+		case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
+			resp.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
+			return nil
+		case exists: // OVERWRITE
+			resp.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
+			return sv.UpdateResource(ctx, resp.Resource)
+		default: // doesn't exist — create
+			resp.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
+			return sv.CreateResource(ctx, resp.Resource)
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteResourceRequest) (_ *environments.DeleteResourceResponse, err error) {
 	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
