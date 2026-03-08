@@ -6,6 +6,8 @@ import (
 
 	"github.com/samber/lo"
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/coss/license"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -16,15 +18,23 @@ import (
 var _ environments.EnvironmentsServiceServer = (*Server)(nil)
 
 type Server struct {
-	logger *zap.Logger
+	logger         *zap.Logger
+	licenseManager license.Manager
 
 	envs *EnvironmentStore
 
 	environments.UnimplementedEnvironmentsServiceServer
 }
 
-func NewServer(logger *zap.Logger, envs *EnvironmentStore) (_ *Server, err error) {
-	return &Server{logger: logger, envs: envs}, nil
+func NewServer(logger *zap.Logger, licenseManager license.Manager, envs *EnvironmentStore) (_ *Server, err error) {
+	return &Server{logger: logger, licenseManager: licenseManager, envs: envs}, nil
+}
+
+func (s *Server) requirePro() error {
+	if s.licenseManager == nil || s.licenseManager.Product() != product.Pro {
+		return errors.ErrUnauthenticatedf("this feature requires a Flipt Pro license")
+	}
+	return nil
 }
 
 // RegisterGRPC registers the *Server onto the provided grpc Server.

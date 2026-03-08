@@ -267,7 +267,7 @@ func NewGRPCServer(
 		healthsrv = health.NewServer()
 	)
 
-	envsrv, err := serverenvironments.NewServer(logger, environmentStore)
+	envsrv, err := serverenvironments.NewServer(logger, licenseManager, environmentStore)
 	if err != nil {
 		return nil, fmt.Errorf("building environments server: %w", err)
 	}
