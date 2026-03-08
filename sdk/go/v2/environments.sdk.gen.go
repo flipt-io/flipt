@@ -99,3 +99,27 @@ func (x *Environments) DeleteResource(ctx context.Context, v *environments.Delet
 	}
 	return x.transport.DeleteResource(ctx, v)
 }
+
+func (x *Environments) CopyResource(ctx context.Context, v *environments.CopyResourceRequest) (*environments.CopyResourceResponse, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.CopyResource(ctx, v)
+}
+
+func (x *Environments) CopyNamespace(ctx context.Context, v *environments.CopyNamespaceRequest) (*environments.CopyNamespaceResponse, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.CopyNamespace(ctx, v)
+}
+
+func (x *Environments) BulkApplyResources(ctx context.Context, v *environments.BulkApplyResourcesRequest) (*environments.BulkApplyResourcesResponse, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.BulkApplyResources(ctx, v)
+}
