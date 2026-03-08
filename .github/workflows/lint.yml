@@ -6,9 +6,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-env:
-  GO_VERSION: "1.26"
-
 jobs:
   go-lint:
     name: "Lint Go"
@@ -16,18 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - name: Install mise
+        uses: jdx/mise-action@v2
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9.2.0
-        with:
-          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v2.9.0
-          args: --timeout=10m
+        run: golangci-lint run --timeout=10m
 
   ui-lint:
     name: "Lint UI"
@@ -35,11 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: ui/package-lock.json
+      - name: Install mise
+        uses: jdx/mise-action@v2
 
       - name: Lint
         run: |
@@ -67,11 +54,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - name: Install mise
+        uses: jdx/mise-action@v2
 
       - name: Run go mod tidy.
         run: go mod tidy

@@ -8,9 +8,6 @@ permissions:
   contents: write
   packages: write
 
-env:
-  GO_VERSION: "1.26"
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -28,16 +25,6 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-
       - name: Install GCC for arm64
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -50,15 +37,11 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
           echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          # mac build currently doesn't exist for v1.15.0 https://github.com/magefile/mage/issues/481
-          version: v1.14.0
-          install-only: true
+      - name: Install mise
+        uses: jdx/mise-action@v2
 
       - name: Prep Build
-        run: mage prep
+        run: mise run prep
         env:
           FLIPT_FORMBRICKS_ENVIRONMENT_ID: ${{ secrets.FLIPT_FORMBRICKS_ENVIRONMENT_ID }}
 
@@ -93,11 +76,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - name: Install mise
+        uses: jdx/mise-action@v2
 
       - uses: docker/setup-qemu-action@v3
 
@@ -142,13 +122,6 @@ jobs:
           app-id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
           owner: ${{ github.repository_owner }}
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          # mac build currently doesn't exist for v1.15.0 https://github.com/magefile/mage/issues/481
-          version: v1.14.0
-          install-only: true
 
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v7

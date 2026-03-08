@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.26"
   DAGGER_VERSION: "0.20.0"
   DAGGER_NO_NAG: "1"
 
@@ -43,11 +42,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - name: Install mise
+        uses: jdx/mise-action@v2
 
       - name: Unit Test SQLite
         env:
@@ -60,11 +56,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: ui/package-lock.json
+      - name: Install mise
+        uses: jdx/mise-action@v2
 
       - name: Unit Test
         run: |

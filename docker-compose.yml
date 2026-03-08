@@ -10,7 +10,7 @@ services:
       - "8080:8080"
     volumes:
       - .:/server
-    command: ["mage", "go:run"]
+    command: ["mise", "run", "dev"]
 
   ui:
     depends_on:
