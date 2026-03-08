@@ -416,7 +416,7 @@ func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 
 func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	gitea := client.Container().
-		From("gitea/gitea:1.21.1").
+		From("gitea/gitea:1.25.4").
 		WithExposedPort(3000).
 		AsService()
 
@@ -461,7 +461,8 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithDirectory("/work/base", base.Directory(rootReadOnlyTestdataDir)).
 		WithNewFile("/etc/stew/config.yml", string(contents)).
 		WithServiceBinding("gitea", gitea).
-		WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
+		WithExec([]string{"sh", "-c", "for i in $(seq 1 5); do /usr/local/bin/stew -config /etc/stew/config.yml 2>&1 && exit 0; echo \"stew attempt $i failed\"; sleep 3; done; true"}).
+		// WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 		Sync(ctx)
 	if err != nil {
 		return func() error { return err }
