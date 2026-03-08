@@ -178,6 +178,85 @@ export const environmentsApi = createApi({
         body: { title, body, draft }
       }),
       invalidatesTags: () => [{ type: 'BranchEnvironment' }]
+    }),
+    copyResource: builder.mutation<
+      {
+        resource: { namespaceKey: string; key: string; payload: unknown };
+        status: string;
+        revision: string;
+      },
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        sourceEnvironmentKey: string;
+        sourceNamespaceKey: string;
+        typeUrl: string;
+        key: string;
+        onConflict?: string;
+        revision: string;
+      }
+    >({
+      query: ({
+        environmentKey,
+        namespaceKey,
+        sourceEnvironmentKey,
+        sourceNamespaceKey,
+        typeUrl,
+        key,
+        onConflict,
+        revision
+      }) => ({
+        url: `/${environmentKey}/namespaces/${namespaceKey}/resources/copy`,
+        method: 'POST',
+        body: {
+          source_environment_key: sourceEnvironmentKey,
+          source_namespace_key: sourceNamespaceKey,
+          type_url: typeUrl,
+          key,
+          on_conflict: onConflict,
+          revision
+        }
+      }),
+      invalidatesTags: () => [{ type: 'Environment' }]
+    }),
+    copyNamespace: builder.mutation<
+      {
+        results: Array<{
+          typeUrl: string;
+          key: string;
+          status: string;
+          error?: string;
+        }>;
+        revision: string;
+      },
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        sourceEnvironmentKey: string;
+        sourceNamespaceKey: string;
+        onConflict?: string;
+        revision: string;
+      }
+    >({
+      query: ({
+        environmentKey,
+        namespaceKey,
+        sourceEnvironmentKey,
+        sourceNamespaceKey,
+        onConflict,
+        revision
+      }) => ({
+        url: `/${environmentKey}/namespaces/copy`,
+        method: 'POST',
+        body: {
+          source_environment_key: sourceEnvironmentKey,
+          source_namespace_key: sourceNamespaceKey,
+          namespace_key: namespaceKey,
+          on_conflict: onConflict,
+          revision
+        }
+      }),
+      invalidatesTags: () => [{ type: 'Environment' }]
     })
   })
 });
@@ -188,7 +267,9 @@ export const {
   useCreateBranchEnvironmentMutation,
   useDeleteBranchEnvironmentMutation,
   useListBranchEnvironmentChangesQuery,
-  useProposeEnvironmentMutation
+  useProposeEnvironmentMutation,
+  useCopyResourceMutation,
+  useCopyNamespaceMutation
 } = environmentsApi;
 
 export const environmentsReducer = environmentsSlice.reducer;
