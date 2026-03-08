@@ -15,7 +15,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 )
 
 // newResource constructs a trace resource with Flipt-specific attributes.
@@ -23,7 +23,6 @@ import (
 func newResource(ctx context.Context, fliptVersion string) (*resource.Resource, error) {
 	return resource.New(
 		ctx,
-		resource.WithSchemaURL(semconv.SchemaURL),
 		resource.WithAttributes(
 			semconv.ServiceName("flipt"),
 			semconv.ServiceVersion(fliptVersion),
