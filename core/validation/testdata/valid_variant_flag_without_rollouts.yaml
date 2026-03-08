@@ -1,0 +1,29 @@
+version: "1.5"
+namespace:
+  key: test_namespace
+  name: Test Namespace
+flags:
+- key: variant_flag
+  name: Variant Flag
+  description: A variant flag should not require rollouts field
+  enabled: true
+  type: VARIANT_FLAG_TYPE
+  variants:
+  - key: control
+    name: Control
+    description: Control variant
+  - key: treatment
+    name: Treatment
+    description: Treatment variant
+  rules:
+  - segment: all-users
+    distributions:
+    - variant: control
+      rollout: 50
+    - variant: treatment
+      rollout: 50
+segments:
+- key: all-users
+  name: All Users
+  description: All Users
+  match_type: ALL_MATCH_TYPE

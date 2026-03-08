@@ -191,3 +191,38 @@ func TestValidate_Extended(t *testing.T) {
 	assert.Equal(t, `flags.1.description: incomplete value =~"^.+$"`, ferr.Message)
 	assert.Equal(t, file, ferr.Location.File)
 }
+
+// TestValidate_NullDescriptions tests that null descriptions are allowed
+// in all entities (namespace, flags, variants, segments, constraints, rollouts).
+// This test would have caught the bug where CUE schema was rejecting null descriptions.
+func TestValidate_NullDescriptions(t *testing.T) {
+	const file = "testdata/valid_null_descriptions.yaml"
+	f, err := os.Open(file)
+	require.NoError(t, err)
+
+	defer f.Close()
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	err = v.Validate(file, f)
+	assert.NoError(t, err)
+}
+
+// TestValidate_VariantFlagWithoutRollouts tests that variant flags
+// do not require the rollouts field. This test would have caught the bug
+// where the CUE schema incorrectly required rollouts on all flags due to
+// the unconditional #FlagBoolean | *{} pattern.
+func TestValidate_VariantFlagWithoutRollouts(t *testing.T) {
+	const file = "testdata/valid_variant_flag_without_rollouts.yaml"
+	f, err := os.Open(file)
+	require.NoError(t, err)
+
+	defer f.Close()
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	err = v.Validate(file, f)
+	assert.NoError(t, err)
+}
