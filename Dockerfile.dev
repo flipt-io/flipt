@@ -2,12 +2,12 @@ FROM golang:1.26-alpine
 
 WORKDIR /server
 
-RUN apk add --update --no-cache git bash gcc build-base binutils-gold
+RUN apk add --update --no-cache git bash gcc build-base binutils-gold curl
 
-RUN git clone https://github.com/magefile/mage && \
-  cd mage && \
-  go run bootstrap.go
+RUN curl https://mise.run | sh && \
+  ln -s /root/.local/bin/mise /usr/local/bin/mise
 
+COPY .mise.toml .
 COPY go.mod .
 COPY go.sum .
 COPY ./errors ./errors
