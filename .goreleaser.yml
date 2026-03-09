@@ -77,86 +77,34 @@ changelog:
     - title: "Other"
       order: 3
 
-dockers:
+dockers_v2:
   - dockerfile: ./build/Dockerfile
-    use: buildx
-    goos: linux
-    goarch: amd64
-    image_templates:
-      - "flipt/flipt:v{{ .Tag }}-amd64"
-      - "flipt/flipt:v{{ .Major }}-amd64"
-      - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64"
-      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64"
-    build_flag_templates:
-      - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-
-  - dockerfile: ./build/Dockerfile
-    use: buildx
-    goos: linux
-    goarch: arm64
-    image_templates:
-      - "flipt/flipt:v{{ .Tag }}-arm64"
-      - "flipt/flipt:v{{ .Major }}-arm64"
-      - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64"
-      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64"
-    build_flag_templates:
-      - "--platform=linux/arm64"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-
-docker_manifests:
-  - name_template: "flipt/flipt:v{{ .Tag }}"
-    image_templates:
-      - "flipt/flipt:v{{ .Tag }}-amd64"
-      - "flipt/flipt:v{{ .Tag }}-arm64"
-
-  - name_template: "ghcr.io/flipt-io/flipt:v{{ .Tag }}"
-    image_templates:
-      - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64"
-      - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64"
-
-  - name_template: "flipt/flipt:v{{ .Major }}"
-    image_templates:
-      - "flipt/flipt:v{{ .Major }}-amd64"
-      - "flipt/flipt:v{{ .Major }}-arm64"
-
-  - name_template: "ghcr.io/flipt-io/flipt:v{{ .Major }}"
-    image_templates:
-      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64"
-      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64"
+    images:
+      - "flipt/flipt"
+      - "ghcr.io/flipt-io/flipt"
+    tags:
+      - "v{{ .Tag }}"
+      - "v{{ .Major }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
 
 announce:
   discord:
     enabled: true
 
-brews:
+homebrew_casks:
   - name: flipt@2
     homepage: https://flipt.io
     description: A Git-first, CloudNative feature management solution
-    license: FCL-1.0-MIT
-    directory: Formula
+    directory: Casks
     skip_upload: auto
-    install: |
-      bin.install "flipt"
-      output = Utils.popen_read("SHELL=bash #{bin}/flipt completion bash")
-      (bash_completion/"flipt").write output
-      output = Utils.popen_read("SHELL=zsh #{bin}/flipt completion zsh")
-      (zsh_completion/"_flipt").write output
-
-    post_install: |
-      (var/"log/flipt").mkpath
-
-    service: |
-      run [opt_bin/"flipt", "server"]
-      environment_variables PATH: std_service_path_env
-      keep_alive true
-      error_log_path "#{var}/log/flipt/server-stderr.log"
-      log_path "#{var}/log/flipt/server-stdout.log"
-
+    binaries:
+      - flipt
     repository:
       owner: flipt-io
       name: homebrew-brew

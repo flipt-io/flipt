@@ -50,40 +50,17 @@ nightly:
 changelog:
   disable: true
 
-dockers:
+dockers_v2:
   - dockerfile: ./build/Dockerfile
-    use: buildx
-    goos: linux
-    goarch: amd64
-    image_templates:
-      - "flipt/flipt:{{ .Version }}-amd64"
-      - "ghcr.io/flipt-io/flipt:{{ .Version }}-amd64"
-    build_flag_templates:
-      - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-
-  - dockerfile: ./build/Dockerfile
-    use: buildx
-    goos: linux
-    goarch: arm64
-    image_templates:
-      - "flipt/flipt:{{ .Version }}-arm64"
-      - "ghcr.io/flipt-io/flipt:{{ .Version }}-arm64"
-    build_flag_templates:
-      - "--platform=linux/arm64"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-
-docker_manifests:
-  - name_template: "flipt/flipt:{{ .Version }}"
-    image_templates:
-      - "flipt/flipt:{{ .Version }}-amd64"
-      - "flipt/flipt:{{ .Version }}-arm64"
-
-  - name_template: "ghcr.io/flipt-io/flipt:{{ .Version }}"
-    image_templates:
-      - "ghcr.io/flipt-io/flipt:{{ .Version }}-amd64"
-      - "ghcr.io/flipt-io/flipt:{{ .Version }}-arm64"
+    images:
+      - "flipt/flipt"
+      - "ghcr.io/flipt-io/flipt"
+    tags:
+      - "{{ .Version }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
