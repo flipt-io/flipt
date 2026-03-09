@@ -39,7 +39,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install mise
-        uses: jdx/mise-action@v2
+        uses: jdx/mise-action@v3
 
       - name: Generate Proto
         run: mise run proto
