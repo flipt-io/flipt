@@ -7,8 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.26"
-  DAGGER_VERSION: "0.20.1"
   DAGGER_NO_NAG: "1"
 
 concurrency:
@@ -20,13 +18,14 @@ jobs:
     name: "Tests (Go)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
 
       - name: Run Unit Tests
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . unit export --path coverage.txt
 
       - name: Upload Coverage
@@ -41,13 +40,8 @@ jobs:
     name: "Tests (Go - Darwin)"
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
 
       - name: Unit Test SQLite
         env:
@@ -58,13 +52,8 @@ jobs:
     name: "Tests (UI)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: "npm"
-          cache-dependency-path: ui/package-lock.json
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
 
       - name: Unit Test
         run: |
@@ -76,7 +65,7 @@ jobs:
     name: "Test Install Script"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Shellcheck
         uses: reviewdog/action-shellcheck@v1
@@ -94,11 +83,11 @@ jobs:
     name: "Tests (Migration)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Migration Tests
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . migration

@@ -10,29 +10,14 @@ permissions:
   contents: write
   packages: write
 
-env:
-  GO_VERSION: "1.25"
-
 jobs:
   tag-latest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
-
-      - uses: actions/cache@v4
-        with:
-          path: _tools/
-          key: ${{ runner.os }}-go-tools${{ hashFiles('_tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-tools-
+      - uses: ./.github/actions/setup
 
       - name: Install Skopeo
         run: |
@@ -52,18 +37,13 @@ jobs:
           username: "${{ github.repository_owner }}"
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
-
       - name: Tag and Push latest
         env:
           TAG: ${{ inputs.tag }}
         run: |
           cd build
 
-          if [[ $TAG == $(mage release:latest go.flipt.io/flipt) ]]; then
+          if [[ $TAG == $(mise run release:latest go.flipt.io/flipt) ]]; then
             docker pull flipt/flipt:$TAG
             skopeo copy --all docker://flipt/flipt:$TAG docker://flipt/flipt:latest
 

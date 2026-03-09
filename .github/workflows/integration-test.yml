@@ -7,8 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.26"
-  DAGGER_VERSION: "0.20.1"
   DAGGER_NO_NAG: "1"
 
 concurrency:
@@ -22,13 +20,13 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run CLI Tests
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . cli
 
   test:
@@ -63,7 +61,7 @@ jobs:
             "audit/webhooktmpl",
           ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
@@ -71,7 +69,7 @@ jobs:
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . integration --cases ${{ matrix.test }}
 
       - name: Upload Flipt Service Logs
@@ -88,11 +86,11 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run UI Tests
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . ui

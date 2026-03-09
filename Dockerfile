@@ -2,14 +2,14 @@ FROM golang:1.26-alpine AS build
 
 WORKDIR /home/flipt
 
-RUN apk add --update --no-cache npm git bash gcc build-base binutils-gold
+RUN apk add --update --no-cache npm git bash gcc build-base binutils-gold curl
 
-RUN git clone https://github.com/magefile/mage && \
-    cd mage && \
-    go run bootstrap.go
+RUN curl https://mise.run | sh
+ENV PATH="/root/.local/bin:$PATH"
 
 COPY go.mod .
 COPY go.sum .
+COPY .mise.toml .
 COPY ./errors ./errors
 COPY ./rpc/flipt ./rpc/flipt
 COPY ./sdk ./sdk
@@ -21,8 +21,9 @@ COPY . /home/flipt
 
 ENV CGO_ENABLED=1
 
-RUN mage bootstrap && \
-    mage build
+RUN mise bootstrap && \
+    mise prep && \
+    mise build
 
 FROM alpine:3.23
 

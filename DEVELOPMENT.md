@@ -119,7 +119,7 @@ To start the containers, run `docker-compose up` from the root of this repositor
 
 ## CDEs
 
-Flipt also supports Containerized Development Environments (CDE) [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces)/[Gitpod](https://www.gitpod.io/).
+Flipt also supports Containerized Development Environments (CDE) [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces).
 
 These technologies allow you to quickly get setup with a Flipt development environment either locally or 'in the cloud'.
 
@@ -132,12 +132,6 @@ For VSCode Remote Containers (devcontainers), make sure you have [Docker](https:
 Simply open Flipt in a codespaces from the `Code` tab in the repo on GitHub or click the button below:
 
 [![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
-
-### Gitpod
-
-To use [Gitpod](https://www.gitpod.io/), simply open Flipt in Gitpod by clicking the button below:
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/flipt-io/flipt)
 
 ## devenv
 

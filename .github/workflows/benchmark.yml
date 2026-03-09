@@ -6,21 +6,13 @@ on:
   pull_request:
   workflow_dispatch:
 
-env:
-  GO_VERSION: "1.26"
-
 jobs:
   benchmark:
     name: Benchmark SQLite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
 
       - name: Run Benchmarks
         run: go test -run XXX -bench . -benchtime 5s -benchmem -short ./...
