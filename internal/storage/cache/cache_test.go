@@ -19,7 +19,7 @@ import (
 
 func TestSetJSON_HandleMarshalError(t *testing.T) {
 	var (
-		store       = &common.StoreMock{}
+		store       = common.NewMockStore(t)
 		cacher      = &cacheMock{}
 		logger      = zaptest.NewLogger(t)
 		cachedStore = NewStore(store, cacher, logger)
@@ -31,7 +31,7 @@ func TestSetJSON_HandleMarshalError(t *testing.T) {
 
 func TestGetJSON_HandleGetError(t *testing.T) {
 	var (
-		store       = &common.StoreMock{}
+		store       = common.NewMockStore(t)
 		cacher      = &cacheMock{getErr: errors.New("get error")}
 		logger      = zaptest.NewLogger(t)
 		cachedStore = NewStore(store, cacher, logger)
@@ -44,7 +44,7 @@ func TestGetJSON_HandleGetError(t *testing.T) {
 
 func TestGetJSON_HandleUnmarshalError(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		cacher = &cacheMock{
 			cached:      true,
 			cachedValue: []byte(`{"invalid":"123"`),
@@ -60,7 +60,7 @@ func TestGetJSON_HandleUnmarshalError(t *testing.T) {
 
 func TestGetProtobuf_HandleGetError(t *testing.T) {
 	var (
-		store       = &common.StoreMock{}
+		store       = common.NewMockStore(t)
 		cacher      = &cacheMock{getErr: errors.New("get error")}
 		logger      = zaptest.NewLogger(t)
 		cachedStore = NewStore(store, cacher, logger)
@@ -73,7 +73,7 @@ func TestGetProtobuf_HandleGetError(t *testing.T) {
 
 func TestGetProtobuf_HandleUnmarshalError(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		cacher = &cacheMock{
 			cached:      true,
 			cachedValue: []byte(`{"invalid":"123"`),
@@ -90,7 +90,7 @@ func TestGetProtobuf_HandleUnmarshalError(t *testing.T) {
 func TestGetEvaluationRules(t *testing.T) {
 	var (
 		expectedRules = []*storage.EvaluationRule{{NamespaceKey: "ns", Rank: 1}}
-		store         = &common.StoreMock{}
+		store         = common.NewMockStore(t)
 	)
 
 	store.On("GetVersion", context.TODO(), storage.NewNamespace("ns")).Return(
@@ -137,7 +137,7 @@ func TestGetEvaluationRules(t *testing.T) {
 func TestGetEvaluationRollouts(t *testing.T) {
 	var (
 		expectedRollouts = []*storage.EvaluationRollout{{NamespaceKey: "ns", Rank: 1}}
-		store            = &common.StoreMock{}
+		store            = common.NewMockStore(t)
 	)
 
 	store.On("GetVersion", context.TODO(), storage.NewNamespace("ns")).Return(
@@ -181,14 +181,14 @@ func TestGetEvaluationRollouts(t *testing.T) {
 func TestGetEvaluationDistributions(t *testing.T) {
 	var (
 		expectedDistributions = []*storage.EvaluationDistribution{{VariantKey: "v"}}
-		store                 = &common.StoreMock{}
+		store                 = common.NewMockStore(t)
 	)
 
 	store.On("GetVersion", context.TODO(), storage.NewNamespace("ns")).Return(
 		"v-321", nil,
 	)
 
-	store.On("GetEvaluationDistributions", context.TODO(), mock.Anything).Return(
+	store.On("GetEvaluationDistributions", context.TODO(), mock.Anything, mock.Anything).Return(
 		expectedDistributions, nil,
 	)
 
@@ -225,7 +225,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 func TestGetFlag(t *testing.T) {
 	var (
 		expectedFlag = &flipt.Flag{NamespaceKey: "ns", Key: "flag-1"}
-		store        = &common.StoreMock{}
+		store        = common.NewMockStore(t)
 	)
 
 	store.On("GetVersion", context.TODO(), storage.NewNamespace("ns")).Return(
@@ -268,7 +268,7 @@ func TestGetFlag(t *testing.T) {
 func TestListFlags(t *testing.T) {
 	var (
 		expectedFlags = storage.ResultSet[*flipt.Flag]{}
-		store         = &common.StoreMock{}
+		store         = common.NewMockStore(t)
 	)
 
 	store.On("GetVersion", context.TODO(), storage.NewNamespace("ns")).Return(
@@ -319,7 +319,7 @@ func TestListFlags(t *testing.T) {
 func TestUpdateNamespace(t *testing.T) {
 	var (
 		expectedNs = &flipt.Namespace{Key: "ns"}
-		store      = &common.StoreMock{}
+		store      = common.NewMockStore(t)
 	)
 	store.On("GetVersion", context.TODO(), storage.NewNamespace("ns")).Return(
 		"v-321", nil,
@@ -351,7 +351,7 @@ func TestUpdateNamespace(t *testing.T) {
 }
 
 func TestDeleteNamespace(t *testing.T) {
-	store := &common.StoreMock{}
+	store := common.NewMockStore(t)
 
 	store.On("DeleteNamespace", context.TODO(), mock.Anything).Return(nil)
 
@@ -381,12 +381,12 @@ func TestDeleteNamespace(t *testing.T) {
 func TestCUD(t *testing.T) {
 	tests := []struct {
 		name   string
-		setup  func(store *common.StoreMock)
+		setup  func(store *common.MockStore)
 		docall func(store *Store) error
 	}{
 		{
 			"CreateFlag",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("CreateFlag", context.TODO(), mock.Anything).Return(&flipt.Flag{NamespaceKey: "ns", Key: "flag-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -396,7 +396,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"UpdateFlag",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("UpdateFlag", context.TODO(), mock.Anything).Return(&flipt.Flag{NamespaceKey: "ns", Key: "flag-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -406,7 +406,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"DeleteFlag",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("DeleteFlag", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -415,7 +415,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"CreateVariant",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("CreateVariant", context.TODO(), mock.Anything).Return(&flipt.Variant{NamespaceKey: "ns", FlagKey: "flag-1", Key: "var-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -425,7 +425,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"UpdateVariant",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("UpdateVariant", context.TODO(), mock.Anything).Return(&flipt.Variant{NamespaceKey: "ns", FlagKey: "flag-1", Key: "var-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -435,7 +435,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"DeleteVariant",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("DeleteVariant", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -444,7 +444,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"CreateSegment",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("CreateSegment", context.TODO(), mock.Anything).Return(&flipt.Segment{NamespaceKey: "ns", Key: "seg-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -454,7 +454,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"UpdateSegment",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("UpdateSegment", context.TODO(), mock.Anything).Return(&flipt.Segment{NamespaceKey: "ns", Key: "seg-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -464,7 +464,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"DeleteSegment",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("DeleteSegment", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -473,7 +473,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"CreateConstraint",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("CreateConstraint", context.TODO(), mock.Anything).Return(&flipt.Constraint{NamespaceKey: "ns", SegmentKey: "seg-1", Id: "a1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -483,7 +483,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"UpdateConstraint",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("UpdateConstraint", context.TODO(), mock.Anything).Return(&flipt.Constraint{NamespaceKey: "ns", SegmentKey: "seg-1", Id: "a1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -493,7 +493,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"DeleteConstraint",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("DeleteConstraint", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -502,7 +502,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"CreateRule",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("CreateRule", context.TODO(), mock.Anything).Return(&flipt.Rule{NamespaceKey: "ns", FlagKey: "flag-1", Id: "rule-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -512,7 +512,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"UpdateRule",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("UpdateRule", context.TODO(), mock.Anything).Return(&flipt.Rule{NamespaceKey: "ns", FlagKey: "flag-1", Id: "rule-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -522,7 +522,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"DeleteRule",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("DeleteRule", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -531,7 +531,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"OrderRules",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("OrderRules", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -540,7 +540,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"CreateDistribution",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("CreateDistribution", context.TODO(), mock.Anything).Return(&flipt.Distribution{RuleId: "rule-1", Id: "dist-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -550,7 +550,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"UpdateDistribution",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("UpdateDistribution", context.TODO(), mock.Anything).Return(&flipt.Distribution{RuleId: "rule-1", Id: "dist-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -560,7 +560,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"DeleteDistribution",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("DeleteDistribution", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -569,7 +569,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"CreateRollout",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("CreateRollout", context.TODO(), mock.Anything).Return(&flipt.Rollout{NamespaceKey: "ns", FlagKey: "flag-1", Id: "roll-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -579,7 +579,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"UpdateRollout",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("UpdateRollout", context.TODO(), mock.Anything).Return(&flipt.Rollout{NamespaceKey: "ns", FlagKey: "flag-1", Id: "roll-1"}, nil)
 			},
 			func(cachedStore *Store) error {
@@ -589,7 +589,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"DeleteRollout",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("DeleteRollout", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -598,7 +598,7 @@ func TestCUD(t *testing.T) {
 		},
 		{
 			"OrderRollouts",
-			func(store *common.StoreMock) {
+			func(store *common.MockStore) {
 				store.On("OrderRollouts", context.TODO(), mock.Anything).Return(nil)
 			},
 			func(cachedStore *Store) error {
@@ -609,7 +609,7 @@ func TestCUD(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store := &common.StoreMock{}
+			store := common.NewMockStore(t)
 
 			store.On("GetVersion", context.TODO(), storage.NewNamespace("ns")).Return(
 				"v-321", nil,

@@ -17,7 +17,7 @@ import (
 
 func TestGetNamespace(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -39,7 +39,7 @@ func TestGetNamespace(t *testing.T) {
 
 func TestListNamespaces_PaginationOffset(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -79,7 +79,7 @@ func TestListNamespaces_PaginationOffset(t *testing.T) {
 
 func TestListNamespaces_WithAuthz(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -144,7 +144,7 @@ func TestListNamespaces_WithAuthz(t *testing.T) {
 
 func TestListNamespaces_PaginationPageToken(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -185,7 +185,7 @@ func TestListNamespaces_PaginationPageToken(t *testing.T) {
 
 func TestCreateNamespace(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -212,7 +212,7 @@ func TestCreateNamespace(t *testing.T) {
 
 func TestUpdateNamespace(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -239,7 +239,7 @@ func TestUpdateNamespace(t *testing.T) {
 
 func TestDeleteNamespace(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -266,7 +266,7 @@ func TestDeleteNamespace(t *testing.T) {
 
 func TestDeleteNamespace_NonExistent(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -291,7 +291,7 @@ func TestDeleteNamespace_NonExistent(t *testing.T) {
 
 func TestDeleteNamespace_Protected(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -307,8 +307,6 @@ func TestDeleteNamespace_Protected(t *testing.T) {
 		Protected: true,
 	}, nil)
 
-	store.On("CountFlags", mock.Anything, storage.NewNamespace("foo")).Return(uint64(0), nil)
-
 	store.AssertNotCalled(t, "DeleteNamespace")
 
 	got, err := s.DeleteNamespace(context.TODO(), req)
@@ -318,7 +316,7 @@ func TestDeleteNamespace_Protected(t *testing.T) {
 
 func TestDeleteNamespace_HasFlags(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -344,7 +342,7 @@ func TestDeleteNamespace_HasFlags(t *testing.T) {
 
 func TestDeleteNamespace_ProtectedWithForce(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -373,7 +371,7 @@ func TestDeleteNamespace_ProtectedWithForce(t *testing.T) {
 
 func TestDeleteNamespace_HasFlagsWithForce(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,

@@ -17,8 +17,23 @@ func newAdaptedPostgresDriver(d Driver) driver.Driver {
 	return &adaptedDriver{origin: &pgx.Driver{}, adapter: d}
 }
 
-var _ driver.Driver = (*adaptedDriver)(nil)
-var _ driver.DriverContext = (*adaptedDriver)(nil)
+var (
+	_ driver.Driver        = (*adaptedDriver)(nil)
+	_ driver.DriverContext = (*adaptedDriver)(nil)
+)
+
+// driver is a interface for mockery
+type driverContext = driver.DriverContext
+
+var _ driverContext
+
+// driverConn is a interface for mockery
+type driverConn interface {
+	driver.Conn
+	driver.Connector
+}
+
+var _ driverConn
 
 type adaptedDriver struct {
 	adapter Driver

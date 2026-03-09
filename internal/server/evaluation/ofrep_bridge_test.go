@@ -18,7 +18,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 		flag         = &flipt.Flag{
@@ -45,7 +45,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		},
 	}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{
 		{
 			ID:         "4",
 			RuleID:     "1",
@@ -75,7 +75,7 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 		flag         = &flipt.Flag{

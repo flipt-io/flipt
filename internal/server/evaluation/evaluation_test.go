@@ -19,7 +19,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -44,7 +44,7 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -74,7 +74,7 @@ func TestVariant_FlagDisabled(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -105,7 +105,7 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 		flag         = &flipt.Flag{
@@ -137,7 +137,7 @@ func TestVariant_Success(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 		flag         = &flipt.Flag{
@@ -174,7 +174,7 @@ func TestVariant_Success(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
@@ -196,7 +196,7 @@ func TestBoolean_FlagNotFoundError(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -222,7 +222,7 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -253,7 +253,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -287,7 +287,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -331,7 +331,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -375,7 +375,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -443,7 +443,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -508,7 +508,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -565,7 +565,7 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -637,7 +637,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -703,7 +703,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -738,7 +738,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
@@ -770,7 +770,7 @@ func TestBatch_Success(t *testing.T) {
 		anotherFlagKey = "another-test-flag"
 		variantFlagKey = "variant-test-flag"
 		namespaceKey   = "test-namespace"
-		store          = &evaluationStoreMock{}
+		store          = NewMockStorer(t)
 		logger         = zaptest.NewLogger(t)
 		s              = New(logger, store)
 	)
@@ -827,7 +827,7 @@ func TestBatch_Success(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	res, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
