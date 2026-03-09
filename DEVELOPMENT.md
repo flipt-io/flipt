@@ -13,9 +13,7 @@ Before starting, make sure you have the following installed:
 
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
 - [SQLite](https://sqlite.org/index.html)
-- [Go 1.25+](https://golang.org/doc/install)
-- [NodeJS >= 18](https://nodejs.org/en/ )
-- [Mage](https://magefile.org/)
+- [Mise](https://mise.jdx.dev)
 - [Docker](https://docs.docker.com/install/) (for running tests)
 
 ## CGO
@@ -43,10 +41,10 @@ Then you need to enable CGO.
 ## Setup
 
 1. Clone this repo: `git clone https://github.com/flipt-io/flipt`.
-2. Run `mage bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
-3. Run `mage go:test` to execute the Go test suite. For more information on tests, see also [here](build/README.md)
-4. Run `mage` to build the binary with embedded assets.
-5. Run `mage -l` to see a full list of possible commands.
+2. Run `mise run bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
+3. Run `mise run go:test` to execute the Go test suite. For more information on tests, see also [here](build/README.md)
+4. Run `mise run build` to build the binary with embedded assets.
+5. Run `mise tasks` to see a full list of possible commands.
 
 ## Conventional Commits
 
@@ -84,7 +82,7 @@ Changing certain types of files such as the proto or ui files require re-buildin
 
 ### Updating .proto Files
 
-After changing `flipt.proto`, you'll need to run `mage proto`. This will regenerate the necessary files in the `rpc` directory.
+After changing `flipt.proto`, you'll need to run `mise run go:proto`. This will regenerate the necessary files in the `rpc` directory.
 
 ## UI
 
@@ -92,8 +90,8 @@ The UI is built using [NPM](https://nodejs.org/en/) and [Vite](https://vitejs.de
 
 To develop the project with the UI also in development mode (with hot reloading):
 
-1. Run `mage ui:dev` from the root of this repository. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
-2. In another terminal, run `mage dev` (or `mage go:run`) from the root of this repository. This will run the backend server making it accessible on port `8080`.
+1. Run `mise run ui:dev` from the root of this repository. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
+2. In another terminal, run `mise run dev` from the root of this repository. This will run the backend server making it accessible on port `8080`.
 3. Visit `http://localhost:5173` to see the UI.
 4. Any changes made in the `ui` directory will be picked up by the development server and the UI will be reloaded.
 
