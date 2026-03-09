@@ -71,15 +71,26 @@ type MockReadOnlyStore_CountFlags_Call struct {
 }
 
 // CountFlags is a helper method to define mock.On call
-//   - ctx
-//   - ns
+//   - ctx context.Context
+//   - ns NamespaceRequest
 func (_e *MockReadOnlyStore_Expecter) CountFlags(ctx interface{}, ns interface{}) *MockReadOnlyStore_CountFlags_Call {
 	return &MockReadOnlyStore_CountFlags_Call{Call: _e.mock.On("CountFlags", ctx, ns)}
 }
 
 func (_c *MockReadOnlyStore_CountFlags_Call) Run(run func(ctx context.Context, ns NamespaceRequest)) *MockReadOnlyStore_CountFlags_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(NamespaceRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 NamespaceRequest
+		if args[1] != nil {
+			arg1 = args[1].(NamespaceRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -128,15 +139,26 @@ type MockReadOnlyStore_EvaluationNamespaceSnapshot_Call struct {
 }
 
 // EvaluationNamespaceSnapshot is a helper method to define mock.On call
-//   - context1
-//   - ns
+//   - context1 context.Context
+//   - ns string
 func (_e *MockReadOnlyStore_Expecter) EvaluationNamespaceSnapshot(context1 interface{}, ns interface{}) *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call {
 	return &MockReadOnlyStore_EvaluationNamespaceSnapshot_Call{Call: _e.mock.On("EvaluationNamespaceSnapshot", context1, ns)}
 }
 
 func (_c *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call) Run(run func(context1 context.Context, ns string)) *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -185,16 +207,32 @@ type MockReadOnlyStore_GetEvaluationDistributions_Call struct {
 }
 
 // GetEvaluationDistributions is a helper method to define mock.On call
-//   - ctx
-//   - flag
-//   - rule
+//   - ctx context.Context
+//   - flag ResourceRequest
+//   - rule IDRequest
 func (_e *MockReadOnlyStore_Expecter) GetEvaluationDistributions(ctx interface{}, flag interface{}, rule interface{}) *MockReadOnlyStore_GetEvaluationDistributions_Call {
 	return &MockReadOnlyStore_GetEvaluationDistributions_Call{Call: _e.mock.On("GetEvaluationDistributions", ctx, flag, rule)}
 }
 
 func (_c *MockReadOnlyStore_GetEvaluationDistributions_Call) Run(run func(ctx context.Context, flag ResourceRequest, rule IDRequest)) *MockReadOnlyStore_GetEvaluationDistributions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(ResourceRequest), args[2].(IDRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 ResourceRequest
+		if args[1] != nil {
+			arg1 = args[1].(ResourceRequest)
+		}
+		var arg2 IDRequest
+		if args[2] != nil {
+			arg2 = args[2].(IDRequest)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -243,15 +281,26 @@ type MockReadOnlyStore_GetEvaluationRollouts_Call struct {
 }
 
 // GetEvaluationRollouts is a helper method to define mock.On call
-//   - ctx
-//   - flag
+//   - ctx context.Context
+//   - flag ResourceRequest
 func (_e *MockReadOnlyStore_Expecter) GetEvaluationRollouts(ctx interface{}, flag interface{}) *MockReadOnlyStore_GetEvaluationRollouts_Call {
 	return &MockReadOnlyStore_GetEvaluationRollouts_Call{Call: _e.mock.On("GetEvaluationRollouts", ctx, flag)}
 }
 
 func (_c *MockReadOnlyStore_GetEvaluationRollouts_Call) Run(run func(ctx context.Context, flag ResourceRequest)) *MockReadOnlyStore_GetEvaluationRollouts_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(ResourceRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 ResourceRequest
+		if args[1] != nil {
+			arg1 = args[1].(ResourceRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -300,15 +349,26 @@ type MockReadOnlyStore_GetEvaluationRules_Call struct {
 }
 
 // GetEvaluationRules is a helper method to define mock.On call
-//   - ctx
-//   - flag
+//   - ctx context.Context
+//   - flag ResourceRequest
 func (_e *MockReadOnlyStore_Expecter) GetEvaluationRules(ctx interface{}, flag interface{}) *MockReadOnlyStore_GetEvaluationRules_Call {
 	return &MockReadOnlyStore_GetEvaluationRules_Call{Call: _e.mock.On("GetEvaluationRules", ctx, flag)}
 }
 
 func (_c *MockReadOnlyStore_GetEvaluationRules_Call) Run(run func(ctx context.Context, flag ResourceRequest)) *MockReadOnlyStore_GetEvaluationRules_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(ResourceRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 ResourceRequest
+		if args[1] != nil {
+			arg1 = args[1].(ResourceRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -357,15 +417,26 @@ type MockReadOnlyStore_GetFlag_Call struct {
 }
 
 // GetFlag is a helper method to define mock.On call
-//   - ctx
-//   - req
+//   - ctx context.Context
+//   - req ResourceRequest
 func (_e *MockReadOnlyStore_Expecter) GetFlag(ctx interface{}, req interface{}) *MockReadOnlyStore_GetFlag_Call {
 	return &MockReadOnlyStore_GetFlag_Call{Call: _e.mock.On("GetFlag", ctx, req)}
 }
 
 func (_c *MockReadOnlyStore_GetFlag_Call) Run(run func(ctx context.Context, req ResourceRequest)) *MockReadOnlyStore_GetFlag_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(ResourceRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 ResourceRequest
+		if args[1] != nil {
+			arg1 = args[1].(ResourceRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -412,15 +483,26 @@ type MockReadOnlyStore_ListFlags_Call struct {
 }
 
 // ListFlags is a helper method to define mock.On call
-//   - ctx
-//   - req
+//   - ctx context.Context
+//   - req *ListRequest[NamespaceRequest]
 func (_e *MockReadOnlyStore_Expecter) ListFlags(ctx interface{}, req interface{}) *MockReadOnlyStore_ListFlags_Call {
 	return &MockReadOnlyStore_ListFlags_Call{Call: _e.mock.On("ListFlags", ctx, req)}
 }
 
 func (_c *MockReadOnlyStore_ListFlags_Call) Run(run func(ctx context.Context, req *ListRequest[NamespaceRequest])) *MockReadOnlyStore_ListFlags_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*ListRequest[NamespaceRequest]))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *ListRequest[NamespaceRequest]
+		if args[1] != nil {
+			arg1 = args[1].(*ListRequest[NamespaceRequest])
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }

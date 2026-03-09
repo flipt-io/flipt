@@ -105,14 +105,20 @@ type MockManager_Shutdown_Call struct {
 }
 
 // Shutdown is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockManager_Expecter) Shutdown(ctx interface{}) *MockManager_Shutdown_Call {
 	return &MockManager_Shutdown_Call{Call: _e.mock.On("Shutdown", ctx)}
 }
 
 func (_c *MockManager_Shutdown_Call) Run(run func(ctx context.Context)) *MockManager_Shutdown_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }

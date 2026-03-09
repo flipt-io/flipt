@@ -70,14 +70,20 @@ type MockPullRequestsService_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
-//   - po
+//   - po *bitbucket.PullRequestsOptions
 func (_e *MockPullRequestsService_Expecter) Create(po interface{}) *MockPullRequestsService_Create_Call {
 	return &MockPullRequestsService_Create_Call{Call: _e.mock.On("Create", po)}
 }
 
 func (_c *MockPullRequestsService_Create_Call) Run(run func(po *bitbucket.PullRequestsOptions)) *MockPullRequestsService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*bitbucket.PullRequestsOptions))
+		var arg0 *bitbucket.PullRequestsOptions
+		if args[0] != nil {
+			arg0 = args[0].(*bitbucket.PullRequestsOptions)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -126,14 +132,20 @@ type MockPullRequestsService_Gets_Call struct {
 }
 
 // Gets is a helper method to define mock.On call
-//   - po
+//   - po *bitbucket.PullRequestsOptions
 func (_e *MockPullRequestsService_Expecter) Gets(po interface{}) *MockPullRequestsService_Gets_Call {
 	return &MockPullRequestsService_Gets_Call{Call: _e.mock.On("Gets", po)}
 }
 
 func (_c *MockPullRequestsService_Gets_Call) Run(run func(po *bitbucket.PullRequestsOptions)) *MockPullRequestsService_Gets_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*bitbucket.PullRequestsOptions))
+		var arg0 *bitbucket.PullRequestsOptions
+		if args[0] != nil {
+			arg0 = args[0].(*bitbucket.PullRequestsOptions)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -209,14 +221,20 @@ type MockCommitsService_GetCommits_Call struct {
 }
 
 // GetCommits is a helper method to define mock.On call
-//   - cmo
+//   - cmo *bitbucket.CommitsOptions
 func (_e *MockCommitsService_Expecter) GetCommits(cmo interface{}) *MockCommitsService_GetCommits_Call {
 	return &MockCommitsService_GetCommits_Call{Call: _e.mock.On("GetCommits", cmo)}
 }
 
 func (_c *MockCommitsService_GetCommits_Call) Run(run func(cmo *bitbucket.CommitsOptions)) *MockCommitsService_GetCommits_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*bitbucket.CommitsOptions))
+		var arg0 *bitbucket.CommitsOptions
+		if args[0] != nil {
+			arg0 = args[0].(*bitbucket.CommitsOptions)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }

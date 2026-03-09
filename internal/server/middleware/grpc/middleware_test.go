@@ -3,6 +3,7 @@ package grpc_middleware
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -649,7 +650,7 @@ func TestEvaluationUnaryInterceptor_RequestID(t *testing.T) {
 }
 
 func TestForwardFliptEnvironment(t *testing.T) {
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	md := ForwardFliptEnvironment(t.Context(), req)
 	assert.Empty(t, md.Get(common.HeaderFliptEnvironment))
 	req.Header.Add(common.HeaderFliptEnvironment, "extra-environment")
@@ -659,7 +660,7 @@ func TestForwardFliptEnvironment(t *testing.T) {
 }
 
 func TestForwardFliptNamespace(t *testing.T) {
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	md := ForwardFliptNamespace(t.Context(), req)
 	assert.Empty(t, md.Get(common.HeaderFliptNamespace))
 	req.Header.Add(common.HeaderFliptNamespace, "extra-namespace")

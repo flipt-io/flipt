@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  DAGGER_VERSION: "0.20.0"
+  DAGGER_VERSION: "0.20.1"
   DAGGER_NO_NAG: "1"
 
 concurrency:
