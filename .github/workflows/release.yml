@@ -38,7 +38,7 @@ jobs:
           echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
       - name: Install mise
-        uses: jdx/mise-action@v2
+        uses: jdx/mise-action@v3
 
       - name: Prep Build
         run: mise run prep
@@ -77,7 +77,7 @@ jobs:
           ref: ${{ github.ref_name }}
 
       - name: Install mise
-        uses: jdx/mise-action@v2
+        uses: jdx/mise-action@v3
 
       - uses: docker/setup-qemu-action@v3
 
