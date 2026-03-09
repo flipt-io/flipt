@@ -1,5 +1,5 @@
 name: Setup
-description: Checkout and install mise tools
+description: Flipt v2 CI mise setup
 runs:
   using: composite
   steps:
