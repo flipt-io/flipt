@@ -71,15 +71,26 @@ type MockClient_GetBatchFlagEvaluationsCount_Call struct {
 }
 
 // GetBatchFlagEvaluationsCount is a helper method to define mock.On call
-//   - ctx
-//   - req
+//   - ctx context.Context
+//   - req *BatchFlagEvaluationsCountRequest
 func (_e *MockClient_Expecter) GetBatchFlagEvaluationsCount(ctx interface{}, req interface{}) *MockClient_GetBatchFlagEvaluationsCount_Call {
 	return &MockClient_GetBatchFlagEvaluationsCount_Call{Call: _e.mock.On("GetBatchFlagEvaluationsCount", ctx, req)}
 }
 
 func (_c *MockClient_GetBatchFlagEvaluationsCount_Call) Run(run func(ctx context.Context, req *BatchFlagEvaluationsCountRequest)) *MockClient_GetBatchFlagEvaluationsCount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*BatchFlagEvaluationsCountRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *BatchFlagEvaluationsCountRequest
+		if args[1] != nil {
+			arg1 = args[1].(*BatchFlagEvaluationsCountRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -136,15 +147,26 @@ type MockClient_GetFlagEvaluationsCount_Call struct {
 }
 
 // GetFlagEvaluationsCount is a helper method to define mock.On call
-//   - ctx
-//   - req
+//   - ctx context.Context
+//   - req *FlagEvaluationsCountRequest
 func (_e *MockClient_Expecter) GetFlagEvaluationsCount(ctx interface{}, req interface{}) *MockClient_GetFlagEvaluationsCount_Call {
 	return &MockClient_GetFlagEvaluationsCount_Call{Call: _e.mock.On("GetFlagEvaluationsCount", ctx, req)}
 }
 
 func (_c *MockClient_GetFlagEvaluationsCount_Call) Run(run func(ctx context.Context, req *FlagEvaluationsCountRequest)) *MockClient_GetFlagEvaluationsCount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*FlagEvaluationsCountRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *FlagEvaluationsCountRequest
+		if args[1] != nil {
+			arg1 = args[1].(*FlagEvaluationsCountRequest)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }

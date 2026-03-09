@@ -1186,7 +1186,7 @@ func TestLoad(t *testing.T) {
 func TestServeHTTP(t *testing.T) {
 	var (
 		cfg = Default()
-		req = httptest.NewRequest("GET", "http://example.com/foo", nil)
+		req = httptest.NewRequestWithContext(t.Context(), http.MethodGet, "http://example.com/foo", nil)
 		w   = httptest.NewRecorder()
 	)
 
@@ -1232,7 +1232,7 @@ OUTER:
 					vals = append(vals, getEnvVars(fmt.Sprintf("%s_%v", prefix, key), s)...)
 					continue OUTER
 				default:
-					builder.WriteString(fmt.Sprintf("%v", s))
+					fmt.Fprintf(&builder, "%v", s)
 					if i < len(v)-1 {
 						builder.WriteByte(' ')
 					}

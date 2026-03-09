@@ -72,15 +72,26 @@ type MockEnvironmentStore_Get_Call struct {
 }
 
 // Get is a helper method to define mock.On call
-//   - context1
-//   - s
+//   - context1 context.Context
+//   - s string
 func (_e *MockEnvironmentStore_Expecter) Get(context1 interface{}, s interface{}) *MockEnvironmentStore_Get_Call {
 	return &MockEnvironmentStore_Get_Call{Call: _e.mock.On("Get", context1, s)}
 }
 
 func (_c *MockEnvironmentStore_Get_Call) Run(run func(context1 context.Context, s string)) *MockEnvironmentStore_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -129,14 +140,20 @@ type MockEnvironmentStore_GetFromContext_Call struct {
 }
 
 // GetFromContext is a helper method to define mock.On call
-//   - context1
+//   - context1 context.Context
 func (_e *MockEnvironmentStore_Expecter) GetFromContext(context1 interface{}) *MockEnvironmentStore_GetFromContext_Call {
 	return &MockEnvironmentStore_GetFromContext_Call{Call: _e.mock.On("GetFromContext", context1)}
 }
 
 func (_c *MockEnvironmentStore_GetFromContext_Call) Run(run func(context1 context.Context)) *MockEnvironmentStore_GetFromContext_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }

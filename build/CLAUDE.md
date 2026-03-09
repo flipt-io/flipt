@@ -6,7 +6,7 @@ This file provides guidance to AI Agents for working with Flipt's build system a
 
 Flipt uses a multi-layered build system combining:
 
-- **Mage**: Build automation tool for Go projects (like Make but in Go)
+- **Mise**: Build automation tool for Go projects (like Make)
 - **Dagger**: Container-based CI/CD engine for reproducible builds
 - **npm**: UI build system for React frontend
 - **GitHub Actions**: CI/CD workflows
@@ -130,17 +130,20 @@ GitHub Actions workflow (`.github/workflows/integration-test.yml`):
 The CI pipeline uses Docker BuildKit registry cache to share container images across GitHub Actions jobs:
 
 **Cache Strategy:**
+
 - **Cache Backend**: GitHub Container Registry (GHCR) - `ghcr.io/owner/repo-cache`
 - **Cache Key Format**: `flipt-{git-commit}-{source-hash}`
 - **Cache Scope**: Per repository, shared across all PR and push workflows
 
 **Performance Benefits:**
+
 - **Before**: Each integration test job rebuilds Flipt (~5-10 minutes each)
 - **After**: One build job (~10 minutes) + fast test jobs using cache (~2-3 minutes each)
 - **Total reduction**: ~60% in pipeline execution time
 - **Resource savings**: Significant reduction in GitHub Actions minutes
 
 **Cache Workflow:**
+
 ```yaml
 build-cache:
   - Generate cache key from git commit + source file hashes
@@ -155,6 +158,7 @@ integration-tests:
 ```
 
 **Cache Management:**
+
 - **Invalidation**: Automatic via content-based cache keys
 - **Cleanup**: Images cleaned up after successful pipeline runs
 - **Fallback**: Graceful fallback to fresh builds if cache fails
@@ -173,7 +177,7 @@ flipt = flipt.
     WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
     WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_BOOTSTRAP_CREDENTIAL", "s3cr3t")
 
-// JWT authentication  
+// JWT authentication
 flipt = flipt.
     WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
     WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_PUBLIC_KEY_FILE", "/etc/flipt/jwt.pem")
@@ -244,7 +248,7 @@ mise run ui:lint      # Lint UI code
 
 ```bash
 # Run with debug logging
-dagger call test --source=. integration --cases="snapshot" 
+dagger call test --source=. integration --cases="snapshot"
 
 # Export coverage for analysis
 dagger call test-coverage --source=. integration-coverage --cases="snapshot" export --path=/tmp/debug.out
@@ -316,7 +320,7 @@ dagger call test --source=. integration --cases="authn" --verbose
 # Container inspection
 dagger call test --source=. base-container terminal
 
-# Coverage debugging  
+# Coverage debugging
 dagger call test-coverage --source=. integration-coverage --cases="snapshot" export --path=/tmp/debug-coverage.out
 
 # Registry cache debugging
@@ -326,4 +330,3 @@ dagger call build-with-cache --source . --registry-cache ghcr.io/owner/repo-cach
 ```
 
 This comprehensive build and testing infrastructure ensures Flipt maintains high quality through automated testing across multiple scenarios, authentication methods, and deployment configurations.
-

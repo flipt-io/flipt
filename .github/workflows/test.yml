@@ -7,8 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.26"
-  DAGGER_VERSION: "0.20.0"
   DAGGER_NO_NAG: "1"
 
 concurrency:
@@ -21,12 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
 
       - name: Run Unit Tests
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . unit export --path coverage.txt
 
       - name: Upload Coverage
@@ -42,12 +41,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
-
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - uses: ./.github/actions/setup
 
       - name: Unit Test SQLite
         env:
@@ -59,12 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: ui/package-lock.json
+      - uses: ./.github/actions/setup
 
       - name: Unit Test
         run: |

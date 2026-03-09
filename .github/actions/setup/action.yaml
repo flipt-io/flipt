@@ -1,0 +1,14 @@
+name: Setup
+description: Flipt v2 CI mise setup
+runs:
+  using: composite
+  steps:
+    - name: Install mise
+      uses: jdx/mise-action@v3
+      env:
+        MISE_DISABLE_TOOLS: "dagger,mockery,buf"
+    - name: Export mise tool versions
+      shell: bash
+      id: mise_versions
+      run: |
+        mise current | awk '{print $1"="$2}' >> "$GITHUB_OUTPUT"

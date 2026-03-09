@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -41,7 +40,7 @@ func TestTrailingSlashMiddleware(t *testing.T) {
 	defer s.Close()
 
 	// Request with the middleware on.
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, fmt.Sprintf("%s/hello/", s.URL), nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, fmt.Sprintf("%s/hello/", s.URL), nil)
 	require.NoError(t, err)
 	req.Header.Set(tsoHeader, "on")
 
@@ -52,7 +51,7 @@ func TestTrailingSlashMiddleware(t *testing.T) {
 	res.Body.Close()
 
 	// Request with the middleware off.
-	req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, fmt.Sprintf("%s/hello/", s.URL), nil)
+	req, err = http.NewRequestWithContext(t.Context(), http.MethodGet, fmt.Sprintf("%s/hello/", s.URL), nil)
 	require.NoError(t, err)
 
 	res, err = http.DefaultClient.Do(req)
@@ -78,7 +77,7 @@ func TestCrossOriginProtection(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPut, "https://docs.flipt.io", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "https://docs.flipt.io", nil)
 			if tt.origin != "" {
 				req.Header.Set("Origin", tt.origin)
 			}

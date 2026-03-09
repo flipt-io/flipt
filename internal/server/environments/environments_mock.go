@@ -75,15 +75,26 @@ type MockEnvironment_Branch_Call struct {
 }
 
 // Branch is a helper method to define mock.On call
-//   - ctx
-//   - branch
+//   - ctx context.Context
+//   - branch string
 func (_e *MockEnvironment_Expecter) Branch(ctx interface{}, branch interface{}) *MockEnvironment_Branch_Call {
 	return &MockEnvironment_Branch_Call{Call: _e.mock.On("Branch", ctx, branch)}
 }
 
 func (_c *MockEnvironment_Branch_Call) Run(run func(ctx context.Context, branch string)) *MockEnvironment_Branch_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -176,16 +187,32 @@ type MockEnvironment_CreateNamespace_Call struct {
 }
 
 // CreateNamespace is a helper method to define mock.On call
-//   - context1
-//   - rev
-//   - namespace
+//   - context1 context.Context
+//   - rev string
+//   - namespace *environments.Namespace
 func (_e *MockEnvironment_Expecter) CreateNamespace(context1 interface{}, rev interface{}, namespace interface{}) *MockEnvironment_CreateNamespace_Call {
 	return &MockEnvironment_CreateNamespace_Call{Call: _e.mock.On("CreateNamespace", context1, rev, namespace)}
 }
 
 func (_c *MockEnvironment_CreateNamespace_Call) Run(run func(context1 context.Context, rev string, namespace *environments.Namespace)) *MockEnvironment_CreateNamespace_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*environments.Namespace))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *environments.Namespace
+		if args[2] != nil {
+			arg2 = args[2].(*environments.Namespace)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -267,15 +294,26 @@ type MockEnvironment_DeleteBranch_Call struct {
 }
 
 // DeleteBranch is a helper method to define mock.On call
-//   - ctx
-//   - branch
+//   - ctx context.Context
+//   - branch string
 func (_e *MockEnvironment_Expecter) DeleteBranch(ctx interface{}, branch interface{}) *MockEnvironment_DeleteBranch_Call {
 	return &MockEnvironment_DeleteBranch_Call{Call: _e.mock.On("DeleteBranch", ctx, branch)}
 }
 
 func (_c *MockEnvironment_DeleteBranch_Call) Run(run func(ctx context.Context, branch string)) *MockEnvironment_DeleteBranch_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -322,16 +360,32 @@ type MockEnvironment_DeleteNamespace_Call struct {
 }
 
 // DeleteNamespace is a helper method to define mock.On call
-//   - context1
-//   - rev
-//   - key
+//   - context1 context.Context
+//   - rev string
+//   - key string
 func (_e *MockEnvironment_Expecter) DeleteNamespace(context1 interface{}, rev interface{}, key interface{}) *MockEnvironment_DeleteNamespace_Call {
 	return &MockEnvironment_DeleteNamespace_Call{Call: _e.mock.On("DeleteNamespace", context1, rev, key)}
 }
 
 func (_c *MockEnvironment_DeleteNamespace_Call) Run(run func(context1 context.Context, rev string, key string)) *MockEnvironment_DeleteNamespace_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -380,15 +434,26 @@ type MockEnvironment_EvaluationNamespaceSnapshot_Call struct {
 }
 
 // EvaluationNamespaceSnapshot is a helper method to define mock.On call
-//   - context1
-//   - s
+//   - context1 context.Context
+//   - s string
 func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshot(context1 interface{}, s interface{}) *MockEnvironment_EvaluationNamespaceSnapshot_Call {
 	return &MockEnvironment_EvaluationNamespaceSnapshot_Call{Call: _e.mock.On("EvaluationNamespaceSnapshot", context1, s)}
 }
 
 func (_c *MockEnvironment_EvaluationNamespaceSnapshot_Call) Run(run func(context1 context.Context, s string)) *MockEnvironment_EvaluationNamespaceSnapshot_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -437,16 +502,32 @@ type MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call struct {
 }
 
 // EvaluationNamespaceSnapshotSubscribe is a helper method to define mock.On call
-//   - context1
-//   - s
-//   - evaluationNamespaceSnapshotCh
+//   - context1 context.Context
+//   - s string
+//   - evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot
 func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshotSubscribe(context1 interface{}, s interface{}, evaluationNamespaceSnapshotCh interface{}) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
 	return &MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call{Call: _e.mock.On("EvaluationNamespaceSnapshotSubscribe", context1, s, evaluationNamespaceSnapshotCh)}
 }
 
 func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) Run(run func(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot)) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(chan<- *evaluation.EvaluationNamespaceSnapshot))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 chan<- *evaluation.EvaluationNamespaceSnapshot
+		if args[2] != nil {
+			arg2 = args[2].(chan<- *evaluation.EvaluationNamespaceSnapshot)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -550,15 +631,26 @@ type MockEnvironment_GetNamespace_Call struct {
 }
 
 // GetNamespace is a helper method to define mock.On call
-//   - context1
-//   - key
+//   - context1 context.Context
+//   - key string
 func (_e *MockEnvironment_Expecter) GetNamespace(context1 interface{}, key interface{}) *MockEnvironment_GetNamespace_Call {
 	return &MockEnvironment_GetNamespace_Call{Call: _e.mock.On("GetNamespace", context1, key)}
 }
 
 func (_c *MockEnvironment_GetNamespace_Call) Run(run func(context1 context.Context, key string)) *MockEnvironment_GetNamespace_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -651,15 +743,26 @@ type MockEnvironment_ListBranchedChanges_Call struct {
 }
 
 // ListBranchedChanges is a helper method to define mock.On call
-//   - ctx
-//   - branch
+//   - ctx context.Context
+//   - branch Environment
 func (_e *MockEnvironment_Expecter) ListBranchedChanges(ctx interface{}, branch interface{}) *MockEnvironment_ListBranchedChanges_Call {
 	return &MockEnvironment_ListBranchedChanges_Call{Call: _e.mock.On("ListBranchedChanges", ctx, branch)}
 }
 
 func (_c *MockEnvironment_ListBranchedChanges_Call) Run(run func(ctx context.Context, branch Environment)) *MockEnvironment_ListBranchedChanges_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(Environment))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 Environment
+		if args[1] != nil {
+			arg1 = args[1].(Environment)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -708,14 +811,20 @@ type MockEnvironment_ListBranches_Call struct {
 }
 
 // ListBranches is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockEnvironment_Expecter) ListBranches(ctx interface{}) *MockEnvironment_ListBranches_Call {
 	return &MockEnvironment_ListBranches_Call{Call: _e.mock.On("ListBranches", ctx)}
 }
 
 func (_c *MockEnvironment_ListBranches_Call) Run(run func(ctx context.Context)) *MockEnvironment_ListBranches_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -764,14 +873,20 @@ type MockEnvironment_ListNamespaces_Call struct {
 }
 
 // ListNamespaces is a helper method to define mock.On call
-//   - context1
+//   - context1 context.Context
 func (_e *MockEnvironment_Expecter) ListNamespaces(context1 interface{}) *MockEnvironment_ListNamespaces_Call {
 	return &MockEnvironment_ListNamespaces_Call{Call: _e.mock.On("ListNamespaces", context1)}
 }
 
 func (_c *MockEnvironment_ListNamespaces_Call) Run(run func(context1 context.Context)) *MockEnvironment_ListNamespaces_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -820,16 +935,32 @@ type MockEnvironment_Propose_Call struct {
 }
 
 // Propose is a helper method to define mock.On call
-//   - ctx
-//   - branch
-//   - opts
+//   - ctx context.Context
+//   - branch Environment
+//   - opts ProposalOptions
 func (_e *MockEnvironment_Expecter) Propose(ctx interface{}, branch interface{}, opts interface{}) *MockEnvironment_Propose_Call {
 	return &MockEnvironment_Propose_Call{Call: _e.mock.On("Propose", ctx, branch, opts)}
 }
 
 func (_c *MockEnvironment_Propose_Call) Run(run func(ctx context.Context, branch Environment, opts ProposalOptions)) *MockEnvironment_Propose_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(Environment), args[2].(ProposalOptions))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 Environment
+		if args[1] != nil {
+			arg1 = args[1].(Environment)
+		}
+		var arg2 ProposalOptions
+		if args[2] != nil {
+			arg2 = args[2].(ProposalOptions)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -876,17 +1007,38 @@ type MockEnvironment_Update_Call struct {
 }
 
 // Update is a helper method to define mock.On call
-//   - context1
-//   - rev
-//   - typ
-//   - fn
+//   - context1 context.Context
+//   - rev string
+//   - typ ResourceType
+//   - fn UpdateFunc
 func (_e *MockEnvironment_Expecter) Update(context1 interface{}, rev interface{}, typ interface{}, fn interface{}) *MockEnvironment_Update_Call {
 	return &MockEnvironment_Update_Call{Call: _e.mock.On("Update", context1, rev, typ, fn)}
 }
 
 func (_c *MockEnvironment_Update_Call) Run(run func(context1 context.Context, rev string, typ ResourceType, fn UpdateFunc)) *MockEnvironment_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(ResourceType), args[3].(UpdateFunc))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 ResourceType
+		if args[2] != nil {
+			arg2 = args[2].(ResourceType)
+		}
+		var arg3 UpdateFunc
+		if args[3] != nil {
+			arg3 = args[3].(UpdateFunc)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
 	})
 	return _c
 }
@@ -933,16 +1085,32 @@ type MockEnvironment_UpdateNamespace_Call struct {
 }
 
 // UpdateNamespace is a helper method to define mock.On call
-//   - context1
-//   - rev
-//   - namespace
+//   - context1 context.Context
+//   - rev string
+//   - namespace *environments.Namespace
 func (_e *MockEnvironment_Expecter) UpdateNamespace(context1 interface{}, rev interface{}, namespace interface{}) *MockEnvironment_UpdateNamespace_Call {
 	return &MockEnvironment_UpdateNamespace_Call{Call: _e.mock.On("UpdateNamespace", context1, rev, namespace)}
 }
 
 func (_c *MockEnvironment_UpdateNamespace_Call) Run(run func(context1 context.Context, rev string, namespace *environments.Namespace)) *MockEnvironment_UpdateNamespace_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*environments.Namespace))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *environments.Namespace
+		if args[2] != nil {
+			arg2 = args[2].(*environments.Namespace)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -980,16 +1148,32 @@ type MockEnvironment_View_Call struct {
 }
 
 // View is a helper method to define mock.On call
-//   - context1
-//   - typ
-//   - fn
+//   - context1 context.Context
+//   - typ ResourceType
+//   - fn ViewFunc
 func (_e *MockEnvironment_Expecter) View(context1 interface{}, typ interface{}, fn interface{}) *MockEnvironment_View_Call {
 	return &MockEnvironment_View_Call{Call: _e.mock.On("View", context1, typ, fn)}
 }
 
 func (_c *MockEnvironment_View_Call) Run(run func(context1 context.Context, typ ResourceType, fn ViewFunc)) *MockEnvironment_View_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(ResourceType), args[2].(ViewFunc))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 ResourceType
+		if args[1] != nil {
+			arg1 = args[1].(ResourceType)
+		}
+		var arg2 ViewFunc
+		if args[2] != nil {
+			arg2 = args[2].(ViewFunc)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }

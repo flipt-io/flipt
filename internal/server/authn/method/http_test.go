@@ -9,7 +9,7 @@ import (
 )
 
 func TestForwardCookies(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "http://example.com/foo", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "http://example.com/foo", nil)
 	req.AddCookie(&http.Cookie{Name: stateCookieKey, Value: "state-value"})
 	req.AddCookie(&http.Cookie{Name: tokenCookieKey, Value: "token-value"})
 
@@ -30,7 +30,7 @@ func TestForwardPrefix(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "http://example.com/foo", nil)
+			req := httptest.NewRequestWithContext(t.Context(), "GET", "http://example.com/foo", nil)
 			for k, v := range tt.headers {
 				req.Header.Add(k, v)
 			}

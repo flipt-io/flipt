@@ -238,6 +238,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_ContextCancel(t *testing.T) {
 	})
 
 	ctx, cancel := context.WithCancel(t.Context())
+	t.Cleanup(cancel)
 	stream := &mockStream{ctx: ctx}
 	stream.On("Send", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		// signal that Send was called, then cancel context

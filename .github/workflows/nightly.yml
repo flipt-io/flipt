@@ -8,9 +8,6 @@ permissions:
   contents: write
   packages: write
 
-env:
-  GO_VERSION: "1.26"
-
 jobs:
   nightly-build:
     runs-on: ${{ matrix.os }}
@@ -28,16 +25,6 @@ jobs:
           fetch-depth: 0
           ref: v2
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-
       - name: Install GCC for arm64
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -50,15 +37,11 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
           echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          # mac build currently doesn't exist for v1.15.0 https://github.com/magefile/mage/issues/481
-          version: v1.14.0
-          install-only: true
+      - name: Install mise
+        uses: jdx/mise-action@v3
 
       - name: Prep Build
-        run: mage prep
+        run: mise run prep
 
       - name: GoReleaser (Nightly) Build
         uses: goreleaser/goreleaser-action@v7
@@ -90,24 +73,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - name: Install mise
+        uses: jdx/mise-action@v3
 
-      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-qemu-action@v4
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: "${{ github.repository_owner }}"

@@ -7,8 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.26"
-  DAGGER_VERSION: "0.20.0"
   DAGGER_NO_NAG: "1"
   REGISTRY_CACHE: ghcr.io/${{ github.repository }}-cache
 
@@ -49,6 +47,7 @@ jobs:
       cached-image: ${{ steps.set-image.outputs.image }}
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
 
       - name: Generate Cache Key
         id: cache-key
@@ -60,7 +59,7 @@ jobs:
           echo "Cache key: $key"
 
       - name: Log in to Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -79,6 +78,8 @@ jobs:
 
       - name: Pre-pull base cache layers
         if: steps.cache-check.outputs.exists == 'false'
+        env:
+          GO_VERSION: ${{ steps.mise_versions.outputs.go }}
         run: |
           # Pre-pull common base layers to speed up builds
           echo "Pre-pulling base cache layers..."
@@ -92,7 +93,7 @@ jobs:
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: build --source . --registry-cache ${{ env.REGISTRY_CACHE }} --cache-tag ${{ steps.cache-key.outputs.key }}
         env:
           CI: true
@@ -128,18 +129,12 @@ jobs:
         test: ${{ fromJson(needs.discover-tests.outputs.tests) }}
     steps:
       - uses: actions/checkout@v6
-
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
-
+      - uses: ./.github/actions/setup
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
       - name: Log in to Container Registry
         if: needs.build-cache.result == 'success'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -150,7 +145,7 @@ jobs:
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" integration --cases="${{ matrix.test }}" --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}
 
       - name: Run Integration Tests without Cache (fork PRs)
@@ -158,7 +153,7 @@ jobs:
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . integration --cases="${{ matrix.test }}" --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}
 
       - name: Process Coverage Data
@@ -191,10 +186,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
 
       - name: Log in to Container Registry
         if: needs.build-cache.result == 'success'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -205,7 +201,7 @@ jobs:
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" ui
 
       - name: Run UI Tests without Cache (fork PRs)
@@ -213,5 +209,5 @@ jobs:
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . ui

@@ -80,17 +80,38 @@ type MockPullRequestsService_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
-//   - ctx
-//   - owner
-//   - repo
-//   - pr
+//   - ctx context.Context
+//   - owner string
+//   - repo string
+//   - pr *github.NewPullRequest
 func (_e *MockPullRequestsService_Expecter) Create(ctx interface{}, owner interface{}, repo interface{}, pr interface{}) *MockPullRequestsService_Create_Call {
 	return &MockPullRequestsService_Create_Call{Call: _e.mock.On("Create", ctx, owner, repo, pr)}
 }
 
 func (_c *MockPullRequestsService_Create_Call) Run(run func(ctx context.Context, owner string, repo string, pr *github.NewPullRequest)) *MockPullRequestsService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*github.NewPullRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 *github.NewPullRequest
+		if args[3] != nil {
+			arg3 = args[3].(*github.NewPullRequest)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
 	})
 	return _c
 }
@@ -147,17 +168,38 @@ type MockPullRequestsService_List_Call struct {
 }
 
 // List is a helper method to define mock.On call
-//   - ctx
-//   - owner
-//   - repo
-//   - opts
+//   - ctx context.Context
+//   - owner string
+//   - repo string
+//   - opts *github.PullRequestListOptions
 func (_e *MockPullRequestsService_Expecter) List(ctx interface{}, owner interface{}, repo interface{}, opts interface{}) *MockPullRequestsService_List_Call {
 	return &MockPullRequestsService_List_Call{Call: _e.mock.On("List", ctx, owner, repo, opts)}
 }
 
 func (_c *MockPullRequestsService_List_Call) Run(run func(ctx context.Context, owner string, repo string, opts *github.PullRequestListOptions)) *MockPullRequestsService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*github.PullRequestListOptions))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 *github.PullRequestListOptions
+		if args[3] != nil {
+			arg3 = args[3].(*github.PullRequestListOptions)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
 	})
 	return _c
 }
@@ -241,19 +283,50 @@ type MockRepositoriesService_CompareCommits_Call struct {
 }
 
 // CompareCommits is a helper method to define mock.On call
-//   - ctx
-//   - owner
-//   - repo
-//   - base
-//   - head
-//   - opts
+//   - ctx context.Context
+//   - owner string
+//   - repo string
+//   - base string
+//   - head string
+//   - opts *github.ListOptions
 func (_e *MockRepositoriesService_Expecter) CompareCommits(ctx interface{}, owner interface{}, repo interface{}, base interface{}, head interface{}, opts interface{}) *MockRepositoriesService_CompareCommits_Call {
 	return &MockRepositoriesService_CompareCommits_Call{Call: _e.mock.On("CompareCommits", ctx, owner, repo, base, head, opts)}
 }
 
 func (_c *MockRepositoriesService_CompareCommits_Call) Run(run func(ctx context.Context, owner string, repo string, base string, head string, opts *github.ListOptions)) *MockRepositoriesService_CompareCommits_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string), args[5].(*github.ListOptions))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		var arg5 *github.ListOptions
+		if args[5] != nil {
+			arg5 = args[5].(*github.ListOptions)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+			arg5,
+		)
 	})
 	return _c
 }

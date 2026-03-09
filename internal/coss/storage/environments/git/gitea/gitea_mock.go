@@ -78,17 +78,38 @@ type MockClient_CompareCommits_Call struct {
 }
 
 // CompareCommits is a helper method to define mock.On call
-//   - user
-//   - repo
-//   - prev
-//   - current
+//   - user string
+//   - repo string
+//   - prev string
+//   - current string
 func (_e *MockClient_Expecter) CompareCommits(user interface{}, repo interface{}, prev interface{}, current interface{}) *MockClient_CompareCommits_Call {
 	return &MockClient_CompareCommits_Call{Call: _e.mock.On("CompareCommits", user, repo, prev, current)}
 }
 
 func (_c *MockClient_CompareCommits_Call) Run(run func(user string, repo string, prev string, current string)) *MockClient_CompareCommits_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(string), args[3].(string))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
 	})
 	return _c
 }
@@ -145,16 +166,32 @@ type MockClient_CreatePullRequest_Call struct {
 }
 
 // CreatePullRequest is a helper method to define mock.On call
-//   - owner
-//   - repo
-//   - opt
+//   - owner string
+//   - repo string
+//   - opt gitea.CreatePullRequestOption
 func (_e *MockClient_Expecter) CreatePullRequest(owner interface{}, repo interface{}, opt interface{}) *MockClient_CreatePullRequest_Call {
 	return &MockClient_CreatePullRequest_Call{Call: _e.mock.On("CreatePullRequest", owner, repo, opt)}
 }
 
 func (_c *MockClient_CreatePullRequest_Call) Run(run func(owner string, repo string, opt gitea.CreatePullRequestOption)) *MockClient_CreatePullRequest_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(gitea.CreatePullRequestOption))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 gitea.CreatePullRequestOption
+		if args[2] != nil {
+			arg2 = args[2].(gitea.CreatePullRequestOption)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -211,16 +248,32 @@ type MockClient_ListRepoPullRequests_Call struct {
 }
 
 // ListRepoPullRequests is a helper method to define mock.On call
-//   - owner
-//   - repo
-//   - opt
+//   - owner string
+//   - repo string
+//   - opt gitea.ListPullRequestsOptions
 func (_e *MockClient_Expecter) ListRepoPullRequests(owner interface{}, repo interface{}, opt interface{}) *MockClient_ListRepoPullRequests_Call {
 	return &MockClient_ListRepoPullRequests_Call{Call: _e.mock.On("ListRepoPullRequests", owner, repo, opt)}
 }
 
 func (_c *MockClient_ListRepoPullRequests_Call) Run(run func(owner string, repo string, opt gitea.ListPullRequestsOptions)) *MockClient_ListRepoPullRequests_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(gitea.ListPullRequestsOptions))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 gitea.ListPullRequestsOptions
+		if args[2] != nil {
+			arg2 = args[2].(gitea.ListPullRequestsOptions)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }

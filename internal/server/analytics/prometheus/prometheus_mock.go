@@ -7,7 +7,7 @@ package prometheus
 import (
 	"context"
 
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -87,10 +87,10 @@ type MockPrometheusClient_QueryRange_Call struct {
 }
 
 // QueryRange is a helper method to define mock.On call
-//   - ctx
-//   - query
-//   - r
-//   - opts
+//   - ctx context.Context
+//   - query string
+//   - r v1.Range
+//   - opts ...v1.Option
 func (_e *MockPrometheusClient_Expecter) QueryRange(ctx interface{}, query interface{}, r interface{}, opts ...interface{}) *MockPrometheusClient_QueryRange_Call {
 	return &MockPrometheusClient_QueryRange_Call{Call: _e.mock.On("QueryRange",
 		append([]interface{}{ctx, query, r}, opts...)...)}
@@ -98,8 +98,30 @@ func (_e *MockPrometheusClient_Expecter) QueryRange(ctx interface{}, query inter
 
 func (_c *MockPrometheusClient_QueryRange_Call) Run(run func(ctx context.Context, query string, r v1.Range, opts ...v1.Option)) *MockPrometheusClient_QueryRange_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]v1.Option)
-		run(args[0].(context.Context), args[1].(string), args[2].(v1.Range), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 v1.Range
+		if args[2] != nil {
+			arg2 = args[2].(v1.Range)
+		}
+		var arg3 []v1.Option
+		var variadicArgs []v1.Option
+		if len(args) > 3 {
+			variadicArgs = args[3].([]v1.Option)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }

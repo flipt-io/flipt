@@ -12,9 +12,6 @@ on:
       - "sdk/**"
       - "rpc/**"
 
-env:
-  GO_VERSION: "1.26"
-
 permissions:
   contents: read
   pull-requests: write
@@ -35,22 +32,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - uses: ./.github/actions/setup
 
       - uses: bufbuild/buf-action@v1
         with:
           setup_only: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: magefile/mage-action@v3
-        with:
-          version: latest
-          args: proto
+      - name: Generate Proto
+        run: mise run proto
 
       - name: Ensure clean git state.
-        run: git diff --quiet --exit-code sdk/ rpc/ || (echo "Please run 'mage proto' and commit changes." && exit 1)
+        run: git diff --quiet --exit-code sdk/ rpc/ || (echo "Please run 'mise run proto' and commit changes." && exit 1)
