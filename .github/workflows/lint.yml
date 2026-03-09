@@ -12,10 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Install mise
-        uses: jdx/mise-action@v3
-
+      - uses: ./.github/actions/setup
       - name: golangci-lint
         run: golangci-lint run --timeout=10m
 
@@ -24,10 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Install mise
-        uses: jdx/mise-action@v3
-
+      - uses: ./.github/actions/setup
       - name: Lint
         run: |
           npm ci
@@ -53,10 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Install mise
-        uses: jdx/mise-action@v3
-
+      - uses: ./.github/actions/setup
       - name: Run go mod tidy.
         run: go mod tidy
 

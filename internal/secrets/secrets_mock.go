@@ -115,14 +115,20 @@ type MockManager_GetProvider_Call struct {
 }
 
 // GetProvider is a helper method to define mock.On call
-//   - name
+//   - name string
 func (_e *MockManager_Expecter) GetProvider(name interface{}) *MockManager_GetProvider_Call {
 	return &MockManager_GetProvider_Call{Call: _e.mock.On("GetProvider", name)}
 }
 
 func (_c *MockManager_GetProvider_Call) Run(run func(name string)) *MockManager_GetProvider_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -171,16 +177,32 @@ type MockManager_GetSecret_Call struct {
 }
 
 // GetSecret is a helper method to define mock.On call
-//   - ctx
-//   - providerName
-//   - path
+//   - ctx context.Context
+//   - providerName string
+//   - path string
 func (_e *MockManager_Expecter) GetSecret(ctx interface{}, providerName interface{}, path interface{}) *MockManager_GetSecret_Call {
 	return &MockManager_GetSecret_Call{Call: _e.mock.On("GetSecret", ctx, providerName, path)}
 }
 
 func (_c *MockManager_GetSecret_Call) Run(run func(ctx context.Context, providerName string, path string)) *MockManager_GetSecret_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -229,15 +251,26 @@ type MockManager_GetSecretValue_Call struct {
 }
 
 // GetSecretValue is a helper method to define mock.On call
-//   - ctx
-//   - ref
+//   - ctx context.Context
+//   - ref Reference
 func (_e *MockManager_Expecter) GetSecretValue(ctx interface{}, ref interface{}) *MockManager_GetSecretValue_Call {
 	return &MockManager_GetSecretValue_Call{Call: _e.mock.On("GetSecretValue", ctx, ref)}
 }
 
 func (_c *MockManager_GetSecretValue_Call) Run(run func(ctx context.Context, ref Reference)) *MockManager_GetSecretValue_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(Reference))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 Reference
+		if args[1] != nil {
+			arg1 = args[1].(Reference)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -332,16 +365,32 @@ type MockManager_ListSecrets_Call struct {
 }
 
 // ListSecrets is a helper method to define mock.On call
-//   - ctx
-//   - providerName
-//   - pathPrefix
+//   - ctx context.Context
+//   - providerName string
+//   - pathPrefix string
 func (_e *MockManager_Expecter) ListSecrets(ctx interface{}, providerName interface{}, pathPrefix interface{}) *MockManager_ListSecrets_Call {
 	return &MockManager_ListSecrets_Call{Call: _e.mock.On("ListSecrets", ctx, providerName, pathPrefix)}
 }
 
 func (_c *MockManager_ListSecrets_Call) Run(run func(ctx context.Context, providerName string, pathPrefix string)) *MockManager_ListSecrets_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -379,15 +428,26 @@ type MockManager_RegisterProvider_Call struct {
 }
 
 // RegisterProvider is a helper method to define mock.On call
-//   - name
-//   - provider
+//   - name string
+//   - provider Provider
 func (_e *MockManager_Expecter) RegisterProvider(name interface{}, provider interface{}) *MockManager_RegisterProvider_Call {
 	return &MockManager_RegisterProvider_Call{Call: _e.mock.On("RegisterProvider", name, provider)}
 }
 
 func (_c *MockManager_RegisterProvider_Call) Run(run func(name string, provider Provider)) *MockManager_RegisterProvider_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(Provider))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 Provider
+		if args[1] != nil {
+			arg1 = args[1].(Provider)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -463,15 +523,26 @@ type MockProvider_GetSecret_Call struct {
 }
 
 // GetSecret is a helper method to define mock.On call
-//   - ctx
-//   - path
+//   - ctx context.Context
+//   - path string
 func (_e *MockProvider_Expecter) GetSecret(ctx interface{}, path interface{}) *MockProvider_GetSecret_Call {
 	return &MockProvider_GetSecret_Call{Call: _e.mock.On("GetSecret", ctx, path)}
 }
 
 func (_c *MockProvider_GetSecret_Call) Run(run func(ctx context.Context, path string)) *MockProvider_GetSecret_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -520,15 +591,26 @@ type MockProvider_ListSecrets_Call struct {
 }
 
 // ListSecrets is a helper method to define mock.On call
-//   - ctx
-//   - pathPrefix
+//   - ctx context.Context
+//   - pathPrefix string
 func (_e *MockProvider_Expecter) ListSecrets(ctx interface{}, pathPrefix interface{}) *MockProvider_ListSecrets_Call {
 	return &MockProvider_ListSecrets_Call{Call: _e.mock.On("ListSecrets", ctx, pathPrefix)}
 }
 
 func (_c *MockProvider_ListSecrets_Call) Run(run func(ctx context.Context, pathPrefix string)) *MockProvider_ListSecrets_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }

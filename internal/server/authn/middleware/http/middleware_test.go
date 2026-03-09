@@ -27,7 +27,7 @@ func TestHandler(t *testing.T) {
 
 	srv := middleware.Handler(http.HandlerFunc(handler))
 
-	req := httptest.NewRequest(http.MethodPut, "http://www.your-domain.com/auth/v1/self/expire", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "http://www.your-domain.com/auth/v1/self/expire", nil)
 	w := httptest.NewRecorder()
 
 	srv.ServeHTTP(w, req)
@@ -50,7 +50,7 @@ func TestErrorHandler(t *testing.T) {
 		_, _ = w.Write([]byte(defaultResponseBody))
 	}
 
-	req := httptest.NewRequest(http.MethodPut, "http://www.your-domain.com/auth/v1/self/expire", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "http://www.your-domain.com/auth/v1/self/expire", nil)
 	req.Header.Add("Cookie", "flipt_client_token=expired")
 	w := httptest.NewRecorder()
 

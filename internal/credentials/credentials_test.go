@@ -457,7 +457,7 @@ func TestGithubAppCredentials(t *testing.T) {
 	t.Run("auth token for go-git http client", func(t *testing.T) {
 		ghau, err := NewGitHubAppCredentials(zaptest.NewLogger(t), c.config.GitHubApp)
 		require.NoError(t, err)
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 		ghau.SetAuth(r)
 		assert.Equal(t, "Basic eC10b2tlbi1hdXRoOmdoc19Nb2NrQWNjZXNzVG9rZW4=", r.Header.Get("Authorization"))
 	})
@@ -475,7 +475,7 @@ func TestGitHubAppAuth_SetAuth_Errors(t *testing.T) {
 		installationID: 12345,
 	}
 
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 
 	// SetAuth should handle the error gracefully and log it
 	creds.SetAuth(r)

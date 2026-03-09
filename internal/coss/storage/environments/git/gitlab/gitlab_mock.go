@@ -6,7 +6,7 @@ package gitlab
 
 import (
 	mock "github.com/stretchr/testify/mock"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
+	"gitlab.com/gitlab-org/api/client-go"
 )
 
 // NewMockMergeRequestsService creates a new instance of MockMergeRequestsService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -84,9 +84,9 @@ type MockMergeRequestsService_CreateMergeRequest_Call struct {
 }
 
 // CreateMergeRequest is a helper method to define mock.On call
-//   - pid
-//   - opt
-//   - options
+//   - pid any
+//   - opt *gitlab.CreateMergeRequestOptions
+//   - options ...gitlab.RequestOptionFunc
 func (_e *MockMergeRequestsService_Expecter) CreateMergeRequest(pid interface{}, opt interface{}, options ...interface{}) *MockMergeRequestsService_CreateMergeRequest_Call {
 	return &MockMergeRequestsService_CreateMergeRequest_Call{Call: _e.mock.On("CreateMergeRequest",
 		append([]interface{}{pid, opt}, options...)...)}
@@ -94,8 +94,25 @@ func (_e *MockMergeRequestsService_Expecter) CreateMergeRequest(pid interface{},
 
 func (_c *MockMergeRequestsService_CreateMergeRequest_Call) Run(run func(pid any, opt *gitlab.CreateMergeRequestOptions, options ...gitlab.RequestOptionFunc)) *MockMergeRequestsService_CreateMergeRequest_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]gitlab.RequestOptionFunc)
-		run(args[0].(any), args[1].(*gitlab.CreateMergeRequestOptions), variadicArgs...)
+		var arg0 any
+		if args[0] != nil {
+			arg0 = args[0].(any)
+		}
+		var arg1 *gitlab.CreateMergeRequestOptions
+		if args[1] != nil {
+			arg1 = args[1].(*gitlab.CreateMergeRequestOptions)
+		}
+		var arg2 []gitlab.RequestOptionFunc
+		var variadicArgs []gitlab.RequestOptionFunc
+		if len(args) > 2 {
+			variadicArgs = args[2].([]gitlab.RequestOptionFunc)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -158,9 +175,9 @@ type MockMergeRequestsService_ListProjectMergeRequests_Call struct {
 }
 
 // ListProjectMergeRequests is a helper method to define mock.On call
-//   - pid
-//   - opt
-//   - options
+//   - pid any
+//   - opt *gitlab.ListProjectMergeRequestsOptions
+//   - options ...gitlab.RequestOptionFunc
 func (_e *MockMergeRequestsService_Expecter) ListProjectMergeRequests(pid interface{}, opt interface{}, options ...interface{}) *MockMergeRequestsService_ListProjectMergeRequests_Call {
 	return &MockMergeRequestsService_ListProjectMergeRequests_Call{Call: _e.mock.On("ListProjectMergeRequests",
 		append([]interface{}{pid, opt}, options...)...)}
@@ -168,8 +185,25 @@ func (_e *MockMergeRequestsService_Expecter) ListProjectMergeRequests(pid interf
 
 func (_c *MockMergeRequestsService_ListProjectMergeRequests_Call) Run(run func(pid any, opt *gitlab.ListProjectMergeRequestsOptions, options ...gitlab.RequestOptionFunc)) *MockMergeRequestsService_ListProjectMergeRequests_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]gitlab.RequestOptionFunc)
-		run(args[0].(any), args[1].(*gitlab.ListProjectMergeRequestsOptions), variadicArgs...)
+		var arg0 any
+		if args[0] != nil {
+			arg0 = args[0].(any)
+		}
+		var arg1 *gitlab.ListProjectMergeRequestsOptions
+		if args[1] != nil {
+			arg1 = args[1].(*gitlab.ListProjectMergeRequestsOptions)
+		}
+		var arg2 []gitlab.RequestOptionFunc
+		var variadicArgs []gitlab.RequestOptionFunc
+		if len(args) > 2 {
+			variadicArgs = args[2].([]gitlab.RequestOptionFunc)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -259,9 +293,9 @@ type MockRepositoriesService_Compare_Call struct {
 }
 
 // Compare is a helper method to define mock.On call
-//   - pid
-//   - opt
-//   - options
+//   - pid any
+//   - opt *gitlab.CompareOptions
+//   - options ...gitlab.RequestOptionFunc
 func (_e *MockRepositoriesService_Expecter) Compare(pid interface{}, opt interface{}, options ...interface{}) *MockRepositoriesService_Compare_Call {
 	return &MockRepositoriesService_Compare_Call{Call: _e.mock.On("Compare",
 		append([]interface{}{pid, opt}, options...)...)}
@@ -269,8 +303,25 @@ func (_e *MockRepositoriesService_Expecter) Compare(pid interface{}, opt interfa
 
 func (_c *MockRepositoriesService_Compare_Call) Run(run func(pid any, opt *gitlab.CompareOptions, options ...gitlab.RequestOptionFunc)) *MockRepositoriesService_Compare_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]gitlab.RequestOptionFunc)
-		run(args[0].(any), args[1].(*gitlab.CompareOptions), variadicArgs...)
+		var arg0 any
+		if args[0] != nil {
+			arg0 = args[0].(any)
+		}
+		var arg1 *gitlab.CompareOptions
+		if args[1] != nil {
+			arg1 = args[1].(*gitlab.CompareOptions)
+		}
+		var arg2 []gitlab.RequestOptionFunc
+		var variadicArgs []gitlab.RequestOptionFunc
+		if len(args) > 2 {
+			variadicArgs = args[2].([]gitlab.RequestOptionFunc)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }

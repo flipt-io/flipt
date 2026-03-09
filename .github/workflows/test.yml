@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  DAGGER_VERSION: "0.20.0"
   DAGGER_NO_NAG: "1"
 
 concurrency:
@@ -20,12 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
 
       - name: Run Unit Tests
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
-          version: ${{ env.DAGGER_VERSION }}
+          version: ${{ steps.mise_versions.outputs.dagger }}
           args: test --source . unit export --path coverage.txt
 
       - name: Upload Coverage
@@ -41,9 +41,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Install mise
-        uses: jdx/mise-action@v3
+      - uses: ./.github/actions/setup
 
       - name: Unit Test SQLite
         env:
@@ -55,9 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Install mise
-        uses: jdx/mise-action@v3
+      - uses: ./.github/actions/setup
 
       - name: Unit Test
         run: |

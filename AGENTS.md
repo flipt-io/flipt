@@ -293,7 +293,7 @@ Use structured logging with zap:
 
 ```go
 // Preferred - structured logging with context
-s.logger.Debug("processing request", 
+s.logger.Debug("processing request",
     zap.String("environment", envKey),
     zap.String("namespace", nsKey),
     zap.Int("count", len(items)))
@@ -435,10 +435,10 @@ func TestFeature(t *testing.T) {
         value, ok := somePackage.ValueFromContext(ctx)
         return ok && value == expectedValue
     }), expectedArg).Return(expectedResult, nil)
-    
+
     result, err := service.DoSomething(input)
     require.NoError(t, err)
-    
+
     // Verify the actual business logic worked correctly
     assert.Equal(t, expectedOutput, result.ImportantField)
     store.AssertExpectations(t) // Ensures mocks were called as expected
@@ -457,7 +457,7 @@ func TestFeature(t *testing.T) {
 
 Integration tests are defined in `build/testing/` and run as Mage targets. For details on available integration test targets, helpers, and how to add new integration tests, see the files in that directory:
 
-- `build/testing/integration.go` - Integration test Mage targets and configuration
+- `build/testing/integration.go` - Integration test targets and configuration
 - `build/testing/integration/` - Individual integration test suites
 - `build/testing/helpers.go` - Shared test helpers
 - `build/testing/test.go` - Core test utilities
@@ -496,8 +496,8 @@ Longer description if needed explaining the why, not the what.
 # Good commit messages
 git commit -s -m "feat: add X-Environment header support to ListFlags endpoint
 
-The v1 ListFlags endpoint now checks for X-Environment header 
-for backward compatibility. When present, the header value 
+The v1 ListFlags endpoint now checks for X-Environment header
+for backward compatibility. When present, the header value
 takes precedence over the request environment parameter.
 
 - Modified ListFlags method to check context for environment header
