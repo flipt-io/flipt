@@ -745,7 +745,7 @@ func applyCreateWithConflict(
 			}
 			return environments.OperationStatus_OPERATION_STATUS_SUCCESS, true, nil
 		default:
-			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, errors.ErrAlreadyExistsf("resource %q in namespace %q", resource.Key, resource.NamespaceKey)
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, errors.ErrAlreadyExistsf("resource %q in namespace %q already exists", resource.Key, resource.NamespaceKey)
 		}
 	}
 
