@@ -28,6 +28,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "hverlin.mise-vscode",
         "golang.go",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
