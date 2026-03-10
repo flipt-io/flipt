@@ -15,4 +15,13 @@ USER vscode
 
 ENV PATH="/home/vscode/.local/bin:${PATH}"
 
+# Install mise
 RUN curl https://mise.run | sh && /home/vscode/.local/bin/mise --version
+
+# Disable GPG verification for Node.js (gpg/keyboxd not available in containers)
+RUN /home/vscode/.local/bin/mise settings set node.gpg_verify false
+
+# Pre-create volume mount points so Docker initializes them with correct ownership
+RUN mkdir -p /home/vscode/.local/share/mise \
+    /home/vscode/go/pkg \
+    /home/vscode/.cache/go-build
