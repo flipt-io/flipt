@@ -92,6 +92,27 @@ In development, the two ports that Flipt uses are:
 
 These ports will be forwarded to your local machine automatically if you are developing Flipt in a VSCode Remote Container or GitHub Codespace.
 
+## Dev Container
+
+This repository includes a `.devcontainer` setup for VS Code Remote Containers and GitHub Codespaces.
+
+It provides:
+
+- A Linux development container with build tools required for Flipt
+- `mise` for managing Go, Node, and other project tool versions
+- Port forwarding for backend (`8080`, `9000`) and UI dev server (`5173`)
+
+To use it in VS Code:
+
+1. Open this repository in VS Code.
+1. Run **Dev Containers: Reopen in Container**.
+1. Wait for the post-create setup to finish (`mise install`, `mise run bootstrap`, and `mise run ui:deps`).
+1. Start backend and UI in separate terminals:
+   - `mise run dev`
+   - `mise run ui:dev`
+
+Then open <http://localhost:8080>.
+
 ## Docker Compose
 
 If you want to develop Flipt using Docker Compose, you can use the `docker-compose.yml` file in the root of this repository.
