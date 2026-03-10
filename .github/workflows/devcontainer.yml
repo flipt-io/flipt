@@ -1,4 +1,6 @@
 name: DevContainer
+permissions:
+  contents: read
 on:
   push:
     branches:
