@@ -418,33 +418,43 @@ func (s *Server) CopyResource(ctx context.Context, req *environments.CopyResourc
 		},
 	}
 
-	resp.Revision, err = tgtEnv.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
+	// Check if the resource already exists in the target.
+	var exists bool
+	if err := tgtEnv.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) error {
 		_, err := sv.GetResource(ctx, req.NamespaceKey, req.Key)
-		exists := err == nil
-
-		if err != nil && !errors.AsMatch[errors.ErrNotFound](err) {
-			return err
-		}
-
-		switch {
-		case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL:
-			return errors.ErrAlreadyExistsf("resource %q/%q/%q", req.TypeUrl, req.NamespaceKey, req.Key)
-		case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
-			resp.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
+		if err == nil {
+			exists = true
 			return nil
-		case exists: // OVERWRITE
-			resp.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
-			return sv.UpdateResource(ctx, resp.Resource)
-		default: // doesn't exist — create
-			resp.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
-			return sv.CreateResource(ctx, resp.Resource)
 		}
-	})
-	if err != nil {
+		if errors.AsMatch[errors.ErrNotFound](err) {
+			return nil
+		}
+		return err
+	}); err != nil {
 		return nil, err
 	}
 
-	return resp, nil
+	switch {
+	case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL:
+		return nil, errors.ErrAlreadyExistsf("resource %q/%q/%q", req.TypeUrl, req.NamespaceKey, req.Key)
+	case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
+		resp.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
+		resp.Revision = req.Revision
+		return resp, nil
+	default:
+		// Either doesn't exist (create) or OVERWRITE.
+		resp.Revision, err = tgtEnv.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
+			if exists {
+				return sv.UpdateResource(ctx, resp.Resource)
+			}
+			return sv.CreateResource(ctx, resp.Resource)
+		})
+		if err != nil {
+			return nil, err
+		}
+		resp.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
+		return resp, nil
+	}
 }
 
 func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteResourceRequest) (_ *environments.DeleteResourceResponse, err error) {
@@ -533,66 +543,107 @@ func (s *Server) CopyNamespace(ctx context.Context, req *environments.CopyNamesp
 	resp := &environments.CopyNamespaceResponse{}
 
 	for _, tr := range allResources {
-		rev, err := tgtEnv.Update(ctx, req.Revision, tr.typ, func(ctx context.Context, sv ResourceStore) error {
+		// Pre-check which resources exist in the target to separate
+		// resources that need writing from those that can be skipped/failed.
+		existingKeys := make(map[string]bool)
+		if err := tgtEnv.View(ctx, tr.typ, func(ctx context.Context, sv ResourceStoreView) error {
 			for _, src := range tr.resources {
-				tgtResource := &environments.Resource{
-					NamespaceKey: req.NamespaceKey,
-					Key:          src.Key,
-					Payload:      src.Payload,
-				}
-
-				_, getErr := sv.GetResource(ctx, req.NamespaceKey, src.Key)
-				exists := getErr == nil
-
-				if getErr != nil && !errors.AsMatch[errors.ErrNotFound](getErr) {
-					msg := getErr.Error()
+				_, err := sv.GetResource(ctx, req.NamespaceKey, src.Key)
+				if err == nil {
+					existingKeys[src.Key] = true
+				} else if !errors.AsMatch[errors.ErrNotFound](err) {
+					msg := err.Error()
 					resp.Results = append(resp.Results, &environments.CopyNamespaceResourceResult{
 						TypeUrl: tr.typ.String(),
 						Key:     src.Key,
 						Status:  environments.OperationStatus_OPERATION_STATUS_FAILED,
 						Error:   &msg,
 					})
-					continue
 				}
-
-				result := &environments.CopyNamespaceResourceResult{
-					TypeUrl: tr.typ.String(),
-					Key:     src.Key,
-				}
-
-				switch {
-				case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL:
-					result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
-					msg := fmt.Sprintf("resource already exists: %s/%s", req.NamespaceKey, src.Key)
-					result.Error = &msg
-				case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
-					result.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
-				case exists: // OVERWRITE
-					if err := sv.UpdateResource(ctx, tgtResource); err != nil {
-						result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
-						msg := err.Error()
-						result.Error = &msg
-					} else {
-						result.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
-					}
-				default: // create
-					if err := sv.CreateResource(ctx, tgtResource); err != nil {
-						result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
-						msg := err.Error()
-						result.Error = &msg
-					} else {
-						result.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
-					}
-				}
-
-				resp.Results = append(resp.Results, result)
 			}
 			return nil
-		})
-		if err != nil {
+		}); err != nil {
 			return nil, err
 		}
-		req.Revision = rev
+
+		// Collect resources that need to be written.
+		var toWrite []*environments.Resource
+		for _, src := range tr.resources {
+			exists := existingKeys[src.Key]
+
+			// Check if already handled as a failed lookup above.
+			alreadyHandled := false
+			for _, r := range resp.Results {
+				if r.TypeUrl == tr.typ.String() && r.Key == src.Key {
+					alreadyHandled = true
+					break
+				}
+			}
+			if alreadyHandled {
+				continue
+			}
+
+			result := &environments.CopyNamespaceResourceResult{
+				TypeUrl: tr.typ.String(),
+				Key:     src.Key,
+			}
+
+			switch {
+			case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL:
+				result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
+				msg := fmt.Sprintf("resource already exists: %s/%s", req.NamespaceKey, src.Key)
+				result.Error = &msg
+			case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
+				result.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
+			default:
+				// Needs to be written (create or overwrite).
+				toWrite = append(toWrite, &environments.Resource{
+					NamespaceKey: req.NamespaceKey,
+					Key:          src.Key,
+					Payload:      src.Payload,
+				})
+			}
+
+			// Only append non-write results here; write results are appended after Update.
+			if result.Status != 0 {
+				resp.Results = append(resp.Results, result)
+			}
+		}
+
+		// Only call Update if there are resources to write.
+		if len(toWrite) > 0 {
+			rev, err := tgtEnv.Update(ctx, req.Revision, tr.typ, func(ctx context.Context, sv ResourceStore) error {
+				for _, tgtResource := range toWrite {
+					result := &environments.CopyNamespaceResourceResult{
+						TypeUrl: tr.typ.String(),
+						Key:     tgtResource.Key,
+					}
+
+					exists := existingKeys[tgtResource.Key]
+					var writeErr error
+					if exists {
+						writeErr = sv.UpdateResource(ctx, tgtResource)
+					} else {
+						writeErr = sv.CreateResource(ctx, tgtResource)
+					}
+
+					if writeErr != nil {
+						result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
+						msg := writeErr.Error()
+						result.Error = &msg
+					} else {
+						result.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
+					}
+
+					resp.Results = append(resp.Results, result)
+				}
+				return nil
+			})
+			if err != nil {
+				return nil, err
+			}
+			req.Revision = rev
+		}
 	}
 
 	resp.Revision = req.Revision
