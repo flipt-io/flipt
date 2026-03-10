@@ -69,7 +69,7 @@ func (c *cacheSpy) Delete(ctx context.Context, key string) error {
 var _ authn.Store = &storeMock{}
 
 type storeMock struct {
-	*common.StoreMock
+	*common.MockStore
 }
 
 func (m *storeMock) String() string {
@@ -94,7 +94,6 @@ func (m *storeMock) GetAuthenticationByID(ctx context.Context, id string) (*rpca
 func (m *storeMock) ListAuthentications(ctx context.Context, r *storage.ListRequest[authn.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
 	args := m.Called(ctx, r)
 	return args.Get(0).(storage.ResultSet[*rpcauth.Authentication]), args.Error(1)
-
 }
 
 func (m *storeMock) DeleteAuthentications(ctx context.Context, r *authn.DeleteAuthenticationsRequest) error {

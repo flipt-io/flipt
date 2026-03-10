@@ -57,7 +57,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	ctx := context.Background()
 	from := time.Now().Add(-time.Hour).UTC()
 	to := time.Now().UTC()
-	mock := newMockPrometheusClient(t)
+	mock := newMockprometheusClient(t)
 
 	logger := zaptest.NewLogger(t)
 	t.Run("success", func(t *testing.T) {

@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetFlag(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	resource := storage.NewResource("", "foo")
@@ -23,7 +23,7 @@ func TestGetFlag(t *testing.T) {
 }
 
 func TestListFlags(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	ns := storage.NewNamespace("")
@@ -35,7 +35,7 @@ func TestListFlags(t *testing.T) {
 }
 
 func TestCountFlags(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	defaultNS := storage.NewNamespace("")
@@ -46,7 +46,7 @@ func TestCountFlags(t *testing.T) {
 }
 
 func TestGetRule(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	defaultNS := storage.NewNamespace("")
@@ -57,7 +57,7 @@ func TestGetRule(t *testing.T) {
 }
 
 func TestListRules(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	listByDefault := storage.ListWithOptions(
@@ -70,7 +70,7 @@ func TestListRules(t *testing.T) {
 }
 
 func TestCountRules(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	flag := storage.NewResource("", "flag")
@@ -81,7 +81,7 @@ func TestCountRules(t *testing.T) {
 }
 
 func TestGetSegment(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	segment := storage.NewResource("", "segment")
@@ -92,7 +92,7 @@ func TestGetSegment(t *testing.T) {
 }
 
 func TestListSegments(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	listByDefault := storage.ListWithOptions(
@@ -105,7 +105,7 @@ func TestListSegments(t *testing.T) {
 }
 
 func TestCountSegments(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	defaultNs := storage.NewNamespace("")
@@ -116,7 +116,7 @@ func TestCountSegments(t *testing.T) {
 }
 
 func TestGetRollout(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	defaultNs := storage.NewNamespace("")
@@ -127,7 +127,7 @@ func TestGetRollout(t *testing.T) {
 }
 
 func TestListRollouts(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	listByDefault := storage.ListWithOptions(
@@ -140,7 +140,7 @@ func TestListRollouts(t *testing.T) {
 }
 
 func TestCountRollouts(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	flag := storage.NewResource("", "flag")
@@ -151,7 +151,7 @@ func TestCountRollouts(t *testing.T) {
 }
 
 func TestGetNamespace(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	ns := storage.NewNamespace("")
@@ -162,7 +162,7 @@ func TestGetNamespace(t *testing.T) {
 }
 
 func TestListNamespaces(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	list := storage.ListWithOptions(
@@ -175,7 +175,7 @@ func TestListNamespaces(t *testing.T) {
 }
 
 func TestCountNamespaces(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	ref := storage.ReferenceRequest{}
@@ -186,7 +186,7 @@ func TestCountNamespaces(t *testing.T) {
 }
 
 func TestGetEvaluationRules(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	flag := storage.NewResource("", "flag")
@@ -197,18 +197,18 @@ func TestGetEvaluationRules(t *testing.T) {
 }
 
 func TestGetEvaluationDistributions(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	id := storage.NewID("id")
-	storeMock.On("GetEvaluationDistributions", mock.Anything, id).Return([]*storage.EvaluationDistribution{}, nil)
+	storeMock.On("GetEvaluationDistributions", mock.Anything, mock.Anything, id).Return([]*storage.EvaluationDistribution{}, nil)
 
 	_, err := ss.GetEvaluationDistributions(context.TODO(), storage.NewResource("", "flag"), id)
 	require.NoError(t, err)
 }
 
 func TestGetEvaluationRollouts(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	flag := storage.NewResource("", "flag")
@@ -219,7 +219,7 @@ func TestGetEvaluationRollouts(t *testing.T) {
 }
 
 func TestGetVersion(t *testing.T) {
-	storeMock := newSnapshotStoreMock()
+	storeMock := newSnapshotStoreMock(t)
 	ss := NewStore(storeMock)
 
 	ns := storage.NewNamespace("default")
@@ -231,12 +231,12 @@ func TestGetVersion(t *testing.T) {
 }
 
 type snapshotStoreMock struct {
-	*common.StoreMock
+	*common.MockStore
 }
 
-func newSnapshotStoreMock() snapshotStoreMock {
+func newSnapshotStoreMock(t *testing.T) snapshotStoreMock {
 	return snapshotStoreMock{
-		StoreMock: &common.StoreMock{},
+		MockStore: common.NewMockStore(t),
 	}
 }
 
@@ -244,7 +244,7 @@ func newSnapshotStoreMock() snapshotStoreMock {
 // The SnapshotStore will supply a snapshot which is valid
 // for the lifetime of the provided function call.
 func (s snapshotStoreMock) View(_ context.Context, _ storage.Reference, fn func(storage.ReadOnlyStore) error) error {
-	return fn(s.StoreMock)
+	return fn(s.MockStore)
 }
 
 func (s snapshotStoreMock) String() string {

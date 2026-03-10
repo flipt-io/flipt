@@ -7,7 +7,10 @@
     "dockerfile": "Dockerfile"
   },
   "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    },
+    "ghcr.io/devcontainers-extra/features/mise:1": {}
   },
   "customizations": {
     "vscode": {
@@ -18,9 +21,7 @@
         "go.useLanguageServer": true,
         "go.formatTool": "goimports",
         "go.lintTool": "golangci-lint",
-        "go.lintFlags": [
-          "--fast"
-        ]
+        "go.lintFlags": ["--fast"]
       },
       // Add the IDs of extensions you want installed when the container is created.
       "extensions": [
@@ -28,7 +29,8 @@
         "dbaeumer.vscode-eslint",
         "zxh404.vscode-proto3",
         "esbenp.prettier-vscode",
-        "mutantdino.resourcemonitor"
+        "mutantdino.resourcemonitor",
+        "hverlin.mise-vscode"
       ]
     }
   },
@@ -42,15 +44,22 @@
     "9000": {
       "label": "GRPC Port",
       "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "UI Port",
+      "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "mage bootstrap",
-  "postStartCommand": "cat .devcontainer/welcome-message.txt"
+  "postCreateCommand": "mise bootstrap",
+  "postStartCommand": "cat .devcontainer/welcome-message.txt",
   // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
   // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
   // Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
   // "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
   // Uncomment to connect as a non-root user if you've added one. See https://aka.ms/vscode-remote/containers/non-root.
   // "remoteUser": "vscode"
-  // "remoteEnv": {}
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/share/mise/shims",
+    "FLIPT_DB_URL": "file:/home/vscode/.local/state/flipt.db"
+  }
 }

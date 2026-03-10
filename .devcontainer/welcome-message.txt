@@ -5,11 +5,11 @@
 ℹ️  Look at https://github.com/flipt-io/flipt/blob/main/DEVELOPMENT.md for more contribution details.
 
 ⭐⭐ =================================  IMPORTANT!!  ================================== ⭐⭐
-    - To run the backend server, run `mage dev` in the terminal.
+    - To run the backend server, run `mise run dev` in the terminal.
 
-    - To run the frontend server, run `mage ui:dev` in the terminal (in a new tab).
+    - To run the frontend server, run `mise run ui:dev` in the terminal (in a new tab).
 
-    - To run the tests, run `mage go:test` in the terminal.
+    - To run the tests, run `mise run go:test` in the terminal.
 
-    - Run `mage -l` to see all available commands.
+    - Run `mise task list` to see all available commands.
 ⭐⭐ ================================================================================== ⭐⭐

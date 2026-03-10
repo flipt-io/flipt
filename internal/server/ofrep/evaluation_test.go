@@ -150,7 +150,7 @@ func TestEvaluateFlag_Failure(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.TODO()
 			bridge := NewMockBridge(t)
-			store := &common.StoreMock{}
+			store := common.NewMockStore(t)
 			s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
 			if tc.req.Key != "" {
 				bridge.On("OFREPFlagEvaluation", ctx, mock.Anything).Return(EvaluationBridgeOutput{}, tc.err)
@@ -176,7 +176,7 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 		},
 	}}
 	bridge := NewMockBridge(t)
-	store := &common.StoreMock{}
+	store := common.NewMockStore(t)
 	s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
 
 	t.Run("with flags in the evaluation request", func(t *testing.T) {

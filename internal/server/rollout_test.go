@@ -15,7 +15,7 @@ import (
 
 func TestGetRollout(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -36,7 +36,7 @@ func TestGetRollout(t *testing.T) {
 
 func TestListRollouts_PaginationPageToken(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -62,7 +62,8 @@ func TestListRollouts_PaginationPageToken(t *testing.T) {
 
 	store.On("CountRollouts", mock.Anything, storage.NewResource("", "flagKey")).Return(uint64(1), nil)
 
-	got, err := s.ListRollouts(context.TODO(), &flipt.ListRolloutRequest{FlagKey: "flagKey",
+	got, err := s.ListRollouts(context.TODO(), &flipt.ListRolloutRequest{
+		FlagKey:   "flagKey",
 		PageToken: "Zm9v",
 	})
 
@@ -75,7 +76,7 @@ func TestListRollouts_PaginationPageToken(t *testing.T) {
 
 func TestCreateRollout(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -176,7 +177,7 @@ func TestCreateRollout(t *testing.T) {
 
 func TestUpdateRollout(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -213,7 +214,7 @@ func TestUpdateRollout(t *testing.T) {
 
 func TestDeleteRollout(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -234,7 +235,7 @@ func TestDeleteRollout(t *testing.T) {
 
 func TestOrderRollouts(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,

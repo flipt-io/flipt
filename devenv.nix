@@ -2,7 +2,7 @@
 
 {
   # https://devenv.sh/packages/
-  packages = [ pkgs.git pkgs.mage pkgs.gcc pkgs.nodejs ];
+  packages = [ pkgs.git pkgs.mise pkgs.gcc pkgs.nodejs ];
 
   # https://devenv.sh/scripts/
   scripts.hello.exec = "echo 'hello from Flipt v2!'";
@@ -19,15 +19,9 @@
 
   # https://devenv.sh/processes/
   processes = {
-    backend.exec = "mage -keep dev";
+    backend.exec = "mise run dev";
     backend.notify.enable = true;
-    frontend.exec = "mage -keep ui:dev";
-  };
-
-  # https://devenv.sh/tasks/
-  tasks."app:cleanup" = {
-    exec = "rm mage_output_file.go";
-    after = [ "devenv:processes:backend" ];
+    frontend.exec = "mise run ui:dev";
   };
 
   # See full reference at https://devenv.sh/reference/options/

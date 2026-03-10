@@ -14,7 +14,7 @@ import (
 
 func TestEvaluationSnapshotNamespace(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockEvaluationStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)
@@ -31,6 +31,6 @@ func TestEvaluationSnapshotNamespace(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, resp.Namespace)
 
-		store.AssertExpectations(t)
+		// assertions are handled by NewMockEvaluationStore
 	})
 }

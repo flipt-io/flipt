@@ -924,7 +924,7 @@ var (
 
 func TestEvaluator_FlagDisabled(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -946,7 +946,7 @@ func TestEvaluator_FlagDisabled(t *testing.T) {
 
 func TestEvaluator_FlagDisabled_DefaultVariant(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -968,7 +968,7 @@ func TestEvaluator_FlagDisabled_DefaultVariant(t *testing.T) {
 
 func TestEvaluator_NonVariantFlag(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -992,7 +992,7 @@ func TestEvaluator_NonVariantFlag(t *testing.T) {
 
 func TestEvaluator_FlagNoRules(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1014,7 +1014,7 @@ func TestEvaluator_FlagNoRules(t *testing.T) {
 
 func TestEvaluator_FlagNoRules_DefaultVariant(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1070,7 +1070,7 @@ func TestEvaluator_FlagNoRules_DefaultVariant(t *testing.T) {
 
 func TestEvaluator_ErrorGettingRules(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1092,7 +1092,7 @@ func TestEvaluator_ErrorGettingRules(t *testing.T) {
 
 func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1157,7 +1157,7 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 
 func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1201,7 +1201,7 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 
 func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1245,7 +1245,7 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 
 func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1274,7 +1274,7 @@ func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, errors.New("error getting distributions!"))
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, errors.New("error getting distributions!"))
 
 	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		EntityId: "1",
@@ -1292,7 +1292,7 @@ func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 // Match ALL constraints
 func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1321,7 +1321,7 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	tests := []struct {
 		name      string
@@ -1380,7 +1380,7 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 
 func TestEvaluator_MatchAll_NoDistributions_DefaultVariant(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1409,7 +1409,7 @@ func TestEvaluator_MatchAll_NoDistributions_DefaultVariant(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	resp, err := s.Evaluate(context.TODO(), enabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
 		FlagKey:  "foo",
@@ -1431,7 +1431,7 @@ func TestEvaluator_MatchAll_NoDistributions_DefaultVariant(t *testing.T) {
 
 func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1474,7 +1474,7 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	tests := []struct {
 		name      string
@@ -1537,7 +1537,7 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 
 func TestEvaluator_DistributionNotMatched(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1574,7 +1574,7 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:                "4",
@@ -1604,7 +1604,7 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 
 func TestEvaluator_DistributionNotMatched_DefaultVariant(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1641,7 +1641,7 @@ func TestEvaluator_DistributionNotMatched_DefaultVariant(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:                "4",
@@ -1674,7 +1674,7 @@ func TestEvaluator_DistributionNotMatched_DefaultVariant(t *testing.T) {
 
 func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1711,7 +1711,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:                "4",
@@ -1803,7 +1803,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 
 func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1833,7 +1833,7 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -1923,7 +1923,7 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 
 func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -1963,7 +1963,7 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2001,7 +2001,7 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 
 func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2021,7 +2021,7 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2111,7 +2111,7 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 
 func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2140,7 +2140,7 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	tests := []struct {
 		name      string
@@ -2199,7 +2199,7 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 
 func TestEvaluator_MatchAny_NoDistributions_DefaultVariant(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2228,7 +2228,7 @@ func TestEvaluator_MatchAny_NoDistributions_DefaultVariant(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	resp, err := s.Evaluate(context.TODO(), enabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
 		FlagKey:  "foo",
@@ -2250,7 +2250,7 @@ func TestEvaluator_MatchAny_NoDistributions_DefaultVariant(t *testing.T) {
 
 func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2287,7 +2287,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2411,7 +2411,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 
 func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2441,7 +2441,7 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2531,7 +2531,7 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 
 func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2580,7 +2580,7 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2618,7 +2618,7 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 
 func TestEvaluator_MatchEntityId(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2647,7 +2647,7 @@ func TestEvaluator_MatchEntityId(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2683,7 +2683,7 @@ func TestEvaluator_MatchEntityId(t *testing.T) {
 
 func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2703,7 +2703,7 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2793,7 +2793,7 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 // when a 0% distribution is the first available one.
 func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2823,7 +2823,7 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2892,7 +2892,7 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 // Ensure things work properly when many rollout distributions have a 0% value.
 func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 	var (
-		store  = &evaluationStoreMock{}
+		store  = NewMockStorer(t)
 		logger = zaptest.NewLogger(t)
 		s      = NewEvaluator(logger, store)
 	)
@@ -2922,7 +2922,7 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "1",

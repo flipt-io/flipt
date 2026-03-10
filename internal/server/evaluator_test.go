@@ -23,7 +23,7 @@ var (
 
 func TestBatchEvaluate(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)
@@ -62,7 +62,7 @@ func TestBatchEvaluate(t *testing.T) {
 
 func TestBatchEvaluate_NamespaceMismatch(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)
@@ -88,7 +88,7 @@ func TestBatchEvaluate_NamespaceMismatch(t *testing.T) {
 
 func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)
@@ -133,7 +133,7 @@ func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 
 func TestBatchEvaluate_FlagNotFound(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
+		store  = common.NewMockStore(t)
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)

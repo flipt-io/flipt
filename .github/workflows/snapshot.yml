@@ -2,9 +2,6 @@ name: Release (Snapshot)
 on:
   workflow_dispatch:
 
-env:
-  GO_VERSION: "1.26"
-
 jobs:
   snapshot-build:
     runs-on: ${{ matrix.os }}
@@ -17,26 +14,11 @@ jobs:
           - os: macos-latest
             name: darwin
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
-
-      - uses: actions/cache@v4
-        with:
-          path: _tools/
-          key: ${{ runner.os }}-go-tools${{ hashFiles('_tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-tools-
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "18"
+      - uses: ./.github/actions/setup
 
       - name: Install GCC for arm64
         if: matrix.os == 'ubuntu-latest'
@@ -50,15 +32,8 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
           echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          # mac build currently doesn't exist for v1.15.0 https://github.com/magefile/mage/issues/481
-          version: v1.14.0
-          install-only: true
-
       - name: Prep Build
-        run: mage prep
+        run: mise prep
         env:
           FLIPT_FORMBRICKS_ENVIRONMENT_ID: ${{ secrets.FLIPT_FORMBRICKS_ENVIRONMENT_ID }}
 
@@ -85,15 +60,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: snapshot-build
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
+      - uses: ./.github/actions/setup
 
       - uses: docker/setup-qemu-action@v3
 

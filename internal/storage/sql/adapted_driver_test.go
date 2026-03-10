@@ -2,13 +2,19 @@ package sql
 
 import (
 	"context"
-
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+var (
+	newMockConnector     = newMockdriverConn
+	NewMockDriverContext = newMockdriverContext
+)
+
+type mockDriverConn = mockdriverConn
 
 func TestAdaptedDriver(t *testing.T) {
 	mockDriver := NewMockDriverContext(t)
@@ -21,7 +27,7 @@ func TestAdaptedDriver(t *testing.T) {
 	})
 	t.Run("success", func(t *testing.T) {
 		o := newMockConnector(t)
-		var mockConn = &mockDriverConn{}
+		mockConn := &mockDriverConn{}
 		o.On("Connect", mock.Anything).Once().Return(mockConn, nil)
 		name := "pgx://success"
 		mockDriver.On("OpenConnector", name).Return(o, nil)
@@ -51,7 +57,7 @@ func TestAdaptedConnectorConnect(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		var mockConn = &mockDriverConn{}
+		mockConn := &mockDriverConn{}
 		ctx := context.Background()
 		o.On("Connect", ctx).Once().Return(mockConn, nil)
 		conn, err := c.Connect(ctx)

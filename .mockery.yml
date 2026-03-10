@@ -1,0 +1,37 @@
+formatter: goimports
+template: testify
+filename: "{{.SrcPackageName}}_mock.go"
+pkgname: "{{.SrcPackageName}}"
+dir: "{{.InterfaceDir}}"
+packages:
+  go.flipt.io/flipt/internal/server/analytics/prometheus:
+    interfaces:
+      prometheusClient: {}
+  go.flipt.io/flipt/internal/server/ofrep:
+    interfaces:
+      Bridge: {}
+  go.flipt.io/flipt/internal/storage/sql:
+    interfaces:
+      driverContext: {}
+      driverConn: {}
+  go.flipt.io/flipt/internal/storage:
+    config:
+      pkgname: common
+      dir: internal/common
+      filename: store_mock.go
+    interfaces:
+      Store: {}
+  go.flipt.io/flipt/internal/oci/ecr:
+    interfaces:
+      Client: {}
+      PrivateClient: {}
+      PublicClient: {}
+  go.flipt.io/flipt/internal/server/analytics:
+    interfaces:
+      Client: {}
+  go.flipt.io/flipt/internal/server/evaluation/data:
+    interfaces:
+      EvaluationStore: {}
+  go.flipt.io/flipt/internal/server/evaluation:
+    interfaces:
+      Storer: {}

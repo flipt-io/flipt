@@ -21,7 +21,7 @@ func TestGetAuthenticationByClientToken(t *testing.T) {
 	var (
 		auth  = &rpcauth.Authentication{Id: "123"}
 		store = &storeMock{
-			StoreMock: &common.StoreMock{},
+			MockStore: common.NewMockStore(t),
 		}
 	)
 
@@ -50,7 +50,7 @@ func TestGetAuthenticationByClientTokenCached(t *testing.T) {
 	var (
 		auth  = &rpcauth.Authentication{Id: "123"}
 		store = &storeMock{
-			StoreMock: &common.StoreMock{},
+			MockStore: common.NewMockStore(t),
 		}
 	)
 
@@ -79,7 +79,7 @@ func TestGetAuthenticationByClientTokenCached(t *testing.T) {
 
 func TestExpireAuthenticationByID(t *testing.T) {
 	store := &storeMock{
-		StoreMock: &common.StoreMock{},
+		MockStore: common.NewMockStore(t),
 	}
 
 	store.On("ExpireAuthenticationByID", context.TODO(), "123", mock.Anything).Return(
