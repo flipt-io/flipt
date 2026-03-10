@@ -490,6 +490,7 @@ paths:
             parameters:
                 - name: environmentKey
                   in: path
+                  description: Primary environment key (also used for request path binding).
                   required: true
                   schema:
                     type: string
@@ -538,6 +539,8 @@ components:
         BulkApplyNamespaceResult:
             type: object
             properties:
+                environmentKey:
+                    type: string
                 namespaceKey:
                     type: string
                 status:
@@ -555,6 +558,7 @@ components:
             properties:
                 environmentKey:
                     type: string
+                    description: Primary environment key (also used for request path binding).
                 namespaceKeys:
                     type: array
                     items:
@@ -587,6 +591,13 @@ components:
                     type: string
                     description: Conflict strategy (for CREATE, UPSERT).
                     format: enum
+                environmentKeys:
+                    type: array
+                    items:
+                        type: string
+                    description: |-
+                        Optional list of target environment keys.
+                         If empty, only `environment_key` is targeted.
                 revision:
                     type: string
                     description: Revision for optimistic concurrency.
@@ -600,6 +611,7 @@ components:
                         $ref: '#/components/schemas/BulkApplyNamespaceResult'
                 revision:
                     type: string
+                    description: Revision for `environment_key` from the request.
             description: Response after bulk applying resources.
         Change:
             type: object

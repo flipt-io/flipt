@@ -2383,8 +2383,9 @@ func (x *CopyNamespaceResponse) GetRevision() string {
 
 // Request to apply an operation to a resource across multiple namespaces.
 type BulkApplyResourcesRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Primary environment key (also used for request path binding).
+	EnvironmentKey string `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
 	// Explicit list of target namespace keys.
 	NamespaceKeys []string `protobuf:"bytes,2,rep,name=namespace_keys,json=namespaceKeys,proto3" json:"namespace_keys,omitempty"`
 	// Operation to apply.
@@ -2397,6 +2398,9 @@ type BulkApplyResourcesRequest struct {
 	Payload *anypb.Any `protobuf:"bytes,6,opt,name=payload,proto3,oneof" json:"payload,omitempty"`
 	// Conflict strategy (for CREATE, UPSERT).
 	OnConflict ConflictStrategy `protobuf:"varint,7,opt,name=on_conflict,json=onConflict,proto3,enum=environments.ConflictStrategy" json:"on_conflict,omitempty"`
+	// Optional list of target environment keys.
+	// If empty, only `environment_key` is targeted.
+	EnvironmentKeys []string `protobuf:"bytes,8,rep,name=environment_keys,json=environmentKeys,proto3" json:"environment_keys,omitempty"`
 	// Revision for optimistic concurrency.
 	Revision      string `protobuf:"bytes,100,opt,name=revision,proto3" json:"revision,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -2482,6 +2486,13 @@ func (x *BulkApplyResourcesRequest) GetOnConflict() ConflictStrategy {
 	return ConflictStrategy_CONFLICT_STRATEGY_FAIL
 }
 
+func (x *BulkApplyResourcesRequest) GetEnvironmentKeys() []string {
+	if x != nil {
+		return x.EnvironmentKeys
+	}
+	return nil
+}
+
 func (x *BulkApplyResourcesRequest) GetRevision() string {
 	if x != nil {
 		return x.Revision
@@ -2491,12 +2502,13 @@ func (x *BulkApplyResourcesRequest) GetRevision() string {
 
 // Per-namespace result from a bulk apply.
 type BulkApplyNamespaceResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	NamespaceKey  string                 `protobuf:"bytes,1,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
-	Status        OperationStatus        `protobuf:"varint,2,opt,name=status,proto3,enum=environments.OperationStatus" json:"status,omitempty"`
-	Error         *string                `protobuf:"bytes,3,opt,name=error,proto3,oneof" json:"error,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	NamespaceKey   string                 `protobuf:"bytes,2,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	Status         OperationStatus        `protobuf:"varint,3,opt,name=status,proto3,enum=environments.OperationStatus" json:"status,omitempty"`
+	Error          *string                `protobuf:"bytes,4,opt,name=error,proto3,oneof" json:"error,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *BulkApplyNamespaceResult) Reset() {
@@ -2529,6 +2541,13 @@ func (*BulkApplyNamespaceResult) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{34}
 }
 
+func (x *BulkApplyNamespaceResult) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
 func (x *BulkApplyNamespaceResult) GetNamespaceKey() string {
 	if x != nil {
 		return x.NamespaceKey
@@ -2552,9 +2571,10 @@ func (x *BulkApplyNamespaceResult) GetError() string {
 
 // Response after bulk applying resources.
 type BulkApplyResourcesResponse struct {
-	state         protoimpl.MessageState      `protogen:"open.v1"`
-	Results       []*BulkApplyNamespaceResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
-	Revision      string                      `protobuf:"bytes,100,opt,name=revision,proto3" json:"revision,omitempty"`
+	state   protoimpl.MessageState      `protogen:"open.v1"`
+	Results []*BulkApplyNamespaceResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	// Revision for `environment_key` from the request.
+	Revision      string `protobuf:"bytes,100,opt,name=revision,proto3" json:"revision,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2763,7 +2783,7 @@ const file_environments_proto_rawDesc = "" +
 	"\x06_error\"x\n" +
 	"\x15CopyNamespaceResponse\x12C\n" +
 	"\aresults\x18\x01 \x03(\v2).environments.CopyNamespaceResourceResultR\aresults\x12\x1a\n" +
-	"\brevision\x18d \x01(\tR\brevision\"\xf1\x02\n" +
+	"\brevision\x18d \x01(\tR\brevision\"\x9c\x03\n" +
 	"\x19BulkApplyResourcesRequest\x12'\n" +
 	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12%\n" +
 	"\x0enamespace_keys\x18\x02 \x03(\tR\rnamespaceKeys\x129\n" +
@@ -2772,14 +2792,16 @@ const file_environments_proto_rawDesc = "" +
 	"\x03key\x18\x05 \x01(\tR\x03key\x123\n" +
 	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyH\x00R\apayload\x88\x01\x01\x12?\n" +
 	"\von_conflict\x18\a \x01(\x0e2\x1e.environments.ConflictStrategyR\n" +
-	"onConflict\x12\x1a\n" +
+	"onConflict\x12)\n" +
+	"\x10environment_keys\x18\b \x03(\tR\x0fenvironmentKeys\x12\x1a\n" +
 	"\brevision\x18d \x01(\tR\brevisionB\n" +
 	"\n" +
-	"\b_payload\"\x9b\x01\n" +
-	"\x18BulkApplyNamespaceResult\x12#\n" +
-	"\rnamespace_key\x18\x01 \x01(\tR\fnamespaceKey\x125\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x1d.environments.OperationStatusR\x06status\x12\x19\n" +
-	"\x05error\x18\x03 \x01(\tH\x00R\x05error\x88\x01\x01B\b\n" +
+	"\b_payload\"\xc4\x01\n" +
+	"\x18BulkApplyNamespaceResult\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
+	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x125\n" +
+	"\x06status\x18\x03 \x01(\x0e2\x1d.environments.OperationStatusR\x06status\x12\x19\n" +
+	"\x05error\x18\x04 \x01(\tH\x00R\x05error\x88\x01\x01B\b\n" +
 	"\x06_error\"z\n" +
 	"\x1aBulkApplyResourcesResponse\x12@\n" +
 	"\aresults\x18\x01 \x03(\v2&.environments.BulkApplyNamespaceResultR\aresults\x12\x1a\n" +

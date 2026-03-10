@@ -34,6 +34,10 @@ func (r *CopyNamespaceRequest) Validate() error {
 }
 
 func (r *BulkApplyResourcesRequest) Validate() error {
+	if r.GetEnvironmentKey() == "" && len(r.GetEnvironmentKeys()) == 0 {
+		return errors.ErrInvalid("environment_key or environment_keys must not be empty")
+	}
+
 	if len(r.GetNamespaceKeys()) == 0 {
 		return errors.ErrInvalid("namespace_keys must not be empty")
 	}

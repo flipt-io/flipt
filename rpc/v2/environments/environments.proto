@@ -527,6 +527,7 @@ message CopyNamespaceResponse {
 
 // Request to apply an operation to a resource across multiple namespaces.
 message BulkApplyResourcesRequest {
+  // Primary environment key (also used for request path binding).
   string environment_key = 1;
   // Explicit list of target namespace keys.
   repeated string namespace_keys = 2;
@@ -540,19 +541,24 @@ message BulkApplyResourcesRequest {
   optional google.protobuf.Any payload = 6;
   // Conflict strategy (for CREATE, UPSERT).
   ConflictStrategy on_conflict = 7;
+  // Optional list of target environment keys.
+  // If empty, only `environment_key` is targeted.
+  repeated string environment_keys = 8;
   // Revision for optimistic concurrency.
   string revision = 100;
 }
 
 // Per-namespace result from a bulk apply.
 message BulkApplyNamespaceResult {
-  string namespace_key = 1;
-  OperationStatus status = 2;
-  optional string error = 3;
+  string environment_key = 1;
+  string namespace_key = 2;
+  OperationStatus status = 3;
+  optional string error = 4;
 }
 
 // Response after bulk applying resources.
 message BulkApplyResourcesResponse {
   repeated BulkApplyNamespaceResult results = 1;
+  // Revision for `environment_key` from the request.
   string revision = 100;
 }

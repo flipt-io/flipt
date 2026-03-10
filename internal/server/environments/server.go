@@ -571,11 +571,6 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 		return nil, err
 	}
 
-	env, err := s.envs.Get(ctx, req.EnvironmentKey)
-	if err != nil {
-		return nil, err
-	}
-
 	typeUrl := req.TypeUrl
 	if typeUrl == "" && req.Payload != nil {
 		typeUrl = req.Payload.GetTypeUrl()
@@ -587,28 +582,77 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 	}
 
 	resp := &environments.BulkApplyResourcesResponse{}
+	environmentKeys := req.GetEnvironmentKeys()
+	if len(environmentKeys) == 0 {
+		environmentKeys = []string{req.EnvironmentKey}
+	}
 
-	resp.Revision, err = env.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
-		for _, nsKey := range req.NamespaceKeys {
-			result := &environments.BulkApplyNamespaceResult{
-				NamespaceKey: nsKey,
-			}
-
-			status, opErr := applyBulkOperation(ctx, sv, nsKey, req)
-			if opErr != nil {
-				result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
-				msg := opErr.Error()
-				result.Error = &msg
-			} else {
-				result.Status = status
-			}
-
-			resp.Results = append(resp.Results, result)
+	seen := make(map[string]struct{}, len(environmentKeys))
+	for _, environmentKey := range environmentKeys {
+		if _, ok := seen[environmentKey]; ok {
+			continue
 		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
+
+		seen[environmentKey] = struct{}{}
+		env, err := s.envs.Get(ctx, environmentKey)
+		if err != nil {
+			for _, nsKey := range req.NamespaceKeys {
+				msg := err.Error()
+				resp.Results = append(resp.Results, &environments.BulkApplyNamespaceResult{
+					EnvironmentKey: environmentKey,
+					NamespaceKey:   nsKey,
+					Status:         environments.OperationStatus_OPERATION_STATUS_FAILED,
+					Error:          &msg,
+				})
+			}
+			continue
+		}
+
+		revision := ""
+		if environmentKey == req.EnvironmentKey {
+			revision = req.Revision
+		}
+
+		envRevision, err := env.Update(ctx, revision, typ, func(ctx context.Context, sv ResourceStore) error {
+			for _, nsKey := range req.NamespaceKeys {
+				result := &environments.BulkApplyNamespaceResult{
+					EnvironmentKey: environmentKey,
+					NamespaceKey:   nsKey,
+				}
+
+				status, opErr := applyBulkOperation(ctx, sv, nsKey, req)
+				if opErr != nil {
+					result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
+					msg := opErr.Error()
+					result.Error = &msg
+				} else {
+					result.Status = status
+				}
+
+				resp.Results = append(resp.Results, result)
+			}
+			return nil
+		})
+		if err != nil {
+			for _, nsKey := range req.NamespaceKeys {
+				msg := err.Error()
+				resp.Results = append(resp.Results, &environments.BulkApplyNamespaceResult{
+					EnvironmentKey: environmentKey,
+					NamespaceKey:   nsKey,
+					Status:         environments.OperationStatus_OPERATION_STATUS_FAILED,
+					Error:          &msg,
+				})
+			}
+			continue
+		}
+
+		if environmentKey == req.EnvironmentKey {
+			resp.Revision = envRevision
+		}
+	}
+
+	if resp.Revision == "" {
+		resp.Revision = req.Revision
 	}
 
 	return resp, nil
