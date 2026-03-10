@@ -3,6 +3,7 @@ package environments
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/samber/lo"
 	"go.flipt.io/flipt/errors"
@@ -613,6 +614,7 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 			revision = req.Revision
 		}
 
+		wroteAny := false
 		envRevision, err := env.Update(ctx, revision, typ, func(ctx context.Context, sv ResourceStore) error {
 			for _, nsKey := range req.NamespaceKeys {
 				result := &environments.BulkApplyNamespaceResult{
@@ -620,13 +622,14 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 					NamespaceKey:   nsKey,
 				}
 
-				status, opErr := applyBulkOperation(ctx, sv, nsKey, req)
+				status, wrote, opErr := applyBulkOperation(ctx, sv, nsKey, req)
 				if opErr != nil {
 					result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
 					msg := opErr.Error()
 					result.Error = &msg
 				} else {
 					result.Status = status
+					wroteAny = wroteAny || wrote
 				}
 
 				resp.Results = append(resp.Results, result)
@@ -634,6 +637,15 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 			return nil
 		})
 		if err != nil {
+			// No-op conflict paths can legitimately produce no writes. In that case
+			// ignore empty commit errors and preserve per-namespace results.
+			if !wroteAny && strings.Contains(err.Error(), "cannot create empty commit") {
+				if environmentKey == req.EnvironmentKey {
+					resp.Revision = req.Revision
+				}
+				continue
+			}
+
 			for _, nsKey := range req.NamespaceKeys {
 				msg := err.Error()
 				resp.Results = append(resp.Results, &environments.BulkApplyNamespaceResult{
@@ -658,7 +670,7 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 	return resp, nil
 }
 
-func applyBulkOperation(ctx context.Context, sv ResourceStore, namespaceKey string, req *environments.BulkApplyResourcesRequest) (environments.OperationStatus, error) {
+func applyBulkOperation(ctx context.Context, sv ResourceStore, namespaceKey string, req *environments.BulkApplyResourcesRequest) (environments.OperationStatus, bool, error) {
 	switch req.Operation {
 	case environments.BulkOperation_BULK_OPERATION_CREATE:
 		resource := &environments.Resource{
@@ -669,10 +681,11 @@ func applyBulkOperation(ctx context.Context, sv ResourceStore, namespaceKey stri
 
 		exists, err := resourceExists(ctx, sv, namespaceKey, req.Key)
 		if err != nil {
-			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 		}
 
-		return applyCreateWithConflict(ctx, sv, resource, req.OnConflict, exists)
+		status, wrote, err := applyCreateWithConflict(ctx, sv, resource, req.OnConflict, exists)
+		return status, wrote, err
 	case environments.BulkOperation_BULK_OPERATION_UPDATE:
 		resource := &environments.Resource{
 			NamespaceKey: namespaceKey,
@@ -681,12 +694,14 @@ func applyBulkOperation(ctx context.Context, sv ResourceStore, namespaceKey stri
 		}
 
 		if err := sv.UpdateResource(ctx, resource); err != nil {
-			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 		}
+		return environments.OperationStatus_OPERATION_STATUS_SUCCESS, true, nil
 	case environments.BulkOperation_BULK_OPERATION_DELETE:
 		if err := sv.DeleteResource(ctx, namespaceKey, req.Key); err != nil {
-			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 		}
+		return environments.OperationStatus_OPERATION_STATUS_SUCCESS, true, nil
 	case environments.BulkOperation_BULK_OPERATION_UPSERT:
 		resource := &environments.Resource{
 			NamespaceKey: namespaceKey,
@@ -696,19 +711,21 @@ func applyBulkOperation(ctx context.Context, sv ResourceStore, namespaceKey stri
 
 		exists, err := resourceExists(ctx, sv, namespaceKey, req.Key)
 		if err != nil {
-			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 		}
 
 		if exists {
 			if err := sv.UpdateResource(ctx, resource); err != nil {
-				return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+				return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 			}
+			return environments.OperationStatus_OPERATION_STATUS_SUCCESS, true, nil
 		} else if err := sv.CreateResource(ctx, resource); err != nil {
-			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 		}
+		return environments.OperationStatus_OPERATION_STATUS_SUCCESS, true, nil
 	}
 
-	return environments.OperationStatus_OPERATION_STATUS_SUCCESS, nil
+	return environments.OperationStatus_OPERATION_STATUS_SUCCESS, false, nil
 }
 
 func applyCreateWithConflict(
@@ -717,26 +734,26 @@ func applyCreateWithConflict(
 	resource *environments.Resource,
 	onConflict environments.ConflictStrategy,
 	exists bool,
-) (environments.OperationStatus, error) {
+) (environments.OperationStatus, bool, error) {
 	if exists {
 		switch onConflict {
 		case environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
-			return environments.OperationStatus_OPERATION_STATUS_SKIPPED, nil
+			return environments.OperationStatus_OPERATION_STATUS_SKIPPED, false, nil
 		case environments.ConflictStrategy_CONFLICT_STRATEGY_OVERWRITE:
 			if err := sv.UpdateResource(ctx, resource); err != nil {
-				return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+				return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 			}
-			return environments.OperationStatus_OPERATION_STATUS_SUCCESS, nil
+			return environments.OperationStatus_OPERATION_STATUS_SUCCESS, true, nil
 		default:
-			return environments.OperationStatus_OPERATION_STATUS_FAILED, errors.ErrAlreadyExistsf("resource %q in namespace %q", resource.Key, resource.NamespaceKey)
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, errors.ErrAlreadyExistsf("resource %q in namespace %q", resource.Key, resource.NamespaceKey)
 		}
 	}
 
 	if err := sv.CreateResource(ctx, resource); err != nil {
-		return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+		return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 	}
 
-	return environments.OperationStatus_OPERATION_STATUS_SUCCESS, nil
+	return environments.OperationStatus_OPERATION_STATUS_SUCCESS, true, nil
 }
 
 func resourceExists(ctx context.Context, sv ResourceStoreView, namespaceKey, key string) (bool, error) {

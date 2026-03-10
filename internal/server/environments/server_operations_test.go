@@ -21,25 +21,27 @@ func TestApplyCreateWithConflict(t *testing.T) {
 			Key:          "flag",
 		}
 
-		status, err := applyCreateWithConflict(ctx, store, &rpcenvironments.Resource{
+		status, wrote, err := applyCreateWithConflict(ctx, store, &rpcenvironments.Resource{
 			NamespaceKey: "default",
 			Key:          "flag",
 		}, rpcenvironments.ConflictStrategy_CONFLICT_STRATEGY_SKIP, true)
 
 		require.NoError(t, err)
 		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_SKIPPED, status)
+		assert.False(t, wrote)
 	})
 
 	t.Run("fails when resource exists and strategy is fail", func(t *testing.T) {
 		store := newTestResourceStore()
 
-		status, err := applyCreateWithConflict(ctx, store, &rpcenvironments.Resource{
+		status, wrote, err := applyCreateWithConflict(ctx, store, &rpcenvironments.Resource{
 			NamespaceKey: "default",
 			Key:          "flag",
 		}, rpcenvironments.ConflictStrategy_CONFLICT_STRATEGY_FAIL, true)
 
 		require.Error(t, err)
 		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_FAILED, status)
+		assert.False(t, wrote)
 		assert.True(t, errs.AsMatch[errs.ErrAlreadyExists](err))
 	})
 
@@ -50,13 +52,14 @@ func TestApplyCreateWithConflict(t *testing.T) {
 			Key:          "flag",
 		}
 
-		status, err := applyCreateWithConflict(ctx, store, &rpcenvironments.Resource{
+		status, wrote, err := applyCreateWithConflict(ctx, store, &rpcenvironments.Resource{
 			NamespaceKey: "default",
 			Key:          "flag",
 		}, rpcenvironments.ConflictStrategy_CONFLICT_STRATEGY_OVERWRITE, true)
 
 		require.NoError(t, err)
 		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_SUCCESS, status)
+		assert.True(t, wrote)
 		assert.Equal(t, 1, store.updateCalls)
 		assert.Equal(t, 0, store.createCalls)
 	})
@@ -64,13 +67,14 @@ func TestApplyCreateWithConflict(t *testing.T) {
 	t.Run("creates when resource does not exist", func(t *testing.T) {
 		store := newTestResourceStore()
 
-		status, err := applyCreateWithConflict(ctx, store, &rpcenvironments.Resource{
+		status, wrote, err := applyCreateWithConflict(ctx, store, &rpcenvironments.Resource{
 			NamespaceKey: "default",
 			Key:          "flag",
 		}, rpcenvironments.ConflictStrategy_CONFLICT_STRATEGY_FAIL, false)
 
 		require.NoError(t, err)
 		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_SUCCESS, status)
+		assert.True(t, wrote)
 		assert.Equal(t, 1, store.createCalls)
 		assert.Equal(t, 0, store.updateCalls)
 	})
@@ -86,7 +90,7 @@ func TestApplyBulkOperation(t *testing.T) {
 			Key:          "flag",
 		}
 
-		status, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
+		status, wrote, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
 			Operation:  rpcenvironments.BulkOperation_BULK_OPERATION_CREATE,
 			Key:        "flag",
 			OnConflict: rpcenvironments.ConflictStrategy_CONFLICT_STRATEGY_SKIP,
@@ -94,19 +98,21 @@ func TestApplyBulkOperation(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_SKIPPED, status)
+		assert.False(t, wrote)
 	})
 
 	t.Run("upsert surfaces get errors that are not not found", func(t *testing.T) {
 		store := newTestResourceStore()
 		store.getErrors[testResourceKey("default", "flag")] = fmt.Errorf("read failed")
 
-		status, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
+		status, wrote, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
 			Operation: rpcenvironments.BulkOperation_BULK_OPERATION_UPSERT,
 			Key:       "flag",
 		})
 
 		require.Error(t, err)
 		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_FAILED, status)
+		assert.False(t, wrote)
 		assert.Contains(t, err.Error(), "read failed")
 	})
 }

@@ -14,6 +14,16 @@ import { baseQuery } from '~/utils/redux-rtk';
 
 export const environmentKey = 'environment';
 
+const toConflictStrategy = (value?: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  return value.startsWith('CONFLICT_STRATEGY_')
+    ? value
+    : `CONFLICT_STRATEGY_${value}`;
+};
+
 interface IEnvironmentsState {
   environments: { [key: string]: IEnvironment };
   status: LoadingStatus;
@@ -217,7 +227,7 @@ export const environmentsApi = createApi({
           type_url: typeUrl,
           key,
           payload,
-          on_conflict: onConflict,
+          on_conflict: toConflictStrategy(onConflict),
           revision
         }
       }),
@@ -256,7 +266,7 @@ export const environmentsApi = createApi({
           source_environment_key: sourceEnvironmentKey,
           source_namespace_key: sourceNamespaceKey,
           namespace_key: namespaceKey,
-          on_conflict: onConflict,
+          on_conflict: toConflictStrategy(onConflict),
           revision
         }
       }),
