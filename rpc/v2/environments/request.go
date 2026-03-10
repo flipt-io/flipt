@@ -60,13 +60,6 @@ func (r *DeleteResourceRequest) Request() []flipt.Request {
 	return []flipt.Request{flipt.NewRequest(flipt.ScopeNamespace, flipt.ActionDelete, flipt.WithEnvironment(r.EnvironmentKey), flipt.WithNamespace(r.NamespaceKey))}
 }
 
-func (r *CopyResourceRequest) Request() []flipt.Request {
-	return []flipt.Request{
-		flipt.NewRequest(flipt.ScopeNamespace, flipt.ActionRead, flipt.WithEnvironment(r.SourceEnvironmentKey), flipt.WithNamespace(r.SourceNamespaceKey)),
-		flipt.NewRequest(flipt.ScopeNamespace, flipt.ActionUpdate, flipt.WithEnvironment(r.EnvironmentKey), flipt.WithNamespace(r.NamespaceKey)),
-	}
-}
-
 func (r *CopyNamespaceRequest) Request() []flipt.Request {
 	return []flipt.Request{
 		flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.SourceEnvironmentKey)),

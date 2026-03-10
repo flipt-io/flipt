@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router';
 
 import {
   selectCurrentEnvironment,
-  useCopyResourceMutation
+  useBulkApplyResourcesMutation
 } from '~/app/environments/environmentsApi';
 import {
   selectCurrentNamespace,
@@ -63,7 +63,7 @@ export default function Segment() {
   );
 
   const [deleteSegment] = useDeleteSegmentMutation();
-  const [copyResource] = useCopyResourceMutation();
+  const [bulkApplyResources] = useBulkApplyResourcesMutation();
 
   useEffect(() => {
     if (isError) {
@@ -125,13 +125,16 @@ export default function Segment() {
           targetEnvironmentKey?: string,
           onConflict?: string
         ) =>
-          copyResource({
+          bulkApplyResources({
             environmentKey: targetEnvironmentKey || environment.key,
-            namespaceKey,
-            sourceEnvironmentKey: environment.key,
-            sourceNamespaceKey: namespace.key,
+            namespaceKeys: [namespaceKey],
+            operation: 'BULK_OPERATION_CREATE',
             typeUrl: 'flipt.core.Segment',
             key: segment.key,
+            payload: {
+              '@type': 'flipt.core.Segment',
+              ...segment
+            },
             onConflict,
             revision
           }).unwrap()

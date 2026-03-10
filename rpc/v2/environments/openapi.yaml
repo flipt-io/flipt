@@ -370,38 +370,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ResourceResponse'
-    /api/v2/environments/{environmentKey}/namespaces/{namespaceKey}/resources/copy:
-        post:
-            tags:
-                - EnvironmentsService
-            description: Copy a resource from one environment/namespace to another.
-            operationId: copyResource
-            parameters:
-                - name: environmentKey
-                  in: path
-                  description: Target environment.
-                  required: true
-                  schema:
-                    type: string
-                - name: namespaceKey
-                  in: path
-                  description: Target namespace.
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CopyResourceRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/CopyResourceResponse'
     /api/v2/environments/{environmentKey}/namespaces/{namespaceKey}/resources/{typeUrl}:
         get:
             tags:
@@ -709,52 +677,6 @@ components:
                 revision:
                     type: string
             description: Response after copying a namespace.
-        CopyResourceRequest:
-            type: object
-            properties:
-                environmentKey:
-                    type: string
-                    description: Target environment.
-                namespaceKey:
-                    type: string
-                    description: Target namespace.
-                sourceEnvironmentKey:
-                    type: string
-                    description: Source coordinates.
-                sourceNamespaceKey:
-                    type: string
-                typeUrl:
-                    type: string
-                    description: Resource type and key.
-                key:
-                    type: string
-                onConflict:
-                    enum:
-                        - CONFLICT_STRATEGY_FAIL
-                        - CONFLICT_STRATEGY_OVERWRITE
-                        - CONFLICT_STRATEGY_SKIP
-                    type: string
-                    description: Conflict strategy.
-                    format: enum
-                revision:
-                    type: string
-                    description: Revision for optimistic concurrency on the target environment.
-            description: Request to copy a resource from one environment/namespace to another.
-        CopyResourceResponse:
-            type: object
-            properties:
-                resource:
-                    $ref: '#/components/schemas/Resource'
-                status:
-                    enum:
-                        - OPERATION_STATUS_SUCCESS
-                        - OPERATION_STATUS_SKIPPED
-                        - OPERATION_STATUS_FAILED
-                    type: string
-                    format: enum
-                revision:
-                    type: string
-            description: Response after copying a resource.
         DeleteNamespaceResponse:
             type: object
             properties:

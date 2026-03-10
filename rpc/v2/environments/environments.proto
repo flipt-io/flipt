@@ -130,15 +130,6 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteResource"};
   }
 
-  // Copy a resource from one environment/namespace to another.
-  rpc CopyResource(CopyResourceRequest) returns (CopyResourceResponse) {
-    option (google.api.http) = {
-      post: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/copy"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {operation_id: "copyResource"};
-  }
-
   // Copy all resources from one namespace to another.
   rpc CopyNamespace(CopyNamespaceRequest) returns (CopyNamespaceResponse) {
     option (google.api.http) = {
@@ -502,31 +493,6 @@ enum OperationStatus {
   OPERATION_STATUS_SUCCESS = 0;
   OPERATION_STATUS_SKIPPED = 1;
   OPERATION_STATUS_FAILED = 2;
-}
-
-// Request to copy a resource from one environment/namespace to another.
-message CopyResourceRequest {
-  // Target environment.
-  string environment_key = 1;
-  // Target namespace.
-  string namespace_key = 2;
-  // Source coordinates.
-  string source_environment_key = 3;
-  string source_namespace_key = 4;
-  // Resource type and key.
-  string type_url = 5;
-  string key = 6;
-  // Conflict strategy.
-  ConflictStrategy on_conflict = 7;
-  // Revision for optimistic concurrency on the target environment.
-  string revision = 100;
-}
-
-// Response after copying a resource.
-message CopyResourceResponse {
-  Resource resource = 1;
-  OperationStatus status = 2;
-  string revision = 100;
 }
 
 // Request to copy all resources from one namespace to another.

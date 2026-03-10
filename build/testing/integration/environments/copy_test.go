@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func TestCopyResource(t *testing.T) {
+func TestBulkApplyResources_CopyEquivalent(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, opts integration.TestOpts) {
 		ctx := context.Background()
 
@@ -57,21 +57,28 @@ func TestCopyResource(t *testing.T) {
 		require.NoError(t, err)
 		revision = srcFlag.Revision
 
+		srcResource, err := envClient.GetResource(ctx, &environments.GetResourceRequest{
+			EnvironmentKey: env,
+			NamespaceKey:   integration.DefaultNamespace,
+			TypeUrl:        "flipt.core.Flag",
+			Key:            "copy-me",
+		})
+		require.NoError(t, err)
+
 		t.Run("copy to different namespace", func(t *testing.T) {
-			resp, err := envClient.CopyResource(ctx, &environments.CopyResourceRequest{
-				EnvironmentKey:       env,
-				NamespaceKey:         "copy-target",
-				SourceEnvironmentKey: env,
-				SourceNamespaceKey:   integration.DefaultNamespace,
-				TypeUrl:              "flipt.core.Flag",
-				Key:                  "copy-me",
-				Revision:             revision,
+			resp, err := envClient.BulkApplyResources(ctx, &environments.BulkApplyResourcesRequest{
+				EnvironmentKey: env,
+				NamespaceKeys:  []string{"copy-target"},
+				Operation:      environments.BulkOperation_BULK_OPERATION_CREATE,
+				TypeUrl:        "flipt.core.Flag",
+				Key:            "copy-me",
+				Payload:        srcResource.Resource.Payload,
+				Revision:       revision,
 			})
 			require.NoError(t, err)
 
-			assert.Equal(t, environments.OperationStatus_OPERATION_STATUS_SUCCESS, resp.Status)
-			assert.Equal(t, "copy-me", resp.Resource.Key)
-			assert.Equal(t, "copy-target", resp.Resource.NamespaceKey)
+			require.Len(t, resp.Results, 1)
+			assert.Equal(t, environments.OperationStatus_OPERATION_STATUS_SUCCESS, resp.Results[0].Status)
 			assert.NotEmpty(t, resp.Revision)
 
 			revision = resp.Revision
@@ -88,49 +95,54 @@ func TestCopyResource(t *testing.T) {
 		})
 
 		t.Run("conflict strategy FAIL", func(t *testing.T) {
-			_, err := envClient.CopyResource(ctx, &environments.CopyResourceRequest{
-				EnvironmentKey:       env,
-				NamespaceKey:         "copy-target",
-				SourceEnvironmentKey: env,
-				SourceNamespaceKey:   integration.DefaultNamespace,
-				TypeUrl:              "flipt.core.Flag",
-				Key:                  "copy-me",
-				OnConflict:           environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL,
-				Revision:             revision,
+			resp, err := envClient.BulkApplyResources(ctx, &environments.BulkApplyResourcesRequest{
+				EnvironmentKey: env,
+				NamespaceKeys:  []string{"copy-target"},
+				Operation:      environments.BulkOperation_BULK_OPERATION_CREATE,
+				TypeUrl:        "flipt.core.Flag",
+				Key:            "copy-me",
+				Payload:        srcResource.Resource.Payload,
+				OnConflict:     environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL,
+				Revision:       revision,
 			})
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "AlreadyExists")
+			require.NoError(t, err)
+			require.Len(t, resp.Results, 1)
+			assert.Equal(t, environments.OperationStatus_OPERATION_STATUS_FAILED, resp.Results[0].Status)
+			require.NotNil(t, resp.Results[0].Error)
+			assert.Contains(t, *resp.Results[0].Error, "already exists")
 		})
 
 		t.Run("conflict strategy SKIP", func(t *testing.T) {
-			resp, err := envClient.CopyResource(ctx, &environments.CopyResourceRequest{
-				EnvironmentKey:       env,
-				NamespaceKey:         "copy-target",
-				SourceEnvironmentKey: env,
-				SourceNamespaceKey:   integration.DefaultNamespace,
-				TypeUrl:              "flipt.core.Flag",
-				Key:                  "copy-me",
-				OnConflict:           environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP,
-				Revision:             revision,
+			resp, err := envClient.BulkApplyResources(ctx, &environments.BulkApplyResourcesRequest{
+				EnvironmentKey: env,
+				NamespaceKeys:  []string{"copy-target"},
+				Operation:      environments.BulkOperation_BULK_OPERATION_CREATE,
+				TypeUrl:        "flipt.core.Flag",
+				Key:            "copy-me",
+				Payload:        srcResource.Resource.Payload,
+				OnConflict:     environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP,
+				Revision:       revision,
 			})
 			require.NoError(t, err)
-			assert.Equal(t, environments.OperationStatus_OPERATION_STATUS_SKIPPED, resp.Status)
+			require.Len(t, resp.Results, 1)
+			assert.Equal(t, environments.OperationStatus_OPERATION_STATUS_SKIPPED, resp.Results[0].Status)
 			revision = resp.Revision
 		})
 
 		t.Run("conflict strategy OVERWRITE", func(t *testing.T) {
-			resp, err := envClient.CopyResource(ctx, &environments.CopyResourceRequest{
-				EnvironmentKey:       env,
-				NamespaceKey:         "copy-target",
-				SourceEnvironmentKey: env,
-				SourceNamespaceKey:   integration.DefaultNamespace,
-				TypeUrl:              "flipt.core.Flag",
-				Key:                  "copy-me",
-				OnConflict:           environments.ConflictStrategy_CONFLICT_STRATEGY_OVERWRITE,
-				Revision:             revision,
+			resp, err := envClient.BulkApplyResources(ctx, &environments.BulkApplyResourcesRequest{
+				EnvironmentKey: env,
+				NamespaceKeys:  []string{"copy-target"},
+				Operation:      environments.BulkOperation_BULK_OPERATION_CREATE,
+				TypeUrl:        "flipt.core.Flag",
+				Key:            "copy-me",
+				Payload:        srcResource.Resource.Payload,
+				OnConflict:     environments.ConflictStrategy_CONFLICT_STRATEGY_OVERWRITE,
+				Revision:       revision,
 			})
 			require.NoError(t, err)
-			assert.Equal(t, environments.OperationStatus_OPERATION_STATUS_SUCCESS, resp.Status)
+			require.Len(t, resp.Results, 1)
+			assert.Equal(t, environments.OperationStatus_OPERATION_STATUS_SUCCESS, resp.Results[0].Status)
 			revision = resp.Revision
 		})
 

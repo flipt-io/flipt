@@ -13,7 +13,7 @@ import { useParams } from 'react-router';
 
 import {
   selectCurrentEnvironment,
-  useCopyResourceMutation
+  useBulkApplyResourcesMutation
 } from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import {
@@ -72,7 +72,7 @@ export default function Flag() {
   );
 
   const [deleteFlag] = useDeleteFlagMutation();
-  const [copyResource] = useCopyResourceMutation();
+  const [bulkApplyResources] = useBulkApplyResourcesMutation();
 
   useEffect(() => {
     if (isError) {
@@ -132,13 +132,16 @@ export default function Flag() {
           targetEnvironmentKey?: string,
           onConflict?: string
         ) =>
-          copyResource({
+          bulkApplyResources({
             environmentKey: targetEnvironmentKey || environment.key,
-            namespaceKey,
-            sourceEnvironmentKey: environment.key,
-            sourceNamespaceKey: namespace.key,
+            namespaceKeys: [namespaceKey],
+            operation: 'BULK_OPERATION_CREATE',
             typeUrl: 'flipt.core.Flag',
             key: flag.key,
+            payload: {
+              '@type': 'flipt.core.Flag',
+              ...flag
+            },
             onConflict,
             revision
           }).unwrap()

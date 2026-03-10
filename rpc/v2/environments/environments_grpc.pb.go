@@ -36,7 +36,6 @@ const (
 	EnvironmentsService_CreateResource_FullMethodName                 = "/environments.EnvironmentsService/CreateResource"
 	EnvironmentsService_UpdateResource_FullMethodName                 = "/environments.EnvironmentsService/UpdateResource"
 	EnvironmentsService_DeleteResource_FullMethodName                 = "/environments.EnvironmentsService/DeleteResource"
-	EnvironmentsService_CopyResource_FullMethodName                   = "/environments.EnvironmentsService/CopyResource"
 	EnvironmentsService_CopyNamespace_FullMethodName                  = "/environments.EnvironmentsService/CopyNamespace"
 	EnvironmentsService_BulkApplyResources_FullMethodName             = "/environments.EnvironmentsService/BulkApplyResources"
 )
@@ -77,8 +76,6 @@ type EnvironmentsServiceClient interface {
 	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
 	// Delete a resource within a given namespace.
 	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
-	// Copy a resource from one environment/namespace to another.
-	CopyResource(ctx context.Context, in *CopyResourceRequest, opts ...grpc.CallOption) (*CopyResourceResponse, error)
 	// Copy all resources from one namespace to another.
 	CopyNamespace(ctx context.Context, in *CopyNamespaceRequest, opts ...grpc.CallOption) (*CopyNamespaceResponse, error)
 	// Apply an operation to a resource across multiple namespaces.
@@ -253,16 +250,6 @@ func (c *environmentsServiceClient) DeleteResource(ctx context.Context, in *Dele
 	return out, nil
 }
 
-func (c *environmentsServiceClient) CopyResource(ctx context.Context, in *CopyResourceRequest, opts ...grpc.CallOption) (*CopyResourceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CopyResourceResponse)
-	err := c.cc.Invoke(ctx, EnvironmentsService_CopyResource_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *environmentsServiceClient) CopyNamespace(ctx context.Context, in *CopyNamespaceRequest, opts ...grpc.CallOption) (*CopyNamespaceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CopyNamespaceResponse)
@@ -319,8 +306,6 @@ type EnvironmentsServiceServer interface {
 	UpdateResource(context.Context, *UpdateResourceRequest) (*ResourceResponse, error)
 	// Delete a resource within a given namespace.
 	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
-	// Copy a resource from one environment/namespace to another.
-	CopyResource(context.Context, *CopyResourceRequest) (*CopyResourceResponse, error)
 	// Copy all resources from one namespace to another.
 	CopyNamespace(context.Context, *CopyNamespaceRequest) (*CopyNamespaceResponse, error)
 	// Apply an operation to a resource across multiple namespaces.
@@ -382,9 +367,6 @@ func (UnimplementedEnvironmentsServiceServer) UpdateResource(context.Context, *U
 }
 func (UnimplementedEnvironmentsServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteResource not implemented")
-}
-func (UnimplementedEnvironmentsServiceServer) CopyResource(context.Context, *CopyResourceRequest) (*CopyResourceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CopyResource not implemented")
 }
 func (UnimplementedEnvironmentsServiceServer) CopyNamespace(context.Context, *CopyNamespaceRequest) (*CopyNamespaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CopyNamespace not implemented")
@@ -701,24 +683,6 @@ func _EnvironmentsService_DeleteResource_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EnvironmentsService_CopyResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CopyResourceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EnvironmentsServiceServer).CopyResource(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: EnvironmentsService_CopyResource_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnvironmentsServiceServer).CopyResource(ctx, req.(*CopyResourceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _EnvironmentsService_CopyNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CopyNamespaceRequest)
 	if err := dec(in); err != nil {
@@ -825,10 +789,6 @@ var EnvironmentsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteResource",
 			Handler:    _EnvironmentsService_DeleteResource_Handler,
-		},
-		{
-			MethodName: "CopyResource",
-			Handler:    _EnvironmentsService_CopyResource_Handler,
 		},
 		{
 			MethodName: "CopyNamespace",

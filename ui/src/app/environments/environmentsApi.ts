@@ -179,40 +179,44 @@ export const environmentsApi = createApi({
       }),
       invalidatesTags: () => [{ type: 'BranchEnvironment' }]
     }),
-    copyResource: builder.mutation<
+    bulkApplyResources: builder.mutation<
       {
-        resource: { namespaceKey: string; key: string; payload: unknown };
-        status: string;
+        results: Array<{
+          namespaceKey: string;
+          status: string;
+          error?: string;
+        }>;
         revision: string;
       },
       {
         environmentKey: string;
-        namespaceKey: string;
-        sourceEnvironmentKey: string;
-        sourceNamespaceKey: string;
+        namespaceKeys: string[];
+        operation: string;
         typeUrl: string;
         key: string;
+        payload?: unknown;
         onConflict?: string;
         revision: string;
       }
     >({
       query: ({
         environmentKey,
-        namespaceKey,
-        sourceEnvironmentKey,
-        sourceNamespaceKey,
+        namespaceKeys,
+        operation,
         typeUrl,
         key,
+        payload,
         onConflict,
         revision
       }) => ({
-        url: `/${environmentKey}/namespaces/${namespaceKey}/resources/copy`,
+        url: `/${environmentKey}/resources/bulk`,
         method: 'POST',
         body: {
-          source_environment_key: sourceEnvironmentKey,
-          source_namespace_key: sourceNamespaceKey,
+          namespace_keys: namespaceKeys,
+          operation,
           type_url: typeUrl,
           key,
+          payload,
           on_conflict: onConflict,
           revision
         }
@@ -268,7 +272,7 @@ export const {
   useDeleteBranchEnvironmentMutation,
   useListBranchEnvironmentChangesQuery,
   useProposeEnvironmentMutation,
-  useCopyResourceMutation,
+  useBulkApplyResourcesMutation,
   useCopyNamespaceMutation
 } = environmentsApi;
 

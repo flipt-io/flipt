@@ -372,91 +372,6 @@ func (s *Server) UpdateResource(ctx context.Context, req *environments.UpdateRes
 	return resp, nil
 }
 
-// CopyResource copies a single resource from one environment/namespace to another.
-// Cross-environment copy requires a Pro license; same-environment copy is available to all users.
-func (s *Server) CopyResource(ctx context.Context, req *environments.CopyResourceRequest) (*environments.CopyResourceResponse, error) {
-	if req.SourceEnvironmentKey != req.EnvironmentKey {
-		if err := s.requirePro(); err != nil {
-			return nil, err
-		}
-	}
-
-	typ, err := ParseResourceType(req.TypeUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	// Read from source environment.
-	srcEnv, err := s.envs.Get(ctx, req.SourceEnvironmentKey)
-	if err != nil {
-		return nil, fmt.Errorf("source environment: %w", err)
-	}
-
-	var srcResource *environments.Resource
-	if err := srcEnv.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) error {
-		resp, err := sv.GetResource(ctx, req.SourceNamespaceKey, req.Key)
-		if err != nil {
-			return fmt.Errorf("source resource %q/%q: %w", req.SourceNamespaceKey, req.Key, err)
-		}
-		srcResource = resp.Resource
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	// Write to target environment.
-	tgtEnv, err := s.envs.Get(ctx, req.EnvironmentKey)
-	if err != nil {
-		return nil, fmt.Errorf("target environment: %w", err)
-	}
-
-	resp := &environments.CopyResourceResponse{
-		Resource: &environments.Resource{
-			NamespaceKey: req.NamespaceKey,
-			Key:          srcResource.Key,
-			Payload:      srcResource.Payload,
-		},
-	}
-
-	// Check if the resource already exists in the target.
-	var exists bool
-	if err := tgtEnv.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) error {
-		_, err := sv.GetResource(ctx, req.NamespaceKey, req.Key)
-		if err == nil {
-			exists = true
-			return nil
-		}
-		if errors.AsMatch[errors.ErrNotFound](err) {
-			return nil
-		}
-		return err
-	}); err != nil {
-		return nil, err
-	}
-
-	switch {
-	case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_FAIL:
-		return nil, errors.ErrAlreadyExistsf("resource %q/%q/%q", req.TypeUrl, req.NamespaceKey, req.Key)
-	case exists && req.OnConflict == environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
-		resp.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
-		resp.Revision = req.Revision
-		return resp, nil
-	default:
-		// Either doesn't exist (create) or OVERWRITE.
-		resp.Revision, err = tgtEnv.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
-			if exists {
-				return sv.UpdateResource(ctx, resp.Resource)
-			}
-			return sv.CreateResource(ctx, resp.Resource)
-		})
-		if err != nil {
-			return nil, err
-		}
-		resp.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
-		return resp, nil
-	}
-}
-
 func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteResourceRequest) (_ *environments.DeleteResourceResponse, err error) {
 	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
@@ -679,59 +594,13 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 				NamespaceKey: nsKey,
 			}
 
-			var opErr error
-			switch req.Operation {
-			case environments.BulkOperation_BULK_OPERATION_CREATE:
-				resource := &environments.Resource{
-					NamespaceKey: nsKey,
-					Key:          req.Key,
-					Payload:      req.Payload,
-				}
-				_, getErr := sv.GetResource(ctx, nsKey, req.Key)
-				if getErr == nil {
-					switch req.OnConflict {
-					case environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
-						result.Status = environments.OperationStatus_OPERATION_STATUS_SKIPPED
-					case environments.ConflictStrategy_CONFLICT_STRATEGY_OVERWRITE:
-						opErr = sv.UpdateResource(ctx, resource)
-					default:
-						opErr = errors.ErrAlreadyExistsf("resource %q in namespace %q", req.Key, nsKey)
-					}
-				} else {
-					opErr = sv.CreateResource(ctx, resource)
-				}
-
-			case environments.BulkOperation_BULK_OPERATION_UPDATE:
-				resource := &environments.Resource{
-					NamespaceKey: nsKey,
-					Key:          req.Key,
-					Payload:      req.Payload,
-				}
-				opErr = sv.UpdateResource(ctx, resource)
-
-			case environments.BulkOperation_BULK_OPERATION_DELETE:
-				opErr = sv.DeleteResource(ctx, nsKey, req.Key)
-
-			case environments.BulkOperation_BULK_OPERATION_UPSERT:
-				resource := &environments.Resource{
-					NamespaceKey: nsKey,
-					Key:          req.Key,
-					Payload:      req.Payload,
-				}
-				_, getErr := sv.GetResource(ctx, nsKey, req.Key)
-				if getErr == nil {
-					opErr = sv.UpdateResource(ctx, resource)
-				} else {
-					opErr = sv.CreateResource(ctx, resource)
-				}
-			}
-
+			status, opErr := applyBulkOperation(ctx, sv, nsKey, req)
 			if opErr != nil {
 				result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
 				msg := opErr.Error()
 				result.Error = &msg
-			} else if result.Status != environments.OperationStatus_OPERATION_STATUS_SKIPPED {
-				result.Status = environments.OperationStatus_OPERATION_STATUS_SUCCESS
+			} else {
+				result.Status = status
 			}
 
 			resp.Results = append(resp.Results, result)
@@ -743,4 +612,98 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 	}
 
 	return resp, nil
+}
+
+func applyBulkOperation(ctx context.Context, sv ResourceStore, namespaceKey string, req *environments.BulkApplyResourcesRequest) (environments.OperationStatus, error) {
+	switch req.Operation {
+	case environments.BulkOperation_BULK_OPERATION_CREATE:
+		resource := &environments.Resource{
+			NamespaceKey: namespaceKey,
+			Key:          req.Key,
+			Payload:      req.Payload,
+		}
+
+		exists, err := resourceExists(ctx, sv, namespaceKey, req.Key)
+		if err != nil {
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+		}
+
+		return applyCreateWithConflict(ctx, sv, resource, req.OnConflict, exists)
+	case environments.BulkOperation_BULK_OPERATION_UPDATE:
+		resource := &environments.Resource{
+			NamespaceKey: namespaceKey,
+			Key:          req.Key,
+			Payload:      req.Payload,
+		}
+
+		if err := sv.UpdateResource(ctx, resource); err != nil {
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+		}
+	case environments.BulkOperation_BULK_OPERATION_DELETE:
+		if err := sv.DeleteResource(ctx, namespaceKey, req.Key); err != nil {
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+		}
+	case environments.BulkOperation_BULK_OPERATION_UPSERT:
+		resource := &environments.Resource{
+			NamespaceKey: namespaceKey,
+			Key:          req.Key,
+			Payload:      req.Payload,
+		}
+
+		exists, err := resourceExists(ctx, sv, namespaceKey, req.Key)
+		if err != nil {
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+		}
+
+		if exists {
+			if err := sv.UpdateResource(ctx, resource); err != nil {
+				return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+			}
+		} else if err := sv.CreateResource(ctx, resource); err != nil {
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+		}
+	}
+
+	return environments.OperationStatus_OPERATION_STATUS_SUCCESS, nil
+}
+
+func applyCreateWithConflict(
+	ctx context.Context,
+	sv ResourceStore,
+	resource *environments.Resource,
+	onConflict environments.ConflictStrategy,
+	exists bool,
+) (environments.OperationStatus, error) {
+	if exists {
+		switch onConflict {
+		case environments.ConflictStrategy_CONFLICT_STRATEGY_SKIP:
+			return environments.OperationStatus_OPERATION_STATUS_SKIPPED, nil
+		case environments.ConflictStrategy_CONFLICT_STRATEGY_OVERWRITE:
+			if err := sv.UpdateResource(ctx, resource); err != nil {
+				return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+			}
+			return environments.OperationStatus_OPERATION_STATUS_SUCCESS, nil
+		default:
+			return environments.OperationStatus_OPERATION_STATUS_FAILED, errors.ErrAlreadyExistsf("resource %q in namespace %q", resource.Key, resource.NamespaceKey)
+		}
+	}
+
+	if err := sv.CreateResource(ctx, resource); err != nil {
+		return environments.OperationStatus_OPERATION_STATUS_FAILED, err
+	}
+
+	return environments.OperationStatus_OPERATION_STATUS_SUCCESS, nil
+}
+
+func resourceExists(ctx context.Context, sv ResourceStoreView, namespaceKey, key string) (bool, error) {
+	_, err := sv.GetResource(ctx, namespaceKey, key)
+	if err == nil {
+		return true, nil
+	}
+
+	if errors.AsMatch[errors.ErrNotFound](err) {
+		return false, nil
+	}
+
+	return false, err
 }

@@ -26,10 +26,6 @@ func (r *DeleteResourceRequest) Validate() error {
 	return requireKey(r)
 }
 
-func (r *CopyResourceRequest) Validate() error {
-	return requireKey(r)
-}
-
 func (r *CopyNamespaceRequest) Validate() error {
 	if r.GetNamespaceKey() == "" {
 		return errors.ErrInvalid("namespace_key must not be empty")

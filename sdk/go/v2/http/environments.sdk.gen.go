@@ -341,38 +341,6 @@ func (x *EnvironmentsServiceClient) DeleteResource(ctx context.Context, v *envir
 	return &output, nil
 }
 
-func (x *EnvironmentsServiceClient) CopyResource(ctx context.Context, v *environments.CopyResourceRequest, _ ...grpc.CallOption) (*environments.CopyResourceResponse, error) {
-	var body io.Reader
-	var values url.Values
-	reqData, err := protojson.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v2/environments/%v/namespaces/%v/resources/copy", v.EnvironmentKey, v.NamespaceKey), body)
-	if err != nil {
-		return nil, err
-	}
-	req.URL.RawQuery = values.Encode()
-	resp, err := x.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	var output environments.CopyResourceResponse
-	respData, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkResponse(resp, respData); err != nil {
-		return nil, err
-	}
-	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
-		return nil, err
-	}
-	return &output, nil
-}
-
 func (x *EnvironmentsServiceClient) CopyNamespace(ctx context.Context, v *environments.CopyNamespaceRequest, _ ...grpc.CallOption) (*environments.CopyNamespaceResponse, error) {
 	var body io.Reader
 	var values url.Values
