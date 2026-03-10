@@ -53,7 +53,7 @@ test.describe('Flags', () => {
         .fill('firefox');
       await page.getByRole('button', { name: 'Create' }).click();
       await expect(
-        page.getByText('Successfully created variant')
+        page.getByText('Successfully created variant').last()
       ).toBeVisible();
     });
 
@@ -91,7 +91,7 @@ test.describe('Flags', () => {
         .getByRole('button', { name: 'Update' })
         .click();
       await expect(
-        page.getByText('Successfully updated variant')
+        page.getByText('Successfully updated variant').last()
       ).toBeVisible();
     });
   });

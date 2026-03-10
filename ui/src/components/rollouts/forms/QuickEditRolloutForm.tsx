@@ -160,20 +160,17 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
             <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
               {rollout.type === RolloutType.THRESHOLD ? (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
-                  <label
-                    htmlFor="percentage"
-                    className="mb-2 block text-sm font-medium text-gray-900"
-                  >
+                  <label htmlFor="percentage" className="mb-2">
                     Percentage
                   </label>
                   <Input
                     id="percentage-slider"
                     name="percentage"
                     type="range"
-                    className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle sm:block dark:bg-gray-700"
+                    className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle sm:block"
                   />
                   <div className="relative">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black">
+                    <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       %
                     </div>
                     <Input
@@ -189,10 +186,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               ) : (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                   <div>
-                    <label
-                      htmlFor="segmentKeys"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-                    >
+                    <label htmlFor="segmentKeys" className="sm:mt-px sm:pt-2">
                       Segment
                     </label>
                   </div>
@@ -228,10 +222,9 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                                 id={segmentOperator.id}
                                 name="operator"
                                 type="radio"
-                                className={cls(
-                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400',
-                                  { 'cursor-not-allowed': readOnly }
-                                )}
+                                className={cls({
+                                  'cursor-not-allowed': readOnly
+                                })}
                                 onChange={() => {
                                   formik.setFieldValue(
                                     'operator',
@@ -253,7 +246,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                             <div>
                               <label
                                 htmlFor={segmentOperator.id}
-                                className="block text-sm text-gray-700"
+                                className="text-secondary-foreground block text-sm"
                               >
                                 {segmentOperator.name}{' '}
                                 <span className="font-light">
@@ -268,10 +261,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 </div>
               )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
-                <label
-                  htmlFor="value"
-                  className="mb-2 block text-sm font-medium text-gray-900"
-                >
+                <label htmlFor="value" className="mb-2">
                   Value
                 </label>
                 <Select
@@ -284,7 +274,9 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   ]}
                   className={cls(
                     'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle',
-                    { 'cursor-not-allowed bg-gray-100 text-gray-500': readOnly }
+                    {
+                      'text-muted-foreground cursor-not-allowed': readOnly
+                    }
                   )}
                   disabled={readOnly}
                 />
@@ -292,7 +284,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
             </div>
           </div>
           <div className="shrink-0 py-1">
-            <div className="flex justify-end space-x-3">
+            <div className="space-x flex justify-end">
               <TextButton
                 disabled={formik.isSubmitting || !formik.dirty}
                 onClick={() => formik.resetForm()}

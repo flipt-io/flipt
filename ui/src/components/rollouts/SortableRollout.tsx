@@ -36,7 +36,7 @@ export default function SortableRollout(props: SortableRolloutProps) {
       }
     : undefined;
 
-  const className = isDragging ? 'border-violet-500 cursor-move' : '';
+  const className = isDragging ? 'border-brand cursor-move' : '';
 
   return (
     <Rollout

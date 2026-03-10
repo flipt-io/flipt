@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { StarIcon } from '@heroicons/react/24/outline';
+import { Star } from 'lucide-react';
 import { Form, Formik } from 'formik';
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -125,11 +125,11 @@ export function DefaultVariant(props: RulesProps) {
       {(formik) => {
         return (
           <div className="flex flex-col p-2">
-            <div className="bg-background w-full items-center space-y-2 rounded-md border border-violet-300 shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
-              <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
+            <div className="bg-background/80 w-full items-center space-y-2 rounded-md border sm:flex sm:flex-col lg:px-4 lg:py-2">
+              <div className="w-full rounded-t-lg border-b p-2">
                 <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
-                  <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
-                  <h3 className="text-sm leading-6 font-normal text-gray-700">
+                  <Star className="text-muted-foreground hover:text-brand hidden h-4 w-4 justify-start sm:flex" />
+                  <h3 className="text-secondary-foreground text-sm leading-6 font-normal">
                     Default Rule
                   </h3>
                   <span className="hidden h-4 w-4 justify-end sm:flex" />
@@ -137,7 +137,7 @@ export function DefaultVariant(props: RulesProps) {
               </div>
 
               <div className="flex grow flex-col items-center justify-center sm:ml-2">
-                <p className="text-center text-sm font-light text-gray-600">
+                <p className="text-muted-foreground text-center text-sm font-light">
                   This is the default value that will be returned if no other
                   rules match.
                 </p>
@@ -158,7 +158,7 @@ export function DefaultVariant(props: RulesProps) {
                       </div>
                     </div>
                     <div className="shrink-0 py-1">
-                      <div className="flex justify-end space-x-3">
+                      <div className="space-x flex justify-end">
                         <TextButton
                           className="min-w-[80px]"
                           disabled={
@@ -407,10 +407,10 @@ export default function Rules() {
       <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-muted-foreground mt-1 text-sm">
               Rules are evaluated in order from top to bottom.
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-muted-foreground mt-1 text-sm">
               Rules can be rearranged by clicking on the header and dragging and
               dropping it into place.
             </p>
@@ -432,7 +432,7 @@ export default function Rules() {
         <div className="mt-10">
           {(rules && rules.length > 0) || showDefaultVariant ? (
             <div className="flex">
-              <div className="pattern-boxes pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid w-full border border-gray-200 p-4 lg:p-6">
+              <div className="bg-secondary w-full rounded-md border p-4 lg:p-6">
                 {rules && rules.length > 0 && (
                   <DndContext
                     sensors={sensors}

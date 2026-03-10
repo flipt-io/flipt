@@ -1,123 +1,209 @@
 import {
-  ArrowUpRightIcon,
   BookOpenIcon,
-  ChatBubbleBottomCenterIcon,
-  EnvelopeIcon,
-  ExclamationCircleIcon
-} from '@heroicons/react/24/outline';
-import React from 'react';
-import { Link } from 'react-router';
+  CircleAlertIcon,
+  ExternalLinkIcon,
+  GraduationCapIcon,
+  LogsIcon,
+  MailIcon,
+  MessageCircle,
+  PuzzleIcon,
+  StarIcon,
+  UsersIcon
+} from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router';
+
+import { Button } from '~/components/Button';
+
 import { Icon } from '~/types/Icon';
 
-const supportItems: SupportItemProps[] = [
+import { cls } from '~/utils/helpers';
+
+import { onboardingCompleted } from './events/eventSlice';
+
+const gettingStartedTiles = [
   {
-    title: 'Onboarding',
-    description: 'Get started with Flipt',
-    children: (
-      <Link
-        to="/onboarding"
-        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-xs hover:shadow-violet-300 sm:px-3 sm:py-2"
-      >
-        <span className="text-sm text-gray-700">Let&apos;s Go</span>
-      </Link>
-    ),
-    icon: BookOpenIcon
+    icon: GraduationCapIcon,
+    name: 'Quick Start',
+    description: 'Learn how to create your first feature flag',
+    href: 'https://docs.flipt.io/v1/introduction'
   },
   {
-    title: 'File an Issue',
-    description: 'Get support from the community',
-    children: (
-      <a
-        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-xs hover:shadow-violet-300 sm:px-3 sm:py-2"
-        href="https://github.com/flipt-io/flipt/issues/new/choose"
-      >
-        <span className="text-sm text-gray-700">Create GitHub Issue</span>
-      </a>
-    ),
-    icon: ExclamationCircleIcon
+    icon: BookOpenIcon,
+    name: 'Checkout a Guide',
+    description:
+      'Use Flipt to its full potential. Read our guides using Flipt with GitOps',
+    href: 'https://docs.flipt.io/v1/guides'
   },
   {
-    title: 'Chat in Discord',
-    description: 'Ask a question in our Discord community',
-    children: (
-      <a
-        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-xs hover:shadow-violet-300 sm:px-3 sm:py-2"
-        href="https://www.flipt.io/discord"
-      >
-        <span className="text-sm text-gray-700">Join Discord Server</span>
-      </a>
-    ),
-    icon: ChatBubbleBottomCenterIcon
-  },
-  {
-    title: 'Email',
-    description: 'Send an email to our shared inbox',
-    children: (
-      <a
-        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-xs hover:shadow-violet-300 sm:px-3 sm:py-2"
-        href="mailto:dev@flipt.io?subject=Support Inquiry"
-      >
-        <span className="text-sm text-gray-700">Send Email</span>
-      </a>
-    ),
-    icon: EnvelopeIcon
+    icon: PuzzleIcon,
+    name: 'Integrate Your Application',
+    description: 'Use our SDKs to integrate your applications in your language',
+    href: 'https://docs.flipt.io/v1/integration/overview'
   }
 ];
 
-interface SupportItemProps {
-  title: string;
-  icon: Icon;
-  description: string;
-  children?: React.ReactNode;
+const moreTiles = [
+  {
+    icon: LogsIcon,
+    name: 'Changelog',
+    description: 'View the latest changes to Flipt',
+    cta: 'View Changelog',
+    href: 'https://docs.flipt.io/v1/changelog'
+  },
+  {
+    icon: MessageCircle,
+    name: 'Chat With Us',
+    description:
+      'Join our Discord community to engage with the team and other Flipt users',
+    cta: 'Join Discord',
+    href: 'https://flipt.io/discord'
+  },
+  {
+    icon: StarIcon,
+    name: 'Support Us',
+    description: 'Show your support by starring us on GitHub',
+    cta: 'Star Flipt on GitHub',
+    href: 'https://github.com/flipt-io/flipt'
+  },
+  {
+    icon: UsersIcon,
+    name: 'Join the Community',
+    description:
+      'Engage with our community on GitHub for support, discussions, and knowledge sharing',
+    cta: 'Join GitHub',
+    href: 'https://github.com/flipt-io/flipt/discussions'
+  },
+  {
+    icon: MailIcon,
+    name: 'Email',
+    description: 'Send an email to our shared inbox',
+    cta: 'Send Email',
+    href: 'mailto:dev@flipt.io?subject=Support Inquiry'
+  },
+  {
+    icon: CircleAlertIcon,
+    name: 'Report an issue',
+    description: 'Spotted something? Want something? Let us know!',
+    cta: 'Create GitHub Issue',
+    href: 'https://github.com/flipt-io/flipt/issues/new/choose'
+  }
+];
+
+interface SupportTileProps {
+  className?: string;
+  icon?: Icon;
+  name?: string;
+  description?: string;
+  cta?: string;
+  ctaIcon?: Icon;
+  href?: string;
 }
 
-function SupportItem(props: SupportItemProps) {
-  const { title, description, children, icon: Icon } = props;
+function SupportTile(props: SupportTileProps) {
+  const {
+    className,
+    icon: Icon,
+    ctaIcon: CTAIcon = ExternalLinkIcon,
+    name,
+    description,
+    cta,
+    href
+  } = props;
+
   return (
-    <div className="flex h-full w-full flex-col items-stretch space-y-4 rounded-md border border-gray-200 p-6">
-      <div className="sm:shrink-0">
-        <div className="flex items-center space-x-2">
-          <Icon className="h-6 w-6 text-gray-400" />
-          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-        </div>
-        <p className="pt-1 text-sm leading-5 text-gray-500">{description}</p>
+    <div
+      className={cls(
+        'group bg-secondary/20 dark:bg-secondary/50 hover:bg-accent/50 relative flex flex-col justify-between overflow-hidden rounded-xl border',
+        className
+      )}
+    >
+      <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10">
+        {Icon && (
+          <Icon className="text-muted-foreground h-6 w-6 origin-left transform-gpu" />
+        )}
+        <h3 className="text-secondary-foreground text-lg font-semibold">
+          {name}
+        </h3>
+        <p className="text-muted-foreground max-w-lg">{description}</p>
       </div>
-      <div className="mt-4 flex grow items-end sm:mt-0">{children}</div>
+      <div
+        tabIndex={0}
+        className={cls(
+          'absolute bottom-0 flex w-full transform-gpu flex-row items-center p-4 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 sm:translate-y-10 sm:opacity-0'
+        )}
+      >
+        <a
+          href={href || '/#/onboarding'}
+          target="_blank"
+          rel="noreferrer"
+          className="text-foreground hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent flex flex-row space-x-1 rounded-md px-2 py-1 sm:px-3 sm:py-2"
+        >
+          <span className="flex">{cta || 'Learn More'}</span>
+          <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
+        </a>
+      </div>
+      <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300" />
     </div>
   );
 }
 
-export default function Support() {
+interface SupportProps {
+  firstTime?: boolean;
+}
+
+export default function Support({ firstTime = false }: SupportProps) {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const title = firstTime ? 'Onboarding' : 'Support';
+
   return (
     <>
-      <div className="flex-row justify-between pb-5 sm:flex sm:items-center">
+      <div className="flex flex-row justify-between pb-5 sm:items-center">
         <div className="flex flex-col">
-          <h1 className="text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl">
-            Support
+          <h1 className="text-foreground text-2xl leading-7 font-bold sm:truncate sm:text-3xl sm:leading-9">
+            {title}
           </h1>
-          <p className="mt-2 text-sm text-gray-500">
-            How to get help with Flipt
+          <p className="text-muted-foreground mt-2 text-sm">
+            Here are some things to help you get started with Flipt
           </p>
         </div>
-        <div className="mt-4">
-          <a
-            className="mb-1 inline-flex items-center justify-center rounded-md border border-transparent bg-violet-500 px-4 py-2 text-sm font-medium text-white shadow-xs hover:cursor-pointer hover:bg-violet-600 focus:ring-1 focus:ring-violet-500 focus:ring-offset-1 focus:outline-hidden"
-            target="_blank"
-            rel="noreferrer"
-            href="https://www.flipt.io/docs?utm_source=app"
-          >
-            <span>Documentation</span>
-            <ArrowUpRightIcon
-              className="-mr-1.5 ml-1 h-3 w-3 text-white"
-              aria-hidden="true"
-            />
-          </a>
+        {firstTime && (
+          <div className="mt-4">
+            <Button
+              variant="soft"
+              title="Complete Onboarding"
+              onClick={() => {
+                dispatch(onboardingCompleted());
+                navigate('/flags');
+              }}
+            >
+              Continue to Dashboard
+            </Button>
+          </div>
+        )}
+      </div>
+      <div className="my-8">
+        <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {gettingStartedTiles.map((tile, i) => (
+            <SupportTile key={i} {...tile} />
+          ))}
+        </div>
+      </div>
+      <div className="mt-12 flex flex-row justify-between pb-5 sm:mt-16 sm:items-center">
+        <div className="flex flex-col">
+          <h2 className="text-secondary-foreground text-xl leading-7 font-bold sm:truncate sm:text-2xl dark:text-gray-100">
+            More Resources
+          </h2>
+          <p className="text-muted-foreground dark:text-muted-foreground mt-2 text-sm">
+            Once you&apos;re up and running, here are a few more resources
+          </p>
         </div>
       </div>
       <div className="my-8">
-        <div className="container m-auto grid grid-cols-2 gap-4 md:grid-cols-3">
-          {supportItems.map((item, index) => (
-            <SupportItem key={index} {...item} />
+        <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {moreTiles.map((tile, i) => (
+            <SupportTile key={i} {...tile} />
           ))}
         </div>
       </div>

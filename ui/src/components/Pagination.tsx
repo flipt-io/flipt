@@ -1,7 +1,4 @@
-import {
-  ArrowLongLeftIcon,
-  ArrowLongRightIcon
-} from '@heroicons/react/20/solid';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useMemo } from 'react';
 import { usePagination } from '~/data/hooks/pagination';
 import { cls } from '~/utils/helpers';
@@ -24,7 +21,7 @@ function Page(props: PageProps) {
   // we are using '...' (string) to represent page links that should not be rendered
   if (typeof page === 'string') {
     return (
-      <span className="border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-700">
+      <span className="text-secondary-foreground border-t-2 border-transparent px-4 pt-4 text-sm font-medium">
         &#8230; {/* ellipsis */}
       </span>
     );
@@ -37,7 +34,7 @@ function Page(props: PageProps) {
         'inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium',
         {
           'border-violet-500 text-violet-600': isCurrentPage,
-          'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700':
+          'text-muted-foreground hover:text-secondary-foreground border-transparent hover:border-gray-300':
             !isCurrentPage
         }
       )}
@@ -92,20 +89,20 @@ export default function Pagination(props: PaginationProps) {
 
   return (
     <nav
-      className={`${className} flex items-center justify-between border-t border-gray-200 px-4 sm:px-0`}
+      className={`${className} flex items-center justify-between border-t px-4 sm:px-0`}
     >
       <div className="flex w-0 flex-1">
         {currentPage > 1 && (
           <a
             href="#"
-            className="inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            className="text-muted-foreground hover:text-secondary-foreground inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-sm font-medium hover:border-gray-300"
             onClick={(e) => {
               e.preventDefault();
               onPreviousPage();
             }}
           >
-            <ArrowLongLeftIcon
-              className="mr-3 h-5 w-5 text-gray-400"
+            <ArrowLeft
+              className="text-muted-foreground mr-3 h-5 w-5"
               aria-hidden="true"
             />
             Previous
@@ -126,7 +123,7 @@ export default function Pagination(props: PaginationProps) {
       )}
       <div className="hidden md:-mt-px md:flex">
         <select
-          className="mt-4 inline-flex items-center border-transparent bg-gray-50 text-sm font-medium text-gray-500 focus:border-transparent focus:ring-0"
+          className="bg-secondary text-muted-foreground mt-4 inline-flex items-center border-transparent text-sm font-medium focus:border-transparent focus:ring-0"
           value={pageSize}
           onChange={(e) => {
             onPageChange(currentPage, Number(e.target.value));
@@ -136,7 +133,7 @@ export default function Pagination(props: PaginationProps) {
             <option
               key={pageSize}
               value={pageSize}
-              className="inline-flex items-center border-transparent text-sm font-medium text-gray-500 focus:border-transparent focus:ring-0"
+              className="text-muted-foreground inline-flex items-center border-transparent text-sm font-medium focus:border-transparent focus:ring-0"
             >
               Show {pageSize}
             </option>
@@ -147,15 +144,15 @@ export default function Pagination(props: PaginationProps) {
         {currentPage < lastPage && (
           <a
             href="#"
-            className="inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            className="text-muted-foreground hover:text-secondary-foreground inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-sm font-medium hover:border-gray-300"
             onClick={(e) => {
               e.preventDefault();
               onNextPage();
             }}
           >
             Next
-            <ArrowLongRightIcon
-              className="ml-3 h-5 w-5 text-gray-400"
+            <ArrowRight
+              className="text-muted-foreground ml-3 h-5 w-5"
               aria-hidden="true"
             />
           </a>

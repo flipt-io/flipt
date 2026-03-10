@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   createColumnHelper,
   flexRender,
@@ -29,9 +29,9 @@ type TokenRowActionsProps = {
 function TokenRowActions(props: TokenRowActionsProps) {
   const { row, setDeletingTokens, setShowDeleteTokenModal } = props;
 
-  let className = 'text-violet-600 hover:text-violet-900';
+  let className = 'text-brand/80 hover:text-brand';
   if (row.getIsSelected()) {
-    className = 'text-gray-400 hover:cursor-not-allowed';
+    className = 'text-muted-foreground hover:cursor-not-allowed';
   }
 
   return (
@@ -71,7 +71,7 @@ function IndeterminateCheckbox({
       ref={ref}
       className={
         className +
-        ' h-4 w-4 cursor-pointer rounded-sm border-gray-300 bg-gray-100 text-purple-600 focus:ring-purple-500'
+        ' text-brand focus:ring-brand h-4 w-4 cursor-pointer rounded-sm border'
       }
       {...rest}
     />
@@ -137,6 +137,8 @@ export default function TokenTable(props: TokenTableProps) {
         if (table.getSelectedRowModel().rows.length > 0) {
           return (
             <Button
+              size="sm"
+              variant="subaction"
               onClick={(e) => {
                 e.stopPropagation();
                 deleteMultipleTokens(table);
@@ -152,14 +154,15 @@ export default function TokenTable(props: TokenTableProps) {
       cell: (info) => info.getValue(),
       meta: {
         className:
-          'truncate whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-600'
+          'truncate whitespace-nowrap px-3 py-4 text-sm font-medium text-secondary-foreground'
       }
     }),
     columnHelper.accessor('description', {
       header: 'Description',
       cell: (info) => info.getValue(),
       meta: {
-        className: 'truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500'
+        className:
+          'truncate whitespace-nowrap px-3 py-4 text-sm text-muted-foreground'
       }
     }),
     columnHelper.accessor('namespaceKey', {
@@ -167,7 +170,7 @@ export default function TokenTable(props: TokenTableProps) {
       cell: (info) => info.getValue(),
       meta: {
         className:
-          'truncate whitespace-nowrap px-3 py-4 font-medium text-sm text-gray-500'
+          'truncate whitespace-nowrap px-3 py-4 font-medium text-sm text-muted-foreground'
       }
     }),
     columnHelper.accessor(
@@ -182,7 +185,7 @@ export default function TokenTable(props: TokenTableProps) {
         id: 'expiresAt',
         meta: {
           className:
-            'truncate whitespace-nowrap px-3 py-4 font-semibold text-sm text-gray-500'
+            'truncate whitespace-nowrap px-3 py-4 font-semibold text-sm text-muted-foreground'
         }
       }
     ),
@@ -192,7 +195,7 @@ export default function TokenTable(props: TokenTableProps) {
         header: 'Created',
         id: 'createdAt',
         meta: {
-          className: 'whitespace-nowrap px-3 py-4 text-sm text-gray-500'
+          className: 'whitespace-nowrap px-3 py-4 text-sm text-muted-foreground'
         }
       }
     ),
@@ -240,8 +243,8 @@ export default function TokenTable(props: TokenTableProps) {
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
           <div className="relative overflow-hidden md:rounded-md">
-            <table className="min-w-full table-fixed divide-y divide-gray-300">
-              <thead className="bg-gray-50">
+            <table className="divide-border min-w-full table-fixed divide-y">
+              <thead className="bg-secondary">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) =>
@@ -249,7 +252,7 @@ export default function TokenTable(props: TokenTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="text-secondary-foreground px-3 py-3.5 text-left text-sm font-semibold"
                         >
                           <div
                             className="group inline-flex cursor-pointer"
@@ -261,16 +264,16 @@ export default function TokenTable(props: TokenTableProps) {
                                   header.column.columnDef.header,
                                   header.getContext()
                                 )}
-                            <span className="ml-2 flex-none rounded-sm text-gray-400 group-hover:visible group-focus:visible">
+                            <span className="text-muted-foreground ml-2 flex-none rounded-sm group-hover:visible group-focus:visible">
                               {{
                                 asc: (
-                                  <ChevronUpIcon
+                                  <ChevronUp
                                     className="h-5 w-5"
                                     aria-hidden="true"
                                   />
                                 ),
                                 desc: (
-                                  <ChevronDownIcon
+                                  <ChevronDown
                                     className="h-5 w-5"
                                     aria-hidden="true"
                                   />
@@ -283,7 +286,7 @@ export default function TokenTable(props: TokenTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="text-secondary-foreground px-3 py-3.5 text-left text-sm font-semibold"
                         >
                           {header.isPlaceholder
                             ? null
@@ -297,7 +300,7 @@ export default function TokenTable(props: TokenTableProps) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="bg-background divide-y divide-gray-200">
+              <tbody className="bg-background divide-border divide-y">
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (

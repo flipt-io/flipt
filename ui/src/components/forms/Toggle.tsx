@@ -20,14 +20,14 @@ export default function Toggle(props: ToggleProps) {
       <span className="flex grow flex-col">
         {label && (
           <span
-            className="text-sm font-medium text-gray-900"
+            className="text-secondary-foreground text-sm font-medium"
             id={'switch-label:' + id}
           >
             {label}
           </span>
         )}
         {description && (
-          <span className="text-sm text-gray-500">{description}</span>
+          <span className="text-muted-foreground text-sm">{description}</span>
         )}
       </span>
       <Switch
@@ -39,7 +39,7 @@ export default function Toggle(props: ToggleProps) {
         onCheckedChange={(e: boolean) => {
           onChange && onChange(e);
         }}
-        className="data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-violet-200"
+        className="data-[state=checked]:bg-success"
       />
     </div>
   );

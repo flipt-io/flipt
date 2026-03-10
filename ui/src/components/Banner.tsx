@@ -1,4 +1,4 @@
-import { XMarkIcon } from '@heroicons/react/20/solid';
+import { X } from 'lucide-react';
 
 type BannerProps = {
   title: string;
@@ -40,7 +40,7 @@ export default function Banner(props: BannerProps) {
           onClick={() => onDismiss()}
         >
           <span className="sr-only">Dismiss</span>
-          <XMarkIcon className="h-5 w-5 text-white" aria-hidden="true" />
+          <X className="h-5 w-5 text-white" aria-hidden="true" />
         </button>
       </div>
     </div>

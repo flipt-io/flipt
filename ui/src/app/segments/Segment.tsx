@@ -238,15 +238,15 @@ export default function Segment() {
       </PageHeader>
 
       <div className="mb-8 space-y-4">
-        <div className="flex items-center text-sm text-gray-500">
-          <CalendarIcon className="mr-1.5 h-5 w-5 text-gray-400" />
+        <div className="text-muted-foreground flex items-center text-sm">
+          <CalendarIcon className="text-muted-foreground mr-1.5 h-5 w-5" />
           Created{' '}
           {formatDistanceToNowStrict(parseISO(segment.createdAt), {
             addSuffix: true
           })}
         </div>
 
-        <MoreInfo href="https://www.flipt.io/docs/concepts#segments">
+        <MoreInfo href="https://docs.flipt.io/v1/concepts#segments">
           Learn more about segments
         </MoreInfo>
       </div>
@@ -258,8 +258,10 @@ export default function Segment() {
       <div>
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h3 className="leading-6 font-medium text-gray-900">Constraints</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className="text-secondary-foreground leading-6 font-medium">
+              Constraints
+            </h3>
+            <p className="text-muted-foreground mt-1 text-sm">
               Determine if a request matches a segment.
             </p>
           </div>
@@ -283,36 +285,36 @@ export default function Segment() {
 
         <div className="my-10">
           {segment.constraints && segment.constraints.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-300">
+            <table className="divide-border min-w-full divide-y">
               <thead>
                 <tr>
                   <th
                     scope="col"
-                    className="pr-3 pb-3.5 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                    className="text-secondary-foreground pr-3 pb-3.5 pl-4 text-left text-sm font-semibold sm:pl-6"
                   >
                     Property
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
+                    className="text-secondary-foreground hidden px-3 pb-3.5 text-left text-sm font-semibold sm:table-cell"
                   >
                     Type
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                    className="text-secondary-foreground hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
                   >
                     Operator
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                    className="text-secondary-foreground hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
                   >
                     Value
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                    className="text-secondary-foreground hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
                   >
                     Description
                   </th>
@@ -321,22 +323,22 @@ export default function Segment() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-border divide-y">
                 {segment.constraints.map((constraint) => (
                   <tr key={constraint.id}>
-                    <td className="py-4 pr-3 pl-4 text-sm whitespace-nowrap text-gray-600 sm:pl-6">
+                    <td className="text-secondary-foreground py-4 pr-3 pl-4 text-sm whitespace-nowrap sm:pl-6">
                       {constraint.property}
                     </td>
-                    <td className="hidden px-3 py-4 text-sm whitespace-nowrap text-gray-500 sm:table-cell">
+                    <td className="text-muted-foreground hidden px-3 py-4 text-sm whitespace-nowrap sm:table-cell">
                       {constraintTypeToLabel(constraint.type)}
                     </td>
-                    <td className="hidden px-3 py-4 text-sm whitespace-nowrap text-gray-500 lg:table-cell">
+                    <td className="text-muted-foreground hidden px-3 py-4 text-sm whitespace-nowrap lg:table-cell">
                       {ConstraintOperators[constraint.operator]}
                     </td>
-                    <td className="hidden px-3 py-4 text-sm whitespace-normal text-gray-500 lg:table-cell">
+                    <td className="text-muted-foreground hidden px-3 py-4 text-sm whitespace-normal lg:table-cell">
                       <ConstraintValue constraint={constraint} />
                     </td>
-                    <td className="hidden truncate px-3 py-4 text-sm whitespace-nowrap text-gray-500 lg:table-cell">
+                    <td className="text-muted-foreground hidden truncate px-3 py-4 text-sm whitespace-nowrap lg:table-cell">
                       {constraint.description}
                     </td>
                     <td className="py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
@@ -344,7 +346,7 @@ export default function Segment() {
                         <>
                           <a
                             href="#"
-                            className="pr-2 text-violet-600 hover:text-violet-900"
+                            className="text-brand hover:text-brand/80 pr-2"
                             onClick={(e) => {
                               e.preventDefault();
                               setEditingConstraint(constraint);
@@ -356,7 +358,12 @@ export default function Segment() {
                               , {constraint.property}
                             </span>
                           </a>
-                          <span aria-hidden="true"> | </span>
+                          <span
+                            aria-hidden="true"
+                            className="text-muted-foreground"
+                          >
+                            |
+                          </span>
                           <a
                             href="#"
                             className="pl-2 text-violet-600 hover:text-violet-900"

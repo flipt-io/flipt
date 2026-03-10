@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Navigate,
@@ -7,13 +7,16 @@ import {
   useNavigate,
   useParams
 } from 'react-router';
+
+import { AppSidebar } from '~/components/AppSidebar';
 import Footer from '~/components/Footer';
-import Header from '~/components/Header';
+import { Header } from '~/components/Header';
 import Loading from '~/components/Loading';
-import { NotificationProvider } from '~/components/NotificationProvider';
-import ErrorNotification from '~/components/notifications/ErrorNotification';
-import SuccessNotification from '~/components/notifications/SuccessNotification';
-import Sidebar from '~/components/Sidebar';
+import { SidebarInset, SidebarProvider } from '~/components/Sidebar';
+import { Toaster } from '~/components/Sonner';
+import { TooltipProvider } from '~/components/Tooltip';
+import CommandDialog from '~/components/command/CommandDialog';
+
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { LoadingStatus } from '~/types/Meta';
@@ -23,20 +26,23 @@ import {
   selectCurrentNamespace,
   useListNamespacesQuery
 } from './namespaces/namespacesSlice';
-import CommandDialog from '~/components/command/CommandDialog';
 import Banner from '~/components/Banner';
 import {
   selectDismissedV2Banner,
   v2BannerDismissed
 } from './events/eventSlice';
+import { selectSidebar, sidebarChanged } from './preferences/preferencesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dismissedV2Banner = useSelector(selectDismissedV2Banner);
   const bannerEnabled = import.meta.env.FLIPT_UI_BANNER_ENABLED !== 'false';
   const dispatch = useAppDispatch();
+  const sidebarOpen = useSelector(selectSidebar);
+  const setSidebarOpen = () => {
+    dispatch(sidebarChanged(!sidebarOpen));
+  };
 
   const { namespaceKey } = useParams();
   const location = useLocation();
@@ -49,10 +55,6 @@ function InnerLayout() {
       return;
     }
 
-    // if the namespaceKey in the url is not the same as the currentNamespace, then
-    // dispatch the currentNamespaceChanged action to update the currentNamespace in the store
-    // this allows the namespace to be changed by the url and not just the namespace dropdown,
-    // which is required for 'deep' linking
     if (currentNamespace?.key !== namespaceKey) {
       dispatch(currentNamespaceChanged({ key: namespaceKey }));
     }
@@ -72,38 +74,37 @@ function InnerLayout() {
     return <Loading fullScreen />;
   }
 
+  const ns = currentNamespace?.key || 'default';
+
   return (
-    <>
-      <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
-      <div className="bg-background flex min-h-screen flex-col md:pl-64">
-        <Header setSidebarOpen={setSidebarOpen} />
-        {!dismissedV2Banner && bannerEnabled && (
-          <Banner
-            emoji="🎉"
-            title="Flipt v2 is now available!"
-            description="Git-native feature flags with multi-environment support, branching, and real-time updates"
-            href="https://docs.flipt.io/v2/introduction"
-            onDismiss={() => dispatch(v2BannerDismissed())}
-          />
-        )}
-        <main className="flex pt-1 sm:pt-4">
-          <div className="mx-auto w-full max-w-(--breakpoint-lg) overflow-x-auto px-4 sm:px-6 lg:px-8">
-            <Outlet />
-          </div>
-        </main>
-        <Footer />
-        <CommandDialog />
-      </div>
-    </>
+    <TooltipProvider>
+      <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <AppSidebar variant="inset" ns={ns} />
+        <SidebarInset>
+          <Header ns={ns} />
+          {!dismissedV2Banner && bannerEnabled && (
+            <Banner
+              emoji="🎉"
+              title="Flipt v2 is now available!"
+              description="Git-native feature flags with multi-environment support, branching, and real-time updates"
+              href="https://docs.flipt.io/v2/introduction"
+              onDismiss={() => dispatch(v2BannerDismissed())}
+            />
+          )}
+          <main className="flex pt-1 sm:pt-4">
+            <div className="mx-auto w-full max-w-6xl overflow-x-auto px-4 sm:px-6 lg:px-8">
+              <Outlet />
+            </div>
+          </main>
+          <Footer />
+          <CommandDialog />
+          <Toaster />
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }
 
 export default function Layout() {
-  return (
-    <NotificationProvider>
-      <InnerLayout />
-      <ErrorNotification />
-      <SuccessNotification />
-    </NotificationProvider>
-  );
+  return <InnerLayout />;
 }

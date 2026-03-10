@@ -1,4 +1,4 @@
-import { UserCircleIcon } from '@heroicons/react/24/outline';
+import { User as UserIcon } from 'lucide-react';
 import { Button } from '~/components/Button';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
@@ -55,7 +55,7 @@ export default function UserProfile(props: UserProfileProps) {
             />
           )}
           {!user.imgURL && (
-            <UserCircleIcon
+            <UserIcon
               aria-hidden="true"
               className="invert dark:invert-0"
               style={{ width: '1.5rem', height: '1.5rem' }}

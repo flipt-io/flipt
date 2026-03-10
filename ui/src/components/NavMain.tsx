@@ -1,0 +1,44 @@
+import { BugPlayIcon, FlagIcon, UsersIcon } from 'lucide-react';
+
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem
+} from '~/components/Sidebar';
+
+export function NavMain({ ns }: { ns: string }) {
+  const items = [
+    {
+      title: 'Flags',
+      url: `#/namespaces/${ns}/flags`,
+      icon: FlagIcon
+    },
+    {
+      title: 'Segments',
+      url: `#/namespaces/${ns}/segments`,
+      icon: UsersIcon
+    },
+    {
+      title: 'Console',
+      url: `#/namespaces/${ns}/console`,
+      icon: BugPlayIcon
+    }
+  ];
+  return (
+    <SidebarGroup>
+      <SidebarMenu>
+        {items.map((item) => (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton tooltip={item.title} asChild>
+              <a href={item.url}>
+                {item.icon && <item.icon />}
+                <span>{item.title}</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
+    </SidebarGroup>
+  );
+}

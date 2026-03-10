@@ -1,27 +1,20 @@
 import { useSelector } from 'react-redux';
 import { selectConfig } from '~/app/meta/metaSlice';
 import { titleCase } from '~/utils/helpers';
-import { IconDefinition, faGitAlt } from '@fortawesome/free-brands-svg-icons';
-import {
-  faCube,
-  faCloud,
-  faDatabase,
-  faFileCode
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Box, Database, FolderGit2, Cloud, FileCode } from 'lucide-react';
 
-const storageTypes: Record<string, IconDefinition> = {
-  local: faFileCode,
-  object: faCloud,
-  git: faGitAlt,
-  database: faDatabase,
-  oci: faCube
+const storageTypes: Record<string, any> = {
+  local: FileCode,
+  object: Cloud,
+  git: FolderGit2,
+  database: Database,
+  oci: Box
 };
 
 export default function ReadOnly() {
   const config = useSelector(selectConfig);
 
-  const storageIcon = config.storage?.type
+  const StorageIcon = config.storage?.type
     ? storageTypes[config.storage?.type]
     : undefined;
 
@@ -40,12 +33,8 @@ export default function ReadOnly() {
           {config.storage?.git?.ref}
         </span>
       )}
-      {storageIcon && (
-        <FontAwesomeIcon
-          icon={storageIcon}
-          className="text-gray h-5 w-5"
-          aria-hidden={true}
-        />
+      {StorageIcon && (
+        <StorageIcon className="text-foreground h-4 w-4" aria-hidden={true} />
       )}
       Read-Only
     </span>

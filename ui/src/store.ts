@@ -48,7 +48,8 @@ listenerMiddleware.startListening({
 listenerMiddleware.startListening({
   matcher: isAnyOf(
     preferencesSlice.actions.themeChanged,
-    preferencesSlice.actions.timezoneChanged
+    preferencesSlice.actions.timezoneChanged,
+    preferencesSlice.actions.sidebarChanged
   ),
   effect: (_action, api) => {
     // save to local storage

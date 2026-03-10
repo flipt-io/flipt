@@ -1,5 +1,4 @@
-import { Dialog } from '@headlessui/react';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { AlertTriangle } from 'lucide-react';
 import { Button } from '~/components/Button';
 import { useError } from '~/data/hooks/error';
 
@@ -23,20 +22,17 @@ export default function DeletePanel(props: DeletePanelProps) {
     <>
       <div className="sm:flex sm:items-start">
         <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-          <ExclamationTriangleIcon
-            className="h-6 w-6 text-red-600"
+          <AlertTriangle
+            className="text-destructive h-6 w-6"
             aria-hidden="true"
           />
         </div>
         <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-          <Dialog.Title
-            as="h3"
-            className="text-lg leading-6 font-medium text-gray-900"
-          >
+          <h3 className="text-secondary-foreground text-lg leading-6 font-medium">
             Delete {panelType}
-          </Dialog.Title>
+          </h3>
           <div className="mt-2">
-            <p className="text-sm text-gray-500">{panelMessage}</p>
+            <p className="text-muted-foreground text-sm">{panelMessage}</p>
           </div>
         </div>
       </div>
