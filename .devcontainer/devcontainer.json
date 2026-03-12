@@ -1,0 +1,38 @@
+{
+  "name": "Flipt v2",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/flipt",
+  "forwardPorts": [8080, 9000, 5173],
+  "portsAttributes": {
+    "8080": {
+      "label": "Flipt HTTP API + UI"
+    },
+    "9000": {
+      "label": "Flipt gRPC API"
+    },
+    "5173": {
+      "label": "Vite UI Dev Server"
+    }
+  },
+  "mounts": [
+    "source=flipt-go-pkg,target=/home/vscode/go/pkg,type=volume",
+    "source=flipt-go-build,target=/home/vscode/.cache/go-build,type=volume",
+    "source=flipt-mise-cache,target=/home/vscode/.local/share/mise,type=volume"
+  ],
+  "postCreateCommand": "bash -lc 'sudo chown -R vscode:vscode /home/vscode/.local/share/mise /home/vscode/go/pkg /home/vscode/.cache/go-build && mise trust --yes . && mise install && mise run bootstrap && mise run ui:deps'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "hverlin.mise-vscode",
+        "golang.go",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}

@@ -36,7 +36,7 @@ cd ui
 if [ ! -d node_modules ]; then
   npm ci
 else
-  npx --no package-changed install --ci
+  npx --yes package-changed install --ci
 fi
 """
 
