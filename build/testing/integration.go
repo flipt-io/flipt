@@ -351,7 +351,9 @@ func withCockroach(fn testCaseFn) testCaseFn {
 				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
 				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(26257).
-				WithDefaultArgs([]string{"start-single-node", "--single-node", "--insecure", "--store=type=mem,size=0.7Gb", "--accept-sql-without-tls", "--logtostderr=ERROR"}).
+				WithEntrypoint([]string{"/cockroach/cockroach"}).
+				WithoutDefaultArgs().
+				WithDefaultArgs([]string{"start-single-node", "--insecure", "--accept-sql-without-tls", "--logtostderr=ERROR"}).
 				AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})),
 			conf,
 		)
