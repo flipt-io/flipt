@@ -346,7 +346,7 @@ func withCockroach(fn testCaseFn) testCaseFn {
 		return fn(ctx, client, base, flipt.
 			WithEnvVariable("FLIPT_DB_URL", "cockroachdb://root@cockroach:26257/defaultdb?sslmode=disable").
 			WithServiceBinding("cockroach", client.Container().
-				From("cockroachdb/cockroach:latest-v21.2").
+				From("cockroachdb/cockroach:latest-v24.2").
 				WithEnvVariable("COCKROACH_USER", "root").
 				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
 				WithEnvVariable("UNIQUE", uuid.New().String()).
