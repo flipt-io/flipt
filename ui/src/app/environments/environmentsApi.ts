@@ -14,6 +14,16 @@ import { baseQuery } from '~/utils/redux-rtk';
 
 export const environmentKey = 'environment';
 
+const toConflictStrategy = (value?: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  return value.startsWith('CONFLICT_STRATEGY_')
+    ? value
+    : `CONFLICT_STRATEGY_${value}`;
+};
+
 interface IEnvironmentsState {
   environments: { [key: string]: IEnvironment };
   status: LoadingStatus;
@@ -178,6 +188,89 @@ export const environmentsApi = createApi({
         body: { title, body, draft }
       }),
       invalidatesTags: () => [{ type: 'BranchEnvironment' }]
+    }),
+    bulkApplyResources: builder.mutation<
+      {
+        results: Array<{
+          namespaceKey: string;
+          status: string;
+          error?: string;
+        }>;
+        revision: string;
+      },
+      {
+        environmentKey: string;
+        namespaceKeys: string[];
+        operation: string;
+        typeUrl: string;
+        key: string;
+        payload?: unknown;
+        onConflict?: string;
+        revision: string;
+      }
+    >({
+      query: ({
+        environmentKey,
+        namespaceKeys,
+        operation,
+        typeUrl,
+        key,
+        payload,
+        onConflict,
+        revision
+      }) => ({
+        url: `/${environmentKey}/resources/bulk`,
+        method: 'POST',
+        body: {
+          namespace_keys: namespaceKeys,
+          operation,
+          type_url: typeUrl,
+          key,
+          payload,
+          on_conflict: toConflictStrategy(onConflict),
+          revision
+        }
+      }),
+      invalidatesTags: () => [{ type: 'Environment' }]
+    }),
+    copyNamespace: builder.mutation<
+      {
+        results: Array<{
+          typeUrl: string;
+          key: string;
+          status: string;
+          error?: string;
+        }>;
+        revision: string;
+      },
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        sourceEnvironmentKey: string;
+        sourceNamespaceKey: string;
+        onConflict?: string;
+        revision: string;
+      }
+    >({
+      query: ({
+        environmentKey,
+        namespaceKey,
+        sourceEnvironmentKey,
+        sourceNamespaceKey,
+        onConflict,
+        revision
+      }) => ({
+        url: `/${environmentKey}/namespaces/copy`,
+        method: 'POST',
+        body: {
+          source_environment_key: sourceEnvironmentKey,
+          source_namespace_key: sourceNamespaceKey,
+          namespace_key: namespaceKey,
+          on_conflict: toConflictStrategy(onConflict),
+          revision
+        }
+      }),
+      invalidatesTags: () => [{ type: 'Environment' }]
     })
   })
 });
@@ -188,7 +281,9 @@ export const {
   useCreateBranchEnvironmentMutation,
   useDeleteBranchEnvironmentMutation,
   useListBranchEnvironmentChangesQuery,
-  useProposeEnvironmentMutation
+  useProposeEnvironmentMutation,
+  useBulkApplyResourcesMutation,
+  useCopyNamespaceMutation
 } = environmentsApi;
 
 export const environmentsReducer = environmentsSlice.reducer;

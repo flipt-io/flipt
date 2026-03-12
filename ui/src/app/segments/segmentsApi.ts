@@ -196,54 +196,6 @@ export const segmentsApi = createApi({
           id: environmentKey + '/' + namespaceKey + '/' + segmentKey
         }
       ]
-    }),
-    // copy the segment from one namespace to another one
-    copySegment: builder.mutation<
-      void,
-      {
-        environmentKey: string;
-        from: { namespaceKey: string; segmentKey: string };
-        to: { namespaceKey: string; segmentKey: string };
-      }
-    >({
-      queryFn: async (
-        { environmentKey, from, to },
-        _api,
-        _extraOptions,
-        baseQuery
-      ) => {
-        let resp = await baseQuery({
-          url: `/${environmentKey}/namespaces/${from.namespaceKey}/resources/flipt.core.Segment/${from.segmentKey}`,
-          method: 'GET'
-        });
-        if (resp.error) {
-          return { error: resp.error };
-        }
-
-        const res = resp.data as {
-          resource: { payload: ISegment; key: string };
-          revision: string;
-        };
-
-        let data = {
-          key: res.resource.key,
-          payload: res.resource.payload,
-          revision: res.revision
-        };
-
-        resp = await baseQuery({
-          url: `/${environmentKey}/namespaces/${to.namespaceKey}/resources`,
-          method: 'POST',
-          body: data
-        });
-        if (resp.error) {
-          return { error: resp.error };
-        }
-        return { data: undefined };
-      },
-      invalidatesTags: (_result, _error, { environmentKey, to }) => [
-        { type: 'Segment', id: environmentKey + '/' + to.namespaceKey }
-      ]
     })
   })
 });
@@ -253,6 +205,5 @@ export const {
   useGetSegmentQuery,
   useCreateSegmentMutation,
   useDeleteSegmentMutation,
-  useUpdateSegmentMutation,
-  useCopySegmentMutation
+  useUpdateSegmentMutation
 } = segmentsApi;
