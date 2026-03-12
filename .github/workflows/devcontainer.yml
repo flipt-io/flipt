@@ -22,4 +22,8 @@ jobs:
       - name: Build devcontainer
         uses: devcontainers/ci@v0.3
         with:
-          runCmd: mise --version && go version && node --version
+          runCmd: >
+            bash -lc 'mise --version &&
+            mise install &&
+            mise x -- go version &&
+            mise x -- node --version'
