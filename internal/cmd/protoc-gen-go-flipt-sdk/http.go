@@ -314,7 +314,9 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 
 	g.P("req, err := ", netHTTP("NewRequestWithContext"), "(ctx, ", netHTTP(rule.method), ", x.addr+", path, ", body)")
 	g.P("if err != nil { return nil, err }")
-	g.P(`req.Header.Set("Content-Type", "application/json")`)
+	if rule.body {
+		g.P(`req.Header.Set("Content-Type", "application/json")`)
+	}
 	g.P("req.URL.RawQuery = values.Encode()")
 
 	g.P("resp, err := x.client.Do(req)")

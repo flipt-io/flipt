@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: evaluation.proto
+// source: evaluation/evaluationv2.proto
 
 package evaluation
 
@@ -160,5 +160,5 @@ var ClientEvaluationService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "evaluation.proto",
+	Metadata: "evaluation/evaluationv2.proto",
 }

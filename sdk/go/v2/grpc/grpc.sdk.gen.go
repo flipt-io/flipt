@@ -3,6 +3,7 @@
 package grpc
 
 import (
+	environments "go.flipt.io/flipt/rpc/v2/environments"
 	v2 "go.flipt.io/flipt/sdk/go/v2"
 	grpc "google.golang.org/grpc"
 )
@@ -15,4 +16,8 @@ type Transport struct {
 
 func NewTransport(cc grpc.ClientConnInterface) Transport {
 	return Transport{cc: cc}
+}
+
+func (t Transport) EnvironmentsClient() environments.EnvironmentsServiceClient {
+	return environments.NewEnvironmentsServiceClient(t.cc)
 }

@@ -210,6 +210,7 @@ run = """
 set -euo pipefail
 echo " > Formatting..."
 find . -name '*.go' \
+  -not -path '*.devenv/*' \
   -not -path './rpc/*' \
   -not -path './sdk/*' \
   -not -path './.git/*' \
@@ -248,9 +249,12 @@ run = """
 set -euo pipefail
 echo " > Generating proto files..."
 
-for module in rpc/flipt rpc/v2/environments rpc/v2/analytics rpc/v2/evaluation; do
+for module in rpc/flipt rpc/v2; do
   (cd "$module" && buf generate)
 done
+
+(cd rpc/v2 && buf generate --path environments/environments.proto --template environments/buf.gen.yaml)
+(cd rpc/v2 && buf generate --path evaluation/evaluationv2.proto --template evaluation/buf.gen.yaml)
 """
 
 [tasks."go:mockery"]

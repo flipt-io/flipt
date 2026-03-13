@@ -26,7 +26,6 @@ func (x *EnvironmentsServiceClient) ListEnvironments(ctx context.Context, v *env
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -54,7 +53,6 @@ func (x *EnvironmentsServiceClient) GetNamespace(ctx context.Context, v *environ
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -82,7 +80,6 @@ func (x *EnvironmentsServiceClient) ListNamespaces(ctx context.Context, v *envir
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -177,7 +174,6 @@ func (x *EnvironmentsServiceClient) DeleteNamespace(ctx context.Context, v *envi
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -205,7 +201,6 @@ func (x *EnvironmentsServiceClient) GetResource(ctx context.Context, v *environm
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -233,7 +228,6 @@ func (x *EnvironmentsServiceClient) ListResources(ctx context.Context, v *enviro
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -328,7 +322,6 @@ func (x *EnvironmentsServiceClient) DeleteResource(ctx context.Context, v *envir
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
