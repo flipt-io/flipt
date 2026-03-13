@@ -1,8 +1,8 @@
 {
   "name": "Flipt v2",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/mise:1": {}
   },
   "remoteUser": "vscode",
   "workspaceFolder": "/workspaces/flipt",
@@ -23,7 +23,7 @@
     "source=flipt-go-build,target=/home/vscode/.cache/go-build,type=volume",
     "source=flipt-mise-cache,target=/home/vscode/.local/share/mise,type=volume"
   ],
-  "postCreateCommand": "bash -lc 'sudo chown -R vscode:vscode /home/vscode/.local/share/mise /home/vscode/go/pkg /home/vscode/.cache/go-build && mise trust --yes . && mise install && mise run bootstrap && mise run ui:deps'",
+  "postCreateCommand": "bash -lc 'sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential pkg-config && sudo rm -rf /var/lib/apt/lists/* && sudo chown -R vscode:vscode /home/vscode/.local/share/mise /home/vscode/go/pkg /home/vscode/.cache/go-build && mise settings set node.gpg_verify false && mise trust --yes . && mise install && mise run bootstrap && mise run ui:deps'",
   "customizations": {
     "vscode": {
       "extensions": [
