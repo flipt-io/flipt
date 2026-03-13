@@ -1,6 +1,7 @@
 {
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "name": "Flipt v2",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   "features": {
     "ghcr.io/devcontainers-extra/features/mise:1": {}
   },
@@ -34,5 +35,10 @@
         "ms-azuretools.vscode-docker"
       ]
     }
-  }
+  },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/share/mise/shims",
+    "MISE_YES": "1",
+    "MISE_TRUSTED_CONFIG_PATHS": "/workspaces/flipt:/home/vscode"
+   }
 }

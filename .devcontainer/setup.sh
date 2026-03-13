@@ -12,11 +12,9 @@ sudo chown -R vscode:vscode \
   /home/vscode/.local/share/mise \
   /home/vscode/.local/state/mise \
   /home/vscode/go/pkg \
-  /home/vscode/.cache/go-build
+  /home/vscode/.cache/
 
 # Install tools and dependencies via mise
 mise settings set node.gpg_verify false
-mise trust --yes .
-mise install
 mise run bootstrap
 mise run ui:deps
