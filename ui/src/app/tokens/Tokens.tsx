@@ -85,6 +85,7 @@ export default function Tokens() {
         open={showTokenForm}
         setOpen={setShowTokenForm}
         ref={tokenFormRef}
+        title="New Token"
       >
         <TokenForm
           ref={tokenFormRef}

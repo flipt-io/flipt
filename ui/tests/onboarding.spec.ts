@@ -42,37 +42,29 @@ test.describe('Onboarding', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
       await page.getByRole('link', { name: 'Support', exact: true }).click();
-      await page.getByRole('heading', { name: 'Onboarding' }).click();
-      await page.getByRole('link', { name: "Let's Go" }).click();
     });
 
     test('has expected content', async ({ page }) => {
-      await expect(page.locator('h1')).toContainText('Onboarding');
+      await expect(page.locator('h1')).toContainText('Support ');
       await expect(
-        page.getByText('Get Started', { exact: true })
+        page.getByRole('heading', { name: 'Quick Start' })
       ).toBeVisible();
       await expect(
-        page.getByText('Try the CLI', { exact: true })
+        page.getByRole('heading', { name: 'Checkout a Guide' })
       ).toBeVisible();
       await expect(
-        page.getByText('Checkout a Guide', { exact: true })
+        page.getByRole('heading', { name: 'Integrate Your Application' })
       ).toBeVisible();
       await expect(
-        page.getByText('Integrate Your Application', { exact: true })
+        page.getByRole('heading', { name: 'Changelog' })
       ).toBeVisible();
       await expect(
-        page.getByText('Chat With Us', { exact: true })
+        page.getByRole('heading', { name: 'Join the Community' })
       ).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Email' })).toBeVisible();
       await expect(
-        page.getByText('View API Reference', { exact: true })
+        page.getByRole('heading', { name: 'Support Us' })
       ).toBeVisible();
-      await expect(page.getByText('Support Us', { exact: true })).toBeVisible();
-      await expect(
-        page.getByText('Join the Community', { exact: true })
-      ).toBeVisible();
-      await expect(
-        page.getByRole('button', { name: 'Continue to Dashboard' })
-      ).toBeHidden();
     });
   });
 });

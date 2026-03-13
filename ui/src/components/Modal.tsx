@@ -19,7 +19,7 @@ export default function Modal(props: ModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent aria-label={title}>
         {title && (
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

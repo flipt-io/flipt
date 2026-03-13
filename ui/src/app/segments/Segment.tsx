@@ -124,6 +124,7 @@ export default function Segment() {
         open={showConstraintForm}
         setOpen={setShowConstraintForm}
         ref={constraintFormRef}
+        title={editingConstraint ? 'Edit Constraint' : 'New Constraint'}
       >
         <ConstraintForm
           ref={constraintFormRef}

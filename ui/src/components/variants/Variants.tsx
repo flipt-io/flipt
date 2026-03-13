@@ -37,6 +37,7 @@ export default function Variants({ flag }: VariantsProps) {
         open={showVariantForm}
         setOpen={setShowVariantForm}
         ref={variantFormRef}
+        title={editingVariant ? 'Edit Variant' : 'New Variant'}
       >
         <VariantForm
           ref={variantFormRef}

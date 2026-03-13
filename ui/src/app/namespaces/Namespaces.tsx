@@ -42,6 +42,7 @@ export default function Namespaces() {
         open={showNamespaceForm}
         setOpen={setShowNamespaceForm}
         ref={namespaceFormRef}
+        title={editingNamespace ? 'Edit Namespace' : 'New Namespace'}
       >
         <NamespaceForm
           ref={namespaceFormRef}
@@ -58,6 +59,7 @@ export default function Namespaces() {
       <Modal
         open={showDeleteNamespaceModal}
         setOpen={setShowDeleteNamespaceModal}
+        title="Delete Namespace"
       >
         <DeletePanel
           panelMessage={

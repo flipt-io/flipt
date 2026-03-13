@@ -201,6 +201,7 @@ export default function Rollouts(props: RolloutsProps) {
         open={showRolloutForm}
         setOpen={setShowRolloutForm}
         ref={rolloutFormRef}
+        title="New Rollout"
       >
         <RolloutForm
           flagKey={flag.key}
@@ -219,6 +220,7 @@ export default function Rollouts(props: RolloutsProps) {
           open={showEditRolloutForm}
           setOpen={setShowEditRolloutForm}
           ref={rolloutFormRef}
+          title="Edit Rollout"
         >
           <EditRolloutForm
             flagKey={flag.key}

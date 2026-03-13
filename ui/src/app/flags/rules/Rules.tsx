@@ -391,7 +391,7 @@ export default function Rules() {
       </Modal>
 
       {/* rule create form */}
-      <Slideover open={showRuleForm} setOpen={setShowRuleForm}>
+      <Slideover open={showRuleForm} setOpen={setShowRuleForm} title="New Rule">
         <RuleForm
           flag={flag}
           rank={(rules?.length || 0) + 1}

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Flags', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'Flags', exact: true }).click();
   });
 
   test('can create flag', async ({ page }) => {
@@ -103,7 +103,7 @@ test.describe('Flags', () => {
     await page.getByLabel('Name', { exact: true }).fill('copy flag');
     await page.getByLabel('Description').fill('Copy Namespace');
     await page.getByRole('button', { name: 'Create' }).click();
-    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'Flags', exact: true }).click();
     await page.getByRole('link', { name: 'test-flag' }).click();
 
     // perform copy to new namespace
@@ -183,7 +183,7 @@ test.describe('Flags - Read Only', () => {
     });
 
     await page.goto('/');
-    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'Flags', exact: true }).click();
   });
 
   test('can not create flag', async ({ page }) => {

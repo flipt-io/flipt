@@ -121,7 +121,12 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                   </label>
                 </div>
                 <div className="sm:col-span-2">
-                  <Input name="key" id="key" forwardRef={ref} />
+                  <Input
+                    name="key"
+                    id="key"
+                    forwardRef={ref}
+                    autoFocus={isNew}
+                  />
                 </div>
               </div>
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">

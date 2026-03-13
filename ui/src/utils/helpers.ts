@@ -44,19 +44,42 @@ export function truncateKey(str: string, len: number = 25): string {
 }
 
 const namespaces = '/namespaces/';
+
+const NAMESPACE_SECTIONS = ['flags', 'segments', 'console'];
+
 export function addNamespaceToPath(path: string, key: string): string {
   if (path.startsWith(namespaces)) {
-    // [0] before slash ('')
-    // [1] /namespaces/
-    // [2] namespace key
-    // [...] after slash
-    const [, , existingKey, ...parts] = path.split('/');
+    const rest = path.slice(namespaces.length);
+    const parts = rest.split('/');
+    const existingKey = parts.shift() ?? '';
+
+    const remaining = parts.join('/');
+
     if (existingKey === key) {
-      return path;
+      if (remaining.length === 0) {
+        return `${namespaces}${key}/flags`;
+      }
+      const [section] = parts;
+      if (NAMESPACE_SECTIONS.includes(section)) {
+        return path;
+      }
+      return `${namespaces}${key}/flags`;
     }
-    return `${namespaces}${key}/${parts.join('/')}`;
+
+    if (remaining.length === 0) {
+      return `${namespaces}${key}/flags`;
+    }
+
+    const [section] = parts;
+
+    if (NAMESPACE_SECTIONS.includes(section)) {
+      return `${namespaces}${key}/${section}`;
+    }
+
+    return `${namespaces}${key}/flags`;
   }
-  return `${namespaces}${key}${path}`;
+
+  return `${namespaces}${key}/flags`;
 }
 
 type ErrorWithMessage = {

@@ -1,7 +1,7 @@
 import { Folder, ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import {
   currentNamespaceChanged,
@@ -16,6 +16,7 @@ import {
   useSidebar
 } from '~/components/Sidebar';
 import { useAppDispatch } from '~/data/hooks/store';
+import { addNamespaceToPath } from '~/utils/helpers';
 
 import logoFlag from '~/assets/logo-flag.png';
 
@@ -25,15 +26,18 @@ export function NamespaceSwitcher() {
   const currentNamespace = useSelector(selectCurrentNamespace);
   const { isMobile } = useSidebar();
 
-  const [open, setOpen] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
   const handleSelectNamespace = (key: string) => {
     const ns = namespaces.find((n) => n.key === key);
     if (ns) {
       dispatch(currentNamespaceChanged(ns));
-      navigate(`/namespaces/${key}/flags`);
       setOpen(false);
+
+      const newPath = addNamespaceToPath(location.pathname, ns.key);
+      navigate(newPath);
     }
   };
 
@@ -42,7 +46,7 @@ export function NamespaceSwitcher() {
       <SidebarMenuItem>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <SidebarMenuButton size="lg" aria-label="namespace switcher">
+            <SidebarMenuButton size="lg">
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                 <img
                   src={logoFlag}

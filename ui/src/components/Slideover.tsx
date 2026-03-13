@@ -5,10 +5,11 @@ type SlideOverProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
   children: React.ReactNode;
+  title: string;
 };
 
 const SlideOver = forwardRef((props: SlideOverProps, ref: any) => {
-  const { open, setOpen } = props;
+  const { open, setOpen, title } = props;
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -16,6 +17,7 @@ const SlideOver = forwardRef((props: SlideOverProps, ref: any) => {
         <Dialog.Overlay className="bg-foreground/40 dark:bg-background/60 fixed inset-0 z-20" />
         <Dialog.Content
           ref={ref}
+          aria-label={title}
           className="fixed inset-y-0 right-0 z-20 flex max-w-full pl-10 sm:pl-16"
         >
           <div className="pointer-events-none fixed inset-y-0 right-0 box-border flex max-w-full">

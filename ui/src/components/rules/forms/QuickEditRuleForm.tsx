@@ -315,7 +315,10 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       id={`quick-variant-${rule.rank}`}
                       variants={flag.variants}
                       selectedVariant={selectedVariant}
-                      setSelectedVariant={setSelectedVariant}
+                      setSelectedVariant={(v) => {
+                        formik.setFieldValue('rollout', selectedVariant?.key);
+                        return setSelectedVariant(v);
+                      }}
                     />
                   )}
 
@@ -395,6 +398,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
             <div className="shrink-0 py-1">
               <div className="space-x flex justify-end">
                 <TextButton
+                  aria-role="button"
                   disabled={formik.isSubmitting || !formik.dirty}
                   onClick={() => formik.resetForm()}
                 >
@@ -402,7 +406,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 </TextButton>
                 <TextButton
                   type="submit"
-                  className="min-w-[80px]"
+                  className="min-w-20"
                   disabled={
                     !formik.isValid || formik.isSubmitting || !formik.dirty
                   }

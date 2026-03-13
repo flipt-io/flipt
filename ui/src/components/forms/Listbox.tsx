@@ -35,7 +35,11 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
         }
       }}
     >
-      <SelectTrigger id={`${id}-select-button`} className={className}>
+      <SelectTrigger
+        id={`${id}-select-button`}
+        className={className}
+        data-testid={`${id}-select-button`}
+      >
         <SelectValue placeholder="Select an option" />
       </SelectTrigger>
       <SelectContent>
