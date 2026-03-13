@@ -4,12 +4,10 @@ package sdk
 
 import (
 	context "context"
-	environments "go.flipt.io/flipt/rpc/v2/environments"
 	metadata "google.golang.org/grpc/metadata"
 )
 
 type Transport interface {
-	EnvironmentsClient() environments.EnvironmentsServiceClient
 }
 
 // ClientAuthenticationProvider is a type which when requested provides a
@@ -68,13 +66,6 @@ func New(t Transport, opts ...Option) SDK {
 	}
 
 	return sdk
-}
-
-func (s SDK) Environments() *Environments {
-	return &Environments{
-		transport:              s.transport.EnvironmentsClient(),
-		authenticationProvider: s.authenticationProvider,
-	}
 }
 
 func authenticate(ctx context.Context, p ClientAuthenticationProvider) (context.Context, error) {

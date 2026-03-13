@@ -12,9 +12,6 @@ import (
 	io "io"
 	http "net/http"
 	url "net/url"
-	status "google.golang.org/grpc/status"
-	codes "google.golang.org/grpc/codes"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type EnvironmentsServiceClient struct {
@@ -29,6 +26,7 @@ func (x *EnvironmentsServiceClient) ListEnvironments(ctx context.Context, v *env
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -56,6 +54,7 @@ func (x *EnvironmentsServiceClient) GetNamespace(ctx context.Context, v *environ
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -83,6 +82,7 @@ func (x *EnvironmentsServiceClient) ListNamespaces(ctx context.Context, v *envir
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -115,6 +115,7 @@ func (x *EnvironmentsServiceClient) CreateNamespace(ctx context.Context, v *envi
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -147,6 +148,7 @@ func (x *EnvironmentsServiceClient) UpdateNamespace(ctx context.Context, v *envi
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -175,6 +177,7 @@ func (x *EnvironmentsServiceClient) DeleteNamespace(ctx context.Context, v *envi
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -202,6 +205,7 @@ func (x *EnvironmentsServiceClient) GetResource(ctx context.Context, v *environm
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -229,6 +233,7 @@ func (x *EnvironmentsServiceClient) ListResources(ctx context.Context, v *enviro
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -261,6 +266,7 @@ func (x *EnvironmentsServiceClient) CreateResource(ctx context.Context, v *envir
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -293,6 +299,7 @@ func (x *EnvironmentsServiceClient) UpdateResource(ctx context.Context, v *envir
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -321,6 +328,7 @@ func (x *EnvironmentsServiceClient) DeleteResource(ctx context.Context, v *envir
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -339,26 +347,6 @@ func (x *EnvironmentsServiceClient) DeleteResource(ctx context.Context, v *envir
 		return nil, err
 	}
 	return &output, nil
-}
-
-func (x *EnvironmentsServiceClient) BranchEnvironment(ctx context.Context, v *environments.BranchEnvironmentRequest, _ ...grpc.CallOption) (*environments.Environment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BranchEnvironment not implemented")
-}
-
-func (x *EnvironmentsServiceClient) DeleteBranchEnvironment(ctx context.Context, v *environments.DeleteBranchEnvironmentRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteBranchEnvironment not implemented")
-}
-
-func (x *EnvironmentsServiceClient) ListEnvironmentBranches(ctx context.Context, v *environments.ListEnvironmentBranchesRequest, _ ...grpc.CallOption) (*environments.ListEnvironmentBranchesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListEnvironmentBranches not implemented")
-}
-
-func (x *EnvironmentsServiceClient) ProposeEnvironment(ctx context.Context, v *environments.ProposeEnvironmentRequest, _ ...grpc.CallOption) (*environments.EnvironmentProposalDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ProposeEnvironment not implemented")
-}
-
-func (x *EnvironmentsServiceClient) ListBranchedEnvironmentChanges(ctx context.Context, v *environments.ListBranchedEnvironmentChangesRequest, _ ...grpc.CallOption) (*environments.ListBranchedEnvironmentChangesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListBranchedEnvironmentChanges not implemented")
 }
 
 func (t Transport) EnvironmentsClient() environments.EnvironmentsServiceClient {
