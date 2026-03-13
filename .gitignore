@@ -65,3 +65,4 @@ config/dev.yml
 # Go workspace files
 go.work
 go.work.sum
+docs/

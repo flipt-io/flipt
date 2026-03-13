@@ -2,15 +2,13 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.177.0/containers/docker-existing-dockerfile
 {
   "name": "Flipt",
-  "build": {
-    "context": "..",
-    "dockerfile": "Dockerfile"
-  },
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "moby": false
     },
-    "ghcr.io/devcontainers-extra/features/mise:1": {}
+    "ghcr.io/devcontainers-extra/features/mise:1": {},
+    "ghcr.io/devcontainers/features/git:1": {}
   },
   "customizations": {
     "vscode": {
@@ -50,7 +48,7 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "mise bootstrap",
+  "postCreateCommand": "git config --global --add safe.directory '*' && mise bootstrap",
   "postStartCommand": "cat .devcontainer/welcome-message.txt",
   // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
   // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
