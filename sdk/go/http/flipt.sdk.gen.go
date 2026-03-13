@@ -33,6 +33,7 @@ func (x *FliptClient) ListFlags(ctx context.Context, v *flipt.ListFlagRequest, _
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {

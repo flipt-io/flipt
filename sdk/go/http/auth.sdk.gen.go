@@ -38,6 +38,7 @@ func (x *publicAuthenticationServiceClient) ListAuthenticationMethods(ctx contex
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -74,6 +75,7 @@ func (x *authenticationServiceClient) GetAuthenticationSelf(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -101,6 +103,7 @@ func (x *authenticationServiceClient) GetAuthentication(ctx context.Context, v *
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -131,6 +134,7 @@ func (x *authenticationServiceClient) ListAuthentications(ctx context.Context, v
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -158,6 +162,7 @@ func (x *authenticationServiceClient) DeleteAuthentication(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -200,6 +205,7 @@ func (x *authenticationServiceClient) ExpireAuthenticationSelf(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -237,6 +243,7 @@ func (x *authenticationMethodOIDCServiceClient) AuthorizeURL(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -266,6 +273,7 @@ func (x *authenticationMethodOIDCServiceClient) Callback(ctx context.Context, v 
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -307,6 +315,7 @@ func (x *authenticationMethodKubernetesServiceClient) VerifyServiceAccount(ctx c
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -345,6 +354,7 @@ func (x *authenticationMethodGithubServiceClient) AuthorizeURL(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -375,6 +385,7 @@ func (x *authenticationMethodGithubServiceClient) Callback(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
