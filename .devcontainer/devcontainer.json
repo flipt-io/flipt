@@ -1,8 +1,9 @@
 {
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "name": "Flipt v2",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/mise:1": {}
   },
   "remoteUser": "vscode",
   "workspaceFolder": "/workspaces/flipt",
@@ -23,7 +24,7 @@
     "source=flipt-go-build,target=/home/vscode/.cache/go-build,type=volume",
     "source=flipt-mise-cache,target=/home/vscode/.local/share/mise,type=volume"
   ],
-  "postCreateCommand": "bash -lc 'sudo chown -R vscode:vscode /home/vscode/.local/share/mise /home/vscode/go/pkg /home/vscode/.cache/go-build && mise trust --yes . && mise install && mise run bootstrap && mise run ui:deps'",
+  "postCreateCommand": "bash -l .devcontainer/setup.sh",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -34,5 +35,10 @@
         "ms-azuretools.vscode-docker"
       ]
     }
-  }
+  },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/share/mise/shims",
+    "MISE_YES": "1",
+    "MISE_TRUSTED_CONFIG_PATHS": "/workspaces/flipt:/home/vscode"
+   }
 }
