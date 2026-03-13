@@ -27,6 +27,17 @@ func NewServer(logger *zap.Logger, envs *EnvironmentStore) (_ *Server, err error
 	return &Server{logger: logger, envs: envs}, nil
 }
 
+// isProtectedEnvironment returns true if the given environment is protected.
+// Branch environments are never protected even if the parent environment is marked as protected.
+func isProtectedEnvironment(env Environment) bool {
+	cfg := env.Configuration()
+	// Branch environments are never protected
+	if cfg.Base != nil {
+		return false
+	}
+	return env.Protected()
+}
+
 // RegisterGRPC registers the *Server onto the provided grpc Server.
 func (s *Server) RegisterGRPC(server *grpc.Server) {
 	environments.RegisterEnvironmentsServiceServer(server, s)
@@ -45,6 +56,7 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 			Name:          env.Key(),
 			Default:       new(env.Default()),
 			Configuration: cfg,
+			Protected:     isProtectedEnvironment(env),
 		})
 	}
 
@@ -76,6 +88,7 @@ func (s *Server) BranchEnvironment(ctx context.Context, req *environments.Branch
 		Name:          env.Key(),
 		Default:       new(env.Default()),
 		Configuration: env.Configuration(),
+		Protected:     false, // branches are always modifiable
 	}, nil
 }
 
@@ -175,6 +188,10 @@ func (s *Server) CreateNamespace(ctx context.Context, ns *environments.UpdateNam
 		return nil, err
 	}
 
+	if isProtectedEnvironment(env) {
+		return nil, errors.ErrInvalidf("environment %q is readonly", ns.EnvironmentKey)
+	}
+
 	_, err = env.GetNamespace(ctx, ns.Key)
 	if err == nil {
 		return nil, errors.ErrAlreadyExistsf("create namespace %q", ns.Key)
@@ -207,6 +224,10 @@ func (s *Server) UpdateNamespace(ctx context.Context, ns *environments.UpdateNam
 		return nil, err
 	}
 
+	if isProtectedEnvironment(env) {
+		return nil, errors.ErrInvalidf("environment %q is readonly", ns.EnvironmentKey)
+	}
+
 	_, err = env.GetNamespace(ctx, ns.Key)
 	if err != nil {
 		return nil, fmt.Errorf("update namespace %q: %w", ns.Key, err)
@@ -233,6 +254,10 @@ func (s *Server) DeleteNamespace(ctx context.Context, req *environments.DeleteNa
 	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
+	}
+
+	if isProtectedEnvironment(env) {
+		return nil, errors.ErrInvalidf("environment %q is readonly", req.EnvironmentKey)
 	}
 
 	resp := &environments.DeleteNamespaceResponse{}
@@ -296,6 +321,10 @@ func (s *Server) CreateResource(ctx context.Context, req *environments.UpdateRes
 		return nil, err
 	}
 
+	if isProtectedEnvironment(env) {
+		return nil, errors.ErrInvalidf("environment %q is readonly", req.EnvironmentKey)
+	}
+
 	resp := &environments.ResourceResponse{
 		Resource: &environments.Resource{
 			NamespaceKey: req.NamespaceKey,
@@ -334,6 +363,10 @@ func (s *Server) UpdateResource(ctx context.Context, req *environments.UpdateRes
 		return nil, err
 	}
 
+	if isProtectedEnvironment(env) {
+		return nil, errors.ErrInvalidf("environment %q is readonly", req.EnvironmentKey)
+	}
+
 	resp := &environments.ResourceResponse{
 		Resource: &environments.Resource{
 			NamespaceKey: req.NamespaceKey,
@@ -366,6 +399,10 @@ func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteRes
 	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
+	}
+
+	if isProtectedEnvironment(env) {
+		return nil, errors.ErrInvalidf("environment %q is readonly", req.EnvironmentKey)
 	}
 
 	typ, err := ParseResourceType(req.TypeUrl)

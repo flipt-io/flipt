@@ -536,6 +536,9 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/EnvironmentConfiguration'
                     description: The environment configuration.
+                protected:
+                    type: boolean
+                    description: The protected indicates if this environment is protected.
             description: The Environment represents a environment.
         EnvironmentConfiguration:
             type: object

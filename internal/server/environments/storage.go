@@ -51,6 +51,7 @@ type ProposalOptions struct {
 type Environment interface {
 	Key() string
 	Default() bool
+	Protected() bool
 	Configuration() *environments.EnvironmentConfiguration
 
 	// Branches

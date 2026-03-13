@@ -108,6 +108,11 @@ export const selectCurrentEnvironment = createSelector(
   }
 );
 
+export const selectCurrentEnvironmentProtected = createSelector(
+  [selectCurrentEnvironment],
+  (env) => env.protected ?? false
+);
+
 export const environmentsApi = createApi({
   reducerPath: 'environments-api',
   baseQuery,

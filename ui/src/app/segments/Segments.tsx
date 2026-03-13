@@ -23,6 +23,7 @@ export default function Segments() {
   });
 
   const hasSegments = data?.segments && data.segments.length > 0;
+  const isProtected = environment.protected ?? false;
 
   return (
     <div className="space-y-6">
@@ -31,6 +32,10 @@ export default function Segments() {
           <ButtonWithPlus
             variant="primary"
             onClick={() => navigate(`${path}/new`)}
+            disabled={isProtected}
+            title={
+              isProtected ? 'Not allowed in protected environment' : undefined
+            }
           >
             New Segment
           </ButtonWithPlus>

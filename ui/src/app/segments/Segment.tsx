@@ -46,6 +46,8 @@ export default function Segment() {
 
   const revision = getRevision();
 
+  const isProtected = environment.protected ?? false;
+
   const {
     data: segment,
     error,
@@ -158,6 +160,10 @@ export default function Segment() {
             {
               id: 'segment-delete',
               label: 'Delete',
+              disabled: isProtected,
+              title: isProtected
+                ? 'Not allowed in protected environment'
+                : undefined,
               onClick: () => setShowDeleteSegmentModal(true),
               icon: Trash2Icon,
               variant: 'destructive'

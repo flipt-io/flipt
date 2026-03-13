@@ -975,6 +975,50 @@ func (_c *MockEnvironment_Propose_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// Protected provides a mock function for the type MockEnvironment
+func (_mock *MockEnvironment) Protected() bool {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Protected")
+	}
+
+	var r0 bool
+	if returnFunc, ok := ret.Get(0).(func() bool); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	return r0
+}
+
+// MockEnvironment_Protected_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Protected'
+type MockEnvironment_Protected_Call struct {
+	*mock.Call
+}
+
+// Protected is a helper method to define mock.On call
+func (_e *MockEnvironment_Expecter) Protected() *MockEnvironment_Protected_Call {
+	return &MockEnvironment_Protected_Call{Call: _e.mock.On("Protected")}
+}
+
+func (_c *MockEnvironment_Protected_Call) Run(run func()) *MockEnvironment_Protected_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEnvironment_Protected_Call) Return(b bool) *MockEnvironment_Protected_Call {
+	_c.Call.Return(b)
+	return _c
+}
+
+func (_c *MockEnvironment_Protected_Call) RunAndReturn(run func() bool) *MockEnvironment_Protected_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function for the type MockEnvironment
 func (_mock *MockEnvironment) Update(context1 context.Context, rev string, typ ResourceType, fn UpdateFunc) (string, error) {
 	ret := _mock.Called(context1, rev, typ, fn)
