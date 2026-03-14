@@ -3,6 +3,7 @@
 package http
 
 import (
+	fmt "fmt"
 	v2 "go.flipt.io/flipt/sdk/go/v2"
 	status "google.golang.org/genproto/googleapis/rpc/status"
 	metadata "google.golang.org/grpc/metadata"
@@ -51,7 +52,7 @@ func checkResponse(resp *http.Response, v []byte) error {
 	if resp.StatusCode != http.StatusOK {
 		var status status.Status
 		if err := protojson.Unmarshal(v, &status); err != nil {
-			return err
+			return fmt.Errorf("unexpected HTTP %d %v: %w", resp.StatusCode, string(v), err)
 		}
 		return status1.ErrorProto(&status)
 	}

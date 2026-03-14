@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: evaluation.proto
+// source: evaluation/evaluationv2.proto
 
 package evaluation
 
@@ -58,11 +58,11 @@ func (x EvaluationRolloutType) String() string {
 }
 
 func (EvaluationRolloutType) Descriptor() protoreflect.EnumDescriptor {
-	return file_evaluation_proto_enumTypes[0].Descriptor()
+	return file_evaluation_evaluationv2_proto_enumTypes[0].Descriptor()
 }
 
 func (EvaluationRolloutType) Type() protoreflect.EnumType {
-	return &file_evaluation_proto_enumTypes[0]
+	return &file_evaluation_evaluationv2_proto_enumTypes[0]
 }
 
 func (x EvaluationRolloutType) Number() protoreflect.EnumNumber {
@@ -71,7 +71,7 @@ func (x EvaluationRolloutType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EvaluationRolloutType.Descriptor instead.
 func (EvaluationRolloutType) EnumDescriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{0}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{0}
 }
 
 type EvaluationSegmentOperator int32
@@ -104,11 +104,11 @@ func (x EvaluationSegmentOperator) String() string {
 }
 
 func (EvaluationSegmentOperator) Descriptor() protoreflect.EnumDescriptor {
-	return file_evaluation_proto_enumTypes[1].Descriptor()
+	return file_evaluation_evaluationv2_proto_enumTypes[1].Descriptor()
 }
 
 func (EvaluationSegmentOperator) Type() protoreflect.EnumType {
-	return &file_evaluation_proto_enumTypes[1]
+	return &file_evaluation_evaluationv2_proto_enumTypes[1]
 }
 
 func (x EvaluationSegmentOperator) Number() protoreflect.EnumNumber {
@@ -117,7 +117,7 @@ func (x EvaluationSegmentOperator) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EvaluationSegmentOperator.Descriptor instead.
 func (EvaluationSegmentOperator) EnumDescriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{1}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{1}
 }
 
 type EvaluationSegmentMatchType int32
@@ -150,11 +150,11 @@ func (x EvaluationSegmentMatchType) String() string {
 }
 
 func (EvaluationSegmentMatchType) Descriptor() protoreflect.EnumDescriptor {
-	return file_evaluation_proto_enumTypes[2].Descriptor()
+	return file_evaluation_evaluationv2_proto_enumTypes[2].Descriptor()
 }
 
 func (EvaluationSegmentMatchType) Type() protoreflect.EnumType {
-	return &file_evaluation_proto_enumTypes[2]
+	return &file_evaluation_evaluationv2_proto_enumTypes[2]
 }
 
 func (x EvaluationSegmentMatchType) Number() protoreflect.EnumNumber {
@@ -163,7 +163,7 @@ func (x EvaluationSegmentMatchType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EvaluationSegmentMatchType.Descriptor instead.
 func (EvaluationSegmentMatchType) EnumDescriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{2}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{2}
 }
 
 type EvaluationFlagType int32
@@ -196,11 +196,11 @@ func (x EvaluationFlagType) String() string {
 }
 
 func (EvaluationFlagType) Descriptor() protoreflect.EnumDescriptor {
-	return file_evaluation_proto_enumTypes[3].Descriptor()
+	return file_evaluation_evaluationv2_proto_enumTypes[3].Descriptor()
 }
 
 func (EvaluationFlagType) Type() protoreflect.EnumType {
-	return &file_evaluation_proto_enumTypes[3]
+	return &file_evaluation_evaluationv2_proto_enumTypes[3]
 }
 
 func (x EvaluationFlagType) Number() protoreflect.EnumNumber {
@@ -209,7 +209,7 @@ func (x EvaluationFlagType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EvaluationFlagType.Descriptor instead.
 func (EvaluationFlagType) EnumDescriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{3}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{3}
 }
 
 type EvaluationConstraintComparisonType int32
@@ -254,11 +254,11 @@ func (x EvaluationConstraintComparisonType) String() string {
 }
 
 func (EvaluationConstraintComparisonType) Descriptor() protoreflect.EnumDescriptor {
-	return file_evaluation_proto_enumTypes[4].Descriptor()
+	return file_evaluation_evaluationv2_proto_enumTypes[4].Descriptor()
 }
 
 func (EvaluationConstraintComparisonType) Type() protoreflect.EnumType {
-	return &file_evaluation_proto_enumTypes[4]
+	return &file_evaluation_evaluationv2_proto_enumTypes[4]
 }
 
 func (x EvaluationConstraintComparisonType) Number() protoreflect.EnumNumber {
@@ -267,7 +267,7 @@ func (x EvaluationConstraintComparisonType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EvaluationConstraintComparisonType.Descriptor instead.
 func (EvaluationConstraintComparisonType) EnumDescriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{4}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{4}
 }
 
 type EvaluationDistribution struct {
@@ -282,7 +282,7 @@ type EvaluationDistribution struct {
 
 func (x *EvaluationDistribution) Reset() {
 	*x = EvaluationDistribution{}
-	mi := &file_evaluation_proto_msgTypes[0]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -294,7 +294,7 @@ func (x *EvaluationDistribution) String() string {
 func (*EvaluationDistribution) ProtoMessage() {}
 
 func (x *EvaluationDistribution) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[0]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -307,7 +307,7 @@ func (x *EvaluationDistribution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationDistribution.ProtoReflect.Descriptor instead.
 func (*EvaluationDistribution) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{0}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *EvaluationDistribution) GetRuleId() string {
@@ -353,7 +353,7 @@ type EvaluationRollout struct {
 
 func (x *EvaluationRollout) Reset() {
 	*x = EvaluationRollout{}
-	mi := &file_evaluation_proto_msgTypes[1]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -365,7 +365,7 @@ func (x *EvaluationRollout) String() string {
 func (*EvaluationRollout) ProtoMessage() {}
 
 func (x *EvaluationRollout) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[1]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -378,7 +378,7 @@ func (x *EvaluationRollout) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationRollout.ProtoReflect.Descriptor instead.
 func (*EvaluationRollout) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{1}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *EvaluationRollout) GetType() EvaluationRolloutType {
@@ -446,7 +446,7 @@ type EvaluationRolloutThreshold struct {
 
 func (x *EvaluationRolloutThreshold) Reset() {
 	*x = EvaluationRolloutThreshold{}
-	mi := &file_evaluation_proto_msgTypes[2]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +458,7 @@ func (x *EvaluationRolloutThreshold) String() string {
 func (*EvaluationRolloutThreshold) ProtoMessage() {}
 
 func (x *EvaluationRolloutThreshold) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[2]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +471,7 @@ func (x *EvaluationRolloutThreshold) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationRolloutThreshold.ProtoReflect.Descriptor instead.
 func (*EvaluationRolloutThreshold) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{2}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *EvaluationRolloutThreshold) GetPercentage() float32 {
@@ -499,7 +499,7 @@ type EvaluationRolloutSegment struct {
 
 func (x *EvaluationRolloutSegment) Reset() {
 	*x = EvaluationRolloutSegment{}
-	mi := &file_evaluation_proto_msgTypes[3]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -511,7 +511,7 @@ func (x *EvaluationRolloutSegment) String() string {
 func (*EvaluationRolloutSegment) ProtoMessage() {}
 
 func (x *EvaluationRolloutSegment) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[3]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -524,7 +524,7 @@ func (x *EvaluationRolloutSegment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationRolloutSegment.ProtoReflect.Descriptor instead.
 func (*EvaluationRolloutSegment) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{3}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *EvaluationRolloutSegment) GetValue() bool {
@@ -563,7 +563,7 @@ type EvaluationSegment struct {
 
 func (x *EvaluationSegment) Reset() {
 	*x = EvaluationSegment{}
-	mi := &file_evaluation_proto_msgTypes[4]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -575,7 +575,7 @@ func (x *EvaluationSegment) String() string {
 func (*EvaluationSegment) ProtoMessage() {}
 
 func (x *EvaluationSegment) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[4]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -588,7 +588,7 @@ func (x *EvaluationSegment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationSegment.ProtoReflect.Descriptor instead.
 func (*EvaluationSegment) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{4}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EvaluationSegment) GetKey() string {
@@ -651,7 +651,7 @@ type EvaluationVariant struct {
 
 func (x *EvaluationVariant) Reset() {
 	*x = EvaluationVariant{}
-	mi := &file_evaluation_proto_msgTypes[5]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -663,7 +663,7 @@ func (x *EvaluationVariant) String() string {
 func (*EvaluationVariant) ProtoMessage() {}
 
 func (x *EvaluationVariant) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[5]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -676,7 +676,7 @@ func (x *EvaluationVariant) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationVariant.ProtoReflect.Descriptor instead.
 func (*EvaluationVariant) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{5}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *EvaluationVariant) GetId() string {
@@ -718,7 +718,7 @@ type EvaluationFlag struct {
 
 func (x *EvaluationFlag) Reset() {
 	*x = EvaluationFlag{}
-	mi := &file_evaluation_proto_msgTypes[6]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -730,7 +730,7 @@ func (x *EvaluationFlag) String() string {
 func (*EvaluationFlag) ProtoMessage() {}
 
 func (x *EvaluationFlag) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[6]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -743,7 +743,7 @@ func (x *EvaluationFlag) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationFlag.ProtoReflect.Descriptor instead.
 func (*EvaluationFlag) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{6}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *EvaluationFlag) GetKey() string {
@@ -828,7 +828,7 @@ type EvaluationConstraint struct {
 
 func (x *EvaluationConstraint) Reset() {
 	*x = EvaluationConstraint{}
-	mi := &file_evaluation_proto_msgTypes[7]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -840,7 +840,7 @@ func (x *EvaluationConstraint) String() string {
 func (*EvaluationConstraint) ProtoMessage() {}
 
 func (x *EvaluationConstraint) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[7]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -853,7 +853,7 @@ func (x *EvaluationConstraint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationConstraint.ProtoReflect.Descriptor instead.
 func (*EvaluationConstraint) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{7}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *EvaluationConstraint) GetType() EvaluationConstraintComparisonType {
@@ -897,7 +897,7 @@ type EvaluationRule struct {
 
 func (x *EvaluationRule) Reset() {
 	*x = EvaluationRule{}
-	mi := &file_evaluation_proto_msgTypes[8]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -909,7 +909,7 @@ func (x *EvaluationRule) String() string {
 func (*EvaluationRule) ProtoMessage() {}
 
 func (x *EvaluationRule) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[8]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -922,7 +922,7 @@ func (x *EvaluationRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationRule.ProtoReflect.Descriptor instead.
 func (*EvaluationRule) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{8}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *EvaluationRule) GetId() string {
@@ -969,7 +969,7 @@ type EvaluationNamespace struct {
 
 func (x *EvaluationNamespace) Reset() {
 	*x = EvaluationNamespace{}
-	mi := &file_evaluation_proto_msgTypes[9]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -981,7 +981,7 @@ func (x *EvaluationNamespace) String() string {
 func (*EvaluationNamespace) ProtoMessage() {}
 
 func (x *EvaluationNamespace) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[9]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -994,7 +994,7 @@ func (x *EvaluationNamespace) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationNamespace.ProtoReflect.Descriptor instead.
 func (*EvaluationNamespace) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{9}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *EvaluationNamespace) GetKey() string {
@@ -1015,7 +1015,7 @@ type EvaluationNamespaceSnapshot struct {
 
 func (x *EvaluationNamespaceSnapshot) Reset() {
 	*x = EvaluationNamespaceSnapshot{}
-	mi := &file_evaluation_proto_msgTypes[10]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1027,7 +1027,7 @@ func (x *EvaluationNamespaceSnapshot) String() string {
 func (*EvaluationNamespaceSnapshot) ProtoMessage() {}
 
 func (x *EvaluationNamespaceSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[10]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1040,7 +1040,7 @@ func (x *EvaluationNamespaceSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationNamespaceSnapshot.ProtoReflect.Descriptor instead.
 func (*EvaluationNamespaceSnapshot) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{10}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *EvaluationNamespaceSnapshot) GetNamespace() *EvaluationNamespace {
@@ -1075,7 +1075,7 @@ type EvaluationNamespaceSnapshotRequest struct {
 
 func (x *EvaluationNamespaceSnapshotRequest) Reset() {
 	*x = EvaluationNamespaceSnapshotRequest{}
-	mi := &file_evaluation_proto_msgTypes[11]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1087,7 +1087,7 @@ func (x *EvaluationNamespaceSnapshotRequest) String() string {
 func (*EvaluationNamespaceSnapshotRequest) ProtoMessage() {}
 
 func (x *EvaluationNamespaceSnapshotRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[11]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1100,7 +1100,7 @@ func (x *EvaluationNamespaceSnapshotRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use EvaluationNamespaceSnapshotRequest.ProtoReflect.Descriptor instead.
 func (*EvaluationNamespaceSnapshotRequest) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{11}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *EvaluationNamespaceSnapshotRequest) GetKey() string {
@@ -1134,7 +1134,7 @@ type EvaluationNamespaceSnapshotStreamRequest struct {
 
 func (x *EvaluationNamespaceSnapshotStreamRequest) Reset() {
 	*x = EvaluationNamespaceSnapshotStreamRequest{}
-	mi := &file_evaluation_proto_msgTypes[12]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1146,7 +1146,7 @@ func (x *EvaluationNamespaceSnapshotStreamRequest) String() string {
 func (*EvaluationNamespaceSnapshotStreamRequest) ProtoMessage() {}
 
 func (x *EvaluationNamespaceSnapshotStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[12]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1159,7 +1159,7 @@ func (x *EvaluationNamespaceSnapshotStreamRequest) ProtoReflect() protoreflect.M
 
 // Deprecated: Use EvaluationNamespaceSnapshotStreamRequest.ProtoReflect.Descriptor instead.
 func (*EvaluationNamespaceSnapshotStreamRequest) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{12}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *EvaluationNamespaceSnapshotStreamRequest) GetKey() string {
@@ -1185,7 +1185,7 @@ type EvaluationSnapshot struct {
 
 func (x *EvaluationSnapshot) Reset() {
 	*x = EvaluationSnapshot{}
-	mi := &file_evaluation_proto_msgTypes[13]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1197,7 +1197,7 @@ func (x *EvaluationSnapshot) String() string {
 func (*EvaluationSnapshot) ProtoMessage() {}
 
 func (x *EvaluationSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_proto_msgTypes[13]
+	mi := &file_evaluation_evaluationv2_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1210,7 +1210,7 @@ func (x *EvaluationSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationSnapshot.ProtoReflect.Descriptor instead.
 func (*EvaluationSnapshot) Descriptor() ([]byte, []int) {
-	return file_evaluation_proto_rawDescGZIP(), []int{13}
+	return file_evaluation_evaluationv2_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *EvaluationSnapshot) GetNamespaces() map[string]*EvaluationNamespaceSnapshot {
@@ -1220,11 +1220,11 @@ func (x *EvaluationSnapshot) GetNamespaces() map[string]*EvaluationNamespaceSnap
 	return nil
 }
 
-var File_evaluation_proto protoreflect.FileDescriptor
+var File_evaluation_evaluationv2_proto protoreflect.FileDescriptor
 
-const file_evaluation_proto_rawDesc = "" +
+const file_evaluation_evaluationv2_proto_rawDesc = "" +
 	"\n" +
-	"\x10evaluation.proto\x12\n" +
+	"\x1devaluation/evaluationv2.proto\x12\n" +
 	"evaluation\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa7\x01\n" +
 	"\x16EvaluationDistribution\x12\x17\n" +
 	"\arule_id\x18\x02 \x01(\tR\x06ruleId\x12\x1f\n" +
@@ -1335,20 +1335,20 @@ const file_evaluation_proto_rawDesc = "" +
 	"!EvaluationSnapshotNamespaceStream\x124.evaluation.EvaluationNamespaceSnapshotStreamRequest\x1a'.evaluation.EvaluationNamespaceSnapshot\"f\xbaG\x1a*\x18evaluationSnapshotStream\x82\xd3\xe4\x93\x02C\x12A/client/v2/environments/{environment_key}/namespaces/{key}/stream0\x01\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB%Z#go.flipt.io/flipt/rpc/v2/evaluationb\x06proto3"
 
 var (
-	file_evaluation_proto_rawDescOnce sync.Once
-	file_evaluation_proto_rawDescData []byte
+	file_evaluation_evaluationv2_proto_rawDescOnce sync.Once
+	file_evaluation_evaluationv2_proto_rawDescData []byte
 )
 
-func file_evaluation_proto_rawDescGZIP() []byte {
-	file_evaluation_proto_rawDescOnce.Do(func() {
-		file_evaluation_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_evaluation_proto_rawDesc), len(file_evaluation_proto_rawDesc)))
+func file_evaluation_evaluationv2_proto_rawDescGZIP() []byte {
+	file_evaluation_evaluationv2_proto_rawDescOnce.Do(func() {
+		file_evaluation_evaluationv2_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_evaluation_evaluationv2_proto_rawDesc), len(file_evaluation_evaluationv2_proto_rawDesc)))
 	})
-	return file_evaluation_proto_rawDescData
+	return file_evaluation_evaluationv2_proto_rawDescData
 }
 
-var file_evaluation_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_evaluation_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
-var file_evaluation_proto_goTypes = []any{
+var file_evaluation_evaluationv2_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_evaluation_evaluationv2_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_evaluation_evaluationv2_proto_goTypes = []any{
 	(EvaluationRolloutType)(0),                       // 0: evaluation.EvaluationRolloutType
 	(EvaluationSegmentOperator)(0),                   // 1: evaluation.EvaluationSegmentOperator
 	(EvaluationSegmentMatchType)(0),                  // 2: evaluation.EvaluationSegmentMatchType
@@ -1371,7 +1371,7 @@ var file_evaluation_proto_goTypes = []any{
 	nil,                                              // 19: evaluation.EvaluationSnapshot.NamespacesEntry
 	(*timestamppb.Timestamp)(nil),                    // 20: google.protobuf.Timestamp
 }
-var file_evaluation_proto_depIdxs = []int32{
+var file_evaluation_evaluationv2_proto_depIdxs = []int32{
 	0,  // 0: evaluation.EvaluationRollout.type:type_name -> evaluation.EvaluationRolloutType
 	8,  // 1: evaluation.EvaluationRollout.segment:type_name -> evaluation.EvaluationRolloutSegment
 	7,  // 2: evaluation.EvaluationRollout.threshold:type_name -> evaluation.EvaluationRolloutThreshold
@@ -1406,32 +1406,32 @@ var file_evaluation_proto_depIdxs = []int32{
 	0,  // [0:23] is the sub-list for field type_name
 }
 
-func init() { file_evaluation_proto_init() }
-func file_evaluation_proto_init() {
-	if File_evaluation_proto != nil {
+func init() { file_evaluation_evaluationv2_proto_init() }
+func file_evaluation_evaluationv2_proto_init() {
+	if File_evaluation_evaluationv2_proto != nil {
 		return
 	}
-	file_evaluation_proto_msgTypes[1].OneofWrappers = []any{
+	file_evaluation_evaluationv2_proto_msgTypes[1].OneofWrappers = []any{
 		(*EvaluationRollout_Segment)(nil),
 		(*EvaluationRollout_Threshold)(nil),
 	}
-	file_evaluation_proto_msgTypes[6].OneofWrappers = []any{}
+	file_evaluation_evaluationv2_proto_msgTypes[6].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_evaluation_proto_rawDesc), len(file_evaluation_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_evaluation_evaluationv2_proto_rawDesc), len(file_evaluation_evaluationv2_proto_rawDesc)),
 			NumEnums:      5,
 			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_evaluation_proto_goTypes,
-		DependencyIndexes: file_evaluation_proto_depIdxs,
-		EnumInfos:         file_evaluation_proto_enumTypes,
-		MessageInfos:      file_evaluation_proto_msgTypes,
+		GoTypes:           file_evaluation_evaluationv2_proto_goTypes,
+		DependencyIndexes: file_evaluation_evaluationv2_proto_depIdxs,
+		EnumInfos:         file_evaluation_evaluationv2_proto_enumTypes,
+		MessageInfos:      file_evaluation_evaluationv2_proto_msgTypes,
 	}.Build()
-	File_evaluation_proto = out.File
-	file_evaluation_proto_goTypes = nil
-	file_evaluation_proto_depIdxs = nil
+	File_evaluation_evaluationv2_proto = out.File
+	file_evaluation_evaluationv2_proto_goTypes = nil
+	file_evaluation_evaluationv2_proto_depIdxs = nil
 }
