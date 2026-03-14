@@ -152,7 +152,10 @@ export default function SegmentTable(props: SegmentTableProps) {
   const { data, isLoading, error } = useListSegmentsQuery(namespace.key);
   const { data: flagCounts } = useGetSegmentFlagCountsQuery(
     { namespaceKey: namespace.key },
-    { skip: !data?.segments?.length }
+    {
+      skip: !data?.segments?.length,
+      refetchOnMountOrArgChange: true
+    }
   );
   const segments = useMemo(() => data?.segments || [], [data]);
   const table = useReactTable({

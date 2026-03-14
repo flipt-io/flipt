@@ -107,7 +107,10 @@ export default function Segment() {
       namespaceKey: namespace.key,
       segmentKey: segmentKey || ''
     },
-    { skip: !segmentKey }
+    {
+      skip: !segmentKey,
+      refetchOnMountOrArgChange: true
+    }
   );
 
   const [deleteSegment] = useDeleteSegmentMutation();
