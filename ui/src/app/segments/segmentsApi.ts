@@ -4,8 +4,33 @@ import { SortingState } from '@tanstack/react-table';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '~/store';
 import { IConstraintBase } from '~/types/Constraint';
+import { IFlagList } from '~/types/Flag';
+import { IRolloutList } from '~/types/Rollout';
+import { IRule, IRuleList } from '~/types/Rule';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
 import { baseQuery } from '~/utils/redux-rtk';
+
+export interface IFlagReference {
+  key: string;
+  name: string;
+}
+
+function ruleReferencesSegment(rule: IRule, segmentKey: string): boolean {
+  if (rule.segmentKey === segmentKey) return true;
+  if (rule.segmentKeys?.includes(segmentKey)) return true;
+  return false;
+}
+
+function rolloutReferencesSegment(
+  rollout: { segment?: { segmentKey?: string; segmentKeys?: string[] } },
+  segmentKey: string
+): boolean {
+  const seg = rollout.segment;
+  if (!seg) return false;
+  if (seg.segmentKey === segmentKey) return true;
+  if (seg.segmentKeys?.includes(segmentKey)) return true;
+  return false;
+}
 
 const initialTableState: {
   sorting: SortingState;
@@ -211,6 +236,120 @@ export const segmentsApi = createApi({
       invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
         { type: 'Segment', id: namespaceKey + '/' + segmentKey }
       ]
+    }),
+
+    // List flags that reference this segment (via rules or rollouts). Uses existing APIs.
+    listFlagsForSegment: builder.query<
+      { flags: IFlagReference[] },
+      { namespaceKey: string; segmentKey: string }
+    >({
+      queryFn: async (
+        { namespaceKey, segmentKey },
+        _api,
+        _extraOptions,
+        baseQueryFn
+      ) => {
+        const flagsResp = await baseQueryFn({
+          url: `/namespaces/${namespaceKey}/flags`,
+          method: 'GET'
+        });
+        if (flagsResp.error) {
+          return { error: flagsResp.error };
+        }
+        const flags = (flagsResp.data as IFlagList).flags ?? [];
+        const refs: IFlagReference[] = [];
+
+        await Promise.all(
+          flags.map(async (flag) => {
+            const [rulesResp, rolloutsResp] = await Promise.all([
+              baseQueryFn({
+                url: `/namespaces/${namespaceKey}/flags/${flag.key}/rules`,
+                method: 'GET'
+              }),
+              baseQueryFn({
+                url: `/namespaces/${namespaceKey}/flags/${flag.key}/rollouts`,
+                method: 'GET'
+              })
+            ]);
+            const rules = (rulesResp.data as IRuleList)?.rules ?? [];
+            const rollouts = (rolloutsResp.data as IRolloutList)?.rules ?? [];
+            const used =
+              rules.some((r) => ruleReferencesSegment(r, segmentKey)) ||
+              rollouts.some((r) => rolloutReferencesSegment(r, segmentKey));
+            if (used) {
+              refs.push({ key: flag.key, name: flag.name });
+            }
+          })
+        );
+
+        return { data: { flags: refs } };
+      },
+      providesTags: (_result, _error, { namespaceKey, segmentKey }) => [
+        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
+      ]
+    }),
+
+    // Map segment key -> number of flags that reference it. Used for list view.
+    getSegmentFlagCounts: builder.query<
+      Record<string, number>,
+      { namespaceKey: string }
+    >({
+      queryFn: async ({ namespaceKey }, _api, _extraOptions, baseQueryFn) => {
+        const flagsResp = await baseQueryFn({
+          url: `/namespaces/${namespaceKey}/flags`,
+          method: 'GET'
+        });
+        if (flagsResp.error) {
+          return { error: flagsResp.error };
+        }
+        const flags = (flagsResp.data as IFlagList).flags ?? [];
+        const countBySegment: Record<string, Set<string>> = {};
+
+        const addFlagToSegments = (segmentKeys: string[], flagKey: string) => {
+          for (const sk of segmentKeys) {
+            if (!countBySegment[sk]) countBySegment[sk] = new Set();
+            countBySegment[sk].add(flagKey);
+          }
+        };
+
+        await Promise.all(
+          flags.map(async (flag) => {
+            const [rulesResp, rolloutsResp] = await Promise.all([
+              baseQueryFn({
+                url: `/namespaces/${namespaceKey}/flags/${flag.key}/rules`,
+                method: 'GET'
+              }),
+              baseQueryFn({
+                url: `/namespaces/${namespaceKey}/flags/${flag.key}/rollouts`,
+                method: 'GET'
+              })
+            ]);
+            const rules = (rulesResp.data as IRuleList)?.rules ?? [];
+            const rollouts = (rolloutsResp.data as IRolloutList)?.rules ?? [];
+            for (const r of rules) {
+              if (r.segmentKey) addFlagToSegments([r.segmentKey], flag.key);
+              if (r.segmentKeys?.length)
+                addFlagToSegments(r.segmentKeys, flag.key);
+            }
+            for (const r of rollouts) {
+              const seg = r.segment;
+              if (seg?.segmentKey)
+                addFlagToSegments([seg.segmentKey], flag.key);
+              if (seg?.segmentKeys?.length)
+                addFlagToSegments(seg.segmentKeys, flag.key);
+            }
+          })
+        );
+
+        const result: Record<string, number> = {};
+        for (const [sk, set] of Object.entries(countBySegment)) {
+          result[sk] = set.size;
+        }
+        return { data: result };
+      },
+      providesTags: (_result, _error, { namespaceKey }) => [
+        segmentTag(namespaceKey)
+      ]
     })
   })
 });
@@ -218,6 +357,8 @@ export const segmentsApi = createApi({
 export const {
   useListSegmentsQuery,
   useGetSegmentQuery,
+  useListFlagsForSegmentQuery,
+  useGetSegmentFlagCountsQuery,
   useCreateSegmentMutation,
   useDeleteSegmentMutation,
   useUpdateSegmentMutation,

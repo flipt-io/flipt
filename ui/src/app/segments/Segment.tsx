@@ -1,8 +1,8 @@
-import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
+import { CalendarIcon, FlagIcon, FilesIcon, Trash2Icon } from 'lucide-react';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
@@ -12,7 +12,8 @@ import {
   useCopySegmentMutation,
   useDeleteConstraintMutation,
   useDeleteSegmentMutation,
-  useGetSegmentQuery
+  useGetSegmentQuery,
+  useListFlagsForSegmentQuery
 } from '~/app/segments/segmentsApi';
 import Chips from '~/components/Chips';
 import EmptyState from '~/components/EmptyState';
@@ -100,6 +101,14 @@ export default function Segment() {
     namespaceKey: namespace.key,
     segmentKey: segmentKey || ''
   });
+
+  const { data: flagsForSegment } = useListFlagsForSegmentQuery(
+    {
+      namespaceKey: namespace.key,
+      segmentKey: segmentKey || ''
+    },
+    { skip: !segmentKey }
+  );
 
   const [deleteSegment] = useDeleteSegmentMutation();
   const [deleteSegmentConstraint] = useDeleteConstraintMutation();
@@ -253,6 +262,38 @@ export default function Segment() {
 
       <div className="mb-8">
         <SegmentForm segment={segment} />
+      </div>
+
+      <div className="mb-8">
+        <h3 className="leading-6 font-medium text-gray-900 mb-2">
+          Used in flags
+        </h3>
+        <p className="text-sm text-gray-500 mb-3">
+          Flags that reference this segment (in rules or rollouts). Changing
+          constraints may affect how these flags evaluate.
+        </p>
+        {!flagsForSegment ? (
+          <p className="text-sm text-gray-400">Loading…</p>
+        ) : flagsForSegment.flags.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            This segment is not used by any flags.
+          </p>
+        ) : (
+          <ul className="flex flex-wrap gap-2">
+            {flagsForSegment.flags.map((ref) => (
+              <li key={ref.key}>
+                <Link
+                  to={`/namespaces/${namespace.key}/flags/${ref.key}`}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-sm font-medium text-violet-700 hover:bg-gray-200 hover:text-violet-900"
+                >
+                  <FlagIcon className="h-4 w-4" />
+                  <span>{ref.name}</span>
+                  <span className="text-gray-500 font-normal">({ref.key})</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div>
