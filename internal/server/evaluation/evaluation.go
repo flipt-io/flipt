@@ -559,7 +559,6 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 	constraintMatches := 0
 
 	var reason string
-constraintLoop:
 	for _, c := range constraints {
 		v := evalCtx[c.Property]
 
@@ -591,25 +590,13 @@ constraintLoop:
 		if match {
 			// increase the matchCount
 			constraintMatches++
-
-			switch segmentMatchType {
-			case core.MatchType_ANY_MATCH_TYPE:
+			if segmentMatchType == core.MatchType_ANY_MATCH_TYPE {
 				// can short circuit here since we had at least one match
-				break constraintLoop
-			default:
-				// keep looping as we need to match all constraints
-				continue
+				break
 			}
-		} else {
-			// no match
-			switch segmentMatchType {
-			case core.MatchType_ALL_MATCH_TYPE:
-				// we can short circuit because we must match all constraints
-				break constraintLoop
-			default:
-				// keep looping to see if we match the next constraint
-				continue
-			}
+		} else if segmentMatchType == core.MatchType_ALL_MATCH_TYPE {
+			// we can short circuit because we must match all constraints
+			break
 		}
 	}
 
