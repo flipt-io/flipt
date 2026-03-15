@@ -200,10 +200,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
               <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                   <div>
-                    <label
-                      htmlFor="segmentKeys"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-                    >
+                    <label htmlFor="segmentKeys" className="sm:mt-px sm:pt-2">
                       Segment
                     </label>
                   </div>
@@ -230,7 +227,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                         )}
                       />
                       {rule.segments.length === 0 ? (
-                        <div className="mt-1 text-sm text-red-500">
+                        <div className="text-destructive mt-1 text-sm">
                           Segment is missing
                         </div>
                       ) : null}
@@ -244,10 +241,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                 id={segmentOperator.id}
                                 name="operator"
                                 type="radio"
-                                className={cls(
-                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400',
-                                  { 'cursor-not-allowed': readOnly }
-                                )}
+                                className={cls({
+                                  'cursor-not-allowed': readOnly
+                                })}
                                 onChange={() => {
                                   formik.setFieldValue(
                                     'operator',
@@ -267,10 +263,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                               />
                             </div>
                             <div>
-                              <label
-                                htmlFor={segmentOperator.id}
-                                className="block text-sm text-gray-700"
-                              >
+                              <label htmlFor={segmentOperator.id}>
                                 {segmentOperator.name}{' '}
                                 <span className="font-light">
                                   {segmentOperator.meta}
@@ -284,10 +277,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 </div>
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                   <div>
-                    <label
-                      htmlFor="ruleType"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-                    >
+                    <label htmlFor="ruleType" className="sm:mt-px sm:pt-2">
                       Type
                     </label>
                   </div>
@@ -303,15 +293,10 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                               className="relative flex items-start"
                             >
                               <div className="text-sm">
-                                <label
-                                  htmlFor={dist.id}
-                                  className="font-medium text-gray-700"
-                                >
-                                  {dist.name}
-                                </label>
+                                <label htmlFor={dist.id}>{dist.name}</label>
                                 <p
                                   id={`${dist.id}-description`}
-                                  className="text-gray-500"
+                                  className="text-muted-foreground"
                                 >
                                   {dist.description}
                                 </p>
@@ -330,7 +315,10 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       id={`quick-variant-${rule.rank}`}
                       variants={flag.variants}
                       selectedVariant={selectedVariant}
-                      setSelectedVariant={setSelectedVariant}
+                      setSelectedVariant={(v) => {
+                        formik.setFieldValue('rollout', v?.key);
+                        return setSelectedVariant(v);
+                      }}
                     />
                   )}
 
@@ -340,7 +328,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       <div>
                         <label
                           htmlFor="variantKey"
-                          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                          className="sm:mt-px sm:pt-2"
                         >
                           Variants
                         </label>
@@ -359,7 +347,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                     <div>
                                       <label
                                         htmlFor={`rollouts.[${index}].distribution.rollout`}
-                                        className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pt-2 sm:pr-2"
+                                        className="truncate text-right sm:mt-px sm:pt-2 sm:pr-2"
                                       >
                                         {dist.variant.key}
                                       </label>
@@ -369,9 +357,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                         key={index}
                                         type="number"
                                         className={cls(
-                                          'block w-full rounded-md border-gray-300 bg-gray-50 pr-12 pl-7 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
+                                          'text-secondary-foreground focus:border-brand focus:ring-brand border-input block w-full rounded-md pr-12 pl-7 shadow-xs sm:text-sm',
                                           {
-                                            'cursor-not-allowed bg-gray-100 text-gray-500':
+                                            'text-muted-foreground bg-muted cursor-not-allowed':
                                               readOnly
                                           }
                                         )}
@@ -385,7 +373,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                         disabled={readOnly}
                                       />
                                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                        <span className="text-gray-500 sm:text-sm">
+                                        <span className="text-muted-foreground sm:text-sm">
                                           %
                                         </span>
                                       </div>
@@ -398,7 +386,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       )}
                     />
                     {formik.touched.rollouts && formik.errors.rollouts && (
-                      <p className="mt-1 px-4 text-center text-sm text-gray-500 sm:px-6 sm:py-5">
+                      <p className="text-muted-foreground mt-1 px-4 text-center text-sm sm:px-6 sm:py-5">
                         Multi-variate rules must have distributions that add up
                         to 100% or less.
                       </p>
@@ -408,8 +396,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
               </div>
             </div>
             <div className="shrink-0 py-1">
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end">
                 <TextButton
+                  role="button"
                   disabled={formik.isSubmitting || !formik.dirty}
                   onClick={() => formik.resetForm()}
                 >
@@ -417,7 +406,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 </TextButton>
                 <TextButton
                   type="submit"
-                  className="min-w-[80px]"
+                  className="min-w-20"
                   disabled={
                     !formik.isValid || formik.isSubmitting || !formik.dirty
                   }

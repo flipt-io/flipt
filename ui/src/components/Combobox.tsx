@@ -1,11 +1,23 @@
-import { Combobox as C } from '@headlessui/react';
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
-import { useField } from 'formik';
-import { useState } from 'react';
-import { IFilterable } from '~/types/Selectable';
+import { type VariantProps } from 'class-variance-authority';
+import { Check, ChevronsUpDown, LucideIcon } from 'lucide-react';
+import { useRef, useState } from 'react';
+
+import { Button, buttonVariants } from '~/components/Button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from '~/components/Command';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
+
+import { ISelectable } from '~/types/Selectable';
+
 import { cls } from '~/utils/helpers';
 
-type ComboboxProps<T extends IFilterable> = {
+type ComboboxProps<T extends ISelectable> = {
   id: string;
   name: string;
   placeholder?: string;
@@ -14,143 +26,114 @@ type ComboboxProps<T extends IFilterable> = {
   setSelected?: (v: T | null) => void;
   disabled?: boolean;
   className?: string;
-  inputClassName?: string;
+  onInputChange?: (value: string) => void;
+  icon?: LucideIcon;
 };
 
-export default function Combobox<T extends IFilterable>(
-  props: ComboboxProps<T>
+export default function Combobox<T extends ISelectable>(
+  props: ComboboxProps<T> & VariantProps<typeof buttonVariants>
 ) {
   const {
     id,
     name,
     className,
-    inputClassName,
     values,
     selected,
     setSelected,
     placeholder,
-    disabled
+    disabled,
+    onInputChange,
+    icon
   } = props;
 
-  const [query, setQuery] = useState('');
-  const [field] = useField(props);
+  const Icon = icon;
+  const ref = useRef(null);
   const [openOptions, setOpenOptions] = useState(false);
-
-  const filteredValues = values?.filter((v) =>
-    v.filterValue.toLowerCase().includes(query.toLowerCase())
-  );
-
   return (
-    <C
-      as="div"
-      className={className}
-      value={selected}
-      onChange={(v: T | null) => {
-        setSelected && setSelected(v);
-        field.onChange({ target: { value: v?.key, id } });
-      }}
-      disabled={disabled}
-      nullable
-    >
-      {({ open }) => (
-        <div
-          onFocus={() => setTimeout(() => setOpenOptions(true), 100)}
-          onBlur={() => setTimeout(() => setOpenOptions(false), 100)}
+    <Popover open={openOptions} onOpenChange={setOpenOptions}>
+      <PopoverTrigger asChild disabled={disabled}>
+        <Button
+          ref={ref}
+          name={name + '-select-button'}
+          id={id + '-select-button'}
+          data-testid={name + '-select-button'}
+          variant={props.variant || 'secondaryline'}
+          size={props.size}
+          aria-expanded={openOptions}
+          className={cls('justify-between gap-2', className, {
+            'text-muted-foreground': !selected
+          })}
         >
-          <div className="relative flex w-full flex-row">
-            <C.Input
-              //id={id}
-              className={cls(
-                'w-full rounded-md border border-gray-300 bg-gray-50 py-2 pr-10 pl-3 text-gray-900 shadow-xs focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-hidden sm:text-sm',
-                inputClassName
-              )}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setQuery(e.target.value);
-              }}
-              displayValue={(v: T) => v?.displayValue}
-              placeholder={placeholder}
-              name={name}
-              id={`${id}-select-input`}
-              autoComplete="off"
-            />
-            <C.Button
-              className="absolute -inset-y-0 right-0 items-center rounded-r-md px-2 focus:outline-hidden"
-              id={`${id}-select-button`}
-            >
-              <ChevronUpDownIcon
-                className="h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
-            </C.Button>
-          </div>
-          {open && (
-            <C.Options
-              className="bg-background z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto rounded py-1 text-base shadow-lg ring-1 ring-gray-300 focus:outline-hidden sm:text-sm"
-              id={`${id}-select-options`}
-              static={openOptions}
-            >
-              {filteredValues &&
-                filteredValues.map((v) => (
-                  <C.Option
-                    key={v?.key}
-                    value={v}
-                    className={({ active }) =>
-                      cls(
-                        'relative w-full cursor-default py-2 pr-9 pl-3 select-none',
-                        {
-                          'bg-violet-300': active
-                        }
-                      )
+          {Icon && <Icon className="text-muted-foreground h-4 w-4" />}
+          {selected ? selected.displayValue : placeholder}
+          <ChevronsUpDown className="text-muted-foreground h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        aria-labelledby={name + '-select-button'}
+        className="p-0"
+        style={{ minWidth: 'var(--radix-popover-trigger-width)' }}
+        ref={ref}
+      >
+        <Command>
+          <CommandInput
+            placeholder="Search ..."
+            className="h-8 border-0 ring-0"
+            onValueChange={onInputChange}
+          />
+          <CommandList>
+            <CommandEmpty className="text-muted-foreground py-2 text-center text-sm">
+              No results found.
+            </CommandEmpty>
+
+            <CommandGroup>
+              {values?.map((item) => (
+                <CommandItem
+                  key={item.key}
+                  value={item.key}
+                  aria-role="option"
+                  aria-label={item.displayValue}
+                  onSelect={(key) => {
+                    const v = values?.find((i) => i.key == key) || item;
+                    if (v) {
+                      setSelected && setSelected(v);
+                      setOpenOptions(false);
                     }
-                  >
-                    {({ active, selected }) => (
-                      <>
-                        <div className="flex items-center">
-                          {v?.status && (
-                            <span
-                              className={cls(
-                                'mr-3 inline-block h-2 w-2 shrink-0 rounded-full bg-gray-200',
-                                { 'bg-green-400': v.status === 'active' },
-                                {
-                                  'bg-green-600':
-                                    v.status === 'active' && active
-                                }
-                              )}
-                              aria-hidden="true"
-                            />
-                          )}
-                          <span
-                            className={cls('truncate text-gray-700', {
-                              'font-semibold': selected,
-                              'text-gray-100': active
-                            })}
-                          >
-                            {v?.displayValue}
-                          </span>
-                        </div>
-                        {selected && (
-                          <span
-                            className={cls(
-                              'absolute inset-y-0 right-0 flex items-center pr-4 text-violet-600',
-                              { 'text-white': active }
-                            )}
-                          >
-                            <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                          </span>
+                  }}
+                >
+                  <div className="flex items-center">
+                    {(item as { status?: string })?.status && (
+                      <span
+                        className={cls(
+                          'bg-border mr-3 inline-block h-2 w-2 shrink-0 rounded-full',
+                          {
+                            'bg-success/60 data-[selected=true]:bg-success':
+                              (item as { status?: string }).status === 'active'
+                          }
                         )}
-                      </>
+                        aria-hidden="true"
+                      />
                     )}
-                  </C.Option>
-                ))}
-              {!filteredValues?.length && (
-                <div className="w-full py-2 text-center text-gray-500">
-                  No results found
-                </div>
-              )}
-            </C.Options>
-          )}
-        </div>
-      )}
-    </C>
+                    <span
+                      className={cls('text-muted-foreground truncate', {
+                        'text-foreground': selected?.key === item.key
+                      })}
+                    >
+                      {item?.displayValue}
+                    </span>
+                  </div>
+                  <Check
+                    className={cls(
+                      'text-muted-foreground ml-auto',
+                      selected?.key === item.key ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

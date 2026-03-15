@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Segments', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Segments' }).click();
+    await page.getByRole('link', { name: 'Segments', exact: true }).click();
   });
 
   test('can create segment', async ({ page }) => {
@@ -83,6 +83,7 @@ test.describe('Segments', () => {
     await page.getByText('copy segment').click();
 
     // verify segment was copied
+    await page.getByRole('link', { name: 'Segments', exact: true }).click();
     await page.getByRole('link', { name: 'test-segment' }).click();
     await expect(page.getByText('Test Segment')).toBeVisible();
 
@@ -105,7 +106,7 @@ test.describe('Segments - Read Only', () => {
     });
 
     await page.goto('/');
-    await page.getByRole('link', { name: 'Segments' }).click();
+    await page.getByRole('link', { name: 'Segments', exact: true }).click();
   });
 
   test('can not create segment', async ({ page }) => {

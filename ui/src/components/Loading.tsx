@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import { cls } from '~/utils/helpers';
 
 type LoadingProps = {
@@ -6,7 +7,7 @@ type LoadingProps = {
 };
 
 export default function Loading(props: LoadingProps) {
-  const { isPrimary, fullScreen } = props;
+  const { fullScreen } = props;
 
   return (
     <div
@@ -14,14 +15,7 @@ export default function Loading(props: LoadingProps) {
         'h-screen': fullScreen
       })}
     >
-      <div
-        className={cls(
-          'h-5 w-5 animate-spin rounded-full border-b-2 border-violet-300',
-          {
-            'border-white-300': isPrimary
-          }
-        )}
-      ></div>
+      <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
     </div>
   );
 }

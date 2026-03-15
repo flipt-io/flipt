@@ -32,8 +32,6 @@ export default function NamespaceListbox(props: NamespaceListboxProps) {
 
   const setCurrentNamespace = (namespace: SelectableNamespace) => {
     dispatch(currentNamespaceChanged(namespace));
-    // navigate to the current location.path with the new namespace prependend
-    // e.g. /namespaces/default/segments -> /namespaces/namespaceKey/segments
     const newPath = addNamespaceToPath(location.pathname, namespace.key);
     navigate(newPath);
   };

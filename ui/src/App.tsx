@@ -1,7 +1,6 @@
 import loadable from '@loadable/component';
 import formbricks from '@formbricks/js/website';
 import { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
 import { selectConfig } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -42,7 +41,7 @@ if (typeof window !== 'undefined') {
 
 const namespacedRoutes = [
   {
-    element: <Onboarding firstTime={true} />,
+    element: <Onboarding />,
     loader: () => {
       const state = store.getState();
       if (state?.user.completedOnboarding) {
@@ -186,12 +185,10 @@ export default function App() {
 
   return (
     <>
-      <Helmet>
-        <meta charSet="utf-8" />
-        <title>{title}</title>
-        <link rel="icon" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </Helmet>
+      <meta charSet="utf-8" />
+      <title>{title}</title>
+      <link rel="icon" href="/favicon.svg" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <SessionProvider>
         <RouterProvider router={router} />
       </SessionProvider>

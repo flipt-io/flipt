@@ -16,10 +16,7 @@ export default function SingleDistributionFormInput(
   return (
     <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
       <div>
-        <label
-          htmlFor="variant"
-          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-        >
+        <label htmlFor="variant" className="sm:mt-px sm:pt-2">
           Variant
         </label>
       </div>
@@ -28,6 +25,7 @@ export default function SingleDistributionFormInput(
           id={id}
           name="variant"
           placeholder="Select or search for a variant"
+          className="w-full"
           values={
             variants?.map((v) => ({
               ...v,

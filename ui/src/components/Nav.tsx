@@ -1,10 +1,4 @@
-import {
-  CodeBracketIcon,
-  Cog6ToothIcon,
-  FlagIcon,
-  QuestionMarkCircleIcon,
-  UsersIcon
-} from '@heroicons/react/24/outline';
+import { Code, CircleHelp, Flag, Settings, Users } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { NavLink, useMatches } from 'react-router';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -35,9 +29,9 @@ function NavItem(props: NavItemProps) {
         cls(
           'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white',
           {
-            'bg-gray-800 md:bg-gray-50 md:text-gray-700 dark:bg-gray-300 md:dark:bg-gray-300 md:dark:text-gray-950':
+            'md:bg-secondary md:text-secondary-foreground md: md:dark:text-gray-950':
               isActive,
-            'hover:bg-gray-700 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:dark:text-gray-400':
+            'hover: md:text-secondary-foreground md:hover:bg-secondary md:hover:text-secondary-foreground dark:hover: dark:hover:text-secondary-foreground md:dark:text-muted-foreground':
               !isActive
           }
         )
@@ -45,7 +39,7 @@ function NavItem(props: NavItemProps) {
       onClick={onClick}
     >
       <Icon
-        className="mr-3 h-6 w-6 shrink-0 text-white md:text-gray-500 md:dark:text-gray-400"
+        className="md:text-muted-foreground md:dark:text-muted-foreground mr-3 h-6 w-6 shrink-0 text-white"
         aria-hidden="true"
       />
       {name}
@@ -78,17 +72,17 @@ export default function Nav(props: NavProps) {
     {
       name: 'Flags',
       to: `${path}/flags`,
-      Icon: FlagIcon
+      Icon: Flag
     },
     {
       name: 'Segments',
       to: `${path}/segments`,
-      Icon: UsersIcon
+      Icon: Users
     },
     {
       name: 'Console',
       to: `${path}/console`,
-      Icon: CodeBracketIcon
+      Icon: Code
     }
   ];
 
@@ -96,12 +90,12 @@ export default function Nav(props: NavProps) {
     {
       name: 'Settings',
       to: 'settings',
-      Icon: Cog6ToothIcon
+      Icon: Settings
     },
     {
       name: 'Support',
       to: 'support',
-      Icon: QuestionMarkCircleIcon
+      Icon: CircleHelp
     }
   ];
 
@@ -138,11 +132,11 @@ export default function Nav(props: NavProps) {
             }}
           />
         ))}
-        <div className="flex space-x-1 px-3 pt-2 text-xs text-gray-400">
+        <div className="text-muted-foreground flex space-x-1 px-3 pt-2 text-xs">
           <span className="shrink-0">Command Mode:</span>
           <div className="shrink-0">
-            <kbd className="text-gray-400">ctrl</kbd> +{' '}
-            <kbd className="text-gray-400">k</kbd>
+            <kbd className="text-muted-foreground">ctrl</kbd> +{' '}
+            <kbd className="text-muted-foreground">k</kbd>
           </div>
         </div>
       </div>

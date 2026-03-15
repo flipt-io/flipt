@@ -37,6 +37,7 @@ export default function Variants({ flag }: VariantsProps) {
         open={showVariantForm}
         setOpen={setShowVariantForm}
         ref={variantFormRef}
+        title={editingVariant ? 'Edit Variant' : 'New Variant'}
       >
         <VariantForm
           ref={variantFormRef}
@@ -77,7 +78,7 @@ export default function Variants({ flag }: VariantsProps) {
       <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-muted-foreground mt-1 text-sm">
               Return different values based on rules you define.
             </p>
           </div>
@@ -100,24 +101,24 @@ export default function Variants({ flag }: VariantsProps) {
         </div>
         <div className="mt-10">
           {flag.variants && flag.variants.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-300">
+            <table className="divide-border min-w-full divide-y">
               <thead>
                 <tr>
                   <th
                     scope="col"
-                    className="pr-3 pb-3.5 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                    className="text-secondary-foreground pr-3 pb-3.5 pl-4 text-left text-sm font-semibold sm:pl-6"
                   >
                     Key
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
+                    className="text-secondary-foreground hidden px-3 pb-3.5 text-left text-sm font-semibold sm:table-cell"
                   >
                     Name
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                    className="text-secondary-foreground hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
                   >
                     Description
                   </th>
@@ -126,16 +127,16 @@ export default function Variants({ flag }: VariantsProps) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-border divide-y">
                 {flag.variants.map((variant) => (
                   <tr key={variant.key}>
-                    <td className="py-4 pr-3 pl-4 text-sm whitespace-nowrap text-gray-600 sm:pl-6">
+                    <td className="text-secondary-foreground py-4 pr-3 pl-4 text-sm whitespace-nowrap sm:pl-6">
                       {variant.key}
                     </td>
-                    <td className="hidden px-3 py-4 text-sm whitespace-nowrap text-gray-500 sm:table-cell">
+                    <td className="text-muted-foreground hidden px-3 py-4 text-sm whitespace-nowrap sm:table-cell">
                       {variant.name}
                     </td>
-                    <td className="hidden truncate px-3 py-4 text-sm whitespace-nowrap text-gray-500 lg:table-cell">
+                    <td className="text-muted-foreground hidden truncate px-3 py-4 text-sm whitespace-nowrap lg:table-cell">
                       {variant.description}
                     </td>
                     <td className="py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
@@ -143,7 +144,7 @@ export default function Variants({ flag }: VariantsProps) {
                         <>
                           <a
                             href="#"
-                            className="pr-2 text-violet-600 hover:text-violet-900"
+                            className="text-brand/80 pr-2"
                             onClick={(e) => {
                               e.preventDefault();
                               setEditingVariant(variant);
@@ -153,10 +154,16 @@ export default function Variants({ flag }: VariantsProps) {
                             Edit
                             <span className="sr-only">,{variant.key}</span>
                           </a>
-                          <span aria-hidden="true"> | </span>
+                          <span
+                            aria-hidden="true"
+                            className="text-muted-foreground"
+                          >
+                            {' '}
+                            |{' '}
+                          </span>
                           <a
                             href="#"
-                            className="pl-2 text-violet-600 hover:text-violet-900"
+                            className="text-brand/80 pl-2"
                             onClick={(e) => {
                               e.preventDefault();
                               setDeletingVariant(variant);

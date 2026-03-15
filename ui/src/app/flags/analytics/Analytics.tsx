@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router';
-import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
+import { Pause, Play } from 'lucide-react';
 import 'chartjs-adapter-date-fns';
 import { addMinutes } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -101,12 +101,12 @@ export default function Analytics() {
   }, [selectedDuration]);
 
   return (
-    <div className="mt-2 max-w-(--breakpoint-lg)">
+    <div className="mt-2">
       {config.analyticsEnabled ? (
         <>
           <div className="sm:flex sm:items-center">
             <div className="sm:flex-auto">
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="text-muted-foreground mt-1 text-sm">
                 Track and measure the impact in real-time.
               </p>
             </div>
@@ -120,13 +120,13 @@ export default function Analytics() {
                 className="-mt-2 w-32"
               />
               {pollingInterval !== 0 ? (
-                <PauseIcon
-                  className="h-5 w-5 text-gray-500"
+                <Pause
+                  className="text-muted-foreground h-5 w-5"
                   onClick={() => setPollingInterval(0)}
                 />
               ) : (
-                <PlayIcon
-                  className="h-5 w-5 text-gray-500"
+                <Play
+                  className="text-muted-foreground h-5 w-5"
                   onClick={() => setPollingInterval(3000)}
                 />
               )}
@@ -147,8 +147,8 @@ export default function Analytics() {
             <p className="mt-4">
               See the configuration{' '}
               <a
-                className="text-violet-500"
-                href="https://www.flipt.io/docs/configuration/analytics"
+                className="text-brand"
+                href="https://docs.flipt.io/v1/configuration/analytics"
               >
                 documentation
               </a>{' '}

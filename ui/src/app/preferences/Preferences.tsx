@@ -28,19 +28,21 @@ export default function Preferences() {
 
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>
-      <div className="my-10 divide-y divide-gray-200">
+      <div className="divide-border my-10 divide-y">
         <div className="space-y-1">
-          <h3 className="text-xl font-semibold text-gray-700">Preferences</h3>
-          <p className="mt-2 text-sm text-gray-500">
+          <h3 className="text-secondary-foreground text-xl font-semibold">
+            Preferences
+          </h3>
+          <p className="text-muted-foreground mt-2 text-sm">
             Manage how information is displayed in the UI
           </p>
         </div>
         <div className="mt-6 max-w-4xl">
-          <div className="divide-y divide-gray-200">
+          <div className="divide-border divide-y">
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
               <label
                 htmlFor="location"
-                className="text-sm font-bold text-gray-500"
+                className="text-muted-foreground text-sm font-bold"
               >
                 Theme
               </label>
@@ -61,7 +63,7 @@ export default function Preferences() {
             </div>
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
               <span
-                className="text-sm font-bold text-gray-500"
+                className="text-muted-foreground text-sm font-bold"
                 id="label-switch-tmz"
               >
                 UTC Timezone

@@ -1,9 +1,9 @@
-import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';
+import { Plus, Minus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Combobox from '~/components/Combobox';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
-import { ButtonIcon } from '~/components/Button';
+import { IconButton } from '~/components/Button';
 
 type SegmentPickerProps = {
   readonly?: boolean;
@@ -77,6 +77,7 @@ export default function SegmentsPicker({
             <Combobox<FilterableSegment>
               id={`segmentKey-${index}`}
               name={`segmentKey-${index}`}
+              className="w-full"
               placeholder="Select or search for a segment"
               values={segments
                 .filter((s) => !segmentsSet.current!.has(s.key))
@@ -90,22 +91,17 @@ export default function SegmentsPicker({
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(index, filterableSegment);
               }}
-              inputClassName={
-                readonly
-                  ? 'cursor-not-allowed bg-gray-100 text-gray-500'
-                  : undefined
-              }
             />
           </div>
           {editing && parentSegments.length - 1 === index ? (
-            <ButtonIcon
-              icon={faPlus}
+            <IconButton
+              icon={Plus}
               onClick={() => setEditing(false)}
               disabled={readonly}
             />
           ) : (
-            <ButtonIcon
-              icon={faMinus}
+            <IconButton
+              icon={Minus}
               onClick={() => handleSegmentRemove(index)}
               disabled={readonly}
             />
@@ -119,6 +115,7 @@ export default function SegmentsPicker({
               id={`segmentKey-${parentSegments.length}`}
               name={`segmentKey-${parentSegments.length}`}
               placeholder="Select or search for a segment"
+              className="w-full"
               values={segments
                 .filter((s) => !segmentsSet.current!.has(s.key))
                 .map((s) => ({

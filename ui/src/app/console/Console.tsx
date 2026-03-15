@@ -215,13 +215,13 @@ export default function Console() {
   return (
     <>
       <PageHeader title="Console" />
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="text-muted-foreground mt-2 text-sm">
         See the results of your flag evaluations and debug any issues
       </p>
       <div className="flex flex-col md:flex-row">
         {flags.length > 0 && (
           <>
-            <div className="mt-8 w-full overflow-hidden md:w-1/2">
+            <div className="mt-4 w-full overflow-hidden md:w-1/2">
               <Formik
                 initialValues={initialvalues}
                 validationSchema={consoleValidationSchema}
@@ -234,29 +234,22 @@ export default function Console() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-3 gap-6">
                         <div className="col-span-3">
-                          <label
-                            htmlFor="flagKey"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Flag Key
-                          </label>
+                          <label htmlFor="flagKey">Flag Key</label>
                           <Combobox<FilterableFlag>
                             id="flagKey"
                             name="flagKey"
-                            className="mt-1"
+                            className="mt-1 w-full"
                             placeholder="Select or search for a flag"
                             values={flags}
                             selected={selectedFlag}
-                            setSelected={setSelectedFlag}
+                            setSelected={(flag) => {
+                              setSelectedFlag(flag);
+                              formik.setFieldValue('flagKey', flag?.key || '');
+                            }}
                           />
                         </div>
                         <div className="col-span-3">
-                          <label
-                            htmlFor="entityId"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Entity ID
-                          </label>
+                          <label htmlFor="entityId">Entity ID</label>
                           <div className="flex items-center justify-between">
                             <Input
                               className="mt-1 md:mr-2"
@@ -273,17 +266,12 @@ export default function Console() {
                                 formik.setFieldValue('entityId', uuidv4());
                               }}
                             >
-                              <RefreshCwIcon className="h-4 w-4 text-gray-400" />
+                              <RefreshCwIcon className="text-muted-foreground h-4 w-4" />
                             </Button>
                           </div>
                         </div>
                         <div className="col-span-3">
-                          <label
-                            htmlFor="context"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Request Context
-                          </label>
+                          <label htmlFor="context">Request Context</label>
                           <div className="mt-1 text-sm">
                             <JsonEditor
                               id="context"
@@ -335,7 +323,7 @@ export default function Console() {
               {response && (
                 <pre className="bg-[#1a1b26] p-2 text-sm md:h-full">
                   {hasEvaluationError ? (
-                    <p className="text-red-400">{response}</p>
+                    <p className="text-destructive">{response}</p>
                   ) : (
                     <CodeMirror
                       value={response}
