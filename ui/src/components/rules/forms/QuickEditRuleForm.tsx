@@ -316,7 +316,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       variants={flag.variants}
                       selectedVariant={selectedVariant}
                       setSelectedVariant={(v) => {
-                        formik.setFieldValue('rollout', selectedVariant?.key);
+                        formik.setFieldValue('rollout', v?.key);
                         return setSelectedVariant(v);
                       }}
                     />
@@ -396,9 +396,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
               </div>
             </div>
             <div className="shrink-0 py-1">
-              <div className="space-x flex justify-end">
+              <div className="flex justify-end">
                 <TextButton
-                  aria-role="button"
+                  role="button"
                   disabled={formik.isSubmitting || !formik.dirty}
                   onClick={() => formik.resetForm()}
                 >

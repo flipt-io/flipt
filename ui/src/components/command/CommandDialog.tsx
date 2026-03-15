@@ -71,7 +71,7 @@ const namespacedRoutes = [
   {
     name: 'Console',
     description: 'Debug and test flags and segments',
-    route: '/playground',
+    route: '/console',
     keywords: ['console', 'debug', 'test', 'Playground']
   }
 ];
@@ -193,7 +193,7 @@ export default function CommandMenu() {
                           description: namespace.description,
                           onSelected: () => {
                             setOpen(false);
-                            dispatch(currentNamespaceChanged(namespace.key));
+                            dispatch(currentNamespaceChanged(namespace));
                             const newPath = addNamespaceToPath(
                               location.pathname,
                               namespace.key

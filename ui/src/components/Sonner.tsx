@@ -1,9 +1,12 @@
+import { useSelector } from 'react-redux';
 import { Toaster as Sonner, ToasterProps } from 'sonner';
+import { selectTheme } from '~/app/preferences/preferencesSlice';
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  const theme = useSelector(selectTheme);
   return (
     <Sonner
-      theme="light"
+      theme={theme}
       className="toaster group"
       style={
         {

@@ -284,7 +284,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
             </div>
           </div>
           <div className="shrink-0 py-1">
-            <div className="space-x flex justify-end">
+            <div className="flex justify-end">
               <TextButton
                 disabled={formik.isSubmitting || !formik.dirty}
                 onClick={() => formik.resetForm()}

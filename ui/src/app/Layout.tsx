@@ -40,8 +40,8 @@ function InnerLayout() {
   const bannerEnabled = import.meta.env.FLIPT_UI_BANNER_ENABLED !== 'false';
   const dispatch = useAppDispatch();
   const sidebarOpen = useSelector(selectSidebar);
-  const setSidebarOpen = () => {
-    dispatch(sidebarChanged(!sidebarOpen));
+  const setSidebarOpen = (open: boolean) => {
+    dispatch(sidebarChanged(open));
   };
 
   const { namespaceKey } = useParams();
