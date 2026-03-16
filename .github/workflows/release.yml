@@ -117,7 +117,7 @@ jobs:
 
       - name: Generate token
         id: generate_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
@@ -144,7 +144,7 @@ jobs:
     steps:
       - name: Generate token
         id: generate_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
