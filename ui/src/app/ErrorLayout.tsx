@@ -21,11 +21,13 @@ export default function ErrorLayout() {
         </div>
         <div className="mx-auto max-w-xl py-16 sm:py-24">
           <div className="text-center">
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="text-secondary-foreground mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
               Error
             </h1>
             {error && error.message && (
-              <p className="mt-2 text-lg text-gray-500">{error.message}</p>
+              <p className="text-muted-foreground mt-2 text-lg">
+                {error.message}
+              </p>
             )}
           </div>
 

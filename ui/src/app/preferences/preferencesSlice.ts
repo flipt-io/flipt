@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '~/store';
-import { Theme, Timezone } from '~/types/Preferences';
+import { Theme, Timezone, Sidebar } from '~/types/Preferences';
 import { fetchInfoAsync } from '~/app/meta/metaSlice';
 
 export const preferencesKey = 'preferences';
@@ -9,11 +9,13 @@ export const preferencesKey = 'preferences';
 interface IPreferencesState {
   theme: Theme;
   timezone: Timezone;
+  sidebar: Sidebar;
 }
 
 const initialState: IPreferencesState = {
   theme: Theme.SYSTEM,
-  timezone: Timezone.LOCAL
+  timezone: Timezone.LOCAL,
+  sidebar: Sidebar.OPEN
 };
 
 export const preferencesSlice = createSlice({
@@ -25,6 +27,9 @@ export const preferencesSlice = createSlice({
     },
     timezoneChanged: (state, action) => {
       state.timezone = action.payload;
+    },
+    sidebarChanged: (state, action: PayloadAction<boolean>) => {
+      state.sidebar = action.payload ? Sidebar.OPEN : Sidebar.CLOSE;
     }
   },
   extraReducers(builder) {
@@ -40,13 +45,24 @@ export const preferencesSlice = createSlice({
       if (!currentPreference.timezone) {
         state.timezone = Timezone.LOCAL;
       }
+      let sidebar = Sidebar.OPEN;
+      if (
+        currentPreference.sidebar &&
+        Object.values(Sidebar).includes(currentPreference.sidebar)
+      ) {
+        sidebar = currentPreference.sidebar;
+      }
+      state.sidebar = sidebar;
     });
   }
 });
 
-export const { themeChanged, timezoneChanged } = preferencesSlice.actions;
+export const { themeChanged, timezoneChanged, sidebarChanged } =
+  preferencesSlice.actions;
 
 export const selectTheme = (state: RootState) => state.preferences.theme;
 export const selectTimezone = (state: RootState) => state.preferences.timezone;
+export const selectSidebar = (state: RootState) =>
+  state.preferences.sidebar === Sidebar.OPEN;
 
 export default preferencesSlice.reducer;

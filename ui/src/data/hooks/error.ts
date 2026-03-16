@@ -1,7 +1,26 @@
-import { useContext } from 'react';
-import { NotificationContext } from '~/components/NotificationProvider';
+import { useRef } from 'react';
+import { toast } from 'sonner';
+
+import { getErrorMessage } from '~/utils/helpers';
 
 export const useError = () => {
-  const { error, setError, clearError } = useContext(NotificationContext);
-  return { error, setError, clearError };
+  const toastId = useRef(0);
+  const clearError = () => {
+    toast.dismiss(toastId.current);
+  };
+  const setError = (msg: any) => {
+    clearError();
+    if (msg == null) {
+      return;
+    }
+    toastId.current = toast.error(getErrorMessage(msg), {
+      style: {
+        background: 'hsl(var(--destructive))',
+        color: 'white',
+        boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)'
+      }
+    }) as number;
+  };
+
+  return { setError, clearError };
 };

@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type SearchboxProps = {
@@ -32,20 +32,17 @@ export default function Searchbox(props: SearchboxProps) {
   return (
     <div className={`${className} flex flex-1 items-center justify-start`}>
       <div className="w-full max-w-60 lg:max-w-md">
-        <label htmlFor="search" className="sr-only">
-          Search
-        </label>
         <div className="relative">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <MagnifyingGlassIcon
-              className="h-5 w-5 text-gray-400"
+            <Search
+              className="text-muted-foreground h-4 w-4"
               aria-hidden="true"
             />
           </div>
           <input
             id="search"
             name="search"
-            className="bg-background block w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 leading-5 text-gray-900 placeholder-gray-500 shadow-xs focus:border-violet-400 focus:placeholder-gray-400 focus:ring-1 focus:ring-violet-400 focus:outline-hidden sm:text-sm"
+            className="bg-input/30 text-input/90 border-input text-secondary-foreground placeholder-muted-foreground focus:ring-brand block h-8 w-full rounded-md border py-2 pr-3 pl-10 leading-4 shadow-xs focus:outline-hidden sm:text-sm"
             placeholder="Search"
             type="search"
             value={value}

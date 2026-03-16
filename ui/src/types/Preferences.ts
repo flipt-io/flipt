@@ -8,3 +8,8 @@ export enum Theme {
   DARK = 'dark',
   SYSTEM = 'system'
 }
+
+export enum Sidebar {
+  OPEN = 'open',
+  CLOSE = 'close'
+}

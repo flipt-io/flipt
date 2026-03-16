@@ -21,7 +21,7 @@ export default function TextArea(props: TextAreaProps) {
         id={id}
         rows={rows}
         className={cls(
-          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-500 focus:ring-violet-500 sm:text-sm',
+          'border-input bg-input/60 focus:border-brand focus:ring-brand block w-full rounded-md shadow-xs sm:text-sm',
           className,
           {
             'border-red-400': hasError
@@ -32,7 +32,7 @@ export default function TextArea(props: TextAreaProps) {
         {...field}
       />
       {meta.touched && meta.error ? (
-        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
+        <div className="text-destructive mt-1 text-sm">{meta.error}</div>
       ) : null}
     </>
   );

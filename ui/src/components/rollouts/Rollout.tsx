@@ -38,14 +38,14 @@ const Rollout = forwardRef(
       key={rollout.id}
       ref={ref}
       style={style}
-      className={`${className} bg-background w-full items-center space-y-2 rounded-md border border-violet-300 shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
+      className={`${className} bg-background/80 w-full items-center space-y-2 rounded-md border sm:flex sm:flex-col lg:px-6 lg:py-2`}
     >
-      <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
+      <div className="w-full rounded-t-lg border-b p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
           <span
             key={rollout.id}
             className={cls(
-              'hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex',
+              'text-muted-foreground hover:text-brand hidden h-4 w-4 justify-start sm:flex',
               {
                 'hover:cursor-not-allowed': readOnly,
                 'hover:cursor-move': !readOnly
@@ -56,10 +56,13 @@ const Rollout = forwardRef(
             {rollout.rank}
           </span>
           <h3
-            className={cls('text-sm leading-6 font-normal text-gray-700', {
-              'hover:cursor-not-allowed': readOnly,
-              'hover:cursor-move': !readOnly
-            })}
+            className={cls(
+              'text-secondary-foreground text-sm leading-6 font-normal',
+              {
+                'hover:cursor-not-allowed': readOnly,
+                'hover:cursor-move': !readOnly
+              }
+            )}
             {...rest}
           >
             {rolloutTypeToLabel(rollout.type)} Rollout
@@ -95,7 +98,7 @@ const Rollout = forwardRef(
         <div className="flex grow flex-col items-center justify-center sm:ml-2">
           {rollout.description && (
             <div className="flex pt-2 pb-4">
-              <p className="text-sm font-light text-gray-600">
+              <p className="text-secondary-foreground text-sm font-light">
                 {rollout.description}
               </p>
             </div>

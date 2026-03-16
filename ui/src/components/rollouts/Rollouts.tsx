@@ -201,6 +201,7 @@ export default function Rollouts(props: RolloutsProps) {
         open={showRolloutForm}
         setOpen={setShowRolloutForm}
         ref={rolloutFormRef}
+        title="New Rollout"
       >
         <RolloutForm
           flagKey={flag.key}
@@ -219,6 +220,7 @@ export default function Rollouts(props: RolloutsProps) {
           open={showEditRolloutForm}
           setOpen={setShowEditRolloutForm}
           ref={rolloutFormRef}
+          title="Edit Rollout"
         >
           <EditRolloutForm
             flagKey={flag.key}
@@ -236,11 +238,11 @@ export default function Rollouts(props: RolloutsProps) {
       <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-muted-foreground mt-1 text-sm">
               Return boolean values based on rules you define. Rules are
               evaluated in order from top to bottom.
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-muted-foreground mt-1 text-sm">
               Rules can be rearranged by clicking on the header and dragging and
               dropping it into place.
             </p>
@@ -265,7 +267,7 @@ export default function Rollouts(props: RolloutsProps) {
         <div className="mt-10">
           {rollouts && rollouts.length > 0 ? (
             <div className="flex">
-              <div className="dark:pattern-bg-solidwhite pattern-boxes pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid w-full border border-gray-200 p-4 lg:p-6">
+              <div className="bg-secondary w-full rounded-md border p-4 lg:p-6">
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}

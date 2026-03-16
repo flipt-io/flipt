@@ -1,4 +1,4 @@
-import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
+import { Check, Clipboard } from 'lucide-react';
 import { Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -110,12 +110,7 @@ export default function SegmentForm(props: SegmentFormProps) {
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-6">
               <div className="col-span-2">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Name
-                </label>
+                <label htmlFor="name">Name</label>
                 <Input
                   className="mt-1"
                   name="name"
@@ -136,12 +131,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                 />
               </div>
               <div className="col-span-2">
-                <label
-                  htmlFor="key"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Key
-                </label>
+                <label htmlFor="key">Key</label>
                 <div
                   className={cls({
                     'flex items-center justify-between': !isNew
@@ -171,18 +161,18 @@ export default function SegmentForm(props: SegmentFormProps) {
                         }, 2000);
                       }}
                     >
-                      <CheckIcon
+                      <Check
                         className={cls(
-                          'absolute m-auto h-5 w-5 justify-center align-middle text-green-400 transition-opacity duration-300 ease-in-out',
+                          'text-success absolute m-auto h-4 w-4 justify-center align-middle transition-opacity duration-300 ease-in-out',
                           {
                             'visible opacity-100': keyCopied,
                             'invisible opacity-0': !keyCopied
                           }
                         )}
                       />
-                      <ClipboardDocumentIcon
+                      <Clipboard
                         className={cls(
-                          'm-auto h-5 w-5 justify-center align-middle text-gray-300 transition-opacity duration-300 ease-in-out hover:text-gray-400',
+                          'text-muted-foreground m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out',
                           {
                             'visible opacity-100': !keyCopied,
                             'invisible opacity-0': keyCopied
@@ -194,12 +184,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                 </div>
               </div>
               <div className="col-span-3">
-                <label
-                  htmlFor="matchType"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Match Type
-                </label>
+                <label htmlFor="matchType">Match Type</label>
                 <fieldset className="mt-2">
                   <legend className="sr-only">Match Type</legend>
                   <div className="space-y-5">
@@ -215,7 +200,6 @@ export default function SegmentForm(props: SegmentFormProps) {
                             name="matchType"
                             type="radio"
                             disabled={readOnly}
-                            className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
                             onChange={() => {
                               formik.setFieldValue('matchType', matchType.id);
                             }}
@@ -224,15 +208,12 @@ export default function SegmentForm(props: SegmentFormProps) {
                           />
                         </div>
                         <div className="ml-3 text-sm">
-                          <label
-                            htmlFor={matchType.id}
-                            className="font-medium text-gray-700"
-                          >
+                          <label htmlFor={matchType.id} className="font-medium">
                             {matchType.name}
                           </label>
                           <p
                             id={`${matchType.id}-description`}
-                            className="text-gray-500"
+                            className="text-muted-foreground"
                           >
                             {matchType.description}
                           </p>
@@ -244,14 +225,9 @@ export default function SegmentForm(props: SegmentFormProps) {
               </div>
               <div className="col-span-3">
                 <div className="flex justify-between">
-                  <label
-                    htmlFor="description"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Description
-                  </label>
+                  <label htmlFor="description">Description</label>
                   <span
-                    className="text-xs text-gray-500"
+                    className="text-muted-foreground text-xs"
                     id="description-optional"
                   >
                     Optional

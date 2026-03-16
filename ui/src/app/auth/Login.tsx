@@ -12,7 +12,6 @@ import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import logoFlag from '~/assets/logo-flag.png';
 import Loading from '~/components/Loading';
 import { NotificationProvider } from '~/components/NotificationProvider';
-import ErrorNotification from '~/components/notifications/ErrorNotification';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
@@ -124,7 +123,7 @@ function InnerLoginButtons() {
             <div key={provider.name}>
               <a
                 href="#"
-                className="inline-flex w-full justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 shadow-xs hover:text-violet-500 hover:shadow-violet-300"
+                className="text-muted-foreground inline-flex w-full justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium shadow-xs hover:text-violet-500 hover:shadow-violet-300"
                 onClick={(e) => {
                   e.preventDefault();
                   authorize(provider.authorize_url);
@@ -145,10 +144,10 @@ function InnerLoginButtons() {
       {providers.length === 0 && (
         <div className="bg-background shadow-xs sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-base leading-6 font-semibold text-gray-900">
+            <h3 className="text-secondary-foreground text-base leading-6 font-semibold">
               No Providers
             </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
+            <div className="text-muted-foreground mt-2 max-w-xl text-sm">
               <p>
                 Authentication is set to{' '}
                 <span className="font-medium">required</span>, however, there
@@ -158,7 +157,7 @@ function InnerLoginButtons() {
             </div>
             <div className="mt-3 text-sm leading-6">
               <a
-                href="https://www.flipt.io/docs/configuration/authentication"
+                href="https://docs.flipt.io/v1/configuration/authentication"
                 className="font-semibold text-violet-600 hover:text-violet-500"
               >
                 Configuring Authentication
@@ -192,7 +191,7 @@ function InnerLogin() {
                 height={512}
                 className="m-auto h-20 w-20"
               />
-              <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+              <h2 className="text-secondary-foreground mt-6 text-center text-3xl font-bold tracking-tight">
                 Login to Flipt
               </h2>
             </div>
@@ -212,7 +211,6 @@ export default function Login() {
   return (
     <NotificationProvider>
       <InnerLogin />
-      <ErrorNotification />
     </NotificationProvider>
   );
 }

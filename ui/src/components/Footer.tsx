@@ -1,10 +1,7 @@
-import {
-  faDiscord,
-  faGithub,
-  faXTwitter
-} from '@fortawesome/free-brands-svg-icons';
+import { faDiscord, faGithub } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector } from 'react-redux';
+
 import { selectInfo } from '~/app/meta/metaSlice';
 
 export default function Footer() {
@@ -17,7 +14,7 @@ export default function Footer() {
     if (info?.commit) {
       return info.commit.substring(0, 7);
     }
-    return '';
+    return 'v1-dev';
   };
 
   const refURL = () => {
@@ -32,11 +29,6 @@ export default function Footer() {
 
   const social = [
     {
-      name: 'Twitter',
-      href: 'https://www.twitter.com/flipt_io',
-      icon: faXTwitter
-    },
-    {
       name: 'GitHub',
       href: 'https://www.github.com/flipt-io/flipt',
       icon: faGithub
@@ -49,47 +41,23 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="body-font sticky top-[100vh] text-gray-700">
+    <footer className="body-font text-secondary-foreground sticky top-[100vh] dark:text-gray-300">
       <div className="mt-4 flex flex-col items-center px-8 py-4 sm:flex-row">
         <div className="container mx-auto flex flex-col items-center space-x-4 sm:flex-row">
-          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
+          <p className="text-muted-foreground dark:text-muted-foreground mt-4 text-xs sm:mt-0">
             <span className="hidden sm:inline">
               {ref() && (
                 <>
-                  <a href={refURL()} className="text-violet-500">
+                  <a href={refURL()} className="text-brand">
                     {ref()}
                   </a>
                   &nbsp;|&nbsp;
                 </>
               )}
             </span>
-            <span className="block sm:inline">
+            <span className="text-muted-foreground block sm:inline">
               &copy; {new Date().getFullYear()} Flipt Software Inc. All rights
               reserved.
-            </span>
-          </p>
-          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
-            <span className="hidden sm:inline">
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="https://features.flipt.io/changelog"
-                className="text-violet-500"
-              >
-                Changelog
-              </a>
-            </span>
-          </p>
-          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
-            <span className="hidden sm:inline">
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="https://features.flipt.io"
-                className="text-violet-500"
-              >
-                Share Feedback
-              </a>
             </span>
           </p>
         </div>
@@ -98,7 +66,7 @@ export default function Footer() {
             <a
               key={item.name}
               href={item.href}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-muted-foreground"
             >
               <span className="sr-only">{item.name}</span>
               <FontAwesomeIcon

@@ -1,4 +1,4 @@
-import { PlusCircleIcon } from '@heroicons/react/24/outline';
+import { PlusCircle } from 'lucide-react';
 import { Icon } from 'types/Icon';
 import { cls } from '~/utils/helpers';
 type EmptyStateProps = {
@@ -14,14 +14,14 @@ export default function EmptyState(props: EmptyStateProps) {
     text,
     secondaryText,
     disabled = false,
-    Icon = PlusCircleIcon,
+    Icon = PlusCircle,
     onClick
   } = props;
 
   return (
     <button
       className={cls(
-        'hover:cursor-hand relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center selection:border-gray-300 hover:border-gray-400 focus:outline-hidden',
+        'hover:cursor-hand selection:border-input hover:border-sidebar/50 relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center focus:outline-hidden',
         {
           'hover:cursor-not-allowed': disabled
         }
@@ -30,18 +30,11 @@ export default function EmptyState(props: EmptyStateProps) {
       onClick={onClick}
     >
       {Icon && onClick && (
-        <Icon
-          className="mx-auto h-12 w-12 text-violet-200"
-          aria-hidden="true"
-        />
+        <Icon className="text-brand/75 mx-auto h-8 w-8" aria-hidden="true" />
       )}
-      {text && (
-        <span className="mt-2 block text-sm font-medium text-gray-900">
-          {text}
-        </span>
-      )}
+      {text && <span className="text-muted-foreground mt-2">{text}</span>}
       {secondaryText && (
-        <span className="mt-2 block text-sm text-gray-400">
+        <span className="text-muted-foreground/80 mt-2 block text-sm">
           {secondaryText}
         </span>
       )}

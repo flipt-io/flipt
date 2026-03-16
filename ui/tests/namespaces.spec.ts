@@ -22,10 +22,12 @@ test.describe('Namespaces', () => {
   });
 
   test('can switch to newly created namespace', async ({ page }) => {
-    await page.getByRole('link', { name: 'logo' }).click();
+    await page.goto('/');
     await page.getByRole('button', { name: 'Default' }).click();
     await page.getByText('staging').click();
-    await expect(page.getByRole('heading', { name: 'Flags' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Flags', exact: true })
+    ).toBeVisible();
   });
 
   test('can update namespace', async ({ page }) => {
@@ -46,7 +48,7 @@ test.describe('Namespaces', () => {
   test('deleting current namespace switches to default namespace', async ({
     page
   }) => {
-    await page.getByRole('link', { name: 'logo' }).click();
+    await page.goto('/');
     await page.getByRole('button', { name: 'Default' }).click();
     await page.getByText('test', { exact: true }).click();
     await page.getByRole('link', { name: 'Settings' }).click();
@@ -79,7 +81,7 @@ test.describe('Namespaces', () => {
     await page.getByLabel('Description').click();
     await page.getByRole('button', { name: 'Create' }).click();
 
-    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'Flags', exact: true }).click();
     await page.getByRole('button', { name: 'Default' }).click();
     await page.getByText('no delete').click();
 

@@ -34,7 +34,7 @@ test.describe('API Tokens', () => {
       await page.getByLabel('Description').press('Tab');
       await page.getByLabel('Expires On').fill('2030-11-01');
       await page.getByLabel('Scope this token to a single namespace').check();
-      await page.getByRole('button', { name: 'Default' }).click();
+      await page.getByTestId('tokenNamespace-select-button').click();
       await page.getByLabel('Default').getByText('Default').click();
       await page.getByRole('button', { name: 'Create' }).click();
       await page.getByRole('button', { name: 'Copy' }).click();

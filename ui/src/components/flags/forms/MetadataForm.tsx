@@ -1,7 +1,7 @@
 /* eslint-disable no-case-declarations */
 
 import { useState, useEffect } from 'react';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Plus, Trash } from 'lucide-react';
 import * as Yup from 'yup';
 import type { IFlagMetadata } from '~/types/Flag';
 import { Button } from '~/components/Button';
@@ -437,7 +437,7 @@ export function MetadataForm({
                 placeholder="Key"
                 className={cls(
                   'w-48 disabled:opacity-75',
-                  keyError ? 'border-red-500' : ''
+                  keyError ? 'border-destructive' : ''
                 )}
                 aria-invalid={!!keyError}
                 aria-errormessage={`key-error-${index}`}
@@ -446,7 +446,7 @@ export function MetadataForm({
               />
               {keyError && (
                 <p
-                  className="mt-1 text-sm text-red-500"
+                  className="text-destructive mt-1 text-sm"
                   id={`key-error-${index}`}
                 >
                   {keyError}
@@ -462,7 +462,10 @@ export function MetadataForm({
                   disabled={disabled}
                 >
                   <SelectTrigger
-                    className={cls('w-full', typeError ? 'border-red-500' : '')}
+                    className={cls(
+                      'w-full',
+                      typeError ? 'border-destructive' : ''
+                    )}
                     aria-invalid={!!typeError}
                     aria-errormessage={`type-error-${index}`}
                     data-testid={`metadata-type-${index}`}
@@ -477,7 +480,7 @@ export function MetadataForm({
                 </Select>
                 {typeError && (
                   <p
-                    className="mt-1 text-sm text-red-500"
+                    className="text-destructive mt-1 text-sm"
                     id={`type-error-${index}`}
                   >
                     {typeError}
@@ -495,7 +498,10 @@ export function MetadataForm({
               disabled={disabled}
               aria-label="Remove metadata entry"
             >
-              <TrashIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+              <Trash
+                className="text-muted-foreground h-5 w-5"
+                aria-hidden="true"
+              />
             </Button>
           </div>
         );
@@ -508,7 +514,7 @@ export function MetadataForm({
         disabled={disabled}
         className="w-full"
       >
-        <PlusIcon className="mr-2 h-5 w-5" />
+        <Plus className="mr-2 h-5 w-5" />
         Add Metadata
       </Button>
     </div>

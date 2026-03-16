@@ -1,7 +1,17 @@
-import { useContext } from 'react';
-import { NotificationContext } from '~/components/NotificationProvider';
+import { useRef } from 'react';
+import { toast } from 'sonner';
 
 export const useSuccess = () => {
-  const { success, setSuccess, clearSuccess } = useContext(NotificationContext);
-  return { success, setSuccess, clearSuccess };
+  const toastId = useRef(0);
+  const setSuccess = (msg: string) => {
+    toast.dismiss(toastId.current);
+    toastId.current = toast.success(msg, {
+      style: {
+        background: 'var(--success)',
+        color: 'var(--success-foreground)',
+        boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)'
+      }
+    }) as number;
+  };
+  return { setSuccess };
 };

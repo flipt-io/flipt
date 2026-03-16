@@ -1,6 +1,6 @@
 import { useField } from 'formik';
 import { cls } from '~/utils/helpers';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { Trash } from 'lucide-react';
 import React, { KeyboardEvent, useState } from 'react';
 
 type TagsProps = {
@@ -74,7 +74,7 @@ export default function Tags(props: TagsProps) {
             {tags.map((tag, i) => (
               <li
                 key={tag}
-                className="flex flex-row items-center justify-center rounded-sm bg-gray-200 px-2 py-0.5 text-sm text-gray-900"
+                className="text-secondary-foreground flex flex-row items-center justify-center rounded-sm px-2 py-0.5 text-sm"
               >
                 <span className="max-w-32 truncate" title={String(tag)}>
                   {tag}
@@ -86,7 +86,7 @@ export default function Tags(props: TagsProps) {
                     removeTag(i);
                   }}
                 >
-                  <TrashIcon className="h-3 w-3" aria-hidden="true" />
+                  <Trash className="h-3 w-3" aria-hidden="true" />
                 </button>
               </li>
             ))}
@@ -95,9 +95,9 @@ export default function Tags(props: TagsProps) {
         <div className="relative flex w-full">
           <input
             className={cls(
-              'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 sm:text-sm',
+              'bg-secondary text-secondary-foreground disabled: disabled: disabled:text-muted-foreground block w-full rounded-md border-gray-300 shadow-xs focus:border-violet-300 focus:ring-violet-300 disabled:cursor-not-allowed sm:text-sm',
               {
-                'border-red-400': hasError
+                'border-destructive': hasError
               }
             )}
             type={type}
@@ -109,7 +109,7 @@ export default function Tags(props: TagsProps) {
             }}
           />
           <button
-            className="absolute! top-1 right-1 z-1 rounded-sm border border-1 border-violet-300 px-4 py-1.5 text-center align-middle text-xs font-bold text-gray-500 select-none"
+            className="border-brand text-muted-foreground absolute! top-1 right-1 z-1 rounded-sm border px-4 py-1.5 text-center align-middle text-xs font-bold select-none"
             type="button"
             onClick={addTag}
           >
@@ -118,7 +118,7 @@ export default function Tags(props: TagsProps) {
         </div>
       </div>
       {hasError && meta.error?.length && meta.error.length > 0 ? (
-        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
+        <div className="text-destructive mt-1 text-sm">{meta.error}</div>
       ) : null}
     </>
   );

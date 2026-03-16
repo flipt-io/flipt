@@ -60,6 +60,8 @@
   // "remoteUser": "vscode"
   "remoteEnv": {
     "PATH": "${containerEnv:PATH}:/home/vscode/.local/share/mise/shims",
+    "MISE_YES": "1",
+    "MISE_TRUSTED_CONFIG_PATHS": "/workspaces/flipt/.mise.toml",
     "FLIPT_DB_URL": "file:/home/vscode/.local/state/flipt.db"
   }
 }

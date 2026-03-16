@@ -85,6 +85,7 @@ export default function Tokens() {
         open={showTokenForm}
         setOpen={setShowTokenForm}
         ref={tokenFormRef}
+        title="New Token"
       >
         <TokenForm
           ref={tokenFormRef}
@@ -135,10 +136,10 @@ export default function Tokens() {
       <div className="my-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h3 className="text-xl font-semibold text-gray-700">
+            <h3 className="text-secondary-foreground text-xl font-semibold">
               Static Tokens
             </h3>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="text-muted-foreground mt-2 text-sm">
               Static tokens are used to authenticate with the API
             </p>
           </div>
@@ -173,14 +174,14 @@ export default function Tokens() {
         ) : (
           <div className="mt-8 flex flex-col text-center">
             <Well>
-              <p className="text-sm text-gray-600">
+              <p className="text-secondary-foreground text-sm">
                 Token Authentication Disabled
               </p>
-              <p className="mt-4 text-sm text-gray-500">
+              <p className="text-muted-foreground mt-4 text-sm">
                 See the configuration{' '}
                 <a
                   className="text-violet-500"
-                  href="https://www.flipt.io/docs/configuration/authentication"
+                  href="https://docs.flipt.io/v1/configuration/authentication"
                 >
                   documentation
                 </a>{' '}

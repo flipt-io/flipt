@@ -1,4 +1,4 @@
-import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
+import { Check, Clipboard } from 'lucide-react';
 import { Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -136,13 +136,8 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   <div className="col-span-3 md:col-span-2">
                     <div className="flex items-center justify-between">
                       <div>
-                        <label
-                          htmlFor="defaultValue"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Default Value
-                        </label>
-                        <p className="text-sm text-gray-500">
+                        <label htmlFor="defaultValue">Default Value</label>
+                        <p className="text-muted-foreground text-sm">
                           The default value returned when no rollouts match
                         </p>
                       </div>
@@ -159,12 +154,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   </div>
                 )}
                 <div className="col-span-2">
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Name
-                  </label>
+                  <label htmlFor="name">Name</label>
                   <Input
                     className="mt-1"
                     name="name"
@@ -189,12 +179,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label
-                    htmlFor="key"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Key
-                  </label>
+                  <label htmlFor="key">Key</label>
                   <div
                     className={cls({
                       'flex items-center justify-between': !isNew
@@ -224,17 +209,17 @@ export default function FlagForm(props: { flag?: IFlag }) {
                           }, 2000);
                         }}
                       >
-                        <CheckIcon
+                        <Check
                           className={cls(
-                            'invisible absolute m-auto h-5 w-5 justify-center align-middle text-green-400 opacity-0 transition-opacity duration-300 ease-in-out',
+                            'text-success invisible absolute m-auto h-5 w-5 justify-center align-middle opacity-0 transition-opacity duration-300 ease-in-out',
                             {
                               'visible opacity-100': keyCopied
                             }
                           )}
                         />
-                        <ClipboardDocumentIcon
+                        <Clipboard
                           className={cls(
-                            'visible m-auto h-5 w-5 justify-center align-middle text-gray-300 opacity-100 transition-opacity duration-300 ease-in-out hover:text-gray-400',
+                            'text-muted-foreground visible m-auto h-5 w-5 justify-center align-middle opacity-100 transition-opacity duration-300 ease-in-out',
                             {
                               'invisible opacity-0': keyCopied
                             }
@@ -245,12 +230,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   </div>
                 </div>
                 <div className="col-span-3">
-                  <label
-                    htmlFor="type"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Type
-                  </label>
+                  <label htmlFor="type">Type</label>
                   <fieldset className="mt-2">
                     <legend className="sr-only">Type</legend>
                     <div className="space-y-5">
@@ -266,7 +246,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
                               name="type"
                               type="radio"
                               disabled={!isNew || readOnly}
-                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
                               onChange={() => {
                                 formik.setFieldValue('type', flagType.id);
                                 formik.setFieldValue('enabled', false);
@@ -278,13 +257,13 @@ export default function FlagForm(props: { flag?: IFlag }) {
                           <div className="ml-3 text-sm">
                             <label
                               htmlFor={flagType.id}
-                              className="font-medium text-gray-700"
+                              className="text-secondary-foreground font-medium"
                             >
                               {flagType.name}
                             </label>
                             <p
                               id={`${flagType.id}-description`}
-                              className="text-gray-500"
+                              className="text-muted-foreground"
                             >
                               {flagType.description}
                             </p>
@@ -296,14 +275,9 @@ export default function FlagForm(props: { flag?: IFlag }) {
                 </div>
                 <div className="col-span-3">
                   <div className="flex justify-between">
-                    <label
-                      htmlFor="description"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Description
-                    </label>
+                    <label htmlFor="description">Description</label>
                     <span
-                      className="text-xs text-gray-500"
+                      className="text-muted-foreground text-xs"
                       id="description-optional"
                     >
                       Optional
@@ -318,14 +292,9 @@ export default function FlagForm(props: { flag?: IFlag }) {
                 </div>
                 <div className="col-span-3">
                   <div className="flex justify-between">
-                    <label
-                      htmlFor="metadata"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Metadata
-                    </label>
+                    <label htmlFor="metadata">Metadata</label>
                     <span
-                      className="text-xs text-gray-500"
+                      className="text-muted-foreground text-xs"
                       id="metadata-optional"
                     >
                       Optional

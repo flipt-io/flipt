@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Rollouts', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'Flags', exact: true }).click();
   });
 
   test('can create boolean flag', async ({ page }) => {
@@ -83,7 +83,7 @@ test.describe('Rollouts', () => {
     await expect(page.getByText('Successfully created segment')).toBeVisible();
     // back to flag
     await page.goto('/');
-    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'Flags', exact: true }).click();
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('button', { name: 'New Rollout' }).click();
     await page.getByLabel('New Rollout').getByLabel('Segment').check();
@@ -92,8 +92,7 @@ test.describe('Rollouts', () => {
       .locator('#segmentKey-0-select-button')
       .click();
 
-    await page.getByLabel('New Rollout').getByText('Segment 234').click();
-    await page.pause();
+    await page.getByRole('option', { name: 'Segment 234' }).click();
     await page
       .getByLabel('New Rollout')
       .getByRole('button', { name: 'Create' })
@@ -114,7 +113,7 @@ test.describe('Rollouts - Read Only', () => {
     });
 
     await page.goto('/');
-    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'Flags', exact: true }).click();
     await page.getByRole('link', { name: 'test-boolean' }).click();
   });
 

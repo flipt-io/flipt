@@ -14,7 +14,25 @@ export default defineConfig({
     }
   },
   build: {
-    manifest: true
+    manifest: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router'],
+          'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
+          'vendor-codemirror': [
+            '@codemirror/view',
+            '@codemirror/state',
+            '@codemirror/lang-json',
+            '@codemirror/lint',
+            '@codemirror/search'
+          ],
+          'vendor-charts': ['chart.js', 'react-chartjs-2'],
+          'vendor-forms': ['formik', 'yup', 'zod'],
+          'vendor-icons': ['lucide-react']
+        }
+      }
+    }
   },
   envPrefix: 'FLIPT_',
   server: {
