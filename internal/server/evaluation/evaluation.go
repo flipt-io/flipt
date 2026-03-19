@@ -223,33 +223,39 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 			return resp, err
 		}
 
-		var (
-			validDistributions []*storage.EvaluationDistribution
-			buckets            []int
-		)
+		var validDistributions []*storage.EvaluationDistribution
 
 		for _, d := range distributions {
-			// don't include 0% rollouts
 			if d.Rollout > 0 {
 				validDistributions = append(validDistributions, d)
-
-				if buckets == nil {
-					bucket := int(d.Rollout * percentMultiplier)
-					buckets = append(buckets, bucket)
-				} else {
-					bucket := buckets[len(buckets)-1] + int(d.Rollout*percentMultiplier)
-					buckets = append(buckets, bucket)
-				}
 			}
 		}
 
-		// no distributions for rule
-		// match is true here because it did match the segment/rule
 		if len(validDistributions) == 0 {
 			s.logger.Info("no distributions for rule")
 			resp.Match = true
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 			return resp, nil
+		}
+
+		var (
+			buckets           = make([]int, 0, len(validDistributions))
+			cumulativeRollout float32
+		)
+
+		totalRollout := float32(0)
+		for _, d := range validDistributions {
+			totalRollout += d.Rollout
+		}
+
+		for idx, d := range validDistributions {
+			normalizedRollout := (d.Rollout / totalRollout) * 100
+			cumulativeRollout += normalizedRollout
+			bucket := int(cumulativeRollout * percentMultiplier)
+			if idx+1 == len(validDistributions) {
+				bucket = int(totalBucketNum)
+			}
+			buckets = append(buckets, bucket)
 		}
 
 		var (
