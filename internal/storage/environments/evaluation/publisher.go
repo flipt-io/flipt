@@ -120,58 +120,57 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 	}
 	p.mu.Unlock()
 
-	var (
-		wg          sync.WaitGroup
-		publishErrs []error
-		errMu       sync.Mutex
-	)
+	go func() {
+		var (
+			wg          sync.WaitGroup
+			publishErrs []error
+			errMu       sync.Mutex
+		)
 
-	for ns, subs := range subsByNamespace {
-		for _, sub := range subs {
-			if sub == nil {
-				continue
-			}
-
-			snapshot := last.Namespaces[ns]
-
-			wg.Add(1)
-			go func(snapshot *rpcevaluation.EvaluationNamespaceSnapshot) {
-				defer wg.Done()
-
-				p.logger.Debug("sending update",
-					zap.String("subscription", sub.id),
-					zap.String("namespace", ns))
-
-				// Create a timeout context for just this subscriber
-				subCtx, cancel := context.WithTimeout(ctx, p.options.timeout)
-				defer cancel()
-
-				if err := sub.send(subCtx, snapshot); err != nil {
-					p.logger.Error("error sending update",
-						zap.String("subscription", sub.id),
-						zap.String("namespace", ns),
-						zap.Error(err))
-
-					// Record the error
-					errMu.Lock()
-					publishErrs = append(publishErrs, err)
-					errMu.Unlock()
+		for ns, subs := range subsByNamespace {
+			for _, sub := range subs {
+				if sub == nil {
+					continue
 				}
-			}(snapshot)
+
+				snapshot := last.Namespaces[ns]
+
+				wg.Add(1)
+				go func(snapshot *rpcevaluation.EvaluationNamespaceSnapshot) {
+					defer wg.Done()
+
+					p.logger.Debug("sending update",
+						zap.String("subscription", sub.id),
+						zap.String("namespace", ns))
+
+					// Create a timeout context for just this subscriber
+					subCtx, cancel := context.WithTimeout(ctx, p.options.timeout)
+					defer cancel()
+
+					if err := sub.send(subCtx, snapshot); err != nil {
+						p.logger.Error("error sending update",
+							zap.String("subscription", sub.id),
+							zap.String("namespace", ns),
+							zap.Error(err))
+
+						// Record the error
+						errMu.Lock()
+						publishErrs = append(publishErrs, err)
+						errMu.Unlock()
+					}
+				}(snapshot)
+			}
 		}
-	}
 
-	// Wait for all goroutines to complete
-	wg.Wait()
+		// Wait for all goroutines to complete
+		wg.Wait()
 
-	// Check for errors
-	if len(publishErrs) > 0 {
-		p.logger.Warn("some subscriptions failed to receive updates",
-			zap.Int("error_count", len(publishErrs)))
-
-		// Just return the first error
-		return publishErrs[0]
-	}
+		// Check for errors
+		if len(publishErrs) > 0 {
+			p.logger.Warn("some subscriptions failed to receive updates",
+				zap.Int("error_count", len(publishErrs)))
+		}
+	}()
 
 	return nil
 }

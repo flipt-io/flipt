@@ -21,6 +21,7 @@ import { LoadingStatus, Product } from '~/types/Meta';
 
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
+import { useChangesStream } from '~/data/hooks/useChangesStream';
 
 import {
   selectCurrentEnvironment,
@@ -53,6 +54,12 @@ function InnerLayout() {
   const currentEnvironment = useSelector(selectCurrentEnvironment);
   const currentNamespace = useSelector(selectCurrentNamespace);
   const info = useSelector(selectInfo);
+
+  useChangesStream({
+    environmentKey: currentEnvironment.key,
+    namespaceKey: currentNamespace.key,
+    enabled: true
+  });
 
   const namespaces = useListNamespacesQuery(
     {

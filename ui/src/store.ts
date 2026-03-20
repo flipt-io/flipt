@@ -13,6 +13,7 @@ import {
 import { eventKey, eventSlice } from '~/app/events/eventSlice';
 import { analyticsApi } from '~/app/flags/analyticsApi';
 import { flagsApi, flagsTableSlice } from '~/app/flags/flagsApi';
+import { eventReceived, streamingReducer } from '~/app/flags/streamingApi';
 import { metaSlice } from '~/app/meta/metaSlice';
 import {
   namespaceApi,
@@ -101,6 +102,36 @@ listenerMiddleware.startListening({
   }
 });
 
+/*
+ * Invalidate flags and segments cache when streaming events are received.
+ */
+listenerMiddleware.startListening({
+  matcher: (action): action is ReturnType<typeof eventReceived> =>
+    eventReceived.match(action),
+  effect: (action, api) => {
+    const eventData = action.payload.data as {
+      type?: string;
+      etag?: string;
+    } | null;
+
+    if (eventData?.type !== 'refetchEvaluation') {
+      console.warn('unexpect sse event', eventData);
+      return;
+    }
+
+    const state = api.getState() as RootState;
+    const envKey = state.environments.currentEnvironment;
+    const nsKey = state.namespaces.currentNamespace;
+    const tagId = envKey + '/' + nsKey;
+
+    api.dispatch(flagsApi.util.invalidateTags([{ type: 'Flag', id: tagId }]));
+
+    api.dispatch(
+      segmentsApi.util.invalidateTags([{ type: 'Segment', id: tagId }])
+    );
+  }
+});
+
 const userState = JSON.parse(localStorage.getItem(eventKey) || '{}');
 
 const preferencesState = JSON.parse(
@@ -141,6 +172,7 @@ export const store = configureStore({
     environments: environmentsSlice.reducer,
     namespaces: namespacesSlice.reducer,
     meta: metaSlice.reducer,
+    streaming: streamingReducer,
     [environmentsApi.reducerPath]: environmentsApi.reducer,
     [namespaceApi.reducerPath]: namespaceApi.reducer,
     [flagsApi.reducerPath]: flagsApi.reducer,

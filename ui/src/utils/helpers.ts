@@ -67,9 +67,7 @@ export function stringAsKey(str: string) {
   const preserveLeadingSeparator = /^[-_]/.test(normalized);
   const preserveTrailingSeparator = /[-_]$/.test(normalized);
 
-  const key = normalized
-    .replace(/[^a-z0-9_-]+/g, '-')
-    .replace(/-+/g, '-');
+  const key = normalized.replace(/[^a-z0-9_-]+/g, '-').replace(/-+/g, '-');
 
   const withLeading = preserveLeadingSeparator
     ? key
