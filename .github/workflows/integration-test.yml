@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   DAGGER_NO_NAG: "1"
   REGISTRY_CACHE: ghcr.io/${{ github.repository }}-cache
