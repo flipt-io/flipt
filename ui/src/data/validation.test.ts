@@ -1,4 +1,8 @@
-import { contextValidation, keyWithDotValidation } from './validations';
+import {
+  contextValidation,
+  keyValidation,
+  keyWithDotValidation
+} from './validations';
 
 describe('contextValidation', () => {
   it('should accept valid input', () => {
@@ -26,6 +30,21 @@ describe('keyWithDotValidation', () => {
   });
   it('should not accept key with invalid values', () => {
     const result = keyWithDotValidation.isValidSync('key]');
+    expect(result).toEqual(false);
+  });
+
+  it('should accept keys with underscores', () => {
+    const result = keyValidation.isValidSync('flag_name');
+    expect(result).toEqual(true);
+  });
+
+  it('should accept keys with hyphens', () => {
+    const result = keyValidation.isValidSync('flag-name');
+    expect(result).toEqual(true);
+  });
+
+  it('should reject keys with punctuation', () => {
+    const result = keyValidation.isValidSync('key@value');
     expect(result).toEqual(false);
   });
 });
