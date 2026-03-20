@@ -66,8 +66,7 @@ export function stringAsKey(str: string) {
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9_-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^[-_]+|[-_]+$/g, '');
+    .replace(/-+/g, '-');
 }
 
 const namespaces = '/namespaces/';
