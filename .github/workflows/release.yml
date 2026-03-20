@@ -34,8 +34,7 @@ jobs:
       - name: Install Quill
         if: matrix.os == 'macos-latest'
         run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
-          echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
+          curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Install mise
         uses: jdx/mise-action@v4
@@ -49,7 +48,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser-pro
-          version: "~> v2.12"
+          version: "~> v2.14"
           args: build --clean -f .goreleaser.${{ matrix.name }}.yml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
@@ -127,7 +126,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser-pro
-          version: "~> v2.12"
+          version: "~> v2.14"
           args: release --clean
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
