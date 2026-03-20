@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: analytics.proto
+// source: analytics/analytics.proto
 
 package analytics
 
@@ -37,7 +37,7 @@ type GetFlagEvaluationsCountRequest struct {
 
 func (x *GetFlagEvaluationsCountRequest) Reset() {
 	*x = GetFlagEvaluationsCountRequest{}
-	mi := &file_analytics_proto_msgTypes[0]
+	mi := &file_analytics_analytics_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -49,7 +49,7 @@ func (x *GetFlagEvaluationsCountRequest) String() string {
 func (*GetFlagEvaluationsCountRequest) ProtoMessage() {}
 
 func (x *GetFlagEvaluationsCountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_msgTypes[0]
+	mi := &file_analytics_analytics_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +62,7 @@ func (x *GetFlagEvaluationsCountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFlagEvaluationsCountRequest.ProtoReflect.Descriptor instead.
 func (*GetFlagEvaluationsCountRequest) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_rawDescGZIP(), []int{0}
+	return file_analytics_analytics_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetFlagEvaluationsCountRequest) GetEnvironmentKey() string {
@@ -110,7 +110,7 @@ type GetFlagEvaluationsCountResponse struct {
 
 func (x *GetFlagEvaluationsCountResponse) Reset() {
 	*x = GetFlagEvaluationsCountResponse{}
-	mi := &file_analytics_proto_msgTypes[1]
+	mi := &file_analytics_analytics_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -122,7 +122,7 @@ func (x *GetFlagEvaluationsCountResponse) String() string {
 func (*GetFlagEvaluationsCountResponse) ProtoMessage() {}
 
 func (x *GetFlagEvaluationsCountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_msgTypes[1]
+	mi := &file_analytics_analytics_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -135,7 +135,7 @@ func (x *GetFlagEvaluationsCountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFlagEvaluationsCountResponse.ProtoReflect.Descriptor instead.
 func (*GetFlagEvaluationsCountResponse) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_rawDescGZIP(), []int{1}
+	return file_analytics_analytics_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetFlagEvaluationsCountResponse) GetTimestamps() []string {
@@ -166,7 +166,7 @@ type GetBatchFlagEvaluationsCountRequest struct {
 
 func (x *GetBatchFlagEvaluationsCountRequest) Reset() {
 	*x = GetBatchFlagEvaluationsCountRequest{}
-	mi := &file_analytics_proto_msgTypes[2]
+	mi := &file_analytics_analytics_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -178,7 +178,7 @@ func (x *GetBatchFlagEvaluationsCountRequest) String() string {
 func (*GetBatchFlagEvaluationsCountRequest) ProtoMessage() {}
 
 func (x *GetBatchFlagEvaluationsCountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_msgTypes[2]
+	mi := &file_analytics_analytics_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -191,7 +191,7 @@ func (x *GetBatchFlagEvaluationsCountRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use GetBatchFlagEvaluationsCountRequest.ProtoReflect.Descriptor instead.
 func (*GetBatchFlagEvaluationsCountRequest) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_rawDescGZIP(), []int{2}
+	return file_analytics_analytics_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetBatchFlagEvaluationsCountRequest) GetEnvironmentKey() string {
@@ -246,7 +246,7 @@ type FlagEvaluationData struct {
 
 func (x *FlagEvaluationData) Reset() {
 	*x = FlagEvaluationData{}
-	mi := &file_analytics_proto_msgTypes[3]
+	mi := &file_analytics_analytics_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -258,7 +258,7 @@ func (x *FlagEvaluationData) String() string {
 func (*FlagEvaluationData) ProtoMessage() {}
 
 func (x *FlagEvaluationData) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_msgTypes[3]
+	mi := &file_analytics_analytics_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -271,7 +271,7 @@ func (x *FlagEvaluationData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlagEvaluationData.ProtoReflect.Descriptor instead.
 func (*FlagEvaluationData) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_rawDescGZIP(), []int{3}
+	return file_analytics_analytics_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *FlagEvaluationData) GetTimestamps() []string {
@@ -298,7 +298,7 @@ type GetBatchFlagEvaluationsCountResponse struct {
 
 func (x *GetBatchFlagEvaluationsCountResponse) Reset() {
 	*x = GetBatchFlagEvaluationsCountResponse{}
-	mi := &file_analytics_proto_msgTypes[4]
+	mi := &file_analytics_analytics_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -310,7 +310,7 @@ func (x *GetBatchFlagEvaluationsCountResponse) String() string {
 func (*GetBatchFlagEvaluationsCountResponse) ProtoMessage() {}
 
 func (x *GetBatchFlagEvaluationsCountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_proto_msgTypes[4]
+	mi := &file_analytics_analytics_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -323,7 +323,7 @@ func (x *GetBatchFlagEvaluationsCountResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use GetBatchFlagEvaluationsCountResponse.ProtoReflect.Descriptor instead.
 func (*GetBatchFlagEvaluationsCountResponse) Descriptor() ([]byte, []int) {
-	return file_analytics_proto_rawDescGZIP(), []int{4}
+	return file_analytics_analytics_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetBatchFlagEvaluationsCountResponse) GetFlagEvaluations() map[string]*FlagEvaluationData {
@@ -333,11 +333,11 @@ func (x *GetBatchFlagEvaluationsCountResponse) GetFlagEvaluations() map[string]*
 	return nil
 }
 
-var File_analytics_proto protoreflect.FileDescriptor
+var File_analytics_analytics_proto protoreflect.FileDescriptor
 
-const file_analytics_proto_rawDesc = "" +
+const file_analytics_analytics_proto_rawDesc = "" +
 	"\n" +
-	"\x0fanalytics.proto\x12\tanalytics\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
+	"\x19analytics/analytics.proto\x12\tanalytics\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
 	"\x1eGetFlagEvaluationsCountRequest\x12'\n" +
 	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
 	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x12\x19\n" +
@@ -371,19 +371,19 @@ const file_analytics_proto_rawDesc = "" +
 	"\x1cGetBatchFlagEvaluationsCount\x12..analytics.GetBatchFlagEvaluationsCountRequest\x1a/.analytics.GetBatchFlagEvaluationsCountResponse\"\x82\x01\xbaG\x1e*\x1cgetBatchFlagEvaluationsCount\x82\xd3\xe4\x93\x02[:\x01*\"V/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB$Z\"go.flipt.io/flipt/rpc/v2/analyticsb\x06proto3"
 
 var (
-	file_analytics_proto_rawDescOnce sync.Once
-	file_analytics_proto_rawDescData []byte
+	file_analytics_analytics_proto_rawDescOnce sync.Once
+	file_analytics_analytics_proto_rawDescData []byte
 )
 
-func file_analytics_proto_rawDescGZIP() []byte {
-	file_analytics_proto_rawDescOnce.Do(func() {
-		file_analytics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_analytics_proto_rawDesc), len(file_analytics_proto_rawDesc)))
+func file_analytics_analytics_proto_rawDescGZIP() []byte {
+	file_analytics_analytics_proto_rawDescOnce.Do(func() {
+		file_analytics_analytics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_analytics_analytics_proto_rawDesc), len(file_analytics_analytics_proto_rawDesc)))
 	})
-	return file_analytics_proto_rawDescData
+	return file_analytics_analytics_proto_rawDescData
 }
 
-var file_analytics_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-var file_analytics_proto_goTypes = []any{
+var file_analytics_analytics_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_analytics_analytics_proto_goTypes = []any{
 	(*GetFlagEvaluationsCountRequest)(nil),       // 0: analytics.GetFlagEvaluationsCountRequest
 	(*GetFlagEvaluationsCountResponse)(nil),      // 1: analytics.GetFlagEvaluationsCountResponse
 	(*GetBatchFlagEvaluationsCountRequest)(nil),  // 2: analytics.GetBatchFlagEvaluationsCountRequest
@@ -391,7 +391,7 @@ var file_analytics_proto_goTypes = []any{
 	(*GetBatchFlagEvaluationsCountResponse)(nil), // 4: analytics.GetBatchFlagEvaluationsCountResponse
 	nil, // 5: analytics.GetBatchFlagEvaluationsCountResponse.FlagEvaluationsEntry
 }
-var file_analytics_proto_depIdxs = []int32{
+var file_analytics_analytics_proto_depIdxs = []int32{
 	5, // 0: analytics.GetBatchFlagEvaluationsCountResponse.flag_evaluations:type_name -> analytics.GetBatchFlagEvaluationsCountResponse.FlagEvaluationsEntry
 	3, // 1: analytics.GetBatchFlagEvaluationsCountResponse.FlagEvaluationsEntry.value:type_name -> analytics.FlagEvaluationData
 	0, // 2: analytics.AnalyticsService.GetFlagEvaluationsCount:input_type -> analytics.GetFlagEvaluationsCountRequest
@@ -405,26 +405,26 @@ var file_analytics_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_analytics_proto_init() }
-func file_analytics_proto_init() {
-	if File_analytics_proto != nil {
+func init() { file_analytics_analytics_proto_init() }
+func file_analytics_analytics_proto_init() {
+	if File_analytics_analytics_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_analytics_proto_rawDesc), len(file_analytics_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_analytics_analytics_proto_rawDesc), len(file_analytics_analytics_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_analytics_proto_goTypes,
-		DependencyIndexes: file_analytics_proto_depIdxs,
-		MessageInfos:      file_analytics_proto_msgTypes,
+		GoTypes:           file_analytics_analytics_proto_goTypes,
+		DependencyIndexes: file_analytics_analytics_proto_depIdxs,
+		MessageInfos:      file_analytics_analytics_proto_msgTypes,
 	}.Build()
-	File_analytics_proto = out.File
-	file_analytics_proto_goTypes = nil
-	file_analytics_proto_depIdxs = nil
+	File_analytics_analytics_proto = out.File
+	file_analytics_analytics_proto_goTypes = nil
+	file_analytics_analytics_proto_depIdxs = nil
 }

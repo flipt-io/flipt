@@ -75,7 +75,7 @@ func (k *KubernetesAuthenticationProvider) Authentication(ctx context.Context) (
 	resp := k.resp
 	k.mu.RUnlock()
 	if resp != nil && time.Now().UTC().Add(k.leeway).Before(resp.Authentication.ExpiresAt.AsTime()) {
-		return JWTAuthenticationProvider(k.resp.ClientToken).Authentication(ctx)
+		return JWTAuthenticationProvider(resp.ClientToken).Authentication(ctx)
 	}
 
 	k.mu.Lock()

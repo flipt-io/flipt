@@ -30,6 +30,7 @@ func (x *EvaluationServiceClient) Boolean(ctx context.Context, v *evaluation.Eva
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -62,6 +63,7 @@ func (x *EvaluationServiceClient) Variant(ctx context.Context, v *evaluation.Eva
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
@@ -94,6 +96,7 @@ func (x *EvaluationServiceClient) Batch(ctx context.Context, v *evaluation.Batch
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {
