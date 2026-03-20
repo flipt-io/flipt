@@ -821,7 +821,7 @@ func withGCPSecrets(fn testCaseFn) testCaseFn {
 		gcpEmulator := client.Container().
 			From("ghcr.io/blackwell-systems/gcp-secret-manager-emulator:1.3").
 			WithExposedPort(9090).
-			WithDefaultArgs([]string{"server", "--port", "9090"}).
+			WithDefaultArgs([]string{"/app/server", "--port", "9090"}).
 			AsService()
 
 		// Setup container to generate GPG key and store it in the emulator via gRPC
