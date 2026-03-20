@@ -6,6 +6,9 @@ on:
     branches:
       - v2
 
+permissions:
+  contents: read
+
 jobs:
   create-docs-issue:
     if: github.event.label.name == 'needs docs'
