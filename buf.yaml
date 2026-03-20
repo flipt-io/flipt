@@ -3,7 +3,7 @@ modules:
   - path: rpc/flipt
     name: buf.build/flipt-io/flipt
   - path: rpc/v2
-    name: buf.build/flipt-io/flipt-v2
+    name: buf.build/flipt-io/v2
 deps:
   - buf.build/googleapis/googleapis
   - buf.build/grpc-ecosystem/grpc-gateway
