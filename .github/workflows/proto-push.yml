@@ -4,6 +4,9 @@ on:
     tags:
       - "v2*"
 
+permissions:
+  contents: read
+
 jobs:
   proto-push:
     name: "Push Protos"
