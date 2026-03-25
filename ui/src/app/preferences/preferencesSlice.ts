@@ -3,7 +3,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 import { fetchInfoAsync } from '~/app/meta/metaSlice';
 
-import { Sidebar, Theme, Timezone } from '~/types/Preferences';
+import { Realtime, Sidebar, Theme, Timezone } from '~/types/Preferences';
 
 import { RootState } from '~/store';
 
@@ -14,12 +14,14 @@ interface PreferencesState {
   timezone: Timezone;
   lastSaved: number | null;
   sidebar: Sidebar;
+  realtime: Realtime;
 }
 
 const getInitialState = (): PreferencesState => {
   let theme = Theme.SYSTEM;
   let timezone = Timezone.LOCAL;
   let sidebar = Sidebar.OPEN;
+  let realtime = Realtime.ON;
 
   try {
     const storedPreferences = localStorage.getItem(preferencesKey);
@@ -48,6 +50,13 @@ const getInitialState = (): PreferencesState => {
       ) {
         sidebar = preferences.sidebar;
       }
+
+      if (
+        preferences.realtime &&
+        Object.values(Realtime).includes(preferences.realtime)
+      ) {
+        realtime = preferences.realtime;
+      }
     }
   } catch (e) {
     // localStorage is disabled or not available, ignore
@@ -57,6 +66,7 @@ const getInitialState = (): PreferencesState => {
     theme,
     timezone,
     sidebar,
+    realtime,
     lastSaved: null
   };
 };
@@ -71,7 +81,8 @@ const savePreferences = (state: PreferencesState) => {
       JSON.stringify({
         theme: state.theme,
         timezone: state.timezone,
-        sidebar: state.sidebar
+        sidebar: state.sidebar,
+        realtime: state.realtime
       })
     );
     state.lastSaved = Date.now();
@@ -99,6 +110,43 @@ export const preferencesSlice = createSlice({
     sidebarChanged(state, action: PayloadAction<boolean>) {
       state.sidebar = action.payload ? Sidebar.OPEN : Sidebar.CLOSE;
       savePreferences(state);
+    },
+    realtimeChanged(state, action: PayloadAction<Realtime>) {
+      state.realtime = action.payload;
+      savePreferences(state);
+    },
+    loadPreferences(state) {
+      const storedPreferences = localStorage.getItem(preferencesKey);
+      if (storedPreferences) {
+        const preferences = JSON.parse(
+          storedPreferences
+        ) as Partial<PreferencesState>;
+
+        if (
+          preferences.theme &&
+          Object.values(Theme).includes(preferences.theme)
+        ) {
+          state.theme = preferences.theme;
+        }
+        if (
+          preferences.timezone &&
+          Object.values(Timezone).includes(preferences.timezone)
+        ) {
+          state.timezone = preferences.timezone;
+        }
+        if (
+          preferences.sidebar &&
+          Object.values(Sidebar).includes(preferences.sidebar)
+        ) {
+          state.sidebar = preferences.sidebar;
+        }
+        if (
+          preferences.realtime &&
+          Object.values(Realtime).includes(preferences.realtime)
+        ) {
+          state.realtime = preferences.realtime;
+        }
+      }
     }
   },
   extraReducers(builder) {
@@ -127,17 +175,26 @@ export const preferencesSlice = createSlice({
   }
 });
 
-export const { themeChanged, timezoneChanged, resetLastSaved, sidebarChanged } =
-  preferencesSlice.actions;
+export const {
+  themeChanged,
+  timezoneChanged,
+  resetLastSaved,
+  sidebarChanged,
+  realtimeChanged,
+  loadPreferences
+} = preferencesSlice.actions;
 
 export const selectPreferences = (state: RootState) => state.preferences;
 
 export const selectTheme = (state: RootState) => state.preferences.theme;
 
 export const selectTimezone = (state: RootState) => state.preferences.timezone;
+
 export const selectSidebar = (state: RootState) => {
   return state.preferences.sidebar == Sidebar.OPEN;
 };
+
+export const selectRealtime = (state: RootState) => state.preferences.realtime;
 
 export const selectLastSaved = (state: RootState) =>
   state.preferences.lastSaved;

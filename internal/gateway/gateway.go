@@ -112,7 +112,7 @@ func (m *eventSourceMarshaler) marshalEventSourceMap(val map[string]any) ([]byte
 		if err != nil {
 			return nil, err
 		}
-		return fmt.Appendf(nil, "data: %s\n\n", b), nil
+		return fmt.Appendf(nil, "id: %s\ndata: %s\n\n", vv.Digest[:min(len(vv.Digest), 9)], b), nil
 	}
 
 	if errStatus, ok := val["error"].(*status.Status); ok {

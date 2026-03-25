@@ -12,6 +12,7 @@ import (
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 type SnapshotPublisher interface {
@@ -66,10 +67,15 @@ type publishOptions struct {
 	// timeout is the maximum time to wait for a subscriber to accept a message
 	// Default is 5 seconds if not specified
 	timeout time.Duration
+
+	// maxConcurrency is the maximum number of concurrent goroutines for publishing
+	// Default is 100 if not specified
+	maxConcurrency int
 }
 
 type Publisher struct {
 	logger *zap.Logger
+	ctx    context.Context
 
 	mu   sync.Mutex
 	last *rpcevaluation.EvaluationSnapshot
@@ -86,9 +92,10 @@ func WithTimeout(timeout time.Duration) OptionsFunc {
 	}
 }
 
-func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *Publisher {
+func NewSnapshotPublisher(ctx context.Context, logger *zap.Logger, opts ...OptionsFunc) *Publisher {
 	options := publishOptions{
-		timeout: 15 * time.Second,
+		timeout:        15 * time.Second,
+		maxConcurrency: 100,
 	}
 
 	for _, opt := range opts {
@@ -96,6 +103,7 @@ func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *Publisher {
 	}
 
 	return &Publisher{
+		ctx:     ctx,
 		logger:  logger,
 		subs:    make(map[string][]*subscription),
 		options: options,
@@ -103,7 +111,7 @@ func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *Publisher {
 }
 
 func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
-	ctx := context.Background()
+	ctx := p.ctx
 	last, err := snap.EvaluationSnapshot(ctx)
 	if err != nil {
 		return err
@@ -121,11 +129,8 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 	p.mu.Unlock()
 
 	go func() {
-		var (
-			wg          sync.WaitGroup
-			publishErrs []error
-			errMu       sync.Mutex
-		)
+		g := errgroup.Group{}
+		g.SetLimit(p.options.maxConcurrency)
 
 		for ns, subs := range subsByNamespace {
 			for _, sub := range subs {
@@ -135,15 +140,11 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 
 				snapshot := last.Namespaces[ns]
 
-				wg.Add(1)
-				go func(snapshot *rpcevaluation.EvaluationNamespaceSnapshot) {
-					defer wg.Done()
-
+				g.Go(func() error {
 					p.logger.Debug("sending update",
 						zap.String("subscription", sub.id),
 						zap.String("namespace", ns))
 
-					// Create a timeout context for just this subscriber
 					subCtx, cancel := context.WithTimeout(ctx, p.options.timeout)
 					defer cancel()
 
@@ -152,23 +153,16 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 							zap.String("subscription", sub.id),
 							zap.String("namespace", ns),
 							zap.Error(err))
-
-						// Record the error
-						errMu.Lock()
-						publishErrs = append(publishErrs, err)
-						errMu.Unlock()
+						return err
 					}
-				}(snapshot)
+					return nil
+				})
 			}
 		}
 
-		// Wait for all goroutines to complete
-		wg.Wait()
-
-		// Check for errors
-		if len(publishErrs) > 0 {
+		if err := g.Wait(); err != nil {
 			p.logger.Warn("some subscriptions failed to receive updates",
-				zap.Int("error_count", len(publishErrs)))
+				zap.Error(err))
 		}
 	}()
 

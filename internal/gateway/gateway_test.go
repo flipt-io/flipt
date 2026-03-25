@@ -70,7 +70,7 @@ func TestEventSourceMarshalerError(t *testing.T) {
 	require.NoError(t, json.Unmarshal(payload, &got))
 
 	require.Equal(t, "error", got["type"])
-	require.Equal(t, float64(codes.Internal), got["code"])
+	require.InDelta(t, float64(codes.Internal), got["code"], 0)
 	require.Equal(t, "boom", got["message"])
 }
 
@@ -94,6 +94,22 @@ func TestEventSourceMarshalerUnsupported(t *testing.T) {
 func extractEventPayload(t *testing.T, buf []byte) ([]byte, bool) {
 	t.Helper()
 
+	// Handle both with and without id field
+	if len(buf) > 0 && string(buf[:3]) == "id:" {
+		// Find "data: " after the id line
+		const dataPrefix = "data: "
+		idx := findSubstring(buf, dataPrefix)
+		if idx == -1 {
+			return nil, false
+		}
+		// Find "\n\n" after data
+		endIdx := findSubstring(buf[idx:], "\n\n")
+		if endIdx == -1 {
+			return nil, false
+		}
+		return buf[idx+len(dataPrefix) : idx+endIdx], true
+	}
+
 	const prefix = "data: "
 	const suffix = "\n\n"
 
@@ -109,4 +125,13 @@ func extractEventPayload(t *testing.T, buf []byte) ([]byte, bool) {
 	}
 
 	return buf[len(prefix) : len(buf)-len(suffix)], true
+}
+
+func findSubstring(buf []byte, substr string) int {
+	for i := 0; i <= len(buf)-len(substr); i++ {
+		if string(buf[i:i+len(substr)]) == substr {
+			return i
+		}
+	}
+	return -1
 }

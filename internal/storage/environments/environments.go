@@ -226,7 +226,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 		envConf,
 		repo,
 		fileStorage,
-		evaluation.NewSnapshotPublisher(f.logger),
+		evaluation.NewSnapshotPublisher(ctx, f.logger),
 		f.cfg.Templates,
 	)
 	if err != nil {

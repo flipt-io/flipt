@@ -115,7 +115,7 @@ listenerMiddleware.startListening({
     } | null;
 
     if (eventData?.type !== 'refetchEvaluation') {
-      console.warn('unexpect sse event', eventData);
+      console.warn('unexpected sse event', eventData);
       return;
     }
 

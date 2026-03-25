@@ -34,8 +34,18 @@ message EvaluateBulkRequest {
   map<string, string> context = 2;
 }
 
+// A real-time change notification connection endpoint
+message EventStream {
+  // The connection type identifying the push mechanism to use
+  string type = 1 [(google.api.field_behavior) = IMMUTABLE];
+  // The endpoint URL the client should connect to for real-time flag change notifications
+  string endpoint = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
 message BulkEvaluationResponse {
   repeated EvaluationResponse flags = 1 [(google.api.field_behavior) = REQUIRED];
+  // The array of real-time change notification connections
+  repeated EventStream event_streams = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 service OFREPService {
