@@ -991,11 +991,23 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 			WithExposedPort(8443).
 			AsService()
 
+		// Use a helper container bound to the service to extract the cert
+		caCert := client.Container().
+			From("alpine/openssl").
+			WithServiceBinding("lowkey-vault", lowkeyVault).
+			WithExec([]string{
+				"sh", "-c",
+				"openssl s_client -connect lowkey-vault:8443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > /ca.crt",
+			}).
+			File("/ca.crt")
+
 		// Setup container to generate GPG key and store it in Lowkey Vault.
 		_, err := client.Container().
 			From("golang:1.26-alpine").
 			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
 			WithServiceBinding("lowkey-vault", lowkeyVault).
+			WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).
+			WithExec([]string{"update-ca-certificates"}).
 			WithExec([]string{
 				"sh", "-c",
 				gpgKeyGenerationScript + `
@@ -1013,9 +1025,7 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -1037,15 +1047,6 @@ func main() {
 		"https://lowkey-vault:8443",
 		&fakeCredential{},
 		&azsecrets.ClientOptions{
-			ClientOptions: azcore.ClientOptions{
-				Transport: &http.Client{
-					Transport: &http.Transport{
-						TLSClientConfig: &tls.Config{
-							InsecureSkipVerify: true,
-						},
-					},
-				},
-			},
 			DisableChallengeResourceVerification: true,
 		},
 	)
@@ -1078,6 +1079,19 @@ GOEOF
 		if err != nil {
 			return func() error { return err }
 		}
+
+		flipt, err = flipt.WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).
+			WithUser("root").
+			WithExec([]string{
+				"sh", "-c",
+				"/sbin/apk --no-cache add ca-certificates && /usr/sbin/update-ca-certificates",
+			}).
+			Sync(ctx)
+		if err != nil {
+			return func() error { return err }
+		}
+
+		flipt = flipt.WithUser("flipt")
 
 		return func() error {
 			return fn(
