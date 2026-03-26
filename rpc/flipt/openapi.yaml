@@ -402,6 +402,11 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/EvaluationResponse'
+                eventStreams:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EventStream'
+                    description: The array of real-time change notification connections
         CallbackResponse:
             type: object
             properties:
@@ -487,6 +492,18 @@ components:
                     $ref: '#/components/schemas/VariantEvaluationResponse'
                 errorResponse:
                     $ref: '#/components/schemas/ErrorEvaluationResponse'
+        EventStream:
+            required:
+                - endpoint
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: The connection type identifying the push mechanism to use
+                endpoint:
+                    type: string
+                    description: The endpoint URL the client should connect to for real-time flag change notifications
+            description: A real-time change notification connection endpoint
         Flag:
             type: object
             properties:

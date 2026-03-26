@@ -13,3 +13,8 @@ export enum Sidebar {
   OPEN = 'open',
   CLOSE = 'close'
 }
+
+export enum Realtime {
+  ON = 'on',
+  OFF = 'off'
+}

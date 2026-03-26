@@ -763,7 +763,7 @@ func Test_Environment_EvaluationNamespaceSnapshotSubscribe(t *testing.T) {
 	cfg := &config.EnvironmentConfig{Name: "production"}
 
 	// Use a real snapshot publisher instead of NoopPublisher for this test
-	publisher := evaluation.NewSnapshotPublisher(logger)
+	publisher := evaluation.NewSnapshotPublisher(ctx, logger)
 	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, publisher, config.TemplatesConfig{})
 	require.NoError(t, err)
 

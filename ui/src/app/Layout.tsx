@@ -18,9 +18,11 @@ import { Toaster } from '~/components/Sonner';
 import CommandDialog from '~/components/command/CommandDialog';
 
 import { LoadingStatus, Product } from '~/types/Meta';
+import { Realtime } from '~/types/Preferences';
 
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
+import { useChangesStream } from '~/data/hooks/useChangesStream';
 
 import {
   selectCurrentEnvironment,
@@ -33,7 +35,12 @@ import {
   selectCurrentNamespace,
   useListNamespacesQuery
 } from './namespaces/namespacesApi';
-import { selectSidebar, sidebarChanged } from './preferences/preferencesSlice';
+import {
+  loadPreferences,
+  selectRealtime,
+  selectSidebar,
+  sidebarChanged
+} from './preferences/preferencesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
@@ -53,6 +60,24 @@ function InnerLayout() {
   const currentEnvironment = useSelector(selectCurrentEnvironment);
   const currentNamespace = useSelector(selectCurrentNamespace);
   const info = useSelector(selectInfo);
+  const realtime = useSelector(selectRealtime);
+
+  useChangesStream({
+    environmentKey: currentEnvironment.key,
+    namespaceKey: currentNamespace.key,
+    enabled: realtime === Realtime.ON
+  });
+
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'preferences') {
+        dispatch(loadPreferences());
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [dispatch]);
 
   const namespaces = useListNamespacesQuery(
     {
