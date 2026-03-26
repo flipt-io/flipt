@@ -128,43 +128,41 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 	}
 	p.mu.Unlock()
 
-	go func() {
-		g := errgroup.Group{}
-		g.SetLimit(p.options.maxConcurrency)
+	g := errgroup.Group{}
+	g.SetLimit(p.options.maxConcurrency)
 
-		for ns, subs := range subsByNamespace {
-			for _, sub := range subs {
-				if sub == nil {
-					continue
-				}
-
-				snapshot := last.Namespaces[ns]
-
-				g.Go(func() error {
-					p.logger.Debug("sending update",
-						zap.String("subscription", sub.id),
-						zap.String("namespace", ns))
-
-					subCtx, cancel := context.WithTimeout(ctx, p.options.timeout)
-					defer cancel()
-
-					if err := sub.send(subCtx, snapshot); err != nil {
-						p.logger.Error("error sending update",
-							zap.String("subscription", sub.id),
-							zap.String("namespace", ns),
-							zap.Error(err))
-						return err
-					}
-					return nil
-				})
+	for ns, subs := range subsByNamespace {
+		for _, sub := range subs {
+			if sub == nil {
+				continue
 			}
-		}
 
-		if err := g.Wait(); err != nil {
-			p.logger.Warn("some subscriptions failed to receive updates",
-				zap.Error(err))
+			snapshot := last.Namespaces[ns]
+
+			g.Go(func() error {
+				p.logger.Debug("sending update",
+					zap.String("subscription", sub.id),
+					zap.String("namespace", ns))
+
+				subCtx, cancel := context.WithTimeout(ctx, p.options.timeout)
+				defer cancel()
+
+				if err := sub.send(subCtx, snapshot); err != nil {
+					p.logger.Error("error sending update",
+						zap.String("subscription", sub.id),
+						zap.String("namespace", ns),
+						zap.Error(err))
+					return err
+				}
+				return nil
+			})
 		}
-	}()
+	}
+
+	if err := g.Wait(); err != nil {
+		p.logger.Warn("some subscriptions failed to receive updates",
+			zap.Error(err))
+	}
 
 	return nil
 }
