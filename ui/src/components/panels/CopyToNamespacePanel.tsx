@@ -11,6 +11,7 @@ import {
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
 
+import { Badge } from '~/components/Badge';
 import { Button } from '~/components/Button';
 import {
   Dialog,
@@ -59,7 +60,7 @@ type CopyToNamespacePanelProps = {
     onConflict?: string
   ) => Promise<any>;
   panelType: string;
-  onSuccess?: () => void;
+  onSuccess?: (result: any) => void;
 };
 
 export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
@@ -75,11 +76,20 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
   const environments = useSelector(selectEnvironments);
   const namespace = useSelector(selectCurrentNamespace);
   const allNamespaces = useSelector(selectNamespaces);
+  const targetEnvironments = useMemo(
+    () => environments.filter((env) => env.key !== currentEnvironment.key),
+    [environments, currentEnvironment.key]
+  );
 
   const [selectedEnvironment, setSelectedEnvironment] =
     useState<SelectableEnvironment>({
-      ...currentEnvironment,
-      displayValue: currentEnvironment?.name || currentEnvironment?.key || ''
+      ...(targetEnvironments[0] || currentEnvironment),
+      displayValue:
+        targetEnvironments[0]?.name ||
+        targetEnvironments[0]?.key ||
+        currentEnvironment?.name ||
+        currentEnvironment?.key ||
+        ''
     });
 
   const isCrossEnvironment = selectedEnvironment.key !== currentEnvironment.key;
@@ -95,13 +105,16 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
 
   const [selectedNamespace, setSelectedNamespace] =
     useState<SelectableNamespace>({
-      ...namespaces[0],
-      displayValue: namespaces[0]?.name
+      ...(namespaces.find((n) => n.key === namespace.key) || namespaces[0]),
+      displayValue:
+        namespaces.find((n) => n.key === namespace.key)?.name ||
+        namespaces[0]?.name ||
+        ''
     });
 
   const [onConflict, setOnConflict] = useState('FAIL');
 
-  const showEnvironmentSelector = isPro && environments.length > 1;
+  const showEnvironmentSelector = isPro && targetEnvironments.length > 0;
 
   const handleSubmit = () => {
     const targetEnvKey = isCrossEnvironment
@@ -129,7 +142,7 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
             <Listbox<SelectableEnvironment>
               id="copyToEnvironment"
               name="environmentKey"
-              values={environments.map((e) => ({
+              values={targetEnvironments.map((e) => ({
                 ...e,
                 displayValue: e.name || e.key
               }))}
@@ -146,14 +159,31 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
                   ? allNamespaces
                   : allNamespaces.filter((n) => n.key !== namespace.key);
                 if (filteredNs.length > 0) {
+                  const matchingNamespace =
+                    filteredNs.find((n) => n.key === namespace.key) ||
+                    filteredNs[0];
                   setSelectedNamespace({
-                    ...filteredNs[0],
-                    displayValue: filteredNs[0].name
+                    ...matchingNamespace,
+                    displayValue: matchingNamespace.name
                   });
                 }
               }}
               className="my-1"
             />
+          </div>
+        )}
+        {!isPro && environments.length > 1 && (
+          <div className="rounded-md border p-3 bg-muted/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outlinemuted">Pro</Badge>
+              <span className="text-sm font-medium">
+                Cross-environment copy
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Copying between environments is available on Flipt Pro. Copying
+              within this environment is still available.
+            </p>
           </div>
         )}
         <div>
@@ -217,10 +247,10 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
             type="button"
             onClick={() => {
               handleSubmit()
-                ?.then(() => {
+                ?.then((result) => {
                   clearError();
                   if (onSuccess) {
-                    onSuccess();
+                    onSuccess(result);
                   }
                   setOpen(false);
                 })

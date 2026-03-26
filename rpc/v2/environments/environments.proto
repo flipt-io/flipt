@@ -139,6 +139,15 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "copyNamespace"};
   }
 
+  // Compare resources between source and target environment namespaces.
+  rpc CompareEnvironments(CompareEnvironmentsRequest) returns (CompareEnvironmentsResponse) {
+    option (google.api.http) = {
+      post: "/api/v2/environments/{environment_key}/compare"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "compareEnvironments"};
+  }
+
   // Apply an operation to a resource across multiple namespaces.
   rpc BulkApplyResources(BulkApplyResourcesRequest) returns (BulkApplyResourcesResponse) {
     option (google.api.http) = {
@@ -523,6 +532,42 @@ message CopyNamespaceResourceResult {
 message CopyNamespaceResponse {
   repeated CopyNamespaceResourceResult results = 1;
   string revision = 100;
+}
+
+// Comparison status for a resource key across two env/namespace pairs.
+enum CompareStatus {
+  COMPARE_STATUS_IDENTICAL = 0;
+  COMPARE_STATUS_DIFFERENT = 1;
+  COMPARE_STATUS_SOURCE_ONLY = 2;
+  COMPARE_STATUS_TARGET_ONLY = 3;
+}
+
+// Request to compare resources across source and target environment/namespace.
+message CompareEnvironmentsRequest {
+  // Source environment key.
+  string environment_key = 1;
+  // Source namespace key.
+  string namespace_key = 2;
+  // Target environment key.
+  string target_environment_key = 3;
+  // Target namespace key.
+  string target_namespace_key = 4;
+  // Optional list of resource type urls (e.g. flipt.core.Flag). Defaults to known resource types.
+  repeated string type_urls = 5;
+}
+
+// Per-resource comparison result.
+message CompareResourceResult {
+  string type_url = 1;
+  string key = 2;
+  CompareStatus status = 3;
+  optional Resource source = 4;
+  optional Resource target = 5;
+}
+
+// Response for environment comparison.
+message CompareEnvironmentsResponse {
+  repeated CompareResourceResult results = 1;
 }
 
 // Request to apply an operation to a resource across multiple namespaces.

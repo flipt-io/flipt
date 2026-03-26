@@ -67,6 +67,13 @@ func (r *CopyNamespaceRequest) Request() []flipt.Request {
 	}
 }
 
+func (r *CompareEnvironmentsRequest) Request() []flipt.Request {
+	return []flipt.Request{
+		flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey)),
+		flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.TargetEnvironmentKey)),
+	}
+}
+
 func (r *BulkApplyResourcesRequest) Request() []flipt.Request {
 	environmentKeys := r.GetEnvironmentKeys()
 	if len(environmentKeys) == 0 {

@@ -155,6 +155,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListBranchedEnvironmentChangesResponse'
+    /api/v2/environments/{environmentKey}/compare:
+        post:
+            tags:
+                - EnvironmentsService
+            description: Compare resources between source and target environment namespaces.
+            operationId: compareEnvironments
+            parameters:
+                - name: environmentKey
+                  in: path
+                  description: Source environment key.
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CompareEnvironmentsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CompareEnvironmentsResponse'
     /api/v2/environments/{environmentKey}/namespaces:
         get:
             tags:
@@ -635,6 +661,55 @@ components:
                     type: string
                     description: The URL of the commit in the source control management system.
             description: The change represents a single commit in the source control management system.
+        CompareEnvironmentsRequest:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                    description: Source environment key.
+                namespaceKey:
+                    type: string
+                    description: Source namespace key.
+                targetEnvironmentKey:
+                    type: string
+                    description: Target environment key.
+                targetNamespaceKey:
+                    type: string
+                    description: Target namespace key.
+                typeUrls:
+                    type: array
+                    items:
+                        type: string
+                    description: Optional list of resource type urls (e.g. flipt.core.Flag). Defaults to known resource types.
+            description: Request to compare resources across source and target environment/namespace.
+        CompareEnvironmentsResponse:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/CompareResourceResult'
+            description: Response for environment comparison.
+        CompareResourceResult:
+            type: object
+            properties:
+                typeUrl:
+                    type: string
+                key:
+                    type: string
+                status:
+                    enum:
+                        - COMPARE_STATUS_IDENTICAL
+                        - COMPARE_STATUS_DIFFERENT
+                        - COMPARE_STATUS_SOURCE_ONLY
+                        - COMPARE_STATUS_TARGET_ONLY
+                    type: string
+                    format: enum
+                source:
+                    $ref: '#/components/schemas/Resource'
+                target:
+                    $ref: '#/components/schemas/Resource'
+            description: Per-resource comparison result.
         CopyNamespaceRequest:
             type: object
             properties:

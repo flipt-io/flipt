@@ -3,6 +3,7 @@ package environments
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/samber/lo"
@@ -13,6 +14,7 @@ import (
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -566,6 +568,102 @@ func (s *Server) CopyNamespace(ctx context.Context, req *environments.CopyNamesp
 	return resp, nil
 }
 
+// CompareEnvironments compares resources across source and target env/namespace pairs.
+func (s *Server) CompareEnvironments(ctx context.Context, req *environments.CompareEnvironmentsRequest) (*environments.CompareEnvironmentsResponse, error) {
+	srcEnv, err := s.envs.Get(ctx, req.EnvironmentKey)
+	if err != nil {
+		return nil, fmt.Errorf("source environment: %w", err)
+	}
+
+	tgtEnv, err := s.envs.Get(ctx, req.TargetEnvironmentKey)
+	if err != nil {
+		return nil, fmt.Errorf("target environment: %w", err)
+	}
+
+	types := knownResourceTypes
+	if len(req.TypeUrls) > 0 {
+		types = make([]ResourceType, 0, len(req.TypeUrls))
+		for _, typeURL := range req.TypeUrls {
+			typ, parseErr := ParseResourceType(typeURL)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			types = append(types, typ)
+		}
+	}
+
+	resp := &environments.CompareEnvironmentsResponse{}
+	for _, typ := range types {
+		sourceByKey := map[string]*environments.Resource{}
+		if err := srcEnv.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) error {
+			resources, listErr := sv.ListResources(ctx, req.NamespaceKey)
+			if listErr != nil {
+				return listErr
+			}
+			for _, resource := range resources.Resources {
+				sourceByKey[resource.Key] = resource
+			}
+			return nil
+		}); err != nil {
+			return nil, err
+		}
+
+		targetByKey := map[string]*environments.Resource{}
+		if err := tgtEnv.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) error {
+			resources, listErr := sv.ListResources(ctx, req.TargetNamespaceKey)
+			if listErr != nil {
+				return listErr
+			}
+			for _, resource := range resources.Resources {
+				targetByKey[resource.Key] = resource
+			}
+			return nil
+		}); err != nil {
+			return nil, err
+		}
+
+		keys := make([]string, 0, len(sourceByKey)+len(targetByKey))
+		seen := make(map[string]struct{}, len(sourceByKey)+len(targetByKey))
+		for key := range sourceByKey {
+			seen[key] = struct{}{}
+			keys = append(keys, key)
+		}
+		for key := range targetByKey {
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+
+		for _, key := range keys {
+			source := sourceByKey[key]
+			target := targetByKey[key]
+			result := &environments.CompareResourceResult{
+				TypeUrl: typ.String(),
+				Key:     key,
+				Source:  source,
+				Target:  target,
+			}
+
+			switch {
+			case source != nil && target == nil:
+				result.Status = environments.CompareStatus_COMPARE_STATUS_SOURCE_ONLY
+			case source == nil && target != nil:
+				result.Status = environments.CompareStatus_COMPARE_STATUS_TARGET_ONLY
+			case source != nil && target != nil && !proto.Equal(source.Payload, target.Payload):
+				result.Status = environments.CompareStatus_COMPARE_STATUS_DIFFERENT
+			default:
+				result.Status = environments.CompareStatus_COMPARE_STATUS_IDENTICAL
+			}
+
+			resp.Results = append(resp.Results, result)
+		}
+	}
+
+	return resp, nil
+}
+
 // BulkApplyResources applies an operation to a resource across multiple namespaces.
 func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkApplyResourcesRequest) (*environments.BulkApplyResourcesResponse, error) {
 	if err := s.requirePro(); err != nil {
@@ -615,6 +713,7 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 		}
 
 		wroteAny := false
+		envResults := make([]*environments.BulkApplyNamespaceResult, 0, len(req.NamespaceKeys))
 		envRevision, err := env.Update(ctx, revision, typ, func(ctx context.Context, sv ResourceStore) error {
 			for _, nsKey := range req.NamespaceKeys {
 				result := &environments.BulkApplyNamespaceResult{
@@ -632,7 +731,7 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 					wroteAny = wroteAny || wrote
 				}
 
-				resp.Results = append(resp.Results, result)
+				envResults = append(envResults, result)
 			}
 			return nil
 		})
@@ -640,24 +739,36 @@ func (s *Server) BulkApplyResources(ctx context.Context, req *environments.BulkA
 			// No-op conflict paths can legitimately produce no writes. In that case
 			// ignore empty commit errors and preserve per-namespace results.
 			if !wroteAny && strings.Contains(err.Error(), "cannot create empty commit") {
+				resp.Results = append(resp.Results, envResults...)
 				if environmentKey == req.EnvironmentKey {
 					resp.Revision = req.Revision
 				}
 				continue
 			}
 
-			for _, nsKey := range req.NamespaceKeys {
-				msg := err.Error()
-				resp.Results = append(resp.Results, &environments.BulkApplyNamespaceResult{
-					EnvironmentKey: environmentKey,
-					NamespaceKey:   nsKey,
-					Status:         environments.OperationStatus_OPERATION_STATUS_FAILED,
-					Error:          &msg,
-				})
+			msg := err.Error()
+			if len(envResults) == 0 {
+				for _, nsKey := range req.NamespaceKeys {
+					resp.Results = append(resp.Results, &environments.BulkApplyNamespaceResult{
+						EnvironmentKey: environmentKey,
+						NamespaceKey:   nsKey,
+						Status:         environments.OperationStatus_OPERATION_STATUS_FAILED,
+						Error:          &msg,
+					})
+				}
+				continue
 			}
+
+			for _, result := range envResults {
+				result.Status = environments.OperationStatus_OPERATION_STATUS_FAILED
+				result.Error = &msg
+			}
+
+			resp.Results = append(resp.Results, envResults...)
 			continue
 		}
 
+		resp.Results = append(resp.Results, envResults...)
 		if environmentKey == req.EnvironmentKey {
 			resp.Revision = envRevision
 		}

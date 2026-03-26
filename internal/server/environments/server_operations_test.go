@@ -115,19 +115,124 @@ func TestApplyBulkOperation(t *testing.T) {
 		assert.False(t, wrote)
 		assert.Contains(t, err.Error(), "read failed")
 	})
+
+	t.Run("update succeeds when resource exists", func(t *testing.T) {
+		store := newTestResourceStore()
+		store.resources[testResourceKey("default", "flag")] = &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          "flag",
+		}
+
+		status, wrote, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
+			Operation: rpcenvironments.BulkOperation_BULK_OPERATION_UPDATE,
+			Key:       "flag",
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_SUCCESS, status)
+		assert.True(t, wrote)
+		assert.Equal(t, 1, store.updateCalls)
+	})
+
+	t.Run("update returns failed status when update fails", func(t *testing.T) {
+		store := newTestResourceStore()
+		store.updateErrors[testResourceKey("default", "flag")] = fmt.Errorf("update failed")
+
+		status, wrote, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
+			Operation: rpcenvironments.BulkOperation_BULK_OPERATION_UPDATE,
+			Key:       "flag",
+		})
+
+		require.Error(t, err)
+		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_FAILED, status)
+		assert.False(t, wrote)
+		assert.Contains(t, err.Error(), "update failed")
+	})
+
+	t.Run("delete succeeds", func(t *testing.T) {
+		store := newTestResourceStore()
+		store.resources[testResourceKey("default", "flag")] = &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          "flag",
+		}
+
+		status, wrote, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
+			Operation: rpcenvironments.BulkOperation_BULK_OPERATION_DELETE,
+			Key:       "flag",
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_SUCCESS, status)
+		assert.True(t, wrote)
+	})
+
+	t.Run("delete returns failed status when delete fails", func(t *testing.T) {
+		store := newTestResourceStore()
+		store.deleteErrors[testResourceKey("default", "flag")] = fmt.Errorf("delete failed")
+
+		status, wrote, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
+			Operation: rpcenvironments.BulkOperation_BULK_OPERATION_DELETE,
+			Key:       "flag",
+		})
+
+		require.Error(t, err)
+		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_FAILED, status)
+		assert.False(t, wrote)
+		assert.Contains(t, err.Error(), "delete failed")
+	})
+
+	t.Run("upsert updates existing resources", func(t *testing.T) {
+		store := newTestResourceStore()
+		store.resources[testResourceKey("default", "flag")] = &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          "flag",
+		}
+
+		status, wrote, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
+			Operation: rpcenvironments.BulkOperation_BULK_OPERATION_UPSERT,
+			Key:       "flag",
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_SUCCESS, status)
+		assert.True(t, wrote)
+		assert.Equal(t, 1, store.updateCalls)
+		assert.Equal(t, 0, store.createCalls)
+	})
+
+	t.Run("upsert creates missing resources", func(t *testing.T) {
+		store := newTestResourceStore()
+
+		status, wrote, err := applyBulkOperation(ctx, store, "default", &rpcenvironments.BulkApplyResourcesRequest{
+			Operation: rpcenvironments.BulkOperation_BULK_OPERATION_UPSERT,
+			Key:       "flag",
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, rpcenvironments.OperationStatus_OPERATION_STATUS_SUCCESS, status)
+		assert.True(t, wrote)
+		assert.Equal(t, 0, store.updateCalls)
+		assert.Equal(t, 1, store.createCalls)
+	})
 }
 
 type testResourceStore struct {
-	resources   map[string]*rpcenvironments.Resource
-	getErrors   map[string]error
-	createCalls int
-	updateCalls int
+	resources    map[string]*rpcenvironments.Resource
+	getErrors    map[string]error
+	createErrors map[string]error
+	updateErrors map[string]error
+	deleteErrors map[string]error
+	createCalls  int
+	updateCalls  int
 }
 
 func newTestResourceStore() *testResourceStore {
 	return &testResourceStore{
-		resources: make(map[string]*rpcenvironments.Resource),
-		getErrors: make(map[string]error),
+		resources:    make(map[string]*rpcenvironments.Resource),
+		getErrors:    make(map[string]error),
+		createErrors: make(map[string]error),
+		updateErrors: make(map[string]error),
+		deleteErrors: make(map[string]error),
 	}
 }
 
@@ -158,18 +263,30 @@ func (s *testResourceStore) ListResources(_ context.Context, namespace string) (
 }
 
 func (s *testResourceStore) CreateResource(_ context.Context, resource *rpcenvironments.Resource) error {
+	if err, ok := s.createErrors[testResourceKey(resource.NamespaceKey, resource.Key)]; ok {
+		return err
+	}
+
 	s.createCalls++
 	s.resources[testResourceKey(resource.NamespaceKey, resource.Key)] = resource
 	return nil
 }
 
 func (s *testResourceStore) UpdateResource(_ context.Context, resource *rpcenvironments.Resource) error {
+	if err, ok := s.updateErrors[testResourceKey(resource.NamespaceKey, resource.Key)]; ok {
+		return err
+	}
+
 	s.updateCalls++
 	s.resources[testResourceKey(resource.NamespaceKey, resource.Key)] = resource
 	return nil
 }
 
 func (s *testResourceStore) DeleteResource(_ context.Context, namespace, key string) error {
+	if err, ok := s.deleteErrors[testResourceKey(namespace, key)]; ok {
+		return err
+	}
+
 	delete(s.resources, testResourceKey(namespace, key))
 	return nil
 }

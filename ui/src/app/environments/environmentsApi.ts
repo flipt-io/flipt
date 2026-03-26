@@ -271,6 +271,46 @@ export const environmentsApi = createApi({
         }
       }),
       invalidatesTags: () => [{ type: 'Environment' }]
+    }),
+    compareEnvironments: builder.query<
+      {
+        results: Array<{
+          typeUrl: string;
+          key: string;
+          status: string;
+          source?: {
+            namespaceKey: string;
+            key: string;
+            payload?: Record<string, unknown>;
+          };
+          target?: {
+            namespaceKey: string;
+            key: string;
+            payload?: Record<string, unknown>;
+          };
+        }>;
+      },
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        targetEnvironmentKey: string;
+        targetNamespaceKey: string;
+      }
+    >({
+      query: ({
+        environmentKey,
+        namespaceKey,
+        targetEnvironmentKey,
+        targetNamespaceKey
+      }) => ({
+        url: `/${environmentKey}/compare`,
+        method: 'POST',
+        body: {
+          namespace_key: namespaceKey,
+          target_environment_key: targetEnvironmentKey,
+          target_namespace_key: targetNamespaceKey
+        }
+      })
     })
   })
 });
@@ -283,7 +323,8 @@ export const {
   useListBranchEnvironmentChangesQuery,
   useProposeEnvironmentMutation,
   useBulkApplyResourcesMutation,
-  useCopyNamespaceMutation
+  useCopyNamespaceMutation,
+  useCompareEnvironmentsQuery
 } = environmentsApi;
 
 export const environmentsReducer = environmentsSlice.reducer;
