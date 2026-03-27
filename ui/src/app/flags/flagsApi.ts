@@ -79,7 +79,8 @@ export const flagsApi = createApi({
         {
           type: 'Flag',
           id: environmentKey + '/' + namespaceKey + '/' + flagKey
-        }
+        },
+        { type: 'Flag', id: environmentKey + '/' + namespaceKey }
       ],
       transformResponse: (response: IResourceResponse<IFlag>): IFlag => {
         if (response.revision) {

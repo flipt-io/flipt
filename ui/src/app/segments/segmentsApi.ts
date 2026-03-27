@@ -78,7 +78,8 @@ export const segmentsApi = createApi({
         {
           type: 'Segment',
           id: environmentKey + '/' + namespaceKey + '/' + segmentKey
-        }
+        },
+        { type: 'Segment', id: environmentKey + '/' + namespaceKey }
       ],
       transformResponse: (response: IResourceResponse<ISegment>): ISegment => {
         if (response.revision) {

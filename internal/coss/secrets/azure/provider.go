@@ -7,9 +7,7 @@ package azure
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 
@@ -56,15 +54,6 @@ func NewProvider(vaultURL string, logger *zap.Logger) (*Provider, error) {
 		// Use fake credential for emulator testing
 		cred = &fakeCredential{}
 		clientOpts = &azsecrets.ClientOptions{
-			ClientOptions: azcore.ClientOptions{
-				Transport: &http.Client{
-					Transport: &http.Transport{
-						TLSClientConfig: &tls.Config{
-							InsecureSkipVerify: true, //nolint:gosec // emulator only
-						},
-					},
-				},
-			},
 			DisableChallengeResourceVerification: true,
 		}
 	} else {
