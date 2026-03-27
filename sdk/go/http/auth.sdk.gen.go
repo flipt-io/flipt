@@ -307,6 +307,7 @@ func (x *authenticationMethodKubernetesServiceClient) VerifyServiceAccount(ctx c
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.URL.RawQuery = values.Encode()
 	resp, err := x.client.Do(req)
 	if err != nil {

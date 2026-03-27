@@ -108,6 +108,14 @@ func (x *Environments) CopyNamespace(ctx context.Context, v *environments.CopyNa
 	return x.transport.CopyNamespace(ctx, v)
 }
 
+func (x *Environments) CompareEnvironments(ctx context.Context, v *environments.CompareEnvironmentsRequest) (*environments.CompareEnvironmentsResponse, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.CompareEnvironments(ctx, v)
+}
+
 func (x *Environments) BulkApplyResources(ctx context.Context, v *environments.BulkApplyResourcesRequest) (*environments.BulkApplyResourcesResponse, error) {
 	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {

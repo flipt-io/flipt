@@ -87,6 +87,7 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string, importPath protoge
 
 	var (
 		sdk     = importPackage(g, importPath)
+		fmt     = importPackage(g, "fmt")
 		netHTTP = importPackage(g, "net/http")
 
 		metadata  = importPackage(g, "google.golang.org/grpc/metadata")
@@ -129,7 +130,7 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string, importPath protoge
 	g.P("func checkResponse(resp *", netHTTP("Response"), ", v []byte) error {")
 	g.P("if resp.StatusCode != ", netHTTP("StatusOK"), "{")
 	g.P("var status ", pbstatus("Status"))
-	g.P("if err := ", protojson("Unmarshal"), "(v, &status); err != nil { return err }")
+	g.P("if err := ", protojson("Unmarshal"), "(v, &status); err != nil { return ", fmt("Errorf"), `("unexpected HTTP %d %v: %w", resp.StatusCode, string(v), err)}`)
 	g.P("return ", status("ErrorProto"), "(&status)")
 	g.P("}\n")
 	g.P("return nil")
@@ -313,7 +314,9 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 
 	g.P("req, err := ", netHTTP("NewRequestWithContext"), "(ctx, ", netHTTP(rule.method), ", x.addr+", path, ", body)")
 	g.P("if err != nil { return nil, err }")
-
+	if rule.body {
+		g.P(`req.Header.Set("Content-Type", "application/json")`)
+	}
 	g.P("req.URL.RawQuery = values.Encode()")
 
 	g.P("resp, err := x.client.Do(req)")

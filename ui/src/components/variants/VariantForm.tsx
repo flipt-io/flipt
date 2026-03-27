@@ -113,6 +113,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                     id="key"
                     forwardRef={ref}
                     disabled={!isNew}
+                    autoFocus={isNew}
                   />
                 </div>
               </div>

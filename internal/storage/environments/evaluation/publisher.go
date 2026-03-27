@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"io"
+	"slices"
 	"sync"
 	"time"
-
-	"slices"
 
 	"github.com/google/uuid"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
@@ -112,6 +111,13 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 
 	p.mu.Lock()
 	p.last = last
+	// Snapshot subscriptions under lock so we can publish without holding the mutex.
+	subsByNamespace := make(map[string][]*subscription, len(p.subs))
+	for k, v := range p.subs {
+		subs := make([]*subscription, len(v))
+		copy(subs, v)
+		subsByNamespace[k] = subs
+	}
 	p.mu.Unlock()
 
 	var (
@@ -120,7 +126,7 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 		errMu       sync.Mutex
 	)
 
-	for ns, subs := range p.subs {
+	for ns, subs := range subsByNamespace {
 		for _, sub := range subs {
 			if sub == nil {
 				continue

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "name": "Flipt v2",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/mise:1": {}
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/flipt",
+  "forwardPorts": [8080, 9000, 5173],
+  "portsAttributes": {
+    "8080": {
+      "label": "Flipt HTTP API + UI"
+    },
+    "9000": {
+      "label": "Flipt gRPC API"
+    },
+    "5173": {
+      "label": "Vite UI Dev Server"
+    }
+  },
+  "mounts": [
+    "source=flipt-go-pkg,target=/home/vscode/go/pkg,type=volume",
+    "source=flipt-go-build,target=/home/vscode/.cache/go-build,type=volume",
+    "source=flipt-mise-cache,target=/home/vscode/.local/share/mise,type=volume"
+  ],
+  "postCreateCommand": "bash -l .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "hverlin.mise-vscode",
+        "golang.go",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/share/mise/shims",
+    "MISE_YES": "1",
+    "MISE_TRUSTED_CONFIG_PATHS": "/workspaces/flipt:/home/vscode"
+   }
+}

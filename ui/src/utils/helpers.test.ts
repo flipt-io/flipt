@@ -64,4 +64,10 @@ describe('stringAsKey', () => {
     const result = stringAsKey('My / Test #1!');
     expect(result).toEqual('my-test-1');
   });
+
+  it('should preserve in-progress separator characters', () => {
+    expect(stringAsKey('foo_')).toEqual('foo_');
+    expect(stringAsKey('foo-bar')).toEqual('foo-bar');
+    expect(stringAsKey('foo_-')).toEqual('foo_-');
+  });
 });

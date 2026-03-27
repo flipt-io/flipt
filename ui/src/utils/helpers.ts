@@ -62,12 +62,22 @@ export function titleCase(str: string) {
 
 export function stringAsKey(str: string) {
   if (!str) return '';
-  return str
-    .toLowerCase()
-    .trim()
+
+  const normalized = str.trim().toLowerCase();
+  const preserveLeadingSeparator = /^[-_]/.test(normalized);
+  const preserveTrailingSeparator = /[-_]$/.test(normalized);
+
+  const key = normalized
     .replace(/[^a-z0-9_-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^[-_]+|[-_]+$/g, '');
+    .replace(/-+/g, '-');
+
+  const withLeading = preserveLeadingSeparator
+    ? key
+    : key.replace(/^[-_]+/, '');
+
+  return preserveTrailingSeparator
+    ? withLeading
+    : withLeading.replace(/[-_]+$/, '');
 }
 
 const namespaces = '/namespaces/';
