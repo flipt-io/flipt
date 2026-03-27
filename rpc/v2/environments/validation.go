@@ -32,6 +32,12 @@ func (r *CopyNamespaceRequest) Validate() error {
 	if r.GetNamespaceKey() == "" {
 		return errors.ErrInvalid("namespace_key must not be empty")
 	}
+	if r.GetSourceEnvironmentKey() == "" {
+		return errors.ErrInvalid("source_environment_key must not be empty")
+	}
+	if r.GetSourceNamespaceKey() == "" {
+		return errors.ErrInvalid("source_namespace_key must not be empty")
+	}
 	return nil
 }
 

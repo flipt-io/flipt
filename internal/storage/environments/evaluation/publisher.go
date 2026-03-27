@@ -66,6 +66,10 @@ type publishOptions struct {
 	// timeout is the maximum time to wait for a subscriber to accept a message
 	// Default is 5 seconds if not specified
 	timeout time.Duration
+
+	// maxConcurrency is the maximum number of concurrent goroutines for publishing
+	// Default is 100 if not specified
+	maxConcurrency int
 }
 
 type Publisher struct {
@@ -88,7 +92,8 @@ func WithTimeout(timeout time.Duration) OptionsFunc {
 
 func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *Publisher {
 	options := publishOptions{
-		timeout: 15 * time.Second,
+		timeout:        15 * time.Second,
+		maxConcurrency: 100,
 	}
 
 	for _, opt := range opts {
@@ -124,6 +129,7 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 		wg          sync.WaitGroup
 		publishErrs []error
 		errMu       sync.Mutex
+		sem         = make(chan struct{}, p.options.maxConcurrency)
 	)
 
 	for ns, subs := range subsByNamespace {
@@ -136,6 +142,8 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 
 			wg.Add(1)
 			go func(snapshot *rpcevaluation.EvaluationNamespaceSnapshot) {
+				sem <- struct{}{}
+				defer func() { <-sem }()
 				defer wg.Done()
 
 				p.logger.Debug("sending update",

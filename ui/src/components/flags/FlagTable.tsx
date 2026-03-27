@@ -357,30 +357,33 @@ export default function FlagTable(props: FlagTableProps) {
           onConflict?: string
         ) => {
           const environmentKey = targetEnvironmentKey || environment.key;
-          const results = await Promise.all(
-            selectedFlags.map(async (flag) => {
-              const response = await bulkApplyResources({
-                environmentKey,
-                namespaceKeys: [namespaceKey],
-                operation: 'BULK_OPERATION_CREATE',
-                typeUrl: 'flipt.core.Flag',
-                key: flag.key,
-                payload: {
-                  '@type': 'flipt.core.Flag',
-                  ...flag
-                },
-                onConflict,
-                revision
-              }).unwrap();
+          const results = [];
+          let currentRevision = revision;
 
-              const namespaceResult = response.results?.[0];
-              return {
-                key: flag.key,
-                status: namespaceResult?.status || 'UNKNOWN',
-                error: namespaceResult?.error
-              };
-            })
-          );
+          for (const flag of selectedFlags) {
+            const response = await bulkApplyResources({
+              environmentKey,
+              namespaceKeys: [namespaceKey],
+              operation: 'BULK_OPERATION_CREATE',
+              typeUrl: 'flipt.core.Flag',
+              key: flag.key,
+              payload: {
+                '@type': 'flipt.core.Flag',
+                ...flag
+              },
+              onConflict,
+              revision: currentRevision
+            }).unwrap();
+
+            currentRevision = response.revision;
+
+            const namespaceResult = response.results?.[0];
+            results.push({
+              key: flag.key,
+              status: namespaceResult?.status || 'UNKNOWN',
+              error: namespaceResult?.error
+            });
+          }
 
           return { results };
         }}

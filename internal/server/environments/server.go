@@ -834,9 +834,9 @@ func applyBulkOperation(ctx context.Context, sv ResourceStore, namespaceKey stri
 			return environments.OperationStatus_OPERATION_STATUS_FAILED, false, err
 		}
 		return environments.OperationStatus_OPERATION_STATUS_SUCCESS, true, nil
+	default:
+		return environments.OperationStatus_OPERATION_STATUS_FAILED, false, fmt.Errorf("unsupported bulk operation: %s", req.Operation)
 	}
-
-	return environments.OperationStatus_OPERATION_STATUS_SUCCESS, false, nil
 }
 
 func applyCreateWithConflict(

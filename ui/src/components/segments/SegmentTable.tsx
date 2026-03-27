@@ -230,30 +230,33 @@ export default function SegmentTable(props: SegmentTableProps) {
           onConflict?: string
         ) => {
           const environmentKey = targetEnvironmentKey || environment.key;
-          const results = await Promise.all(
-            selectedSegments.map(async (segment) => {
-              const response = await bulkApplyResources({
-                environmentKey,
-                namespaceKeys: [namespaceKey],
-                operation: 'BULK_OPERATION_CREATE',
-                typeUrl: 'flipt.core.Segment',
-                key: segment.key,
-                payload: {
-                  '@type': 'flipt.core.Segment',
-                  ...segment
-                },
-                onConflict,
-                revision
-              }).unwrap();
+          const results = [];
+          let currentRevision = revision;
 
-              const namespaceResult = response.results?.[0];
-              return {
-                key: segment.key,
-                status: namespaceResult?.status || 'UNKNOWN',
-                error: namespaceResult?.error
-              };
-            })
-          );
+          for (const segment of selectedSegments) {
+            const response = await bulkApplyResources({
+              environmentKey,
+              namespaceKeys: [namespaceKey],
+              operation: 'BULK_OPERATION_CREATE',
+              typeUrl: 'flipt.core.Segment',
+              key: segment.key,
+              payload: {
+                '@type': 'flipt.core.Segment',
+                ...segment
+              },
+              onConflict,
+              revision: currentRevision
+            }).unwrap();
+
+            currentRevision = response.revision;
+
+            const namespaceResult = response.results?.[0];
+            results.push({
+              key: segment.key,
+              status: namespaceResult?.status || 'UNKNOWN',
+              error: namespaceResult?.error
+            });
+          }
 
           return { results };
         }}
