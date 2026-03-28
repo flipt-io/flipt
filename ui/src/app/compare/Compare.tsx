@@ -537,7 +537,7 @@ export default function Compare() {
       </div>
 
       {info.product !== Product.PRO && (
-        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           Read-only compare is available in OSS. Copying selected resources from
           compare view requires Flipt Pro.
         </div>

@@ -50,9 +50,11 @@ function EnvironmentRow({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-4 p-3">
+      <div className="flex flex-wrap items-center gap-4 p-3">
         <div className="w-32 font-medium text-sm">{environment.name || environment.key}</div>
-        <div className="text-sm text-muted-foreground">Loading...</div>
+        <div className="h-5 w-16 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-14 animate-pulse rounded bg-muted" />
       </div>
     );
   }
@@ -84,7 +86,7 @@ function EnvironmentRow({
   const enabledMatch = flag.enabled === currentFlag.enabled;
 
   return (
-    <div className="flex items-center gap-4 p-3">
+    <div className="flex flex-wrap items-center gap-4 p-3">
       <div className="w-32 font-medium text-sm truncate" title={environment.key}>
         {environment.name || environment.key}
       </div>
@@ -163,7 +165,7 @@ export default function FlagEnvironments({ flag }: { flag: IFlag }) {
       </div>
 
       {/* Current environment row */}
-      <div className="flex items-center gap-4 bg-muted/30 p-3">
+      <div className="flex flex-wrap items-center gap-4 bg-muted/30 p-3">
         <div className="w-32 font-medium text-sm truncate" title={currentEnvironment.key}>
           {currentEnvironment.name || currentEnvironment.key}
         </div>
