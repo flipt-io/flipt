@@ -155,6 +155,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListBranchedEnvironmentChangesResponse'
+    /api/v2/environments/{environmentKey}/compare:
+        post:
+            tags:
+                - EnvironmentsService
+            description: Compare resources between source and target environment namespaces.
+            operationId: compareEnvironments
+            parameters:
+                - name: environmentKey
+                  in: path
+                  description: Source environment key.
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CompareEnvironmentsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CompareEnvironmentsResponse'
     /api/v2/environments/{environmentKey}/namespaces:
         get:
             tags:
@@ -225,6 +251,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/NamespaceResponse'
+    /api/v2/environments/{environmentKey}/namespaces/copy:
+        post:
+            tags:
+                - EnvironmentsService
+            description: Copy all resources from one namespace to another.
+            operationId: copyNamespace
+            parameters:
+                - name: environmentKey
+                  in: path
+                  description: Target environment.
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CopyNamespaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CopyNamespaceResponse'
     /api/v2/environments/{environmentKey}/namespaces/{key}:
         get:
             tags:
@@ -455,6 +507,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteResourceResponse'
+    /api/v2/environments/{environmentKey}/resources/bulk:
+        post:
+            tags:
+                - EnvironmentsService
+            description: Apply an operation to a resource across multiple namespaces.
+            operationId: bulkApplyResources
+            parameters:
+                - name: environmentKey
+                  in: path
+                  description: Primary environment key (also used for request path binding).
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BulkApplyResourcesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BulkApplyResourcesResponse'
 components:
     schemas:
         BranchEnvironment:
@@ -484,6 +562,83 @@ components:
                     type: string
                     description: The branch key.
             description: The request message for creating a branch environment.
+        BulkApplyNamespaceResult:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                namespaceKey:
+                    type: string
+                status:
+                    enum:
+                        - OPERATION_STATUS_SUCCESS
+                        - OPERATION_STATUS_SKIPPED
+                        - OPERATION_STATUS_FAILED
+                    type: string
+                    format: enum
+                error:
+                    type: string
+            description: Per-namespace result from a bulk apply.
+        BulkApplyResourcesRequest:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                    description: Primary environment key (also used for request path binding).
+                namespaceKeys:
+                    type: array
+                    items:
+                        type: string
+                    description: Explicit list of target namespace keys.
+                operation:
+                    enum:
+                        - BULK_OPERATION_CREATE
+                        - BULK_OPERATION_UPDATE
+                        - BULK_OPERATION_DELETE
+                        - BULK_OPERATION_UPSERT
+                    type: string
+                    description: Operation to apply.
+                    format: enum
+                typeUrl:
+                    type: string
+                    description: Resource type.
+                key:
+                    type: string
+                    description: Resource key (for UPDATE, DELETE, UPSERT).
+                payload:
+                    allOf:
+                        - $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: Resource payload (for CREATE, UPDATE, UPSERT).
+                onConflict:
+                    enum:
+                        - CONFLICT_STRATEGY_FAIL
+                        - CONFLICT_STRATEGY_OVERWRITE
+                        - CONFLICT_STRATEGY_SKIP
+                    type: string
+                    description: Conflict strategy (for CREATE, UPSERT).
+                    format: enum
+                environmentKeys:
+                    type: array
+                    items:
+                        type: string
+                    description: |-
+                        Optional list of target environment keys.
+                         If empty, only `environment_key` is targeted.
+                revision:
+                    type: string
+                    description: Revision for optimistic concurrency.
+            description: Request to apply an operation to a resource across multiple namespaces.
+        BulkApplyResourcesResponse:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/BulkApplyNamespaceResult'
+                revision:
+                    type: string
+                    description: Revision for `environment_key` from the request.
+            description: Response after bulk applying resources.
         Change:
             type: object
             properties:
@@ -506,6 +661,109 @@ components:
                     type: string
                     description: The URL of the commit in the source control management system.
             description: The change represents a single commit in the source control management system.
+        CompareEnvironmentsRequest:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                    description: Source environment key.
+                namespaceKey:
+                    type: string
+                    description: Source namespace key.
+                targetEnvironmentKey:
+                    type: string
+                    description: Target environment key.
+                targetNamespaceKey:
+                    type: string
+                    description: Target namespace key.
+                typeUrls:
+                    type: array
+                    items:
+                        type: string
+                    description: Optional list of resource type urls (e.g. flipt.core.Flag). Defaults to known resource types.
+            description: Request to compare resources across source and target environment/namespace.
+        CompareEnvironmentsResponse:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/CompareResourceResult'
+            description: Response for environment comparison.
+        CompareResourceResult:
+            type: object
+            properties:
+                typeUrl:
+                    type: string
+                key:
+                    type: string
+                status:
+                    enum:
+                        - COMPARE_STATUS_IDENTICAL
+                        - COMPARE_STATUS_DIFFERENT
+                        - COMPARE_STATUS_SOURCE_ONLY
+                        - COMPARE_STATUS_TARGET_ONLY
+                    type: string
+                    format: enum
+                source:
+                    $ref: '#/components/schemas/Resource'
+                target:
+                    $ref: '#/components/schemas/Resource'
+            description: Per-resource comparison result.
+        CopyNamespaceRequest:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                    description: Target environment.
+                namespaceKey:
+                    type: string
+                    description: Target namespace key (created if it doesn't exist).
+                sourceEnvironmentKey:
+                    type: string
+                    description: Source coordinates.
+                sourceNamespaceKey:
+                    type: string
+                onConflict:
+                    enum:
+                        - CONFLICT_STRATEGY_FAIL
+                        - CONFLICT_STRATEGY_OVERWRITE
+                        - CONFLICT_STRATEGY_SKIP
+                    type: string
+                    description: Conflict strategy.
+                    format: enum
+                revision:
+                    type: string
+                    description: Revision for optimistic concurrency on the target environment.
+            description: Request to copy all resources from one namespace to another.
+        CopyNamespaceResourceResult:
+            type: object
+            properties:
+                typeUrl:
+                    type: string
+                key:
+                    type: string
+                status:
+                    enum:
+                        - OPERATION_STATUS_SUCCESS
+                        - OPERATION_STATUS_SKIPPED
+                        - OPERATION_STATUS_FAILED
+                    type: string
+                    format: enum
+                error:
+                    type: string
+                    description: Error message if status is FAILED.
+            description: Per-resource result from a namespace copy.
+        CopyNamespaceResponse:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/CopyNamespaceResourceResult'
+                revision:
+                    type: string
+            description: Response after copying a namespace.
         DeleteNamespaceResponse:
             type: object
             properties:

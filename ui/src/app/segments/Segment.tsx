@@ -3,13 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  useBulkApplyResourcesMutation
+} from '~/app/environments/environmentsApi';
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
 import {
-  useCopySegmentMutation,
   useDeleteSegmentMutation,
   useGetSegmentQuery
 } from '~/app/segments/segmentsApi';
@@ -61,7 +63,7 @@ export default function Segment() {
   );
 
   const [deleteSegment] = useDeleteSegmentMutation();
-  const [copySegment] = useCopySegmentMutation();
+  const [bulkApplyResources] = useBulkApplyResourcesMutation();
 
   useEffect(() => {
     if (isError) {
@@ -118,11 +120,23 @@ export default function Segment() {
           </>
         }
         panelType="Segment"
-        handleCopy={(namespaceKey: string) =>
-          copySegment({
-            environmentKey: environment.key,
-            from: { namespaceKey: namespace.key, segmentKey: segment.key },
-            to: { namespaceKey: namespaceKey, segmentKey: segment.key }
+        handleCopy={(
+          namespaceKey: string,
+          targetEnvironmentKey?: string,
+          onConflict?: string
+        ) =>
+          bulkApplyResources({
+            environmentKey: targetEnvironmentKey || environment.key,
+            namespaceKeys: [namespaceKey],
+            operation: 'BULK_OPERATION_CREATE',
+            typeUrl: 'flipt.core.Segment',
+            key: segment.key,
+            payload: {
+              '@type': 'flipt.core.Segment',
+              ...segment
+            },
+            onConflict,
+            revision
           }).unwrap()
         }
         onSuccess={() => {

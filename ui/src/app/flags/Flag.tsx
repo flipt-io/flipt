@@ -11,7 +11,10 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { useParams } from 'react-router';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  useBulkApplyResourcesMutation
+} from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
@@ -32,11 +35,7 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { getRevision } from '~/utils/helpers';
 
-import {
-  useCopyFlagMutation,
-  useDeleteFlagMutation,
-  useGetFlagQuery
-} from './flagsApi';
+import { useDeleteFlagMutation, useGetFlagQuery } from './flagsApi';
 
 export default function Flag() {
   let { flagKey } = useParams();
@@ -73,7 +72,7 @@ export default function Flag() {
   );
 
   const [deleteFlag] = useDeleteFlagMutation();
-  const [copyFlag] = useCopyFlagMutation();
+  const [bulkApplyResources] = useBulkApplyResourcesMutation();
 
   useEffect(() => {
     if (isError) {
@@ -128,11 +127,23 @@ export default function Flag() {
         }
         panelType="Flag"
         setOpen={setShowCopyFlagModal}
-        handleCopy={(namespaceKey: string) =>
-          copyFlag({
-            environmentKey: environment.key,
-            from: { namespaceKey: namespace.key, flagKey: flag.key },
-            to: { namespaceKey: namespaceKey, flagKey: flag.key }
+        handleCopy={(
+          namespaceKey: string,
+          targetEnvironmentKey?: string,
+          onConflict?: string
+        ) =>
+          bulkApplyResources({
+            environmentKey: targetEnvironmentKey || environment.key,
+            namespaceKeys: [namespaceKey],
+            operation: 'BULK_OPERATION_CREATE',
+            typeUrl: 'flipt.core.Flag',
+            key: flag.key,
+            payload: {
+              '@type': 'flipt.core.Flag',
+              ...flag
+            },
+            onConflict,
+            revision
           }).unwrap()
         }
         onSuccess={() => {

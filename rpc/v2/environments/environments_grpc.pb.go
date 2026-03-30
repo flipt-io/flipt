@@ -36,6 +36,9 @@ const (
 	EnvironmentsService_CreateResource_FullMethodName                 = "/environments.EnvironmentsService/CreateResource"
 	EnvironmentsService_UpdateResource_FullMethodName                 = "/environments.EnvironmentsService/UpdateResource"
 	EnvironmentsService_DeleteResource_FullMethodName                 = "/environments.EnvironmentsService/DeleteResource"
+	EnvironmentsService_CopyNamespace_FullMethodName                  = "/environments.EnvironmentsService/CopyNamespace"
+	EnvironmentsService_CompareEnvironments_FullMethodName            = "/environments.EnvironmentsService/CompareEnvironments"
+	EnvironmentsService_BulkApplyResources_FullMethodName             = "/environments.EnvironmentsService/BulkApplyResources"
 )
 
 // EnvironmentsServiceClient is the client API for EnvironmentsService service.
@@ -74,6 +77,12 @@ type EnvironmentsServiceClient interface {
 	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
 	// Delete a resource within a given namespace.
 	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
+	// Copy all resources from one namespace to another.
+	CopyNamespace(ctx context.Context, in *CopyNamespaceRequest, opts ...grpc.CallOption) (*CopyNamespaceResponse, error)
+	// Compare resources between source and target environment namespaces.
+	CompareEnvironments(ctx context.Context, in *CompareEnvironmentsRequest, opts ...grpc.CallOption) (*CompareEnvironmentsResponse, error)
+	// Apply an operation to a resource across multiple namespaces.
+	BulkApplyResources(ctx context.Context, in *BulkApplyResourcesRequest, opts ...grpc.CallOption) (*BulkApplyResourcesResponse, error)
 }
 
 type environmentsServiceClient struct {
@@ -244,6 +253,36 @@ func (c *environmentsServiceClient) DeleteResource(ctx context.Context, in *Dele
 	return out, nil
 }
 
+func (c *environmentsServiceClient) CopyNamespace(ctx context.Context, in *CopyNamespaceRequest, opts ...grpc.CallOption) (*CopyNamespaceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CopyNamespaceResponse)
+	err := c.cc.Invoke(ctx, EnvironmentsService_CopyNamespace_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *environmentsServiceClient) CompareEnvironments(ctx context.Context, in *CompareEnvironmentsRequest, opts ...grpc.CallOption) (*CompareEnvironmentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompareEnvironmentsResponse)
+	err := c.cc.Invoke(ctx, EnvironmentsService_CompareEnvironments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *environmentsServiceClient) BulkApplyResources(ctx context.Context, in *BulkApplyResourcesRequest, opts ...grpc.CallOption) (*BulkApplyResourcesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BulkApplyResourcesResponse)
+	err := c.cc.Invoke(ctx, EnvironmentsService_BulkApplyResources_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EnvironmentsServiceServer is the server API for EnvironmentsService service.
 // All implementations must embed UnimplementedEnvironmentsServiceServer
 // for forward compatibility.
@@ -280,6 +319,12 @@ type EnvironmentsServiceServer interface {
 	UpdateResource(context.Context, *UpdateResourceRequest) (*ResourceResponse, error)
 	// Delete a resource within a given namespace.
 	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
+	// Copy all resources from one namespace to another.
+	CopyNamespace(context.Context, *CopyNamespaceRequest) (*CopyNamespaceResponse, error)
+	// Compare resources between source and target environment namespaces.
+	CompareEnvironments(context.Context, *CompareEnvironmentsRequest) (*CompareEnvironmentsResponse, error)
+	// Apply an operation to a resource across multiple namespaces.
+	BulkApplyResources(context.Context, *BulkApplyResourcesRequest) (*BulkApplyResourcesResponse, error)
 	mustEmbedUnimplementedEnvironmentsServiceServer()
 }
 
@@ -337,6 +382,15 @@ func (UnimplementedEnvironmentsServiceServer) UpdateResource(context.Context, *U
 }
 func (UnimplementedEnvironmentsServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteResource not implemented")
+}
+func (UnimplementedEnvironmentsServiceServer) CopyNamespace(context.Context, *CopyNamespaceRequest) (*CopyNamespaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CopyNamespace not implemented")
+}
+func (UnimplementedEnvironmentsServiceServer) CompareEnvironments(context.Context, *CompareEnvironmentsRequest) (*CompareEnvironmentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompareEnvironments not implemented")
+}
+func (UnimplementedEnvironmentsServiceServer) BulkApplyResources(context.Context, *BulkApplyResourcesRequest) (*BulkApplyResourcesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkApplyResources not implemented")
 }
 func (UnimplementedEnvironmentsServiceServer) mustEmbedUnimplementedEnvironmentsServiceServer() {}
 func (UnimplementedEnvironmentsServiceServer) testEmbeddedByValue()                             {}
@@ -647,6 +701,60 @@ func _EnvironmentsService_DeleteResource_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EnvironmentsService_CopyNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CopyNamespaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnvironmentsServiceServer).CopyNamespace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnvironmentsService_CopyNamespace_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnvironmentsServiceServer).CopyNamespace(ctx, req.(*CopyNamespaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EnvironmentsService_CompareEnvironments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompareEnvironmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnvironmentsServiceServer).CompareEnvironments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnvironmentsService_CompareEnvironments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnvironmentsServiceServer).CompareEnvironments(ctx, req.(*CompareEnvironmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EnvironmentsService_BulkApplyResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkApplyResourcesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnvironmentsServiceServer).BulkApplyResources(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnvironmentsService_BulkApplyResources_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnvironmentsServiceServer).BulkApplyResources(ctx, req.(*BulkApplyResourcesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EnvironmentsService_ServiceDesc is the grpc.ServiceDesc for EnvironmentsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -717,6 +825,18 @@ var EnvironmentsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteResource",
 			Handler:    _EnvironmentsService_DeleteResource_Handler,
+		},
+		{
+			MethodName: "CopyNamespace",
+			Handler:    _EnvironmentsService_CopyNamespace_Handler,
+		},
+		{
+			MethodName: "CompareEnvironments",
+			Handler:    _EnvironmentsService_CompareEnvironments_Handler,
+		},
+		{
+			MethodName: "BulkApplyResources",
+			Handler:    _EnvironmentsService_BulkApplyResources_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

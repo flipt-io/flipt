@@ -21,6 +21,7 @@ import { Theme } from './types/Preferences';
 const Flags = lazy(() => import('./app/flags/Flags'));
 const Segments = lazy(() => import('./app/segments/Segments'));
 const Console = lazy(() => import('./app/console/Console'));
+const Compare = lazy(() => import('./app/compare/Compare'));
 const Login = lazy(() => import('./app/auth/Login'));
 const Settings = lazy(() => import('./app/Settings'));
 const Support = lazy(() => import('./app/Support'));
@@ -76,6 +77,13 @@ const namespacedRoutes = [
   {
     path: 'segments/:segmentKey',
     element: <Segment />
+  },
+  {
+    path: 'compare',
+    element: <Compare />,
+    handle: {
+      namespaced: true
+    }
   },
   {
     path: 'playground',

@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
+import { useBulkApplyResourcesMutation } from '~/app/environments/environmentsApi';
 import { useGetBatchFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 import {
   selectSorting,
@@ -36,6 +37,7 @@ import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
 import { DataTableViewOptions } from '~/components/TableViewOptions';
 import Well from '~/components/Well';
+import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 
 import { IBatchFlagEvaluationCount } from '~/types/Analytics';
 import { IEnvironment } from '~/types/Environment';
@@ -43,6 +45,8 @@ import { FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 
 import { useError } from '~/data/hooks/error';
+import { useNotification } from '~/data/hooks/notification';
+import { getRevision } from '~/utils/helpers';
 import { cls } from '~/utils/helpers';
 
 function VariantFlagBadge({ enabled }: { enabled: boolean }) {
@@ -103,11 +107,15 @@ function CombinedFlagBadge({ item }: { item: IFlag }) {
 function FlagListItem({
   item,
   path,
-  evaluationValues = []
+  evaluationValues = [],
+  isSelected,
+  onToggleSelect
 }: {
   item: IFlag;
   path: string;
   evaluationValues?: number[];
+  isSelected: boolean;
+  onToggleSelect: (key: string, checked: boolean) => void;
 }) {
   const navigate = useNavigate();
 
@@ -119,6 +127,14 @@ function FlagListItem({
       onClick={() => navigate(path)}
     >
       <div className="flex items-start gap-6 p-4">
+        <input
+          type="checkbox"
+          aria-label={`Select ${item.key}`}
+          checked={isSelected}
+          className="mt-1 h-4 w-4 rounded border-gray-300"
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => onToggleSelect(item.key, e.target.checked)}
+        />
         {/* Flag Info and Tags Column */}
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-3">
@@ -253,6 +269,8 @@ export default function FlagTable(props: FlagTableProps) {
   });
 
   const [filter, setFilter] = useState<string>('');
+  const [showBulkCopyModal, setShowBulkCopyModal] = useState(false);
+  const [selectedFlagKeys, setSelectedFlagKeys] = useState<string[]>([]);
 
   const sorting = useSelector(selectSorting);
 
@@ -265,13 +283,21 @@ export default function FlagTable(props: FlagTableProps) {
   const flags = useMemo(() => data?.flags || [], [data]);
   const flagKeys = useMemo(() => flags.map((f) => f.key), [flags]);
   const hasFlags = flags.length > 0;
+  const revision = getRevision();
 
   const { setError } = useError();
+  const { setNotification } = useNotification();
+  const [bulkApplyResources] = useBulkApplyResourcesMutation();
   useEffect(() => {
     if (error) {
       setError(error);
     }
   }, [error, setError]);
+  useEffect(() => {
+    setSelectedFlagKeys((current) =>
+      current.filter((key) => flags.some((flag) => flag.key === key))
+    );
+  }, [flags]);
 
   const table = useReactTable({
     data: flags,
@@ -312,13 +338,86 @@ export default function FlagTable(props: FlagTableProps) {
     return <TableSkeleton />;
   }
 
+  const selectedFlags = flags.filter((flag) =>
+    selectedFlagKeys.includes(flag.key)
+  );
+
   return (
     <div className="w-full">
+      <CopyToNamespacePanel
+        open={showBulkCopyModal}
+        setOpen={setShowBulkCopyModal}
+        panelType={`${selectedFlags.length} Flags`}
+        panelMessage={
+          <>Copy {selectedFlags.length} selected flags to the namespace:</>
+        }
+        handleCopy={async (
+          namespaceKey: string,
+          targetEnvironmentKey?: string,
+          onConflict?: string
+        ) => {
+          const environmentKey = targetEnvironmentKey || environment.key;
+          const results = [];
+          let currentRevision = revision;
+
+          for (const flag of selectedFlags) {
+            const response = await bulkApplyResources({
+              environmentKey,
+              namespaceKeys: [namespaceKey],
+              operation: 'BULK_OPERATION_CREATE',
+              typeUrl: 'flipt.core.Flag',
+              key: flag.key,
+              payload: {
+                '@type': 'flipt.core.Flag',
+                ...flag
+              },
+              onConflict,
+              revision: currentRevision
+            }).unwrap();
+
+            currentRevision = response.revision;
+
+            const namespaceResult = response.results?.[0];
+            results.push({
+              key: flag.key,
+              status: namespaceResult?.status || 'UNKNOWN',
+              error: namespaceResult?.error
+            });
+          }
+
+          return { results };
+        }}
+        onSuccess={(response) => {
+          const results = response?.results || [];
+          const failed = results.filter((result: any) => result.error);
+          const successful = results.length - failed.length;
+          if (failed.length === 0) {
+            setNotification(`Copied ${successful} flags successfully`);
+          } else {
+            const failedKeys = failed
+              .map((result: any) => result.key)
+              .join(', ');
+            setNotification(`Copied ${successful}/${results.length} flags`, {
+              description: `Failed: ${failedKeys}`
+            });
+          }
+          setSelectedFlagKeys([]);
+          setShowBulkCopyModal(false);
+        }}
+      />
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-4">
               <Searchbox value={filter ?? ''} onChange={setFilter} />
+              {selectedFlagKeys.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBulkCopyModal(true)}
+                >
+                  Copy selected to...
+                </Button>
+              )}
             </div>
             {hasFlags && <DataTableViewOptions table={table} />}
           </div>
@@ -349,6 +448,14 @@ export default function FlagTable(props: FlagTableProps) {
                 item={item}
                 path={`${path}/${item.key}`}
                 evaluationValues={values}
+                isSelected={selectedFlagKeys.includes(item.key)}
+                onToggleSelect={(key, checked) => {
+                  setSelectedFlagKeys((current) =>
+                    checked
+                      ? Array.from(new Set([...current, key]))
+                      : current.filter((selectedKey) => selectedKey !== key)
+                  );
+                }}
               />
             );
           })}
