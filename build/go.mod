@@ -14,7 +14,7 @@ require (
 	github.com/dagger/otel-go v1.41.0
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/go-git/go-billy/v5 v5.8.0
-	github.com/go-git/go-git/v5 v5.17.0
+	github.com/go-git/go-git/v5 v5.17.2
 	github.com/go-jose/go-jose/v3 v3.0.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v66 v66.0.0
