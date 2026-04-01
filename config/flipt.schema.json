@@ -560,6 +560,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "use_pkce": {
+                  "type": "boolean",
+                  "default": false
                 }
               }
             },

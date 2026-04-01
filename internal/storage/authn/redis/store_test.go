@@ -110,4 +110,8 @@ func TestPrefixKeys(t *testing.T) {
 		require.Equal(t, "flipt:auth:all", authAllKey("flipt"))
 		require.Equal(t, "auth:all", authAllKey(""))
 	})
+	t.Run("oauthChallengeKey", func(t *testing.T) {
+		require.Equal(t, "flipt:auth:oauth_challenge:123", oauthChallengeKey("flipt", "123"))
+		require.Equal(t, "auth:oauth_challenge:123", oauthChallengeKey("", "123"))
+	})
 }

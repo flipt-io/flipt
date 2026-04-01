@@ -31,6 +31,7 @@ const (
 	githubUser              endpoint = "/user"
 	githubUserOrganizations endpoint = "/user/orgs"
 	githubUserTeams         endpoint = "/user/teams?per_page=100"
+	oauthChallengeTTL                = 2 * time.Minute
 )
 
 // OAuth2Client is our abstraction of communication with an OAuth2 Provider.
@@ -105,7 +106,21 @@ func callbackURL(host string) string {
 
 // AuthorizeURL will return a URL for the client to redirect to for completion of the OAuth flow with GitHub.
 func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	u := s.oauth2Config.AuthCodeURL(req.State)
+	var opts []oauth2.AuthCodeOption
+
+	if s.config.Methods.Github.Method.UsePKCE {
+		if req.State == "" {
+			return nil, errors.ErrInvalidf("missing state parameter")
+		}
+
+		verifier := oauth2.GenerateVerifier()
+		if err := s.store.PutOAuthChallenge(ctx, req.State, verifier, timestamppb.New(time.Now().UTC().Add(oauthChallengeTTL))); err != nil {
+			return nil, err
+		}
+		opts = append(opts, oauth2.S256ChallengeOption(verifier))
+	}
+
+	u := s.oauth2Config.AuthCodeURL(req.State, opts...)
 
 	return &auth.AuthorizeURLResponse{
 		AuthorizeUrl: u,
@@ -116,13 +131,25 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 // which is the OAuth grant passed in by the OAuth service, and exchange the grant with an Authentication
 // that includes the user information.
 func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.CallbackResponse, error) {
-	if r.State != "" {
-		if err := method.CallbackValidateState(ctx, r.State); err != nil {
-			return nil, err
-		}
+	if err := method.CallbackValidateState(ctx, r.State); err != nil {
+		return nil, err
 	}
 
-	token, err := s.oauth2Config.Exchange(ctx, r.Code)
+	var opts []oauth2.AuthCodeOption
+	if s.config.Methods.Github.Method.UsePKCE {
+		verifier, err := s.store.PopOAuthChallenge(ctx, r.State)
+		if err != nil {
+			if _, ok := errors.As[errors.ErrNotFound](err); ok {
+				return nil, errors.ErrUnauthenticatedf("missing or expired oauth challenge")
+			}
+
+			return nil, fmt.Errorf("getting oauth challenge: %w", err)
+		}
+
+		opts = append(opts, oauth2.VerifierOption(verifier))
+	}
+
+	token, err := s.oauth2Config.Exchange(ctx, r.Code, opts...)
 	if err != nil {
 		return nil, err
 	}
