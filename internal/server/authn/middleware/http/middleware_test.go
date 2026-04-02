@@ -84,5 +84,7 @@ func assertCookiesCleared(t *testing.T, cookies []*http.Cookie) {
 		assert.Equal(t, "localhost", cookiesMap[cookieName].Domain)
 		assert.Equal(t, "/", cookiesMap[cookieName].Path)
 		assert.Equal(t, -1, cookiesMap[cookieName].MaxAge)
+		assert.True(t, cookiesMap[cookieName].HttpOnly)
+		assert.False(t, cookiesMap[cookieName].Secure)
 	}
 }

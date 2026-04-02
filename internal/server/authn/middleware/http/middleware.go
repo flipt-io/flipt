@@ -63,11 +63,13 @@ func (m Middleware) ErrorHandler(ctx context.Context, sm *runtime.ServeMux, ms r
 func (m Middleware) clearAllCookies(w http.ResponseWriter) {
 	for _, cookieName := range []string{stateCookieKey, middlewarecommon.TokenCookieKey} {
 		cookie := &http.Cookie{
-			Name:   cookieName,
-			Value:  "",
-			Domain: m.config.Domain,
-			Path:   "/",
-			MaxAge: -1,
+			Name:     cookieName,
+			Value:    "",
+			Domain:   m.config.Domain,
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+			Secure:   m.config.Secure,
 		}
 
 		http.SetCookie(w, cookie)
