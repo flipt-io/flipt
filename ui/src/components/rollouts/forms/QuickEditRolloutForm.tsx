@@ -7,7 +7,7 @@ import { TextButton } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
@@ -298,7 +298,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   !formik.isValid || formik.isSubmitting || !formik.dirty
                 }
               >
-                {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
+                {formik.isSubmitting ? <Loading /> : 'Update'}
               </TextButton>
             </div>
           </div>

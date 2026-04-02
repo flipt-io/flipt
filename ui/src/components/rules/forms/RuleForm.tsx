@@ -8,7 +8,7 @@ import { useCreateRuleMutation } from '~/app/flags/rulesApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { Button } from '~/components/Button';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -389,7 +389,7 @@ export default function RuleForm(props: RuleFormProps) {
                     )
                   }
                 >
-                  {formik.isSubmitting ? <Loading isPrimary /> : 'Create'}
+                  {formik.isSubmitting ? <Loading /> : 'Create'}
                 </Button>
               </div>
             </div>

@@ -29,7 +29,7 @@ import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
 import { ButtonWithPlus, TextButton } from '~/components/Button';
 
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import RuleForm from '~/components/rules/forms/RuleForm';
@@ -195,11 +195,7 @@ export function DefaultVariant(props: RulesProps) {
                             readOnly
                           }
                         >
-                          {formik.isSubmitting ? (
-                            <Loading isPrimary />
-                          ) : (
-                            'Update'
-                          )}
+                          {formik.isSubmitting ? <Loading /> : 'Update'}
                         </TextButton>
                       </div>
                     </div>

@@ -18,7 +18,7 @@ import Chips from '~/components/Chips';
 import EmptyState from '~/components/EmptyState';
 import { Button } from '~/components/Button';
 import Dropdown from '~/components/Dropdown';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';

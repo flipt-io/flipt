@@ -12,7 +12,7 @@ import {
 } from '~/app/segments/segmentsApi';
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
@@ -255,7 +255,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                   readOnly
                 }
               >
-                {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}
+                {formik.isSubmitting ? <Loading /> : submitPhrase}
               </Button>
             </div>
           </div>

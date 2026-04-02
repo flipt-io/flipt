@@ -10,7 +10,7 @@ import { useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import logoFlag from '~/assets/logo-flag.png';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import { NotificationProvider } from '~/components/NotificationProvider';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';

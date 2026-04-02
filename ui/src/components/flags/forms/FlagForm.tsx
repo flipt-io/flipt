@@ -13,7 +13,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import { MetadataForm } from '~/components/flags/forms/MetadataForm';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -335,7 +335,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     hasMetadataErrors
                   }
                 >
-                  {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}
+                  {formik.isSubmitting ? <Loading /> : submitPhrase}
                 </Button>
               </div>
             </div>

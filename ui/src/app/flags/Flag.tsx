@@ -11,7 +11,7 @@ import {
 } from '~/app/namespaces/namespacesSlice';
 import FlagForm from '~/components/flags/forms/FlagForm';
 import Dropdown from '~/components/Dropdown';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';

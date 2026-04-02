@@ -8,7 +8,7 @@ import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -392,7 +392,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                 className="min-w-[80px]"
                 disabled={!formik.isValid || formik.isSubmitting}
               >
-                {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
+                {formik.isSubmitting ? <Loading /> : 'Update'}
               </Button>
             </div>
           </div>
