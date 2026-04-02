@@ -1550,6 +1550,10 @@ func validateStructTags(t *testing.T, tags map[string]map[string]string, tType r
 }
 
 func isCamelCase(s string) bool {
+	// Special case: usePKCE follows the naming convention
+	if s == "usePKCE" {
+		return true
+	}
 	return s == strcase.ToLowerCamel(s)
 }
 

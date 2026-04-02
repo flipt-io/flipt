@@ -601,6 +601,7 @@ type AuthenticationMethodGithubConfig struct {
 	Scopes               []string            `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
 	AllowedOrganizations []string            `json:"allowedOrganizations,omitempty" mapstructure:"allowed_organizations" yaml:"allowed_organizations,omitempty"`
 	AllowedTeams         map[string][]string `json:"allowedTeams,omitempty" mapstructure:"allowed_teams" yaml:"allowed_teams,omitempty"`
+	UsePKCE              bool                `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
 }
 
 func (a AuthenticationMethodGithubConfig) setDefaults(defaults map[string]any) {}

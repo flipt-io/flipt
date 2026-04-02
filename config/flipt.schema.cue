@@ -114,6 +114,7 @@ JsonPath: string
 				scopes?: [...string]
 				allowed_organizations?: [...] | string
 				allowed_teams?: [string]: [...string]
+				use_pkce?: bool
 			}
 
 			jwt?: {

@@ -22,6 +22,11 @@ import (
 
 var _ authn.Store = (*Store)(nil)
 
+type oauthChallenge struct {
+	value     string
+	expiresAt *timestamppb.Timestamp
+}
+
 // Store is an in-memory implementation of storage.AuthenticationStore
 //
 // Authentications are stored in a map by hashedClientToken.
@@ -30,9 +35,10 @@ var _ authn.Store = (*Store)(nil)
 type Store struct {
 	logger *zap.Logger
 
-	mu      sync.Mutex
-	byID    map[string]*rpcauth.Authentication
-	byToken map[string]*rpcauth.Authentication
+	mu         sync.Mutex
+	byID       map[string]*rpcauth.Authentication
+	byToken    map[string]*rpcauth.Authentication
+	challenges sync.Map
 
 	now                func() *timestamppb.Timestamp
 	generateID         func() string
@@ -55,6 +61,7 @@ func NewStore(logger *zap.Logger, opts ...Option) *Store {
 
 			byID:          map[string]*rpcauth.Authentication{},
 			byToken:       map[string]*rpcauth.Authentication{},
+			challenges:    sync.Map{},
 			now:           rpcflipt.Now,
 			generateID:    uuid.NewString,
 			generateToken: authn.GenerateRandomToken,
@@ -128,13 +135,15 @@ func (s *Store) startCleanup(ctx context.Context) {
 		for {
 			select {
 			case <-time.After(s.cleanupInterval):
-				expiredBefore := time.Now().UTC().Add(-s.cleanupGracePeriod)
+				now := s.now().AsTime().UTC()
+				expiredBefore := now.Add(-s.cleanupGracePeriod)
 				s.logger.Debug("cleanup process deleting authentications", zap.Time("expired_before", expiredBefore))
 				if err := s.DeleteAuthentications(ctx, authn.Delete(
 					authn.WithExpiredBefore(expiredBefore),
 				)); err != nil {
 					s.logger.Error("attempting to delete expired authentications", zap.Error(err))
 				}
+				s.cleanupOAuthChallenges(now)
 			case <-ctx.Done():
 				return nil
 			}
@@ -209,6 +218,45 @@ func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.
 	}
 
 	return authentication, nil
+}
+
+func (s *Store) PutOAuthChallenge(_ context.Context, state, value string, expiresAt *timestamppb.Timestamp) error {
+	if expiresAt != nil && !expiresAt.IsValid() {
+		return errors.ErrInvalidf("invalid expiry time: %v", expiresAt)
+	}
+
+	s.challenges.Store(state, oauthChallenge{value: value, expiresAt: expiresAt})
+
+	return nil
+}
+
+func (s *Store) PopOAuthChallenge(_ context.Context, state string) (string, error) {
+	value, ok := s.challenges.LoadAndDelete(state)
+
+	if !ok {
+		return "", errors.ErrNotFound("oauth challenge")
+	}
+
+	challenge, ok := value.(oauthChallenge)
+	if !ok {
+		return "", errors.ErrNotFound("oauth challenge invalid type")
+	}
+
+	if challenge.expiresAt != nil && challenge.expiresAt.AsTime().Before(s.now().AsTime().UTC()) {
+		return "", errors.ErrNotFound("oauth challenge expired")
+	}
+
+	return challenge.value, nil
+}
+
+func (s *Store) cleanupOAuthChallenges(now time.Time) {
+	s.challenges.Range(func(key any, value any) bool {
+		challenge, ok := value.(oauthChallenge)
+		if ok && challenge.expiresAt != nil && challenge.expiresAt.AsTime().Before(now) {
+			s.challenges.Delete(key)
+		}
+		return true
+	})
 }
 
 func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[authn.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {

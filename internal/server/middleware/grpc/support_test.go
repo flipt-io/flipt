@@ -38,6 +38,16 @@ func (a *authStoreMock) DeleteAuthentications(ctx context.Context, r *storageaut
 	return args.Error(0)
 }
 
+func (a *authStoreMock) PutOAuthChallenge(ctx context.Context, state, value string, expiresAt *timestamppb.Timestamp) error {
+	args := a.Called(ctx, state, value, expiresAt)
+	return args.Error(0)
+}
+
+func (a *authStoreMock) PopOAuthChallenge(ctx context.Context, state string) (string, error) {
+	args := a.Called(ctx, state)
+	return args.String(0), args.Error(1)
+}
+
 func (a *authStoreMock) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
 	return nil
 }

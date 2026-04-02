@@ -23,10 +23,11 @@ import (
 var _ authn.Store = (*Store)(nil)
 
 const (
-	authIDKeyPrefix    = "auth:id"
-	authTokenKeyPrefix = "auth:token" //nolint:gosec
-	authMethodPrefix   = "auth:method"
-	authAllPrefix      = "auth:all"
+	authIDKeyPrefix      = "auth:id"
+	authTokenKeyPrefix   = "auth:token" //nolint:gosec
+	authMethodPrefix     = "auth:method"
+	authAllPrefix        = "auth:all"
+	oauthChallengePrefix = "auth:oauth_challenge"
 
 	allPattern = "*"
 
@@ -74,6 +75,13 @@ func authAllKey(prefix string) string {
 		return strings.Join([]string{authAllPrefix}, ":")
 	}
 	return strings.Join([]string{prefix, authAllPrefix}, ":")
+}
+
+func oauthChallengeKey(prefix, state string) string {
+	if prefix == "" {
+		return strings.Join([]string{oauthChallengePrefix, state}, ":")
+	}
+	return strings.Join([]string{prefix, oauthChallengePrefix, state}, ":")
 }
 
 // Option is a type which configures a *Store
@@ -230,6 +238,41 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *authn.DeleteAuth
 	}
 
 	return s.deleteAuthenticationBatches(ctx, ids, req.Method)
+}
+
+func (s *Store) PutOAuthChallenge(ctx context.Context, state, value string, expiresAt *timestamppb.Timestamp) error {
+	if expiresAt != nil && !expiresAt.IsValid() {
+		return errors.ErrInvalidf("invalid expiry time: %v", expiresAt)
+	}
+
+	key := oauthChallengeKey(s.prefix, state)
+	ttl := time.Duration(0)
+	now := s.now().AsTime().UTC()
+	if expiresAt != nil {
+		ttl = expiresAt.AsTime().UTC().Sub(now)
+		if ttl <= 0 {
+			_ = s.client.Del(ctx, key).Err()
+			return nil
+		}
+	}
+
+	if err := s.client.Set(ctx, key, value, ttl).Err(); err != nil {
+		return fmt.Errorf("storing oauth challenge: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Store) PopOAuthChallenge(ctx context.Context, state string) (string, error) {
+	value, err := s.client.GetDel(ctx, oauthChallengeKey(s.prefix, state)).Result()
+	if err != nil {
+		if errs.Is(err, goredis.Nil) {
+			return "", errors.ErrNotFound("oauth challenge")
+		}
+		return "", fmt.Errorf("getting oauth challenge: %w", err)
+	}
+
+	return value, nil
 }
 
 func (s *Store) scanMatchingIDs(ctx context.Context, sourceKey string, req *authn.DeleteAuthenticationsRequest) ([]string, error) {

@@ -36,6 +36,10 @@ type Store interface {
 	// Use DeleteByID to construct a request to delete a single Authentication by ID string.
 	// Use DeleteByMethod to construct a request to delete 0 or more Authentications by Method and optional expired before constraint.
 	DeleteAuthentications(context.Context, *DeleteAuthenticationsRequest) error
+	// PutOAuthChallenge stores a short-lived challenge value keyed by state.
+	PutOAuthChallenge(ctx context.Context, state, value string, expiresAt *timestamppb.Timestamp) error
+	// PopOAuthChallenge retrieves and deletes a challenge value keyed by state.
+	PopOAuthChallenge(ctx context.Context, state string) (string, error)
 	// ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
 	ExpireAuthenticationByID(context.Context, string, *timestamppb.Timestamp) error
 	Shutdown(context.Context) error

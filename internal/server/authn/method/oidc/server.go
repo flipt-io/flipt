@@ -16,6 +16,7 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -29,6 +30,8 @@ const (
 	storageMetadataOIDCPicture           = "io.flipt.auth.oidc.picture"
 	storageMetadataOIDCSub               = "io.flipt.auth.oidc.sub"
 	storageMetadataOIDCPreferredUsername = "io.flipt.auth.oidc.preferred_username"
+	oauthChallengeTTL                    = 2 * time.Minute
+	nonceStatic                          = "static"
 )
 
 // errProviderNotFound is returned when a provider is requested which
@@ -89,7 +92,21 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 // The operation is configured to return a URL which ultimately redirects to the
 // callback operation below.
 func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	provider, oidcRequest, err := s.providerFor(req.Provider, req.State)
+	providerCfg, err := s.configFor(req.Provider)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := nonceStatic
+	if providerCfg.UsePKCE {
+		verifier := oauth2.GenerateVerifier()
+		if err := s.store.PutOAuthChallenge(ctx, req.State, verifier, timestamppb.New(time.Now().UTC().Add(oauthChallengeTTL))); err != nil {
+			return nil, err
+		}
+		nonce = verifier
+	}
+
+	provider, oidcRequest, err := s.providerFor(req.Provider, req.State, nonce)
 	if err != nil {
 		return nil, fmt.Errorf("authorize: %w", err)
 	}
@@ -121,10 +138,8 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		}
 	}()
 
-	if req.State != "" {
-		if err := method.CallbackValidateState(ctx, req.State); err != nil {
-			return nil, err
-		}
+	if err := method.CallbackValidateState(ctx, req.State); err != nil {
+		return nil, err
 	}
 
 	providerCfg, err := s.configFor(req.Provider)
@@ -132,7 +147,20 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		return nil, err
 	}
 
-	provider, oidcRequest, err := s.providerFor(req.Provider, req.State)
+	nonce := nonceStatic
+	if providerCfg.UsePKCE {
+		verifier, err := s.store.PopOAuthChallenge(ctx, req.State)
+		if err != nil {
+			if _, ok := errors.As[errors.ErrNotFound](err); ok {
+				return nil, errors.ErrUnauthenticatedf("missing or expired oauth challenge")
+			}
+
+			return nil, fmt.Errorf("getting oauth challenge: %w", err)
+		}
+		nonce = verifier
+	}
+
+	provider, oidcRequest, err := s.providerFor(req.Provider, req.State, nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +240,7 @@ func (s *Server) configFor(provider string) (config.AuthenticationMethodOIDCProv
 	return providerCfg, nil
 }
 
-func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, *capoidc.Req, error) {
+func (s *Server) providerFor(provider string, state string, nonce string) (*capoidc.Provider, *capoidc.Req, error) {
 	var (
 		config   *capoidc.Config
 		callback string
@@ -249,17 +277,17 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 		return nil, nil, err
 	}
 
-	var oidcOpts = []capoidc.Option{
+	oidcOpts := []capoidc.Option{
 		capoidc.WithState(state),
 		capoidc.WithScopes(providerCfg.Scopes...),
-		capoidc.WithNonce(cmp.Or(providerCfg.Nonce, "static")),
+		capoidc.WithNonce(cmp.Or(providerCfg.Nonce, nonce)),
 	}
 
 	if providerCfg.UsePKCE {
 		oidcOpts = append(oidcOpts, capoidc.WithPKCE(PKCEVerifier))
 	}
 
-	req, err := capoidc.NewRequest(2*time.Minute, callback,
+	req, err := capoidc.NewRequest(oauthChallengeTTL, callback,
 		oidcOpts...,
 	)
 	if err != nil {

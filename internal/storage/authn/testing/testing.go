@@ -228,4 +228,30 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		require.NoError(t, err)
 		assert.True(t, auth.ExpiresAt.AsTime().UTC().Before(time.Now().UTC()))
 	})
+
+	t.Run("OAuth challenge is single-use", func(t *testing.T) {
+		expiresAt := timestamppb.New(time.Now().UTC().Add(2 * time.Minute))
+
+		err := store.PutOAuthChallenge(ctx, "state-1", "verifier-1", expiresAt)
+		require.NoError(t, err)
+
+		value, err := store.PopOAuthChallenge(ctx, "state-1")
+		require.NoError(t, err)
+		assert.Equal(t, "verifier-1", value)
+
+		_, err = store.PopOAuthChallenge(ctx, "state-1")
+		var notFound errors.ErrNotFound
+		require.ErrorAs(t, err, &notFound)
+	})
+
+	t.Run("OAuth challenge expires", func(t *testing.T) {
+		expiredAt := timestamppb.New(time.Now().UTC().Add(-1 * time.Minute))
+
+		err := store.PutOAuthChallenge(ctx, "state-expired", "verifier-expired", expiredAt)
+		require.NoError(t, err)
+
+		_, err = store.PopOAuthChallenge(ctx, "state-expired")
+		var notFound errors.ErrNotFound
+		require.ErrorAs(t, err, &notFound)
+	})
 }
