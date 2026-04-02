@@ -32,7 +32,7 @@ jobs:
           args: test --source . unit export --path coverage.txt
 
       - name: Upload Coverage
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v6
         with:
           file: coverage.txt
           flags: unittests
