@@ -29,11 +29,21 @@ import (
 // addEvaluationEvent adds a tracing event for flag evaluation with the appropriate attributes
 func (s *Server) addEvaluationEvent(ctx context.Context, env environments.Environment, namespaceKey, flagKey, entityID, requestID string, attrs ...attribute.KeyValue) {
 	span := trace.SpanFromContext(ctx)
-	baseAttrs := []attribute.KeyValue{
+	// pre-allocate to exact capacity needed
+	capacity := 3 + len(attrs)
+	if entityID != "" {
+		capacity++
+	}
+	if requestID != "" {
+		capacity++
+	}
+
+	baseAttrs := make([]attribute.KeyValue, 0, capacity)
+	baseAttrs = append(baseAttrs,
 		tracing.AttributeEnvironment.String(env.Key()),
 		tracing.AttributeNamespace.String(namespaceKey),
 		tracing.AttributeFlag.String(flagKey),
-	}
+	)
 
 	if entityID != "" {
 		baseAttrs = append(baseAttrs, tracing.AttributeEntityID.String(entityID))
