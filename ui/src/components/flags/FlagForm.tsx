@@ -18,6 +18,7 @@ import Loading from '~/components/Loading';
 import { UnsavedChangesModalWrapper } from '~/components/UnsavedChangesModal';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
+import FlagEnvironments from '~/components/flags/FlagEnvironments';
 import Variants from '~/components/variants/Variants';
 
 import { IDistribution } from '~/types/Distribution';
@@ -69,10 +70,14 @@ export const validRollout = (rollouts: IDistribution[]): boolean => {
 
 const variantFlagTabs = [
   { name: 'Variants', id: 'variants' },
-  { name: 'Rules', id: 'rules' }
+  { name: 'Rules', id: 'rules' },
+  { name: 'Environments', id: 'environments' }
 ];
 
-const booleanFlagTabs = [{ name: 'Rollouts', id: 'rollouts' }];
+const booleanFlagTabs = [
+  { name: 'Rollouts', id: 'rollouts' },
+  { name: 'Environments', id: 'environments' }
+];
 
 function FlagTypeSelector({
   selectedType,
@@ -477,6 +482,9 @@ export default function FlagForm(props: { flag?: IFlag }) {
                 )}
                 {selectedTab == 'rules' && (
                   <Rules flag={flag} variants={variants!} rules={rules!} />
+                )}
+                {selectedTab == 'environments' && (
+                  <FlagEnvironments flag={flag} />
                 )}
               </div>
             )}

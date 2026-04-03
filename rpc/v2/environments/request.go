@@ -59,3 +59,38 @@ func (r *UpdateResourceRequest) Request() []flipt.Request {
 func (r *DeleteResourceRequest) Request() []flipt.Request {
 	return []flipt.Request{flipt.NewRequest(flipt.ScopeNamespace, flipt.ActionDelete, flipt.WithEnvironment(r.EnvironmentKey), flipt.WithNamespace(r.NamespaceKey))}
 }
+
+func (r *CopyNamespaceRequest) Request() []flipt.Request {
+	return []flipt.Request{
+		flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.SourceEnvironmentKey)),
+		flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionUpdate, flipt.WithEnvironment(r.EnvironmentKey)),
+	}
+}
+
+func (r *CompareEnvironmentsRequest) Request() []flipt.Request {
+	return []flipt.Request{
+		flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey)),
+		flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.TargetEnvironmentKey)),
+	}
+}
+
+func (r *BulkApplyResourcesRequest) Request() []flipt.Request {
+	environmentKeys := r.GetEnvironmentKeys()
+	if len(environmentKeys) == 0 {
+		environmentKeys = []string{r.EnvironmentKey}
+	}
+
+	requests := make([]flipt.Request, 0, len(environmentKeys))
+	seen := make(map[string]struct{}, len(environmentKeys))
+
+	for _, key := range environmentKeys {
+		if _, ok := seen[key]; ok {
+			continue
+		}
+
+		seen[key] = struct{}{}
+		requests = append(requests, flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionUpdate, flipt.WithEnvironment(key)))
+	}
+
+	return requests
+}

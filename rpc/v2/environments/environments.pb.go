@@ -148,6 +148,212 @@ func (ProposalState) EnumDescriptor() ([]byte, []int) {
 	return file_environments_environments_proto_rawDescGZIP(), []int{1}
 }
 
+// Conflict resolution strategy for copy/bulk operations.
+type ConflictStrategy int32
+
+const (
+	ConflictStrategy_CONFLICT_STRATEGY_FAIL      ConflictStrategy = 0
+	ConflictStrategy_CONFLICT_STRATEGY_OVERWRITE ConflictStrategy = 1
+	ConflictStrategy_CONFLICT_STRATEGY_SKIP      ConflictStrategy = 2
+)
+
+// Enum value maps for ConflictStrategy.
+var (
+	ConflictStrategy_name = map[int32]string{
+		0: "CONFLICT_STRATEGY_FAIL",
+		1: "CONFLICT_STRATEGY_OVERWRITE",
+		2: "CONFLICT_STRATEGY_SKIP",
+	}
+	ConflictStrategy_value = map[string]int32{
+		"CONFLICT_STRATEGY_FAIL":      0,
+		"CONFLICT_STRATEGY_OVERWRITE": 1,
+		"CONFLICT_STRATEGY_SKIP":      2,
+	}
+)
+
+func (x ConflictStrategy) Enum() *ConflictStrategy {
+	p := new(ConflictStrategy)
+	*p = x
+	return p
+}
+
+func (x ConflictStrategy) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ConflictStrategy) Descriptor() protoreflect.EnumDescriptor {
+	return file_environments_environments_proto_enumTypes[2].Descriptor()
+}
+
+func (ConflictStrategy) Type() protoreflect.EnumType {
+	return &file_environments_environments_proto_enumTypes[2]
+}
+
+func (x ConflictStrategy) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ConflictStrategy.Descriptor instead.
+func (ConflictStrategy) EnumDescriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{2}
+}
+
+// Bulk operation type.
+type BulkOperation int32
+
+const (
+	BulkOperation_BULK_OPERATION_CREATE BulkOperation = 0
+	BulkOperation_BULK_OPERATION_UPDATE BulkOperation = 1
+	BulkOperation_BULK_OPERATION_DELETE BulkOperation = 2
+	BulkOperation_BULK_OPERATION_UPSERT BulkOperation = 3
+)
+
+// Enum value maps for BulkOperation.
+var (
+	BulkOperation_name = map[int32]string{
+		0: "BULK_OPERATION_CREATE",
+		1: "BULK_OPERATION_UPDATE",
+		2: "BULK_OPERATION_DELETE",
+		3: "BULK_OPERATION_UPSERT",
+	}
+	BulkOperation_value = map[string]int32{
+		"BULK_OPERATION_CREATE": 0,
+		"BULK_OPERATION_UPDATE": 1,
+		"BULK_OPERATION_DELETE": 2,
+		"BULK_OPERATION_UPSERT": 3,
+	}
+)
+
+func (x BulkOperation) Enum() *BulkOperation {
+	p := new(BulkOperation)
+	*p = x
+	return p
+}
+
+func (x BulkOperation) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BulkOperation) Descriptor() protoreflect.EnumDescriptor {
+	return file_environments_environments_proto_enumTypes[3].Descriptor()
+}
+
+func (BulkOperation) Type() protoreflect.EnumType {
+	return &file_environments_environments_proto_enumTypes[3]
+}
+
+func (x BulkOperation) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BulkOperation.Descriptor instead.
+func (BulkOperation) EnumDescriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{3}
+}
+
+// Per-resource/namespace operation result status.
+type OperationStatus int32
+
+const (
+	OperationStatus_OPERATION_STATUS_SUCCESS OperationStatus = 0
+	OperationStatus_OPERATION_STATUS_SKIPPED OperationStatus = 1
+	OperationStatus_OPERATION_STATUS_FAILED  OperationStatus = 2
+)
+
+// Enum value maps for OperationStatus.
+var (
+	OperationStatus_name = map[int32]string{
+		0: "OPERATION_STATUS_SUCCESS",
+		1: "OPERATION_STATUS_SKIPPED",
+		2: "OPERATION_STATUS_FAILED",
+	}
+	OperationStatus_value = map[string]int32{
+		"OPERATION_STATUS_SUCCESS": 0,
+		"OPERATION_STATUS_SKIPPED": 1,
+		"OPERATION_STATUS_FAILED":  2,
+	}
+)
+
+func (x OperationStatus) Enum() *OperationStatus {
+	p := new(OperationStatus)
+	*p = x
+	return p
+}
+
+func (x OperationStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (OperationStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_environments_environments_proto_enumTypes[4].Descriptor()
+}
+
+func (OperationStatus) Type() protoreflect.EnumType {
+	return &file_environments_environments_proto_enumTypes[4]
+}
+
+func (x OperationStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use OperationStatus.Descriptor instead.
+func (OperationStatus) EnumDescriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{4}
+}
+
+// Comparison status for a resource key across two env/namespace pairs.
+type CompareStatus int32
+
+const (
+	CompareStatus_COMPARE_STATUS_IDENTICAL   CompareStatus = 0
+	CompareStatus_COMPARE_STATUS_DIFFERENT   CompareStatus = 1
+	CompareStatus_COMPARE_STATUS_SOURCE_ONLY CompareStatus = 2
+	CompareStatus_COMPARE_STATUS_TARGET_ONLY CompareStatus = 3
+)
+
+// Enum value maps for CompareStatus.
+var (
+	CompareStatus_name = map[int32]string{
+		0: "COMPARE_STATUS_IDENTICAL",
+		1: "COMPARE_STATUS_DIFFERENT",
+		2: "COMPARE_STATUS_SOURCE_ONLY",
+		3: "COMPARE_STATUS_TARGET_ONLY",
+	}
+	CompareStatus_value = map[string]int32{
+		"COMPARE_STATUS_IDENTICAL":   0,
+		"COMPARE_STATUS_DIFFERENT":   1,
+		"COMPARE_STATUS_SOURCE_ONLY": 2,
+		"COMPARE_STATUS_TARGET_ONLY": 3,
+	}
+)
+
+func (x CompareStatus) Enum() *CompareStatus {
+	p := new(CompareStatus)
+	*p = x
+	return p
+}
+
+func (x CompareStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CompareStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_environments_environments_proto_enumTypes[5].Descriptor()
+}
+
+func (CompareStatus) Type() protoreflect.EnumType {
+	return &file_environments_environments_proto_enumTypes[5]
+}
+
+func (x CompareStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CompareStatus.Descriptor instead.
+func (CompareStatus) EnumDescriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{5}
+}
+
 // The Environment represents a environment.
 type Environment struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2015,6 +2221,665 @@ func (x *DeleteResourceResponse) GetRevision() string {
 	return ""
 }
 
+// Request to copy all resources from one namespace to another.
+type CopyNamespaceRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Target environment.
+	EnvironmentKey string `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	// Target namespace key (created if it doesn't exist).
+	NamespaceKey string `protobuf:"bytes,2,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	// Source coordinates.
+	SourceEnvironmentKey string `protobuf:"bytes,3,opt,name=source_environment_key,json=sourceEnvironmentKey,proto3" json:"source_environment_key,omitempty"`
+	SourceNamespaceKey   string `protobuf:"bytes,4,opt,name=source_namespace_key,json=sourceNamespaceKey,proto3" json:"source_namespace_key,omitempty"`
+	// Conflict strategy.
+	OnConflict ConflictStrategy `protobuf:"varint,5,opt,name=on_conflict,json=onConflict,proto3,enum=environments.ConflictStrategy" json:"on_conflict,omitempty"`
+	// Revision for optimistic concurrency on the target environment.
+	Revision      string `protobuf:"bytes,100,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CopyNamespaceRequest) Reset() {
+	*x = CopyNamespaceRequest{}
+	mi := &file_environments_environments_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CopyNamespaceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CopyNamespaceRequest) ProtoMessage() {}
+
+func (x *CopyNamespaceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CopyNamespaceRequest.ProtoReflect.Descriptor instead.
+func (*CopyNamespaceRequest) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *CopyNamespaceRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
+func (x *CopyNamespaceRequest) GetNamespaceKey() string {
+	if x != nil {
+		return x.NamespaceKey
+	}
+	return ""
+}
+
+func (x *CopyNamespaceRequest) GetSourceEnvironmentKey() string {
+	if x != nil {
+		return x.SourceEnvironmentKey
+	}
+	return ""
+}
+
+func (x *CopyNamespaceRequest) GetSourceNamespaceKey() string {
+	if x != nil {
+		return x.SourceNamespaceKey
+	}
+	return ""
+}
+
+func (x *CopyNamespaceRequest) GetOnConflict() ConflictStrategy {
+	if x != nil {
+		return x.OnConflict
+	}
+	return ConflictStrategy_CONFLICT_STRATEGY_FAIL
+}
+
+func (x *CopyNamespaceRequest) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+// Per-resource result from a namespace copy.
+type CopyNamespaceResourceResult struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	TypeUrl string                 `protobuf:"bytes,1,opt,name=type_url,json=typeUrl,proto3" json:"type_url,omitempty"`
+	Key     string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Status  OperationStatus        `protobuf:"varint,3,opt,name=status,proto3,enum=environments.OperationStatus" json:"status,omitempty"`
+	// Error message if status is FAILED.
+	Error         *string `protobuf:"bytes,4,opt,name=error,proto3,oneof" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CopyNamespaceResourceResult) Reset() {
+	*x = CopyNamespaceResourceResult{}
+	mi := &file_environments_environments_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CopyNamespaceResourceResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CopyNamespaceResourceResult) ProtoMessage() {}
+
+func (x *CopyNamespaceResourceResult) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CopyNamespaceResourceResult.ProtoReflect.Descriptor instead.
+func (*CopyNamespaceResourceResult) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *CopyNamespaceResourceResult) GetTypeUrl() string {
+	if x != nil {
+		return x.TypeUrl
+	}
+	return ""
+}
+
+func (x *CopyNamespaceResourceResult) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *CopyNamespaceResourceResult) GetStatus() OperationStatus {
+	if x != nil {
+		return x.Status
+	}
+	return OperationStatus_OPERATION_STATUS_SUCCESS
+}
+
+func (x *CopyNamespaceResourceResult) GetError() string {
+	if x != nil && x.Error != nil {
+		return *x.Error
+	}
+	return ""
+}
+
+// Response after copying a namespace.
+type CopyNamespaceResponse struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Results       []*CopyNamespaceResourceResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	Revision      string                         `protobuf:"bytes,100,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CopyNamespaceResponse) Reset() {
+	*x = CopyNamespaceResponse{}
+	mi := &file_environments_environments_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CopyNamespaceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CopyNamespaceResponse) ProtoMessage() {}
+
+func (x *CopyNamespaceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CopyNamespaceResponse.ProtoReflect.Descriptor instead.
+func (*CopyNamespaceResponse) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *CopyNamespaceResponse) GetResults() []*CopyNamespaceResourceResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+func (x *CopyNamespaceResponse) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+// Request to compare resources across source and target environment/namespace.
+type CompareEnvironmentsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Source environment key.
+	EnvironmentKey string `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	// Source namespace key.
+	NamespaceKey string `protobuf:"bytes,2,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	// Target environment key.
+	TargetEnvironmentKey string `protobuf:"bytes,3,opt,name=target_environment_key,json=targetEnvironmentKey,proto3" json:"target_environment_key,omitempty"`
+	// Target namespace key.
+	TargetNamespaceKey string `protobuf:"bytes,4,opt,name=target_namespace_key,json=targetNamespaceKey,proto3" json:"target_namespace_key,omitempty"`
+	// Optional list of resource type urls (e.g. flipt.core.Flag). Defaults to known resource types.
+	TypeUrls      []string `protobuf:"bytes,5,rep,name=type_urls,json=typeUrls,proto3" json:"type_urls,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompareEnvironmentsRequest) Reset() {
+	*x = CompareEnvironmentsRequest{}
+	mi := &file_environments_environments_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompareEnvironmentsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompareEnvironmentsRequest) ProtoMessage() {}
+
+func (x *CompareEnvironmentsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompareEnvironmentsRequest.ProtoReflect.Descriptor instead.
+func (*CompareEnvironmentsRequest) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *CompareEnvironmentsRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
+func (x *CompareEnvironmentsRequest) GetNamespaceKey() string {
+	if x != nil {
+		return x.NamespaceKey
+	}
+	return ""
+}
+
+func (x *CompareEnvironmentsRequest) GetTargetEnvironmentKey() string {
+	if x != nil {
+		return x.TargetEnvironmentKey
+	}
+	return ""
+}
+
+func (x *CompareEnvironmentsRequest) GetTargetNamespaceKey() string {
+	if x != nil {
+		return x.TargetNamespaceKey
+	}
+	return ""
+}
+
+func (x *CompareEnvironmentsRequest) GetTypeUrls() []string {
+	if x != nil {
+		return x.TypeUrls
+	}
+	return nil
+}
+
+// Per-resource comparison result.
+type CompareResourceResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TypeUrl       string                 `protobuf:"bytes,1,opt,name=type_url,json=typeUrl,proto3" json:"type_url,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Status        CompareStatus          `protobuf:"varint,3,opt,name=status,proto3,enum=environments.CompareStatus" json:"status,omitempty"`
+	Source        *Resource              `protobuf:"bytes,4,opt,name=source,proto3,oneof" json:"source,omitempty"`
+	Target        *Resource              `protobuf:"bytes,5,opt,name=target,proto3,oneof" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompareResourceResult) Reset() {
+	*x = CompareResourceResult{}
+	mi := &file_environments_environments_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompareResourceResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompareResourceResult) ProtoMessage() {}
+
+func (x *CompareResourceResult) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompareResourceResult.ProtoReflect.Descriptor instead.
+func (*CompareResourceResult) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *CompareResourceResult) GetTypeUrl() string {
+	if x != nil {
+		return x.TypeUrl
+	}
+	return ""
+}
+
+func (x *CompareResourceResult) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *CompareResourceResult) GetStatus() CompareStatus {
+	if x != nil {
+		return x.Status
+	}
+	return CompareStatus_COMPARE_STATUS_IDENTICAL
+}
+
+func (x *CompareResourceResult) GetSource() *Resource {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *CompareResourceResult) GetTarget() *Resource {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+// Response for environment comparison.
+type CompareEnvironmentsResponse struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Results       []*CompareResourceResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompareEnvironmentsResponse) Reset() {
+	*x = CompareEnvironmentsResponse{}
+	mi := &file_environments_environments_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompareEnvironmentsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompareEnvironmentsResponse) ProtoMessage() {}
+
+func (x *CompareEnvironmentsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompareEnvironmentsResponse.ProtoReflect.Descriptor instead.
+func (*CompareEnvironmentsResponse) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *CompareEnvironmentsResponse) GetResults() []*CompareResourceResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+// Request to apply an operation to a resource across multiple namespaces.
+type BulkApplyResourcesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Primary environment key (also used for request path binding).
+	EnvironmentKey string `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	// Explicit list of target namespace keys.
+	NamespaceKeys []string `protobuf:"bytes,2,rep,name=namespace_keys,json=namespaceKeys,proto3" json:"namespace_keys,omitempty"`
+	// Operation to apply.
+	Operation BulkOperation `protobuf:"varint,3,opt,name=operation,proto3,enum=environments.BulkOperation" json:"operation,omitempty"`
+	// Resource type.
+	TypeUrl string `protobuf:"bytes,4,opt,name=type_url,json=typeUrl,proto3" json:"type_url,omitempty"`
+	// Resource key (for UPDATE, DELETE, UPSERT).
+	Key string `protobuf:"bytes,5,opt,name=key,proto3" json:"key,omitempty"`
+	// Resource payload (for CREATE, UPDATE, UPSERT).
+	Payload *anypb.Any `protobuf:"bytes,6,opt,name=payload,proto3,oneof" json:"payload,omitempty"`
+	// Conflict strategy (for CREATE, UPSERT).
+	OnConflict ConflictStrategy `protobuf:"varint,7,opt,name=on_conflict,json=onConflict,proto3,enum=environments.ConflictStrategy" json:"on_conflict,omitempty"`
+	// Optional list of target environment keys.
+	// If empty, only `environment_key` is targeted.
+	EnvironmentKeys []string `protobuf:"bytes,8,rep,name=environment_keys,json=environmentKeys,proto3" json:"environment_keys,omitempty"`
+	// Revision for optimistic concurrency.
+	Revision      string `protobuf:"bytes,100,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BulkApplyResourcesRequest) Reset() {
+	*x = BulkApplyResourcesRequest{}
+	mi := &file_environments_environments_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BulkApplyResourcesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BulkApplyResourcesRequest) ProtoMessage() {}
+
+func (x *BulkApplyResourcesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BulkApplyResourcesRequest.ProtoReflect.Descriptor instead.
+func (*BulkApplyResourcesRequest) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *BulkApplyResourcesRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
+func (x *BulkApplyResourcesRequest) GetNamespaceKeys() []string {
+	if x != nil {
+		return x.NamespaceKeys
+	}
+	return nil
+}
+
+func (x *BulkApplyResourcesRequest) GetOperation() BulkOperation {
+	if x != nil {
+		return x.Operation
+	}
+	return BulkOperation_BULK_OPERATION_CREATE
+}
+
+func (x *BulkApplyResourcesRequest) GetTypeUrl() string {
+	if x != nil {
+		return x.TypeUrl
+	}
+	return ""
+}
+
+func (x *BulkApplyResourcesRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *BulkApplyResourcesRequest) GetPayload() *anypb.Any {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *BulkApplyResourcesRequest) GetOnConflict() ConflictStrategy {
+	if x != nil {
+		return x.OnConflict
+	}
+	return ConflictStrategy_CONFLICT_STRATEGY_FAIL
+}
+
+func (x *BulkApplyResourcesRequest) GetEnvironmentKeys() []string {
+	if x != nil {
+		return x.EnvironmentKeys
+	}
+	return nil
+}
+
+func (x *BulkApplyResourcesRequest) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+// Per-namespace result from a bulk apply.
+type BulkApplyNamespaceResult struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	NamespaceKey   string                 `protobuf:"bytes,2,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	Status         OperationStatus        `protobuf:"varint,3,opt,name=status,proto3,enum=environments.OperationStatus" json:"status,omitempty"`
+	Error          *string                `protobuf:"bytes,4,opt,name=error,proto3,oneof" json:"error,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *BulkApplyNamespaceResult) Reset() {
+	*x = BulkApplyNamespaceResult{}
+	mi := &file_environments_environments_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BulkApplyNamespaceResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BulkApplyNamespaceResult) ProtoMessage() {}
+
+func (x *BulkApplyNamespaceResult) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BulkApplyNamespaceResult.ProtoReflect.Descriptor instead.
+func (*BulkApplyNamespaceResult) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *BulkApplyNamespaceResult) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
+func (x *BulkApplyNamespaceResult) GetNamespaceKey() string {
+	if x != nil {
+		return x.NamespaceKey
+	}
+	return ""
+}
+
+func (x *BulkApplyNamespaceResult) GetStatus() OperationStatus {
+	if x != nil {
+		return x.Status
+	}
+	return OperationStatus_OPERATION_STATUS_SUCCESS
+}
+
+func (x *BulkApplyNamespaceResult) GetError() string {
+	if x != nil && x.Error != nil {
+		return *x.Error
+	}
+	return ""
+}
+
+// Response after bulk applying resources.
+type BulkApplyResourcesResponse struct {
+	state   protoimpl.MessageState      `protogen:"open.v1"`
+	Results []*BulkApplyNamespaceResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	// Revision for `environment_key` from the request.
+	Revision      string `protobuf:"bytes,100,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BulkApplyResourcesResponse) Reset() {
+	*x = BulkApplyResourcesResponse{}
+	mi := &file_environments_environments_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BulkApplyResourcesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BulkApplyResourcesResponse) ProtoMessage() {}
+
+func (x *BulkApplyResourcesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BulkApplyResourcesResponse.ProtoReflect.Descriptor instead.
+func (*BulkApplyResourcesResponse) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *BulkApplyResourcesResponse) GetResults() []*BulkApplyNamespaceResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+func (x *BulkApplyResourcesResponse) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
 var File_environments_environments_proto protoreflect.FileDescriptor
 
 const file_environments_environments_proto_rawDesc = "" +
@@ -2158,6 +3023,61 @@ const file_environments_environments_proto_rawDesc = "" +
 	"\x03key\x18\x04 \x01(\tR\x03key\x12\x1a\n" +
 	"\brevision\x18d \x01(\tR\brevision\"4\n" +
 	"\x16DeleteResourceResponse\x12\x1a\n" +
+	"\brevision\x18d \x01(\tR\brevision\"\xa9\x02\n" +
+	"\x14CopyNamespaceRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
+	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x124\n" +
+	"\x16source_environment_key\x18\x03 \x01(\tR\x14sourceEnvironmentKey\x120\n" +
+	"\x14source_namespace_key\x18\x04 \x01(\tR\x12sourceNamespaceKey\x12?\n" +
+	"\von_conflict\x18\x05 \x01(\x0e2\x1e.environments.ConflictStrategyR\n" +
+	"onConflict\x12\x1a\n" +
+	"\brevision\x18d \x01(\tR\brevision\"\xa6\x01\n" +
+	"\x1bCopyNamespaceResourceResult\x12\x19\n" +
+	"\btype_url\x18\x01 \x01(\tR\atypeUrl\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x125\n" +
+	"\x06status\x18\x03 \x01(\x0e2\x1d.environments.OperationStatusR\x06status\x12\x19\n" +
+	"\x05error\x18\x04 \x01(\tH\x00R\x05error\x88\x01\x01B\b\n" +
+	"\x06_error\"x\n" +
+	"\x15CopyNamespaceResponse\x12C\n" +
+	"\aresults\x18\x01 \x03(\v2).environments.CopyNamespaceResourceResultR\aresults\x12\x1a\n" +
+	"\brevision\x18d \x01(\tR\brevision\"\xef\x01\n" +
+	"\x1aCompareEnvironmentsRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
+	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x124\n" +
+	"\x16target_environment_key\x18\x03 \x01(\tR\x14targetEnvironmentKey\x120\n" +
+	"\x14target_namespace_key\x18\x04 \x01(\tR\x12targetNamespaceKey\x12\x1b\n" +
+	"\ttype_urls\x18\x05 \x03(\tR\btypeUrls\"\xf9\x01\n" +
+	"\x15CompareResourceResult\x12\x19\n" +
+	"\btype_url\x18\x01 \x01(\tR\atypeUrl\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x123\n" +
+	"\x06status\x18\x03 \x01(\x0e2\x1b.environments.CompareStatusR\x06status\x123\n" +
+	"\x06source\x18\x04 \x01(\v2\x16.environments.ResourceH\x00R\x06source\x88\x01\x01\x123\n" +
+	"\x06target\x18\x05 \x01(\v2\x16.environments.ResourceH\x01R\x06target\x88\x01\x01B\t\n" +
+	"\a_sourceB\t\n" +
+	"\a_target\"\\\n" +
+	"\x1bCompareEnvironmentsResponse\x12=\n" +
+	"\aresults\x18\x01 \x03(\v2#.environments.CompareResourceResultR\aresults\"\x9c\x03\n" +
+	"\x19BulkApplyResourcesRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12%\n" +
+	"\x0enamespace_keys\x18\x02 \x03(\tR\rnamespaceKeys\x129\n" +
+	"\toperation\x18\x03 \x01(\x0e2\x1b.environments.BulkOperationR\toperation\x12\x19\n" +
+	"\btype_url\x18\x04 \x01(\tR\atypeUrl\x12\x10\n" +
+	"\x03key\x18\x05 \x01(\tR\x03key\x123\n" +
+	"\apayload\x18\x06 \x01(\v2\x14.google.protobuf.AnyH\x00R\apayload\x88\x01\x01\x12?\n" +
+	"\von_conflict\x18\a \x01(\x0e2\x1e.environments.ConflictStrategyR\n" +
+	"onConflict\x12)\n" +
+	"\x10environment_keys\x18\b \x03(\tR\x0fenvironmentKeys\x12\x1a\n" +
+	"\brevision\x18d \x01(\tR\brevisionB\n" +
+	"\n" +
+	"\b_payload\"\xc4\x01\n" +
+	"\x18BulkApplyNamespaceResult\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
+	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x125\n" +
+	"\x06status\x18\x03 \x01(\x0e2\x1d.environments.OperationStatusR\x06status\x12\x19\n" +
+	"\x05error\x18\x04 \x01(\tH\x00R\x05error\x88\x01\x01B\b\n" +
+	"\x06_error\"z\n" +
+	"\x1aBulkApplyResourcesResponse\x12@\n" +
+	"\aresults\x18\x01 \x03(\v2&.environments.BulkApplyNamespaceResultR\aresults\x12\x1a\n" +
 	"\brevision\x18d \x01(\tR\brevision*g\n" +
 	"\x03SCM\x12\x0f\n" +
 	"\vSCM_UNKNOWN\x10\x00\x12\x0e\n" +
@@ -2172,7 +3092,25 @@ const file_environments_environments_proto_rawDesc = "" +
 	"\x16PROPOSAL_STATE_UNKNOWN\x10\x00\x12\x17\n" +
 	"\x13PROPOSAL_STATE_OPEN\x10\x01\x12\x19\n" +
 	"\x15PROPOSAL_STATE_MERGED\x10\x02\x12\x19\n" +
-	"\x15PROPOSAL_STATE_CLOSED\x10\x032\xf1\x18\n" +
+	"\x15PROPOSAL_STATE_CLOSED\x10\x03*k\n" +
+	"\x10ConflictStrategy\x12\x1a\n" +
+	"\x16CONFLICT_STRATEGY_FAIL\x10\x00\x12\x1f\n" +
+	"\x1bCONFLICT_STRATEGY_OVERWRITE\x10\x01\x12\x1a\n" +
+	"\x16CONFLICT_STRATEGY_SKIP\x10\x02*{\n" +
+	"\rBulkOperation\x12\x19\n" +
+	"\x15BULK_OPERATION_CREATE\x10\x00\x12\x19\n" +
+	"\x15BULK_OPERATION_UPDATE\x10\x01\x12\x19\n" +
+	"\x15BULK_OPERATION_DELETE\x10\x02\x12\x19\n" +
+	"\x15BULK_OPERATION_UPSERT\x10\x03*j\n" +
+	"\x0fOperationStatus\x12\x1c\n" +
+	"\x18OPERATION_STATUS_SUCCESS\x10\x00\x12\x1c\n" +
+	"\x18OPERATION_STATUS_SKIPPED\x10\x01\x12\x1b\n" +
+	"\x17OPERATION_STATUS_FAILED\x10\x02*\x8b\x01\n" +
+	"\rCompareStatus\x12\x1c\n" +
+	"\x18COMPARE_STATUS_IDENTICAL\x10\x00\x12\x1c\n" +
+	"\x18COMPARE_STATUS_DIFFERENT\x10\x01\x12\x1e\n" +
+	"\x1aCOMPARE_STATUS_SOURCE_ONLY\x10\x02\x12\x1e\n" +
+	"\x1aCOMPARE_STATUS_TARGET_ONLY\x10\x032\xa4\x1d\n" +
 	"\x13EnvironmentsService\x12\x94\x01\n" +
 	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"1\xbaG\x12*\x10listEnvironments\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v2/environments\x12\xc6\x01\n" +
 	"\x11BranchEnvironment\x12&.environments.BranchEnvironmentRequest\x1a\x19.environments.Environment\"n\xbaG\x19*\x17createBranchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x024:\x01*\"//api/v2/environments/{environment_key}/branches\x12\xd2\x01\n" +
@@ -2189,7 +3127,10 @@ const file_environments_environments_proto_rawDesc = "" +
 	"\rListResources\x12\".environments.ListResourcesRequest\x1a#.environments.ListResourcesResponse\"p\xbaG\x0f*\rlistResources\x82\xd3\xe4\x93\x02X\x12V/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}\x12\xc0\x01\n" +
 	"\x0eCreateResource\x12#.environments.UpdateResourceRequest\x1a\x1e.environments.ResourceResponse\"i\xbaG\x10*\x0ecreateResource\x82\xd3\xe4\x93\x02P:\x01*\"K/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources\x12\xc0\x01\n" +
 	"\x0eUpdateResource\x12#.environments.UpdateResourceRequest\x1a\x1e.environments.ResourceResponse\"i\xbaG\x10*\x0eupdateResource\x82\xd3\xe4\x93\x02P:\x01*\x1aK/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources\x12\xd4\x01\n" +
-	"\x0eDeleteResource\x12#.environments.DeleteResourceRequest\x1a$.environments.DeleteResourceResponse\"w\xbaG\x10*\x0edeleteResource\x82\xd3\xe4\x93\x02^*\\/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}B'Z%go.flipt.io/flipt/rpc/v2/environmentsb\x06proto3"
+	"\x0eDeleteResource\x12#.environments.DeleteResourceRequest\x1a$.environments.DeleteResourceResponse\"w\xbaG\x10*\x0edeleteResource\x82\xd3\xe4\x93\x02^*\\/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}\x12\xad\x01\n" +
+	"\rCopyNamespace\x12\".environments.CopyNamespaceRequest\x1a#.environments.CopyNamespaceResponse\"S\xbaG\x0f*\rcopyNamespace\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v2/environments/{environment_key}/namespaces/copy\x12\xbd\x01\n" +
+	"\x13CompareEnvironments\x12(.environments.CompareEnvironmentsRequest\x1a).environments.CompareEnvironmentsResponse\"Q\xbaG\x15*\x13compareEnvironments\x82\xd3\xe4\x93\x023:\x01*\"./api/v2/environments/{environment_key}/compare\x12\xc0\x01\n" +
+	"\x12BulkApplyResources\x12'.environments.BulkApplyResourcesRequest\x1a(.environments.BulkApplyResourcesResponse\"W\xbaG\x14*\x12bulkApplyResources\x82\xd3\xe4\x93\x02::\x01*\"5/api/v2/environments/{environment_key}/resources/bulkB'Z%go.flipt.io/flipt/rpc/v2/environmentsb\x06proto3"
 
 var (
 	file_environments_environments_proto_rawDescOnce sync.Once
@@ -2203,95 +3144,126 @@ func file_environments_environments_proto_rawDescGZIP() []byte {
 	return file_environments_environments_proto_rawDescData
 }
 
-var file_environments_environments_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_environments_environments_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_environments_environments_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_environments_environments_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
 var file_environments_environments_proto_goTypes = []any{
 	(SCM)(0),                                       // 0: environments.SCM
 	(ProposalState)(0),                             // 1: environments.ProposalState
-	(*Environment)(nil),                            // 2: environments.Environment
-	(*EnvironmentConfiguration)(nil),               // 3: environments.EnvironmentConfiguration
-	(*ListEnvironmentsRequest)(nil),                // 4: environments.ListEnvironmentsRequest
-	(*ListEnvironmentsResponse)(nil),               // 5: environments.ListEnvironmentsResponse
-	(*BranchEnvironmentRequest)(nil),               // 6: environments.BranchEnvironmentRequest
-	(*DeleteBranchEnvironmentRequest)(nil),         // 7: environments.DeleteBranchEnvironmentRequest
-	(*BranchEnvironment)(nil),                      // 8: environments.BranchEnvironment
-	(*ListEnvironmentBranchesRequest)(nil),         // 9: environments.ListEnvironmentBranchesRequest
-	(*ListEnvironmentBranchesResponse)(nil),        // 10: environments.ListEnvironmentBranchesResponse
-	(*ProposeEnvironmentRequest)(nil),              // 11: environments.ProposeEnvironmentRequest
-	(*EnvironmentProposalDetails)(nil),             // 12: environments.EnvironmentProposalDetails
-	(*Change)(nil),                                 // 13: environments.Change
-	(*ListBranchedEnvironmentChangesRequest)(nil),  // 14: environments.ListBranchedEnvironmentChangesRequest
-	(*ListBranchedEnvironmentChangesResponse)(nil), // 15: environments.ListBranchedEnvironmentChangesResponse
-	(*Namespace)(nil),                              // 16: environments.Namespace
-	(*GetNamespaceRequest)(nil),                    // 17: environments.GetNamespaceRequest
-	(*NamespaceResponse)(nil),                      // 18: environments.NamespaceResponse
-	(*ListNamespacesRequest)(nil),                  // 19: environments.ListNamespacesRequest
-	(*ListNamespacesResponse)(nil),                 // 20: environments.ListNamespacesResponse
-	(*UpdateNamespaceRequest)(nil),                 // 21: environments.UpdateNamespaceRequest
-	(*DeleteNamespaceRequest)(nil),                 // 22: environments.DeleteNamespaceRequest
-	(*DeleteNamespaceResponse)(nil),                // 23: environments.DeleteNamespaceResponse
-	(*GetResourceRequest)(nil),                     // 24: environments.GetResourceRequest
-	(*Resource)(nil),                               // 25: environments.Resource
-	(*ResourceResponse)(nil),                       // 26: environments.ResourceResponse
-	(*ListResourcesRequest)(nil),                   // 27: environments.ListResourcesRequest
-	(*ListResourcesResponse)(nil),                  // 28: environments.ListResourcesResponse
-	(*UpdateResourceRequest)(nil),                  // 29: environments.UpdateResourceRequest
-	(*DeleteResourceRequest)(nil),                  // 30: environments.DeleteResourceRequest
-	(*DeleteResourceResponse)(nil),                 // 31: environments.DeleteResourceResponse
-	(*anypb.Any)(nil),                              // 32: google.protobuf.Any
-	(*emptypb.Empty)(nil),                          // 33: google.protobuf.Empty
+	(ConflictStrategy)(0),                          // 2: environments.ConflictStrategy
+	(BulkOperation)(0),                             // 3: environments.BulkOperation
+	(OperationStatus)(0),                           // 4: environments.OperationStatus
+	(CompareStatus)(0),                             // 5: environments.CompareStatus
+	(*Environment)(nil),                            // 6: environments.Environment
+	(*EnvironmentConfiguration)(nil),               // 7: environments.EnvironmentConfiguration
+	(*ListEnvironmentsRequest)(nil),                // 8: environments.ListEnvironmentsRequest
+	(*ListEnvironmentsResponse)(nil),               // 9: environments.ListEnvironmentsResponse
+	(*BranchEnvironmentRequest)(nil),               // 10: environments.BranchEnvironmentRequest
+	(*DeleteBranchEnvironmentRequest)(nil),         // 11: environments.DeleteBranchEnvironmentRequest
+	(*BranchEnvironment)(nil),                      // 12: environments.BranchEnvironment
+	(*ListEnvironmentBranchesRequest)(nil),         // 13: environments.ListEnvironmentBranchesRequest
+	(*ListEnvironmentBranchesResponse)(nil),        // 14: environments.ListEnvironmentBranchesResponse
+	(*ProposeEnvironmentRequest)(nil),              // 15: environments.ProposeEnvironmentRequest
+	(*EnvironmentProposalDetails)(nil),             // 16: environments.EnvironmentProposalDetails
+	(*Change)(nil),                                 // 17: environments.Change
+	(*ListBranchedEnvironmentChangesRequest)(nil),  // 18: environments.ListBranchedEnvironmentChangesRequest
+	(*ListBranchedEnvironmentChangesResponse)(nil), // 19: environments.ListBranchedEnvironmentChangesResponse
+	(*Namespace)(nil),                              // 20: environments.Namespace
+	(*GetNamespaceRequest)(nil),                    // 21: environments.GetNamespaceRequest
+	(*NamespaceResponse)(nil),                      // 22: environments.NamespaceResponse
+	(*ListNamespacesRequest)(nil),                  // 23: environments.ListNamespacesRequest
+	(*ListNamespacesResponse)(nil),                 // 24: environments.ListNamespacesResponse
+	(*UpdateNamespaceRequest)(nil),                 // 25: environments.UpdateNamespaceRequest
+	(*DeleteNamespaceRequest)(nil),                 // 26: environments.DeleteNamespaceRequest
+	(*DeleteNamespaceResponse)(nil),                // 27: environments.DeleteNamespaceResponse
+	(*GetResourceRequest)(nil),                     // 28: environments.GetResourceRequest
+	(*Resource)(nil),                               // 29: environments.Resource
+	(*ResourceResponse)(nil),                       // 30: environments.ResourceResponse
+	(*ListResourcesRequest)(nil),                   // 31: environments.ListResourcesRequest
+	(*ListResourcesResponse)(nil),                  // 32: environments.ListResourcesResponse
+	(*UpdateResourceRequest)(nil),                  // 33: environments.UpdateResourceRequest
+	(*DeleteResourceRequest)(nil),                  // 34: environments.DeleteResourceRequest
+	(*DeleteResourceResponse)(nil),                 // 35: environments.DeleteResourceResponse
+	(*CopyNamespaceRequest)(nil),                   // 36: environments.CopyNamespaceRequest
+	(*CopyNamespaceResourceResult)(nil),            // 37: environments.CopyNamespaceResourceResult
+	(*CopyNamespaceResponse)(nil),                  // 38: environments.CopyNamespaceResponse
+	(*CompareEnvironmentsRequest)(nil),             // 39: environments.CompareEnvironmentsRequest
+	(*CompareResourceResult)(nil),                  // 40: environments.CompareResourceResult
+	(*CompareEnvironmentsResponse)(nil),            // 41: environments.CompareEnvironmentsResponse
+	(*BulkApplyResourcesRequest)(nil),              // 42: environments.BulkApplyResourcesRequest
+	(*BulkApplyNamespaceResult)(nil),               // 43: environments.BulkApplyNamespaceResult
+	(*BulkApplyResourcesResponse)(nil),             // 44: environments.BulkApplyResourcesResponse
+	(*anypb.Any)(nil),                              // 45: google.protobuf.Any
+	(*emptypb.Empty)(nil),                          // 46: google.protobuf.Empty
 }
 var file_environments_environments_proto_depIdxs = []int32{
-	3,  // 0: environments.Environment.configuration:type_name -> environments.EnvironmentConfiguration
+	7,  // 0: environments.Environment.configuration:type_name -> environments.EnvironmentConfiguration
 	0,  // 1: environments.EnvironmentConfiguration.scm:type_name -> environments.SCM
-	2,  // 2: environments.ListEnvironmentsResponse.environments:type_name -> environments.Environment
-	12, // 3: environments.BranchEnvironment.proposal:type_name -> environments.EnvironmentProposalDetails
-	8,  // 4: environments.ListEnvironmentBranchesResponse.branches:type_name -> environments.BranchEnvironment
+	6,  // 2: environments.ListEnvironmentsResponse.environments:type_name -> environments.Environment
+	16, // 3: environments.BranchEnvironment.proposal:type_name -> environments.EnvironmentProposalDetails
+	12, // 4: environments.ListEnvironmentBranchesResponse.branches:type_name -> environments.BranchEnvironment
 	1,  // 5: environments.EnvironmentProposalDetails.state:type_name -> environments.ProposalState
-	13, // 6: environments.ListBranchedEnvironmentChangesResponse.changes:type_name -> environments.Change
-	16, // 7: environments.NamespaceResponse.namespace:type_name -> environments.Namespace
-	16, // 8: environments.ListNamespacesResponse.items:type_name -> environments.Namespace
-	32, // 9: environments.Resource.payload:type_name -> google.protobuf.Any
-	25, // 10: environments.ResourceResponse.resource:type_name -> environments.Resource
-	25, // 11: environments.ListResourcesResponse.resources:type_name -> environments.Resource
-	32, // 12: environments.UpdateResourceRequest.payload:type_name -> google.protobuf.Any
-	4,  // 13: environments.EnvironmentsService.ListEnvironments:input_type -> environments.ListEnvironmentsRequest
-	6,  // 14: environments.EnvironmentsService.BranchEnvironment:input_type -> environments.BranchEnvironmentRequest
-	7,  // 15: environments.EnvironmentsService.DeleteBranchEnvironment:input_type -> environments.DeleteBranchEnvironmentRequest
-	9,  // 16: environments.EnvironmentsService.ListEnvironmentBranches:input_type -> environments.ListEnvironmentBranchesRequest
-	14, // 17: environments.EnvironmentsService.ListBranchedEnvironmentChanges:input_type -> environments.ListBranchedEnvironmentChangesRequest
-	11, // 18: environments.EnvironmentsService.ProposeEnvironment:input_type -> environments.ProposeEnvironmentRequest
-	17, // 19: environments.EnvironmentsService.GetNamespace:input_type -> environments.GetNamespaceRequest
-	19, // 20: environments.EnvironmentsService.ListNamespaces:input_type -> environments.ListNamespacesRequest
-	21, // 21: environments.EnvironmentsService.CreateNamespace:input_type -> environments.UpdateNamespaceRequest
-	21, // 22: environments.EnvironmentsService.UpdateNamespace:input_type -> environments.UpdateNamespaceRequest
-	22, // 23: environments.EnvironmentsService.DeleteNamespace:input_type -> environments.DeleteNamespaceRequest
-	24, // 24: environments.EnvironmentsService.GetResource:input_type -> environments.GetResourceRequest
-	27, // 25: environments.EnvironmentsService.ListResources:input_type -> environments.ListResourcesRequest
-	29, // 26: environments.EnvironmentsService.CreateResource:input_type -> environments.UpdateResourceRequest
-	29, // 27: environments.EnvironmentsService.UpdateResource:input_type -> environments.UpdateResourceRequest
-	30, // 28: environments.EnvironmentsService.DeleteResource:input_type -> environments.DeleteResourceRequest
-	5,  // 29: environments.EnvironmentsService.ListEnvironments:output_type -> environments.ListEnvironmentsResponse
-	2,  // 30: environments.EnvironmentsService.BranchEnvironment:output_type -> environments.Environment
-	33, // 31: environments.EnvironmentsService.DeleteBranchEnvironment:output_type -> google.protobuf.Empty
-	10, // 32: environments.EnvironmentsService.ListEnvironmentBranches:output_type -> environments.ListEnvironmentBranchesResponse
-	15, // 33: environments.EnvironmentsService.ListBranchedEnvironmentChanges:output_type -> environments.ListBranchedEnvironmentChangesResponse
-	12, // 34: environments.EnvironmentsService.ProposeEnvironment:output_type -> environments.EnvironmentProposalDetails
-	18, // 35: environments.EnvironmentsService.GetNamespace:output_type -> environments.NamespaceResponse
-	20, // 36: environments.EnvironmentsService.ListNamespaces:output_type -> environments.ListNamespacesResponse
-	18, // 37: environments.EnvironmentsService.CreateNamespace:output_type -> environments.NamespaceResponse
-	18, // 38: environments.EnvironmentsService.UpdateNamespace:output_type -> environments.NamespaceResponse
-	23, // 39: environments.EnvironmentsService.DeleteNamespace:output_type -> environments.DeleteNamespaceResponse
-	26, // 40: environments.EnvironmentsService.GetResource:output_type -> environments.ResourceResponse
-	28, // 41: environments.EnvironmentsService.ListResources:output_type -> environments.ListResourcesResponse
-	26, // 42: environments.EnvironmentsService.CreateResource:output_type -> environments.ResourceResponse
-	26, // 43: environments.EnvironmentsService.UpdateResource:output_type -> environments.ResourceResponse
-	31, // 44: environments.EnvironmentsService.DeleteResource:output_type -> environments.DeleteResourceResponse
-	29, // [29:45] is the sub-list for method output_type
-	13, // [13:29] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	17, // 6: environments.ListBranchedEnvironmentChangesResponse.changes:type_name -> environments.Change
+	20, // 7: environments.NamespaceResponse.namespace:type_name -> environments.Namespace
+	20, // 8: environments.ListNamespacesResponse.items:type_name -> environments.Namespace
+	45, // 9: environments.Resource.payload:type_name -> google.protobuf.Any
+	29, // 10: environments.ResourceResponse.resource:type_name -> environments.Resource
+	29, // 11: environments.ListResourcesResponse.resources:type_name -> environments.Resource
+	45, // 12: environments.UpdateResourceRequest.payload:type_name -> google.protobuf.Any
+	2,  // 13: environments.CopyNamespaceRequest.on_conflict:type_name -> environments.ConflictStrategy
+	4,  // 14: environments.CopyNamespaceResourceResult.status:type_name -> environments.OperationStatus
+	37, // 15: environments.CopyNamespaceResponse.results:type_name -> environments.CopyNamespaceResourceResult
+	5,  // 16: environments.CompareResourceResult.status:type_name -> environments.CompareStatus
+	29, // 17: environments.CompareResourceResult.source:type_name -> environments.Resource
+	29, // 18: environments.CompareResourceResult.target:type_name -> environments.Resource
+	40, // 19: environments.CompareEnvironmentsResponse.results:type_name -> environments.CompareResourceResult
+	3,  // 20: environments.BulkApplyResourcesRequest.operation:type_name -> environments.BulkOperation
+	45, // 21: environments.BulkApplyResourcesRequest.payload:type_name -> google.protobuf.Any
+	2,  // 22: environments.BulkApplyResourcesRequest.on_conflict:type_name -> environments.ConflictStrategy
+	4,  // 23: environments.BulkApplyNamespaceResult.status:type_name -> environments.OperationStatus
+	43, // 24: environments.BulkApplyResourcesResponse.results:type_name -> environments.BulkApplyNamespaceResult
+	8,  // 25: environments.EnvironmentsService.ListEnvironments:input_type -> environments.ListEnvironmentsRequest
+	10, // 26: environments.EnvironmentsService.BranchEnvironment:input_type -> environments.BranchEnvironmentRequest
+	11, // 27: environments.EnvironmentsService.DeleteBranchEnvironment:input_type -> environments.DeleteBranchEnvironmentRequest
+	13, // 28: environments.EnvironmentsService.ListEnvironmentBranches:input_type -> environments.ListEnvironmentBranchesRequest
+	18, // 29: environments.EnvironmentsService.ListBranchedEnvironmentChanges:input_type -> environments.ListBranchedEnvironmentChangesRequest
+	15, // 30: environments.EnvironmentsService.ProposeEnvironment:input_type -> environments.ProposeEnvironmentRequest
+	21, // 31: environments.EnvironmentsService.GetNamespace:input_type -> environments.GetNamespaceRequest
+	23, // 32: environments.EnvironmentsService.ListNamespaces:input_type -> environments.ListNamespacesRequest
+	25, // 33: environments.EnvironmentsService.CreateNamespace:input_type -> environments.UpdateNamespaceRequest
+	25, // 34: environments.EnvironmentsService.UpdateNamespace:input_type -> environments.UpdateNamespaceRequest
+	26, // 35: environments.EnvironmentsService.DeleteNamespace:input_type -> environments.DeleteNamespaceRequest
+	28, // 36: environments.EnvironmentsService.GetResource:input_type -> environments.GetResourceRequest
+	31, // 37: environments.EnvironmentsService.ListResources:input_type -> environments.ListResourcesRequest
+	33, // 38: environments.EnvironmentsService.CreateResource:input_type -> environments.UpdateResourceRequest
+	33, // 39: environments.EnvironmentsService.UpdateResource:input_type -> environments.UpdateResourceRequest
+	34, // 40: environments.EnvironmentsService.DeleteResource:input_type -> environments.DeleteResourceRequest
+	36, // 41: environments.EnvironmentsService.CopyNamespace:input_type -> environments.CopyNamespaceRequest
+	39, // 42: environments.EnvironmentsService.CompareEnvironments:input_type -> environments.CompareEnvironmentsRequest
+	42, // 43: environments.EnvironmentsService.BulkApplyResources:input_type -> environments.BulkApplyResourcesRequest
+	9,  // 44: environments.EnvironmentsService.ListEnvironments:output_type -> environments.ListEnvironmentsResponse
+	6,  // 45: environments.EnvironmentsService.BranchEnvironment:output_type -> environments.Environment
+	46, // 46: environments.EnvironmentsService.DeleteBranchEnvironment:output_type -> google.protobuf.Empty
+	14, // 47: environments.EnvironmentsService.ListEnvironmentBranches:output_type -> environments.ListEnvironmentBranchesResponse
+	19, // 48: environments.EnvironmentsService.ListBranchedEnvironmentChanges:output_type -> environments.ListBranchedEnvironmentChangesResponse
+	16, // 49: environments.EnvironmentsService.ProposeEnvironment:output_type -> environments.EnvironmentProposalDetails
+	22, // 50: environments.EnvironmentsService.GetNamespace:output_type -> environments.NamespaceResponse
+	24, // 51: environments.EnvironmentsService.ListNamespaces:output_type -> environments.ListNamespacesResponse
+	22, // 52: environments.EnvironmentsService.CreateNamespace:output_type -> environments.NamespaceResponse
+	22, // 53: environments.EnvironmentsService.UpdateNamespace:output_type -> environments.NamespaceResponse
+	27, // 54: environments.EnvironmentsService.DeleteNamespace:output_type -> environments.DeleteNamespaceResponse
+	30, // 55: environments.EnvironmentsService.GetResource:output_type -> environments.ResourceResponse
+	32, // 56: environments.EnvironmentsService.ListResources:output_type -> environments.ListResourcesResponse
+	30, // 57: environments.EnvironmentsService.CreateResource:output_type -> environments.ResourceResponse
+	30, // 58: environments.EnvironmentsService.UpdateResource:output_type -> environments.ResourceResponse
+	35, // 59: environments.EnvironmentsService.DeleteResource:output_type -> environments.DeleteResourceResponse
+	38, // 60: environments.EnvironmentsService.CopyNamespace:output_type -> environments.CopyNamespaceResponse
+	41, // 61: environments.EnvironmentsService.CompareEnvironments:output_type -> environments.CompareEnvironmentsResponse
+	44, // 62: environments.EnvironmentsService.BulkApplyResources:output_type -> environments.BulkApplyResourcesResponse
+	44, // [44:63] is the sub-list for method output_type
+	25, // [25:44] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_environments_environments_proto_init() }
@@ -2307,13 +3279,17 @@ func file_environments_environments_proto_init() {
 	file_environments_environments_proto_msgTypes[12].OneofWrappers = []any{}
 	file_environments_environments_proto_msgTypes[14].OneofWrappers = []any{}
 	file_environments_environments_proto_msgTypes[19].OneofWrappers = []any{}
+	file_environments_environments_proto_msgTypes[31].OneofWrappers = []any{}
+	file_environments_environments_proto_msgTypes[34].OneofWrappers = []any{}
+	file_environments_environments_proto_msgTypes[36].OneofWrappers = []any{}
+	file_environments_environments_proto_msgTypes[37].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_environments_environments_proto_rawDesc), len(file_environments_environments_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   30,
+			NumEnums:      6,
+			NumMessages:   39,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

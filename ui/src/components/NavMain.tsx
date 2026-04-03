@@ -2,6 +2,7 @@ import {
   BugPlayIcon,
   ChartNoAxesCombinedIcon,
   FlagIcon,
+  GitCompareIcon,
   UsersIcon
 } from 'lucide-react';
 
@@ -23,6 +24,11 @@ export function NavMain({ ns }: { ns: string }) {
       title: 'Segments',
       url: `#/namespaces/${ns}/segments`,
       icon: UsersIcon
+    },
+    {
+      title: 'Compare',
+      url: `#/namespaces/${ns}/compare`,
+      icon: GitCompareIcon
     },
     {
       title: 'Playground',
