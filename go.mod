@@ -30,7 +30,7 @@ require (
 	github.com/go-chi/cors v1.2.2
 	github.com/go-git/go-billy/v6 v6.0.0-20260209124918-37866f83c2d3
 	github.com/go-git/go-git/v6 v6.0.0-20260216160506-e6a3f881772f
-	github.com/go-jose/go-jose/v4 v4.1.3
+	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-openapi/jsonpointer v0.22.5
 	github.com/gobwas/glob v0.2.3
 	github.com/golang-migrate/migrate/v4 v4.19.1
