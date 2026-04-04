@@ -4,6 +4,7 @@ import { twMerge } from 'tailwind-merge';
 import { ICommand } from '~/types/Cli';
 import { ICurlOptions } from '~/types/Curl';
 import { IEnvironmentConfiguration } from '~/types/Environment';
+import { Session } from '~/types/auth/Session';
 
 import { defaultHeaders } from '~/data/api';
 
@@ -186,4 +187,8 @@ export function extractRepoName(remote: string): string {
   // Remove the domain part (e.g., github.com)
   parts.shift();
   return parts.join('/');
+}
+
+export function canFetchUpdates(session?: Session | null): boolean {
+  return session?.authenticated || session?.required === false;
 }

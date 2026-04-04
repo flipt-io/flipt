@@ -23,6 +23,7 @@ import { Realtime } from '~/types/Preferences';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { useChangesStream } from '~/data/hooks/useChangesStream';
+import { canFetchUpdates } from '~/utils/helpers';
 
 import {
   selectCurrentEnvironment,
@@ -44,6 +45,7 @@ import {
 
 function InnerLayout() {
   const { session } = useSession();
+  const allowUpdates = canFetchUpdates(session);
 
   const dismissedProBanner = useSelector(selectDismissedProBanner);
   const dispatch = useAppDispatch();
@@ -53,6 +55,7 @@ function InnerLayout() {
   const navigate = useNavigate();
 
   const environments = useListEnvironmentsQuery(undefined, {
+    skip: !allowUpdates,
     refetchOnMountOrArgChange: true,
     pollingInterval: 30000 // Poll every 30 seconds to detect upstream changes
   });
@@ -65,7 +68,7 @@ function InnerLayout() {
   useChangesStream({
     environmentKey: currentEnvironment.key,
     namespaceKey: currentNamespace.key,
-    enabled: realtime === Realtime.ON
+    enabled: realtime === Realtime.ON && allowUpdates
   });
 
   useEffect(() => {
