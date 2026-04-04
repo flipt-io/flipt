@@ -6,7 +6,9 @@
 
 **Architecture:** Pure UI change — no backend or API modifications. A new `MetadataFilterPopover` component handles filter input; `FlagTable` gains local `metadataFilters` state and a `useMemo` pre-filter that runs before TanStack Table sees the data. Active filters render as removable `Badge` chips below the toolbar.
 
-**Tech Stack:** React 19, TypeScript, TanStack Table v8, Tailwind CSS, Lucide icons, Radix UI Popover (via `~/components/Popover`), `~/components/Combobox`, `~/components/Badge`, `~/components/Button`, `~/components/forms/Input`, Jest + jsdom (unit tests).
+**Tech Stack:** React 19, TypeScript, TanStack Table v8, Tailwind CSS, Lucide icons, Radix UI Popover (via `~/components/Popover`), `~/components/Badge`, `~/components/Button`, `~/components/BaseInput` (non-Formik), Jest + jsdom (unit tests).
+
+**Filter semantics decision:** Case-insensitive substring match on string-coerced metadata values. This is intentional UX — users benefit from "prod" matching "production", and "BACKEND" matching "backend". Exact matching would require knowing the exact capitalization. This decision is explicit and locked: do not change without product sign-off.
 
 ---
 
@@ -18,8 +20,12 @@
 | `ui/src/components/flags/MetadataFilterPopover.tsx` | **Create** | Popover UI for adding one key=value filter |
 | `ui/src/components/flags/FlagTable.tsx` | **Modify** | Filter state, pre-filter logic, toolbar button, chips, empty-state condition |
 | `ui/src/components/flags/MetadataFilterPopover.test.tsx` | **Create** | Unit tests for the popover component |
+| `ui/src/components/flags/FlagTable.test.tsx` | **Create** | Unit tests for toolbar wiring, chips, AND logic, empty states |
 | `ui/src/utils/flagMetadataFilter.ts` | **Create** | Pure filter function (easy to unit-test in isolation) |
 | `ui/src/utils/flagMetadataFilter.test.ts` | **Create** | Unit tests for the filter function |
+| `ui/jest.config.ts` | **Modify (conditional)** | Add `setupFilesAfterEnv` only if `@testing-library/jest-dom` is not already configured |
+| `ui/src/setupTests.ts` | **Create (conditional)** | Import `@testing-library/jest-dom` — only if not already present in repo |
+| `ui/package.json` | **Modify (conditional)** | Add `@testing-library/react`, `@testing-library/jest-dom` devDeps only if absent |
 
 ---
 
@@ -177,7 +183,7 @@ git commit -m "feat: add MetadataFilter type and applyMetadataFilters utility"
 
 This component renders a button that opens a popover. Inside: a text input for the metadata key, a text input for the value, and an "Add filter" button. On submit it calls `onAdd(filter)` and resets its own state.
 
-> **Note on Combobox:** `Combobox` requires items typed as `ISelectable` (`{ key, displayValue }`). We map `availableKeys` to that shape. However since Combobox is a compound Radix Popover component, testing it with jsdom/jest is fragile. We keep the component simple: a plain `<input>` for key (with `<datalist>`) is easier to unit-test; Combobox is used for the richer UX only in the real component.
+> **Important — use `BaseInput`, NOT `Input` from `~/components/forms/Input`:** `~/components/forms/Input` calls `useField(props)` (Formik hook) and requires a Formik context. `~/components/BaseInput` is a plain React `input` wrapper with no Formik dependency — it accepts standard `React.ComponentProps<'input'>` and is the correct choice for uncontrolled/controlled inputs outside of Formik forms.
 
 - [ ] **Step 2.1 — Write the failing tests**
 
@@ -266,7 +272,7 @@ describe('MetadataFilterPopover', () => {
 - [ ] **Step 2.2 — Check test infra: confirm `@testing-library/react` is installed**
 
 ```bash
-cd ui && cat package.json | grep testing-library
+cd ui && grep "@testing-library" package.json
 ```
 
 Expected: see `"@testing-library/react"` in devDependencies. If not present:
@@ -274,11 +280,15 @@ Expected: see `"@testing-library/react"` in devDependencies. If not present:
 cd ui && npm install --save-dev @testing-library/react @testing-library/jest-dom
 ```
 
-Then check `ui/jest.config.ts` for `setupFilesAfterFramework` pointing to a setup file that calls `import '@testing-library/jest-dom'`. If absent, add to `jest.config.ts`:
-```ts
-setupFilesAfterFramework: ['<rootDir>/src/setupTests.ts'],
+Then check `ui/jest.config.ts` for `setupFilesAfterEnv` (this is the correct Jest key — the repo already uses it):
+```bash
+grep "setupFilesAfterEnv" ui/jest.config.ts
 ```
-> Note: the correct Jest config key is `setupFilesAfterFramework` (not `setupFilesAfterEach`). Verify the exact key name in your Jest version if this causes a type error — it may be `setupFilesAfterEnv` in older configs.
+
+If it's already present and points to a setup file that imports `@testing-library/jest-dom`, no changes needed. If `setupFilesAfterEnv` exists but the setup file does NOT import `@testing-library/jest-dom`, add the import to that file. If `setupFilesAfterEnv` is absent entirely, add to `jest.config.ts`:
+```ts
+setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+```
 and create `ui/src/setupTests.ts`:
 ```ts
 import '@testing-library/jest-dom';
@@ -298,8 +308,8 @@ Expected: `FAIL` — cannot find module `'./MetadataFilterPopover'`.
 import { SlidersHorizontalIcon } from 'lucide-react';
 import { useState } from 'react';
 
+import { BaseInput } from '~/components/BaseInput';
 import { Button } from '~/components/Button';
-import Input from '~/components/forms/Input';
 import {
   Popover,
   PopoverContent,
@@ -353,9 +363,8 @@ export default function MetadataFilterPopover({
           <label htmlFor="mf-key" className="text-xs text-muted-foreground mb-1 block">
             Key
           </label>
-          <Input
+          <BaseInput
             id="mf-key"
-            name="mf-key"
             type="text"
             placeholder="Key"
             value={key}
@@ -375,9 +384,8 @@ export default function MetadataFilterPopover({
           <label htmlFor="mf-value" className="text-xs text-muted-foreground mb-1 block">
             Value
           </label>
-          <Input
+          <BaseInput
             id="mf-value"
-            name="mf-value"
             type="text"
             placeholder="Value"
             value={value}
@@ -607,7 +615,179 @@ git commit -m "feat: wire metadata filter state and UI into FlagTable"
 
 ---
 
-## Task 4: Manual smoke test
+## Task 4: Add `FlagTable` integration tests
+
+**Files:**
+- Create: `ui/src/components/flags/FlagTable.test.tsx`
+
+This task covers the acceptance-critical behavior that lives in `FlagTable` but cannot be captured by the utility or popover tests alone: toolbar wiring, chips, AND logic in context, empty-state selection, and combined text + metadata filtering.
+
+Because `FlagTable` calls RTK Query hooks (`useListFlagsQuery`, `useGetBatchFlagEvaluationCountQuery`) and Redux selectors, we mock those at the module level.
+
+- [ ] **Step 4.1 — Write the failing tests**
+
+Create `ui/src/components/flags/FlagTable.test.tsx`:
+
+```tsx
+/**
+ * @jest-environment jsdom
+ */
+import { configureStore } from '@reduxjs/toolkit';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import FlagTable from './FlagTable';
+
+// ── Mock Radix Popover (portal-based, doesn't render in jsdom) ────────────
+jest.mock('~/components/Popover', () => ({
+  Popover: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}));
+
+// ── Mock RTK Query hooks (actual import paths from FlagTable.tsx) ─────────
+const mockFlags = [
+  { key: 'flag-a', name: 'Flag A', type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'backend', env: 'production' } },
+  { key: 'flag-b', name: 'Flag B', type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'frontend', env: 'production' } },
+  { key: 'flag-c', name: 'Flag C', type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'backend', env: 'staging' } }
+];
+
+jest.mock('~/app/flags/flagsApi', () => ({
+  useListFlagsQuery: () => ({ data: { flags: mockFlags }, isLoading: false, error: null }),
+  selectSorting: () => [],
+  setSorting: (s: any) => ({ type: 'SET_SORTING', payload: s })
+}));
+
+jest.mock('~/app/flags/analyticsApi', () => ({
+  useGetBatchFlagEvaluationCountQuery: () => ({ data: null })
+}));
+
+jest.mock('~/app/meta/metaSlice', () => ({
+  selectInfo: () => ({ analytics: { enabled: false } })
+}));
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+const mockEnvironment = { key: 'default', name: 'default' };
+const mockNamespace   = { key: 'default', name: 'default', description: '' };
+
+function renderTable() {
+  const store = configureStore({ reducer: { flags: (s = {}) => s, meta: (s = {}) => s } });
+  return render(
+    <Provider store={store}>
+      <FlagTable environment={mockEnvironment as any} namespace={mockNamespace as any} />
+    </Provider>
+  );
+}
+
+describe('FlagTable — metadata filter', () => {
+  it('renders all flags with no filter active', () => {
+    renderTable();
+    expect(screen.getByText('Flag A')).toBeInTheDocument();
+    expect(screen.getByText('Flag B')).toBeInTheDocument();
+    expect(screen.getByText('Flag C')).toBeInTheDocument();
+  });
+
+  it('renders Filter button in toolbar', () => {
+    renderTable();
+    expect(screen.getByRole('button', { name: /filter/i })).toBeInTheDocument();
+  });
+
+  it('adds a chip after applying a metadata filter', () => {
+    renderTable();
+    fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
+    fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
+    fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
+    expect(screen.getByText(/team: backend/i)).toBeInTheDocument();
+  });
+
+  it('hides non-matching flags after filter is applied', () => {
+    renderTable();
+    fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
+    fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
+    fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
+    expect(screen.queryByText('Flag B')).not.toBeInTheDocument();
+  });
+
+  it('removes a chip when × is clicked and restores all flags', () => {
+    renderTable();
+    fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
+    fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
+    fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /remove filter team:backend/i }));
+
+    expect(screen.getByText('Flag B')).toBeInTheDocument();
+    expect(screen.queryByText(/team: backend/i)).not.toBeInTheDocument();
+  });
+
+  it('applies AND logic for two metadata filters', () => {
+    renderTable();
+
+    // Filter 1: team=backend
+    fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
+    fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
+    fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
+
+    // Filter 2: env=production
+    fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'env' } });
+    fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'production' } });
+    fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
+
+    // Only flag-a matches both
+    expect(screen.getByText('Flag A')).toBeInTheDocument();
+    expect(screen.queryByText('Flag B')).not.toBeInTheDocument();
+    expect(screen.queryByText('Flag C')).not.toBeInTheDocument();
+  });
+
+  it('shows "no flags matched" empty state when filter matches nothing (not create-first-flag state)', () => {
+    renderTable();
+    fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'nonexistent' } });
+    fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'x' } });
+    fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
+
+    expect(screen.getByText(/no flags matched/i)).toBeInTheDocument();
+  });
+
+  it('clears all filters when Clear all is clicked', () => {
+    renderTable();
+    fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
+    fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
+    fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
+
+    fireEvent.click(screen.getByText('Clear all'));
+
+    expect(screen.getByText('Flag B')).toBeInTheDocument();
+    expect(screen.queryByText(/team: backend/i)).not.toBeInTheDocument();
+  });
+
+  it('applies both text search and metadata filter simultaneously (AND)', () => {
+    renderTable();
+
+    // Text search: "A" (matches Flag A only among backend flags)
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'A' } });
+
+    // Metadata filter: team=backend (matches flag-a and flag-c)
+    fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
+    fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
+    fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
+
+    // Only Flag A matches both "A" text search AND team=backend metadata
+    expect(screen.getByText('Flag A')).toBeInTheDocument();
+    expect(screen.queryByText('Flag C')).not.toBeInTheDocument();
+    expect(screen.queryByText('Flag B')).not.toBeInTheDocument();
+  });
+});
+```
+
+- [ ] **Step 4.4 — Commit**
+
+```bash
+git add ui/src/components/flags/FlagTable.test.tsx
+git commit -m "test: add FlagTable integration tests for metadata filter"
+```
+
+---
+
+## Task 5: Manual smoke test
 
 No automated test can replace a quick visual check. These steps require the Flipt dev server running.
 
@@ -684,7 +864,7 @@ Expected: only flags matching both text search AND metadata filter are shown.
 
 ---
 
-## Task 5: Final check and cleanup
+## Task 6: Final check and cleanup
 
 - [ ] **Step 5.1 — Run full test suite one more time**
 
