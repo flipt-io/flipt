@@ -2,16 +2,23 @@
  * @jest-environment jsdom
  */
 import { configureStore } from '@reduxjs/toolkit';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
+
 import FlagTable from './FlagTable';
 
 // ── Mock Radix Popover (portal-based, doesn't render in jsdom) ────────────
 jest.mock('~/components/Popover', () => ({
-  Popover: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  PopoverContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+  Popover: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  PopoverTrigger: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  PopoverContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  )
 }));
 
 // ── Mock RTK Query hooks (actual import paths from FlagTable.tsx) ─────────
@@ -75,7 +82,10 @@ function renderTable() {
   return render(
     <MemoryRouter>
       <Provider store={store}>
-        <FlagTable environment={mockEnvironment as any} namespace={mockNamespace as any} />
+        <FlagTable
+          environment={mockEnvironment as any}
+          namespace={mockNamespace as any}
+        />
       </Provider>
     </MemoryRouter>
   );
@@ -95,7 +105,9 @@ describe('FlagTable — metadata filter', () => {
 
   it('renders Filter button in toolbar', () => {
     renderTable();
-    expect(screen.getByRole('button', { name: /^filter$/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /^filter$/i })
+    ).toBeInTheDocument();
   });
 
   it('adds a chip after applying a metadata filter', () => {

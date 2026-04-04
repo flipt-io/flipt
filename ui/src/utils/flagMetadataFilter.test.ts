@@ -1,5 +1,6 @@
-import { applyMetadataFilters } from './flagMetadataFilter';
 import { FlagType, IFlag, MetadataFilter } from '~/types/Flag';
+
+import { applyMetadataFilters } from './flagMetadataFilter';
 
 const makeFlag = (key: string, metadata?: Record<string, any>): IFlag => ({
   key,

@@ -1,5 +1,6 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import '@testing-library/jest-dom';
-
 // Polyfill TextEncoder/TextDecoder for jest-environment-jsdom + react-router
-import { TextEncoder, TextDecoder } from 'util';
+import { TextDecoder, TextEncoder } from 'util';
+
 Object.assign(global, { TextEncoder, TextDecoder });

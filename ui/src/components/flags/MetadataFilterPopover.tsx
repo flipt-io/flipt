@@ -3,11 +3,7 @@ import { useState } from 'react';
 
 import { BaseInput } from '~/components/BaseInput';
 import { Button } from '~/components/Button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '~/components/Popover';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
 
 import { MetadataFilter } from '~/types/Flag';
 

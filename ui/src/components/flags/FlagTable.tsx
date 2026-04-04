@@ -37,6 +37,7 @@ import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
 import { DataTableViewOptions } from '~/components/TableViewOptions';
 import Well from '~/components/Well';
+import MetadataFilterPopover from '~/components/flags/MetadataFilterPopover';
 
 import { IBatchFlagEvaluationCount } from '~/types/Analytics';
 import { IEnvironment } from '~/types/Environment';
@@ -46,8 +47,6 @@ import { INamespace } from '~/types/Namespace';
 import { useError } from '~/data/hooks/error';
 import { applyMetadataFilters } from '~/utils/flagMetadataFilter';
 import { cls } from '~/utils/helpers';
-
-import MetadataFilterPopover from '~/components/flags/MetadataFilterPopover';
 
 function VariantFlagBadge({ enabled }: { enabled: boolean }) {
   return (
@@ -338,9 +337,7 @@ export default function FlagTable(props: FlagTableProps) {
               <Searchbox value={filter ?? ''} onChange={setFilter} />
               <MetadataFilterPopover
                 availableKeys={availableMetadataKeys}
-                onAdd={(f) =>
-                  setMetadataFilters((prev) => [...prev, f])
-                }
+                onAdd={(f) => setMetadataFilters((prev) => [...prev, f])}
               />
             </div>
             {hasFlags && <DataTableViewOptions table={table} />}
@@ -361,7 +358,9 @@ export default function FlagTable(props: FlagTableProps) {
                 <button
                   type="button"
                   onClick={() =>
-                    setMetadataFilters((prev) => prev.filter((_, idx) => idx !== i))
+                    setMetadataFilters((prev) =>
+                      prev.filter((_, idx) => idx !== i)
+                    )
                   }
                   aria-label={`Remove filter ${f.key}:${f.value}`}
                   className="ml-1 rounded-full hover:bg-muted p-0.5"
@@ -387,15 +386,15 @@ export default function FlagTable(props: FlagTableProps) {
           )}
         {table.getRowCount() === 0 &&
           (filter.length > 0 || metadataFilters.length > 0) && (
-          <Well>
-            <div className="flex flex-col items-center text-center p-4">
-              <FlagIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <p className="text-sm text-muted-foreground">
-                No flags matched your search
-              </p>
-            </div>
-          </Well>
-        )}
+            <Well>
+              <div className="flex flex-col items-center text-center p-4">
+                <FlagIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                <p className="text-sm text-muted-foreground">
+                  No flags matched your search
+                </p>
+              </div>
+            </Well>
+          )}
 
         <div className="space-y-2">
           {table.getRowModel().rows.map((row) => {

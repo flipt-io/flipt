@@ -1,21 +1,31 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent } from '@testing-library/react';
-import MetadataFilterPopover from './MetadataFilterPopover';
+import { fireEvent, render, screen } from '@testing-library/react';
+
 import { MetadataFilter } from '~/types/Flag';
+
+import MetadataFilterPopover from './MetadataFilterPopover';
 
 // Radix Popover uses portals. We mock it so the content always renders inline.
 jest.mock('~/components/Popover', () => ({
-  Popover: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  PopoverContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+  Popover: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  PopoverTrigger: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  PopoverContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  )
 }));
 
 describe('MetadataFilterPopover', () => {
   it('renders a "Filter" trigger button', () => {
     render(<MetadataFilterPopover availableKeys={[]} onAdd={jest.fn()} />);
-    expect(screen.getByRole('button', { name: /^filter$/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /^filter$/i })
+    ).toBeInTheDocument();
   });
 
   it('calls onAdd with the entered key and value when Add is clicked', () => {
