@@ -11,7 +11,7 @@ import {
 import { AppSidebar } from '~/components/AppSidebar';
 import Footer from '~/components/Footer';
 import { Header } from '~/components/Header';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import { SidebarInset, SidebarProvider } from '~/components/Sidebar';
 import { Toaster } from '~/components/Sonner';
 import { TooltipProvider } from '~/components/Tooltip';
@@ -71,7 +71,7 @@ function InnerLayout() {
   }
 
   if (namespaces.isLoading || config.status != LoadingStatus.SUCCEEDED) {
-    return <Loading fullScreen />;
+    return <Loading variant="fullscreen" />;
   }
 
   const ns = currentNamespace?.key || 'default';

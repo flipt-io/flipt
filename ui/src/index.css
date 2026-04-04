@@ -197,7 +197,7 @@
   input[type='number'],
   input[type='date'],
   input[type='time'] {
-    @apply min-h-9;
+    @apply bg-input/60 border-input focus:border-brand focus:ring-brand disabled:bg-muted disabled:text-muted-foreground min-h-9 rounded-md shadow-xs disabled:cursor-not-allowed sm:text-sm;
   }
 
   input[type='radio'] {

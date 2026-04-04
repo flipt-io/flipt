@@ -8,7 +8,7 @@ import {
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { DistributionType } from '~/types/Distribution';
@@ -411,7 +411,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                     !formik.isValid || formik.isSubmitting || !formik.dirty
                   }
                 >
-                  {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
+                  {formik.isSubmitting ? <Loading /> : 'Update'}
                 </TextButton>
               </div>
             </div>

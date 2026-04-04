@@ -6,7 +6,7 @@ import {
 } from '~/app/tokens/tokensApi';
 import EmptyState from '~/components/EmptyState';
 import { ButtonWithPlus } from '~/components/Button';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';

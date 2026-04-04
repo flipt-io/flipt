@@ -11,7 +11,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
-import Loading from '~/components/Loading';
+import { Loading } from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -190,7 +190,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                   !(formik.dirty && formik.isValid && !formik.isSubmitting)
                 }
               >
-                {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}
+                {formik.isSubmitting ? <Loading /> : submitPhrase}
               </Button>
             </div>
           </div>
