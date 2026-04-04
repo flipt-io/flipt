@@ -79,3 +79,4 @@ go.work
 go.work.sum
 
 docs/
+.beads
