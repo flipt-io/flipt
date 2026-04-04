@@ -647,9 +647,9 @@ jest.mock('~/components/Popover', () => ({
 
 // ── Mock RTK Query hooks (actual import paths from FlagTable.tsx) ─────────
 const mockFlags = [
-  { key: 'flag-a', name: 'Flag A', type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'backend', env: 'production' } },
-  { key: 'flag-b', name: 'Flag B', type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'frontend', env: 'production' } },
-  { key: 'flag-c', name: 'Flag C', type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'backend', env: 'staging' } }
+  { key: 'alpha', name: 'Alpha', type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'backend', env: 'production' } },
+  { key: 'beta',  name: 'Beta',  type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'frontend', env: 'production' } },
+  { key: 'gamma', name: 'Gamma', type: 'VARIANT_FLAG_TYPE', enabled: true, description: '', metadata: { team: 'backend', env: 'staging' } }
 ];
 
 jest.mock('~/app/flags/flagsApi', () => ({
@@ -688,9 +688,9 @@ afterEach(() => jest.useRealTimers());
 describe('FlagTable — metadata filter', () => {
   it('renders all flags with no filter active', () => {
     renderTable();
-    expect(screen.getByText('Flag A')).toBeInTheDocument();
-    expect(screen.getByText('Flag B')).toBeInTheDocument();
-    expect(screen.getByText('Flag C')).toBeInTheDocument();
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+    expect(screen.getByText('Beta')).toBeInTheDocument();
+    expect(screen.getByText('Gamma')).toBeInTheDocument();
   });
 
   it('renders Filter button in toolbar', () => {
@@ -711,7 +711,7 @@ describe('FlagTable — metadata filter', () => {
     fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
     fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
     fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
-    expect(screen.queryByText('Flag B')).not.toBeInTheDocument();
+    expect(screen.queryByText('Beta')).not.toBeInTheDocument();
   });
 
   it('removes a chip when × is clicked and restores all flags', () => {
@@ -722,7 +722,7 @@ describe('FlagTable — metadata filter', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /remove filter team:backend/i }));
 
-    expect(screen.getByText('Flag B')).toBeInTheDocument();
+    expect(screen.getByText('Beta')).toBeInTheDocument();
     expect(screen.queryByText(/team: backend/i)).not.toBeInTheDocument();
   });
 
@@ -739,10 +739,10 @@ describe('FlagTable — metadata filter', () => {
     fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'production' } });
     fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
 
-    // Only flag-a matches both
-    expect(screen.getByText('Flag A')).toBeInTheDocument();
-    expect(screen.queryByText('Flag B')).not.toBeInTheDocument();
-    expect(screen.queryByText('Flag C')).not.toBeInTheDocument();
+    // Only alpha matches both (gamma has team=backend but doesn't match 'alpha' text)
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+    expect(screen.queryByText('Beta')).not.toBeInTheDocument();
+    expect(screen.queryByText('Gamma')).not.toBeInTheDocument();
   });
 
   it('shows "no flags matched" empty state when filter matches nothing (not create-first-flag state)', () => {
@@ -762,26 +762,29 @@ describe('FlagTable — metadata filter', () => {
 
     fireEvent.click(screen.getByText('Clear all'));
 
-    expect(screen.getByText('Flag B')).toBeInTheDocument();
+    expect(screen.getByText('Beta')).toBeInTheDocument();
     expect(screen.queryByText(/team: backend/i)).not.toBeInTheDocument();
   });
 
   it('applies both text search and metadata filter simultaneously (AND)', () => {
     renderTable();
 
-    // Type in Searchbox — then advance fake timers past 500ms debounce
-    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'A' } });
-    act(() => { jest.advanceTimersByTime(600); });
+    // Text search: "alpha" — uniquely matches only the 'Alpha' row (key='alpha', name='Alpha').
+    // 'Beta' and 'Gamma' contain no substring 'alpha' (case-insensitive).
+    // Alone, this text filter returns: [Alpha]
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'alpha' } });
+    act(() => { jest.advanceTimersByTime(600); }); // flush 500ms Searchbox debounce
 
-    // Metadata filter: team=backend (matches flag-a and flag-c, but flag-c name doesn't contain "A")
+    // Metadata filter: team=backend — alone would return [Alpha, Gamma]
     fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
     fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
     fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
 
-    // Only Flag A matches both "A" text search AND team=backend metadata
-    expect(screen.getByText('Flag A')).toBeInTheDocument();
-    expect(screen.queryByText('Flag C')).not.toBeInTheDocument();
-    expect(screen.queryByText('Flag B')).not.toBeInTheDocument();
+    // Combined AND: text("alpha") ∩ metadata(team=backend) = [Alpha] only
+    // — proves that both filters are applied simultaneously and independently
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+    expect(screen.queryByText('Beta')).not.toBeInTheDocument();
+    expect(screen.queryByText('Gamma')).not.toBeInTheDocument();
   });
 });
 ```
