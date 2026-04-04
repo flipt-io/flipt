@@ -15,7 +15,7 @@ import (
 	errs "errors"
 
 	"github.com/go-openapi/jsonpointer"
-	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"go.flipt.io/flipt/internal/containers"
