@@ -80,3 +80,6 @@ go.work.sum
 
 docs/
 .beads
+
+# Git worktrees
+.worktrees/
