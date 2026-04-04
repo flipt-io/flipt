@@ -53,20 +53,22 @@ import (
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zapgrpc"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	grpc_health "google.golang.org/grpc/health/grpc_health_v1"
+	grpclogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	grpcselector "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
+	grpchealth "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 // GRPCServerOption defines a functional option for configuring GRPCServer
@@ -221,37 +223,24 @@ func NewGRPCServer(
 		streamMetricsInterceptor = cs.StreamServerInterceptor()
 	}
 
+	interceptorLogger := middlewaregrpc.ZapInterceptorLogger(logger)
+
 	// base inteceptors
+	recoveryHandler := func(p any) (err error) {
+		logger.Error("panic recovered", zap.Any("panic", p), zap.ByteString("stacktrace", debug.Stack()))
+		return status.Errorf(codes.Internal, "%v", p)
+	}
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
-		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
-			logger.Error("panic recovered", zap.Any("panic", p), zap.ByteString("stacktrace", debug.Stack()))
-			return status.Errorf(codes.Internal, "%v", p)
-		})),
-		grpc_ctxtags.UnaryServerInterceptor(),
-		grpc_zap.UnaryServerInterceptor(logger, grpc_zap.WithDecider(func(methodFullName string, err error) bool {
-			// will not log gRPC calls if it was a call to healthcheck and no error was raised
-			if err == nil && methodFullName == "/grpc.health.v1.Health/Check" {
-				return false
-			}
-			return true
-		})),
+		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
+		grpcselector.UnaryServerInterceptor(grpclogging.UnaryServerInterceptor(interceptorLogger, grpclogging.WithLogOnEvents(grpclogging.FinishCall)), grpcselector.MatchFunc(middlewaregrpc.LoggingSelector)),
 		unaryMetricsInterceptor,
 		middlewaregrpc.ErrorUnaryInterceptor,
 	}
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
-		grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
-			logger.Error("panic recovered", zap.Any("panic", p), zap.ByteString("stacktrace", debug.Stack()))
-			return status.Errorf(codes.Internal, "%v", p)
-		})),
-		grpc_ctxtags.StreamServerInterceptor(),
-		grpc_zap.StreamServerInterceptor(logger, grpc_zap.WithDecider(func(methodFullName string, err error) bool {
-			// will not log gRPC calls if it was a call to healthcheck and no error was raised
-			if err == nil && methodFullName == "/grpc.health.v1.Health/Check" {
-				return false
-			}
-			return true
-		})),
+		grpcrecovery.StreamServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
+		grpcselector.StreamServerInterceptor(grpclogging.StreamServerInterceptor(interceptorLogger, grpclogging.WithLogOnEvents(grpclogging.FinishCall)), grpcselector.MatchFunc(middlewaregrpc.LoggingSelector)),
+
 		streamMetricsInterceptor,
 		middlewaregrpc.ErrorStreamInterceptor,
 	}
@@ -345,7 +334,9 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("parsing grpc log level (%q): %w", cfg.Log.GRPCLevel, err)
 	}
 
-	grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
+	grpclog.SetLoggerV2(zapgrpc.NewLogger(
+		logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)),
+	))
 
 	// add auth interceptors to the server
 	unaryInterceptors = append(unaryInterceptors,
@@ -414,12 +405,12 @@ func NewGRPCServer(
 	}
 
 	ipch = ipch.
-		WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryInterceptors...)).
-		WithServerStreamInterceptor(grpc_middleware.ChainStreamServer(streamInterceptors...))
+		WithServerUnaryInterceptor(middlewaregrpc.ChainUnaryServer(unaryInterceptors)).
+		WithServerStreamInterceptor(middlewaregrpc.ChainStreamServer(streamInterceptors))
 
 	// initialize grpc server
 	grpcServer := grpc.NewServer(grpcOpts...)
-	grpc_health.RegisterHealthServer(handlers, healthsrv)
+	grpchealth.RegisterHealthServer(handlers, healthsrv)
 
 	// register grpc services onto the in-process client connection and the grpc server
 	handlers.ForEach(ipch.RegisterService)

@@ -8,7 +8,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
+	grpcinterceptors "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
+	grpclogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+
 	errs "go.flipt.io/flipt/errors"
 	cctx "go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/server/common"
@@ -228,4 +231,101 @@ func forwardHeader(ctx context.Context, req *http.Request, headerKey string) met
 		md[headerKey] = values
 	}
 	return md
+}
+
+// ZapInterceptorLogger wraps a zap.Logger to conform to the grpclogging.Logger interface.
+// It translates grpclogging log levels to zap log levels and properly formats log fields.
+func ZapInterceptorLogger(l *zap.Logger) grpclogging.Logger {
+	return grpclogging.LoggerFunc(func(ctx context.Context, lvl grpclogging.Level, msg string, fields ...any) {
+		f := make([]zap.Field, 0, len(fields)/2)
+
+		for i := 0; i < len(fields); i += 2 {
+			key := fields[i]
+			value := fields[i+1]
+
+			switch v := value.(type) {
+			case string:
+				f = append(f, zap.String(key.(string), v))
+			case int:
+				f = append(f, zap.Int(key.(string), v))
+			case bool:
+				f = append(f, zap.Bool(key.(string), v))
+			default:
+				f = append(f, zap.Any(key.(string), v))
+			}
+		}
+
+		logger := l.WithOptions(zap.AddCallerSkip(1)).With(f...)
+
+		switch lvl {
+		case grpclogging.LevelDebug:
+			logger.Debug(msg)
+		case grpclogging.LevelInfo:
+			logger.Info(msg)
+		case grpclogging.LevelWarn:
+			logger.Warn(msg)
+		case grpclogging.LevelError:
+			logger.Error(msg)
+		default:
+			logger.Info(msg)
+		}
+	})
+}
+
+// LoggingSelector is a selector.Matcher that returns false for health check calls,
+// excluding them from gRPC logging. This prevents noisy health check logs.
+func LoggingSelector(_ context.Context, c grpcinterceptors.CallMeta) bool {
+	return c.FullMethod() != "/grpc.health.v1.Health/Check"
+}
+
+// ChainUnaryServer creates a single interceptor out of a chain of many interceptors.
+//
+// Execution is done in left-to-right order, including passing of context.
+// For example ChainUnaryServer([]{one, two, three}) will execute one before two before three, and three
+// will see context changes of one and two.
+//
+// While this can be useful in some scenarios, it is generally advisable to use
+// google.golang.org/grpc.ChainUnaryInterceptor directly.
+func ChainUnaryServer(interceptors []grpc.UnaryServerInterceptor) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		return interceptors[0](ctx, req, info, getChainUnaryHandler(interceptors, 0, info, handler))
+	}
+}
+
+// getChainUnaryHandler is a recursive helper that builds the interceptor chain handler.
+// It returns the final handler when reaching the last interceptor, otherwise wraps
+// the next interceptor in a closure.
+func getChainUnaryHandler(interceptors []grpc.UnaryServerInterceptor, curr int, info *grpc.UnaryServerInfo, finalHandler grpc.UnaryHandler) grpc.UnaryHandler {
+	if curr == len(interceptors)-1 {
+		return finalHandler
+	}
+	return func(ctx context.Context, req any) (any, error) {
+		return interceptors[curr+1](ctx, req, info, getChainUnaryHandler(interceptors, curr+1, info, finalHandler))
+	}
+}
+
+// ChainStreamServer creates a single interceptor out of a chain of many stream interceptors.
+//
+// Execution is done in left-to-right order, including passing of context.
+// For example ChainStreamServer([]{one, two, three}) will execute one before two before three.
+// If you want to pass context between interceptors, use WrapServerStream.
+//
+// While this can be useful in some scenarios, it is generally advisable to use
+// google.golang.org/grpc.ChainStreamInterceptor directly.
+func ChainStreamServer(interceptors []grpc.StreamServerInterceptor) grpc.StreamServerInterceptor {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		return interceptors[0](srv, ss, info, getChainStreamHandler(interceptors, 0, info, handler))
+	}
+}
+
+// getChainStreamHandler is a recursive helper that builds the stream interceptor chain handler.
+// It returns the final handler when reaching the last interceptor, otherwise wraps
+// the next interceptor in a closure.
+func getChainStreamHandler(interceptors []grpc.StreamServerInterceptor, curr int, info *grpc.StreamServerInfo, finalHandler grpc.StreamHandler) grpc.StreamHandler {
+	if curr == len(interceptors)-1 {
+		return finalHandler
+	}
+	return func(srv any, ss grpc.ServerStream) error {
+		return interceptors[curr+1](srv, ss, info, getChainStreamHandler(interceptors, curr+1, info, finalHandler))
+	}
 }

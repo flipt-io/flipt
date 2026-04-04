@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	grpcinterceptors "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
+	grpclogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"go.flipt.io/flipt/errors"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -667,4 +669,79 @@ func TestForwardFliptNamespace(t *testing.T) {
 
 	md = ForwardFliptNamespace(t.Context(), req)
 	assert.Equal(t, []string{"extra-namespace"}, md.Get(common.HeaderFliptNamespace))
+}
+
+func TestLoggingSelector(t *testing.T) {
+	tests := []struct {
+		name       string
+		fullMethod string
+		want       bool
+	}{
+		{
+			name:       "health check excluded",
+			fullMethod: "/grpc.health.v1.Health/Check",
+			want:       false,
+		},
+		{
+			name:       "other methods included",
+			fullMethod: "/flipt.flipt.v1.FlagService/GetFlag",
+			want:       true,
+		},
+		{
+			name:       "evaluation included",
+			fullMethod: "/flipt.flipt.v1.EvaluationService/Evaluate",
+			want:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			callMeta := grpcinterceptors.NewServerCallMeta(tt.fullMethod, &grpc.StreamServerInfo{}, nil)
+
+			got := LoggingSelector(t.Context(), callMeta)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestZapInterceptorLogger(t *testing.T) {
+	logger := zap.NewNop()
+	ilogger := ZapInterceptorLogger(logger)
+
+	tests := []struct {
+		name string
+		lvl  grpclogging.Level
+	}{
+		{
+			name: "debug level",
+			lvl:  grpclogging.LevelDebug,
+		},
+		{
+			name: "info level",
+			lvl:  grpclogging.LevelInfo,
+		},
+		{
+			name: "warn level",
+			lvl:  grpclogging.LevelWarn,
+		},
+		{
+			name: "error level",
+			lvl:  grpclogging.LevelError,
+		},
+	}
+
+	ctx := t.Context()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotPanics(t, func() {
+				ilogger.Log(ctx, tt.lvl, "test message", "key", "value", "num", 42, "flag", true)
+			})
+		})
+	}
+
+	t.Run("unknown level falls back to info", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ilogger.Log(ctx, grpclogging.Level(99), "test")
+		})
+	})
 }
