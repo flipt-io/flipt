@@ -633,8 +633,9 @@ Create `ui/src/components/flags/FlagTable.test.tsx`:
  * @jest-environment jsdom
  */
 import { configureStore } from '@reduxjs/toolkit';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router';
 import FlagTable from './FlagTable';
 
 // ── Mock Radix Popover (portal-based, doesn't render in jsdom) ────────────
@@ -672,11 +673,17 @@ const mockNamespace   = { key: 'default', name: 'default', description: '' };
 function renderTable() {
   const store = configureStore({ reducer: { flags: (s = {}) => s, meta: (s = {}) => s } });
   return render(
-    <Provider store={store}>
-      <FlagTable environment={mockEnvironment as any} namespace={mockNamespace as any} />
-    </Provider>
+    <MemoryRouter>
+      <Provider store={store}>
+        <FlagTable environment={mockEnvironment as any} namespace={mockNamespace as any} />
+      </Provider>
+    </MemoryRouter>
   );
 }
+
+// ── Fake timers for Searchbox debounce (defaults to 500ms) ────────────────
+beforeEach(() => jest.useFakeTimers());
+afterEach(() => jest.useRealTimers());
 
 describe('FlagTable — metadata filter', () => {
   it('renders all flags with no filter active', () => {
@@ -762,10 +769,11 @@ describe('FlagTable — metadata filter', () => {
   it('applies both text search and metadata filter simultaneously (AND)', () => {
     renderTable();
 
-    // Text search: "A" (matches Flag A only among backend flags)
+    // Type in Searchbox — then advance fake timers past 500ms debounce
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'A' } });
+    act(() => { jest.advanceTimersByTime(600); });
 
-    // Metadata filter: team=backend (matches flag-a and flag-c)
+    // Metadata filter: team=backend (matches flag-a and flag-c, but flag-c name doesn't contain "A")
     fireEvent.change(screen.getByPlaceholderText(/key/i), { target: { value: 'team' } });
     fireEvent.change(screen.getByPlaceholderText(/value/i), { target: { value: 'backend' } });
     fireEvent.click(screen.getByRole('button', { name: /add filter/i }));
