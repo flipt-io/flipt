@@ -71,7 +71,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		},
 	}, nil)
 
-	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+	ctx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{
 		"x-flipt-environment": environmentKey,
 		"x-flipt-namespace":   namespaceKey,
 	}))
@@ -117,7 +117,7 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
 
-	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+	ctx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{
 		"x-flipt-environment": environmentKey,
 		"x-flipt-namespace":   namespaceKey,
 	}))
@@ -335,4 +335,253 @@ func TestOFREPEvaluationWithTracing(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOFREPFlagEvaluationBulkWithEtag(t *testing.T) {
+	tests := []struct {
+		name              string
+		metadata          map[string]string
+		flags             []*core.Flag
+		expectListFlags   bool
+		expectNotModified bool
+		run               func(ctx context.Context, s *Server) (*ofrep.BulkEvaluationResponse, error)
+		validate          func(t *testing.T, resp *ofrep.BulkEvaluationResponse, err error)
+	}{
+		{
+			name: "success returns flags",
+			metadata: map[string]string{
+				"x-flipt-environment": "test-environment",
+				"x-flipt-namespace":   "test-namespace",
+			},
+			flags: []*core.Flag{{
+				Key:     "test-flag",
+				Enabled: true,
+				Type:    core.FlagType_VARIANT_FLAG_TYPE,
+			}},
+			expectListFlags: true,
+			run: func(ctx context.Context, s *Server) (*ofrep.BulkEvaluationResponse, error) {
+				return s.OFREPFlagEvaluationBulk(ctx, &ofrep.EvaluateBulkRequest{
+					Context: map[string]string{"targetingKey": "12345"},
+				})
+			},
+			validate: func(t *testing.T, resp *ofrep.BulkEvaluationResponse, err error) {
+				require.NoError(t, err)
+				require.Len(t, resp.Flags, 1)
+				assert.Equal(t, "test-flag", resp.Flags[0].Key)
+				assert.Equal(t, "boz", resp.Flags[0].Variant)
+			},
+		},
+		{
+			name: "returns not modified when etag matches",
+			metadata: map[string]string{
+				"x-flipt-environment":       "test-environment",
+				"x-flipt-namespace":         "test-namespace",
+				"GrpcGateway-If-None-Match": "7e427de9ffaef7ba",
+			},
+			flags: []*core.Flag{{
+				Key:     "test-flag",
+				Enabled: true,
+				Type:    core.FlagType_VARIANT_FLAG_TYPE,
+			}},
+			expectListFlags:   true,
+			expectNotModified: true,
+			run: func(ctx context.Context, s *Server) (*ofrep.BulkEvaluationResponse, error) {
+				return s.OFREPFlagEvaluationBulk(ctx, &ofrep.EvaluateBulkRequest{
+					Context: map[string]string{"targetingKey": "12345"},
+				})
+			},
+			validate: func(t *testing.T, resp *ofrep.BulkEvaluationResponse, err error) {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "not modified")
+			},
+		},
+		{
+			name: "returns flags when etag does not match",
+			metadata: map[string]string{
+				"x-flipt-environment":       "test-environment",
+				"x-flipt-namespace":         "test-namespace",
+				"GrpcGateway-If-None-Match": "different-etag",
+			},
+			flags: []*core.Flag{{
+				Key:     "test-flag",
+				Enabled: true,
+				Type:    core.FlagType_VARIANT_FLAG_TYPE,
+			}},
+			expectListFlags: true,
+			run: func(ctx context.Context, s *Server) (*ofrep.BulkEvaluationResponse, error) {
+				return s.OFREPFlagEvaluationBulk(ctx, &ofrep.EvaluateBulkRequest{
+					Context: map[string]string{"targetingKey": "12345"},
+				})
+			},
+			validate: func(t *testing.T, resp *ofrep.BulkEvaluationResponse, err error) {
+				require.NoError(t, err)
+				require.Len(t, resp.Flags, 1)
+				assert.Equal(t, "boz", resp.Flags[0].Variant)
+			},
+		},
+		{
+			name: "uses flags from context instead of listing",
+			metadata: map[string]string{
+				"x-flipt-environment": "test-environment",
+				"x-flipt-namespace":   "test-namespace",
+			},
+			flags: []*core.Flag{{
+				Key:     "test-flag",
+				Enabled: true,
+				Type:    core.FlagType_VARIANT_FLAG_TYPE,
+			}},
+			expectListFlags: false,
+			run: func(ctx context.Context, s *Server) (*ofrep.BulkEvaluationResponse, error) {
+				return s.OFREPFlagEvaluationBulk(ctx, &ofrep.EvaluateBulkRequest{
+					Context: map[string]string{
+						"flags":        "test-flag",
+						"targetingKey": "entity-123",
+					},
+				})
+			},
+			validate: func(t *testing.T, resp *ofrep.BulkEvaluationResponse, err error) {
+				require.NoError(t, err)
+				require.Len(t, resp.Flags, 1)
+				assert.Equal(t, "test-flag", resp.Flags[0].Key)
+				assert.Equal(t, "variant-a", resp.Flags[0].Variant)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				environmentKey = "test-environment"
+				envStore       = NewMockEnvironmentStore(t)
+				environment    = environments.NewMockEnvironment(t)
+				store          = storage.NewMockReadOnlyStore(t)
+				logger         = zaptest.NewLogger(t)
+				s              = New(logger, envStore)
+			)
+
+			environment.On("Key").Return(environmentKey)
+			envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
+			environment.On("EvaluationStore").Return(store, nil)
+
+			for _, flag := range tt.flags {
+				if flag.Key == "" {
+					continue
+				}
+
+				store.On("GetFlag", mock.Anything, mock.Anything).Return(flag, nil)
+				store.On("GetEvaluationRules", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{
+					{ID: "1", FlagKey: flag.Key, Rank: 0, Segments: map[string]*storage.EvaluationSegment{
+						"bar": {SegmentKey: "bar", MatchType: core.MatchType_ANY_MATCH_TYPE},
+					}},
+				}, nil)
+
+				variantKey := "boz"
+				if flag.Key == "test-flag" && tt.name == "uses flags from context instead of listing" {
+					variantKey = "variant-a"
+				}
+				store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{
+					{ID: "4", RuleID: "1", VariantID: "5", Rollout: 100, VariantKey: variantKey},
+				}, nil)
+			}
+
+			if tt.expectListFlags && len(tt.flags) > 0 {
+				store.On("ListFlags", mock.Anything, mock.Anything).Return(storage.ResultSet[*core.Flag]{Results: tt.flags}, nil)
+			}
+
+			ctx := metadata.NewIncomingContext(t.Context(), metadata.New(tt.metadata))
+
+			resp, err := tt.run(ctx, s)
+
+			if tt.expectNotModified {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "not modified")
+			} else {
+				tt.validate(t, resp, err)
+			}
+		})
+	}
+}
+
+func TestOFREPFlagEvaluationBulk(t *testing.T) {
+	var (
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
+		flag           = &core.Flag{
+			Key:     flagKey,
+			Enabled: true,
+			Type:    core.FlagType_VARIANT_FLAG_TYPE,
+		}
+	)
+
+	environment.On("Key").Return(environmentKey)
+
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, mock.Anything).Return(flag, nil)
+
+	store.On("ListFlags", mock.Anything, mock.Anything).Return(storage.ResultSet[*core.Flag]{
+		Results: []*core.Flag{flag},
+	}, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{
+		{
+			ID:      "1",
+			FlagKey: flagKey,
+			Rank:    0,
+			Segments: map[string]*storage.EvaluationSegment{
+				"bar": {
+					SegmentKey: "bar",
+					MatchType:  core.MatchType_ANY_MATCH_TYPE,
+				},
+			},
+		},
+	}, nil)
+
+	store.On(
+		"GetEvaluationDistributions",
+		mock.Anything,
+		storage.NewResource(namespaceKey, flagKey),
+		storage.NewID("1"),
+	).Return([]*storage.EvaluationDistribution{
+		{
+			ID:         "4",
+			RuleID:     "1",
+			VariantID:  "5",
+			Rollout:    100,
+			VariantKey: "boz",
+		},
+	}, nil)
+
+	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+		"x-flipt-environment": environmentKey,
+		"x-flipt-namespace":   namespaceKey,
+	}))
+
+	result, err := s.OFREPFlagEvaluationBulk(ctx, &ofrep.EvaluateBulkRequest{
+		Context: map[string]string{
+			"targetingKey": "12345",
+		},
+	})
+	require.NoError(t, err)
+
+	assert.Len(t, result.Flags, 1)
+	evaluation := result.Flags[0]
+	assert.Equal(t, flagKey, evaluation.Key)
+	assert.Equal(t, ofrep.EvaluateReason_TARGETING_MATCH, evaluation.Reason)
+	assert.Equal(t, "boz", evaluation.Variant)
+
+	require.Len(t, result.EventStreams, 1)
+
+	stream := result.EventStreams[0]
+	assert.Equal(t, "sse", stream.Type)
+	assert.NotNil(t, stream.Endpoint)
+	assert.Equal(t, "/client/v2/environments/test-environment/namespaces/test-namespace/stream", stream.Endpoint.GetRequestUri())
+	assert.Empty(t, stream.Endpoint.GetOrigin())
 }
