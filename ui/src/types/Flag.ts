@@ -46,3 +46,8 @@ export interface IFlagList extends IPageable {
 }
 
 export type FilterableFlag = IFlag & ISelectable;
+
+export interface MetadataFilter {
+  key: string;
+  value: string;
+}

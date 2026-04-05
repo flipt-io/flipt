@@ -15,6 +15,7 @@ import {
   PowerIcon,
   ToggleLeftIcon,
   VariableIcon,
+  XIcon,
   XSquareIcon
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -36,13 +37,15 @@ import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
 import { DataTableViewOptions } from '~/components/TableViewOptions';
 import Well from '~/components/Well';
+import MetadataFilterPopover from '~/components/flags/MetadataFilterPopover';
 
 import { IBatchFlagEvaluationCount } from '~/types/Analytics';
 import { IEnvironment } from '~/types/Environment';
-import { FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
+import { FlagType, IFlag, MetadataFilter, flagTypeToLabel } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 
 import { useError } from '~/data/hooks/error';
+import { applyMetadataFilters } from '~/utils/flagMetadataFilter';
 import { cls } from '~/utils/helpers';
 
 function VariantFlagBadge({ enabled }: { enabled: boolean }) {
@@ -266,6 +269,19 @@ export default function FlagTable(props: FlagTableProps) {
   const flagKeys = useMemo(() => flags.map((f) => f.key), [flags]);
   const hasFlags = flags.length > 0;
 
+  const [metadataFilters, setMetadataFilters] = useState<MetadataFilter[]>([]);
+
+  const availableMetadataKeys = useMemo(
+    () =>
+      [...new Set(flags.flatMap((f) => Object.keys(f.metadata ?? {})))].sort(),
+    [flags]
+  );
+
+  const filteredFlags = useMemo(
+    () => applyMetadataFilters(flags, metadataFilters),
+    [flags, metadataFilters]
+  );
+
   const { setError } = useError();
   useEffect(() => {
     if (error) {
@@ -274,7 +290,7 @@ export default function FlagTable(props: FlagTableProps) {
   }, [error, setError]);
 
   const table = useReactTable({
-    data: flags,
+    data: filteredFlags,
     columns,
     state: {
       globalFilter: filter,
@@ -319,24 +335,66 @@ export default function FlagTable(props: FlagTableProps) {
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-4">
               <Searchbox value={filter ?? ''} onChange={setFilter} />
+              <MetadataFilterPopover
+                availableKeys={availableMetadataKeys}
+                onAdd={(f) => setMetadataFilters((prev) => [...prev, f])}
+              />
             </div>
             {hasFlags && <DataTableViewOptions table={table} />}
           </div>
         </div>
 
-        {table.getRowCount() === 0 && filter.length === 0 && (
-          <EmptyFlagList path={`${path}/new`} />
+        {metadataFilters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {metadataFilters.map((f, i) => (
+              <Badge
+                key={i}
+                variant="outlinemuted"
+                className="flex items-center gap-1 pr-1"
+              >
+                <span>
+                  {f.key}: {f.value}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMetadataFilters((prev) =>
+                      prev.filter((_, idx) => idx !== i)
+                    )
+                  }
+                  aria-label={`Remove filter ${f.key}:${f.value}`}
+                  className="ml-1 rounded-full hover:bg-muted p-0.5"
+                >
+                  <XIcon className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+            <button
+              type="button"
+              onClick={() => setMetadataFilters([])}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear all
+            </button>
+          </div>
         )}
-        {table.getRowCount() === 0 && filter.length > 0 && (
-          <Well>
-            <div className="flex flex-col items-center text-center p-4">
-              <FlagIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <p className="text-sm text-muted-foreground">
-                No flags matched your search
-              </p>
-            </div>
-          </Well>
-        )}
+
+        {table.getRowCount() === 0 &&
+          filter.length === 0 &&
+          metadataFilters.length === 0 && (
+            <EmptyFlagList path={`${path}/new`} />
+          )}
+        {table.getRowCount() === 0 &&
+          (filter.length > 0 || metadataFilters.length > 0) && (
+            <Well>
+              <div className="flex flex-col items-center text-center p-4">
+                <FlagIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                <p className="text-sm text-muted-foreground">
+                  No flags matched your search
+                </p>
+              </div>
+            </Well>
+          )}
 
         <div className="space-y-2">
           {table.getRowModel().rows.map((row) => {
