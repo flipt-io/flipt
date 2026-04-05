@@ -1,5 +1,6 @@
 import {
   addNamespaceToPath,
+  canFetchUpdates,
   stringAsKey,
   titleCase,
   upperFirst
@@ -69,5 +70,30 @@ describe('stringAsKey', () => {
     expect(stringAsKey('foo_')).toEqual('foo_');
     expect(stringAsKey('foo-bar')).toEqual('foo-bar');
     expect(stringAsKey('foo_-')).toEqual('foo_-');
+  });
+});
+
+describe('canFetchUpdates', () => {
+  it('should return true when user is authenticated', () => {
+    const session = { authenticated: true, required: true };
+    expect(canFetchUpdates(session)).toBe(true);
+  });
+
+  it('should return false when user is not authenticated and auth is required', () => {
+    const session = { authenticated: false, required: true };
+    expect(canFetchUpdates(session)).toBe(false);
+  });
+
+  it('should return true when auth is not required', () => {
+    const session = { authenticated: false, required: false };
+    expect(canFetchUpdates(session)).toBe(true);
+  });
+
+  it('should return false when session is undefined', () => {
+    expect(canFetchUpdates(undefined)).toBe(false);
+  });
+
+  it('should return false when session is null', () => {
+    expect(canFetchUpdates(null)).toBe(false);
   });
 });
