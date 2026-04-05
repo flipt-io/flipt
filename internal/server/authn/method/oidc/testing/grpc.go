@@ -5,7 +5,6 @@ import (
 	"net"
 	"testing"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn/method/oidc"
@@ -37,9 +36,7 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 		store    = memory.NewStore(logger)
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
-			grpc_middleware.WithUnaryServerChain(
-				middleware.ErrorUnaryInterceptor,
-			),
+			grpc.ChainUnaryInterceptor(middleware.ErrorUnaryInterceptor),
 		)
 		grpcServer = &GRPCServer{
 			Server: server,
