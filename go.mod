@@ -28,8 +28,8 @@ require (
 	github.com/fullstorydev/grpchan v1.1.2
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/go-chi/cors v1.2.2
-	github.com/go-git/go-billy/v6 v6.0.0-20260209124918-37866f83c2d3
-	github.com/go-git/go-git/v6 v6.0.0-20260216160506-e6a3f881772f
+	github.com/go-git/go-billy/v6 v6.0.0-20260226131633-45bd0956d66f
+	github.com/go-git/go-git/v6 v6.0.0-alpha.1
 	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-openapi/jsonpointer v0.22.5
 	github.com/gobwas/glob v0.2.3
