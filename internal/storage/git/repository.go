@@ -146,7 +146,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 			gitDir := filepath.Join(r.localPath, ".git")
 			if _, err := os.Stat(gitDir); err == nil {
 				// .git subdirectory exists - this is a normal Git repository
-				r.Repository, err = git.PlainOpenWithOptions(r.localPath, &git.PlainOpenOptions{DetectDotGit: false, EnableDotGitCommonDir: false})
+				r.Repository, err = git.PlainOpenWithOptions(r.localPath, &git.PlainOpenOptions{DetectDotGit: false})
 				if err != nil {
 					return nil, empty, fmt.Errorf("opening normal git repository: %w", err)
 				}
