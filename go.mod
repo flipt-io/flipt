@@ -49,7 +49,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jferrl/go-githubauth v1.5.1
 	github.com/keygen-sh/keygen-go/v3 v3.3.0
-	github.com/keygen-sh/machineid v1.1.2
+	github.com/keygen-sh/machineid v1.1.3
 	github.com/ktrysmt/go-bitbucket v0.9.94
 	github.com/kubescape/go-git-url v0.0.31
 	github.com/mattn/go-isatty v0.0.20
