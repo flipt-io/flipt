@@ -1,7 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
-import { v4 as uuid } from 'uuid';
 
 import { IConstraint } from '~/types/Constraint';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
@@ -9,6 +8,7 @@ import { ISegment, ISegmentList } from '~/types/Segment';
 
 import { RootState } from '~/store';
 import { baseQuery } from '~/utils/redux-rtk';
+import { uuid } from '~/utils/uuid';
 
 const initialTableState: {
   sorting: SortingState;

@@ -1,5 +1,3 @@
-import Box from '@mui/material/Box';
-import { SparkLineChart } from '@mui/x-charts';
 import {
   PaginationState,
   createColumnHelper,
@@ -36,6 +34,7 @@ import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
 import { DataTableViewOptions } from '~/components/TableViewOptions';
 import Well from '~/components/Well';
+import Sparkline from '~/components/charts/Sparkline';
 
 import { IBatchFlagEvaluationCount } from '~/types/Analytics';
 import { IEnvironment } from '~/types/Environment';
@@ -149,18 +148,12 @@ function FlagListItem({
                 className="w-[256px]"
                 title="Evaluation requests in the last 24 hours"
               >
-                <Box sx={{ flexGrow: 1 }}>
-                  <SparkLineChart
-                    data={evaluationValues}
-                    color="var(--brand)"
-                    curve="natural"
-                    height={24}
-                    yAxis={{
-                      min: 0,
-                      max: Math.max(...evaluationValues) + 1
-                    }}
-                  />
-                </Box>
+                <Sparkline
+                  data={evaluationValues}
+                  color="var(--brand)"
+                  height={24}
+                  width={256}
+                />
               </div>
             )}
           </div>

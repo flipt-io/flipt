@@ -15,7 +15,53 @@ export default defineConfig({
     }
   },
   build: {
-    manifest: true
+    manifest: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@codemirror')) {
+              return 'vendor-codemirror';
+            }
+            if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('@mui')) {
+              return 'vendor-mui';
+            }
+            if (id.includes('@fortawesome')) {
+              return 'vendor-fontawesome';
+            }
+            if (id.includes('@dnd-kit')) {
+              return 'vendor-dndkit';
+            }
+            if (id.includes('date-fns') || id.includes('chartjs-adapter')) {
+              return 'vendor-date';
+            }
+            if (
+              id.includes('react') ||
+              id.includes('react-dom') ||
+              id.includes('react-router')
+            ) {
+              return 'vendor-react';
+            }
+            if (id.includes('@reduxjs/toolkit') || id.includes('react-redux')) {
+              return 'vendor-redux';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            if (
+              id.includes('formik') ||
+              id.includes('yup') ||
+              id.includes('zod')
+            ) {
+              return 'vendor-forms';
+            }
+          }
+        }
+      }
+    }
   },
   envPrefix: 'FLIPT_',
   server: {
