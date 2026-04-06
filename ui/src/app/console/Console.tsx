@@ -6,8 +6,8 @@ import { Form, Formik, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
-import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
+import { uuid } from '~/utils/uuid';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -208,7 +208,7 @@ export default function Console() {
 
   const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
-    entityId: uuidv4(),
+    entityId: uuid(),
     context: '{}'
   };
 
@@ -263,7 +263,7 @@ export default function Console() {
                               variant="ghost"
                               onClick={(e) => {
                                 e.preventDefault();
-                                formik.setFieldValue('entityId', uuidv4());
+                                formik.setFieldValue('entityId', uuid());
                               }}
                             >
                               <RefreshCwIcon className="text-muted-foreground h-4 w-4" />
