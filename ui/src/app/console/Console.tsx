@@ -6,7 +6,6 @@ import { CodeIcon, RefreshCwIcon, SquareTerminalIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
-import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
@@ -40,6 +39,7 @@ import {
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
+import { uuid } from '~/utils/uuid';
 
 const consoleValidationSchema = Yup.object({
   flagKey: keyValidation,
@@ -223,7 +223,7 @@ export default function Console() {
 
   const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
-    entityId: uuidv4(),
+    entityId: uuid(),
     context: '{}'
   };
 
@@ -325,7 +325,7 @@ export default function Console() {
                                 variant="ghost"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  formik.setFieldValue('entityId', uuidv4());
+                                  formik.setFieldValue('entityId', uuid());
                                 }}
                               >
                                 <RefreshCwIcon className="h-4 w-4 text-gray-400 dark:text-gray-300" />

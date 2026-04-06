@@ -2,7 +2,6 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { FieldArray, Form, Formik } from 'formik';
 import { XIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { v4 as uuid } from 'uuid';
 import * as Yup from 'yup';
 
 import { Button } from '~/components/Button';
@@ -22,6 +21,7 @@ import { FilterableVariant, IVariant } from '~/types/Variant';
 
 import { useError } from '~/data/hooks/error';
 import { keyValidation } from '~/data/validations';
+import { uuid } from '~/utils/uuid';
 
 import MultiDistributionFormInputs from './MultiDistributionForm';
 import SingleDistributionFormInput from './SingleDistributionForm';

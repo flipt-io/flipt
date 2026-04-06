@@ -1,9 +1,10 @@
 import { FormikProps } from 'formik';
 import React, { ReactNode, createContext } from 'react';
-import { v4 as uuid } from 'uuid';
 
 import { IConstraint } from '~/types/Constraint';
 import { ISegment } from '~/types/Segment';
+
+import { uuid } from '~/utils/uuid';
 
 interface SegmentFormContextProps {
   constraints: IConstraint[];

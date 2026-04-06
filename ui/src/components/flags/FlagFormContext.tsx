@@ -1,11 +1,12 @@
 import { FormikProps } from 'formik';
 import React, { ReactNode, createContext } from 'react';
-import { v4 as uuid } from 'uuid';
 
 import { IFlag } from '~/types/Flag';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
 import { IVariant } from '~/types/Variant';
+
+import { uuid } from '~/utils/uuid';
 
 // Import IFlagFormValues from FlagForm
 import { IFlagFormValues } from './FlagForm';
