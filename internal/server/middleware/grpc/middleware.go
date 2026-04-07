@@ -236,6 +236,7 @@ func forwardHeader(ctx context.Context, req *http.Request, headerKey string) met
 // ZapInterceptorLogger wraps a zap.Logger to conform to the grpclogging.Logger interface.
 // It translates grpclogging log levels to zap log levels and properly formats log fields.
 func ZapInterceptorLogger(l *zap.Logger) grpclogging.Logger {
+	l = l.WithOptions(zap.AddCallerSkip(1))
 	return grpclogging.LoggerFunc(func(ctx context.Context, lvl grpclogging.Level, msg string, fields ...any) {
 		f := make([]zap.Field, 0, len(fields)/2)
 
@@ -255,7 +256,7 @@ func ZapInterceptorLogger(l *zap.Logger) grpclogging.Logger {
 			}
 		}
 
-		logger := l.WithOptions(zap.AddCallerSkip(1)).With(f...)
+		logger := l.With(f...)
 
 		switch lvl {
 		case grpclogging.LevelDebug:
