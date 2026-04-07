@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-
 	"slices"
 
 	"go.flipt.io/flipt/errors"
@@ -143,7 +142,7 @@ func (f *SegmentStorage) PutResource(ctx context.Context, fs environmentsfs.File
 	if err != nil {
 		return err
 	}
-	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}
@@ -224,7 +223,7 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 	if err != nil {
 		return err
 	}
-	fi, err := fs.OpenFile(path.Join(namespace, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	fi, err := fs.OpenFile(path.Join(namespace, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}

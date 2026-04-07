@@ -86,7 +86,6 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-
 			conf := config.AuthenticationConfig{}
 
 			server := &Server{

@@ -6,8 +6,7 @@ import (
 
 // ExperimentalConfig allows for experimental features to be enabled
 // and disabled.
-type ExperimentalConfig struct {
-}
+type ExperimentalConfig struct{}
 
 func (c *ExperimentalConfig) deprecations(v *viper.Viper) []deprecated {
 	return nil

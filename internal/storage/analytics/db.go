@@ -26,11 +26,9 @@ func open(cfg config.Config) (*sql.DB, Driver, error) {
 	return nil, "", errors.New("no analytics db provided")
 }
 
-var (
-	stringToDriver = map[string]Driver{
-		"clickhouse": Clickhouse,
-	}
-)
+var stringToDriver = map[string]Driver{
+	"clickhouse": Clickhouse,
+}
 
 // Driver represents a database driver
 type Driver string

@@ -127,7 +127,7 @@ func TestManager_validateOffline_Success(t *testing.T) {
 
 	// Write a mock license certificate
 	mockCert := "-----BEGIN LICENSE-----\nMOCK_CERTIFICATE_DATA\n-----END LICENSE-----"
-	err := os.WriteFile(licenseFile, []byte(mockCert), 0600)
+	err := os.WriteFile(licenseFile, []byte(mockCert), 0o600)
 	require.NoError(t, err)
 
 	manager := &ManagerImpl{
@@ -215,7 +215,7 @@ func TestManager_validateAndSet_OfflineLicense(t *testing.T) {
 
 	// Write a mock license certificate
 	mockCert := "-----BEGIN LICENSE-----\nMOCK_CERTIFICATE_DATA\n-----END LICENSE-----"
-	err := os.WriteFile(licenseFile, []byte(mockCert), 0600)
+	err := os.WriteFile(licenseFile, []byte(mockCert), 0o600)
 	require.NoError(t, err)
 
 	manager := &ManagerImpl{

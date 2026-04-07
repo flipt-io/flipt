@@ -2,15 +2,14 @@ package snapshot
 
 import (
 	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"testing"
-
-	"bytes"
-	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,9 +23,7 @@ import (
 // Snapshot tests the client evaluation snapshot API.
 func TestSnapshot(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, opts integration.TestOpts) {
-		var (
-			protocol = opts.Protocol()
-		)
+		protocol := opts.Protocol()
 
 		if protocol == integration.ProtocolGRPC {
 			t.Skip("REST tests are not applicable for gRPC")

@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path"
-
 	"slices"
 
 	"go.flipt.io/flipt/core/validation"
@@ -182,7 +181,7 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 	if err != nil {
 		return err
 	}
-	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}
@@ -240,7 +239,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 	if err != nil {
 		return err
 	}
-	fi, err := fs.OpenFile(path.Join(namespace, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	fi, err := fs.OpenFile(path.Join(namespace, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}
@@ -337,9 +336,7 @@ func payloadFromFlag(flag *ext.Flag) (_ *anypb.Any, err error) {
 		}
 
 		if rollout.Segment != nil {
-			var (
-				segmentKeys = []string{}
-			)
+			segmentKeys := []string{}
 
 			if len(rollout.Segment.Keys) > 0 {
 				segmentKeys = append(segmentKeys, rollout.Segment.Keys...)

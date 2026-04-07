@@ -21,7 +21,7 @@ import (
 )
 
 func main() {
-	var giteaURL = flag.String("gitea-url", "", "Address for target gitea service")
+	giteaURL := flag.String("gitea-url", "", "Address for target gitea service")
 	testdataDir := flag.String("testdata-dir", "", "Directory path to testdata")
 	flag.Parse()
 
@@ -88,7 +88,7 @@ func main() {
 		}
 
 		if d.IsDir() {
-			return workdir.MkdirAll(path, 0755)
+			return workdir.MkdirAll(path, 0o755)
 		}
 
 		fmt.Fprintln(os.Stderr, "Copying", path)

@@ -19,7 +19,7 @@ func newDocCommand() *cobra.Command {
 			if len(args) > 0 {
 				path = args[0]
 			}
-			if err := os.MkdirAll(path, 0755); err != nil {
+			if err := os.MkdirAll(path, 0o755); err != nil {
 				return fmt.Errorf("failed to create docs directory: %w", err)
 			}
 

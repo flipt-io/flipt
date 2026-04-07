@@ -7,10 +7,8 @@ import (
 
 type deprecated string
 
-var (
-	// fields that are deprecated along with their messages
-	deprecatedFields = map[deprecated]string{}
-)
+// fields that are deprecated along with their messages
+var deprecatedFields = map[deprecated]string{}
 
 const (
 	deprecatedDefaultMessage = `%q is deprecated and will be removed in a future release.`

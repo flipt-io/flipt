@@ -4,9 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	_ defaulter = (*TracingConfig)(nil)
-)
+var _ defaulter = (*TracingConfig)(nil)
 
 // TracingConfig contains fields, which configure tracing telemetry
 // output destinations.

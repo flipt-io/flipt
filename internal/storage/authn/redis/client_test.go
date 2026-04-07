@@ -121,7 +121,7 @@ func TestTLSCABundle(t *testing.T) {
 			var (
 				dir    = t.TempDir()
 				cafile = filepath.Join(dir, "cafile.pem")
-				err    = os.WriteFile(cafile, []byte(ca), 0600)
+				err    = os.WriteFile(cafile, []byte(ca), 0o600)
 			)
 
 			require.NoError(t, err)

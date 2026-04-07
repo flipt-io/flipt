@@ -105,9 +105,15 @@ linters:
       - builtin$
       - examples$
 formatters:
+  enable:
+    - gofmt
+    - goimports
+    - gofumpt
+
   exclusions:
     generated: lax
     paths:
       - third_party$
       - builtin$
       - examples$
+      - (.+)_mock\.go$

@@ -2,7 +2,6 @@ package grpc_middleware
 
 import (
 	"context"
-
 	"slices"
 
 	"go.flipt.io/flipt/errors"

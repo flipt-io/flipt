@@ -2,9 +2,7 @@ package config
 
 import "github.com/spf13/viper"
 
-var (
-	_ defaulter = (*MetaConfig)(nil)
-)
+var _ defaulter = (*MetaConfig)(nil)
 
 // MetaConfig contains a variety of meta configuration fields.
 type MetaConfig struct {
