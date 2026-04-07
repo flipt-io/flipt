@@ -205,9 +205,14 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 
 	// Extract custom claims
 	var claims claims
+
 	if err := responseToken.IDToken().Claims(&claims); err != nil {
 		return nil, err
 	}
+
+	// Fallback to UserInfo claims for missing fields
+	claims.fallbackFrom(rawClaims)
+
 	claims.addToMetadata(metadata)
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
@@ -305,6 +310,29 @@ type claims struct {
 	Profile  *string `json:"profile"`
 	Picture  *string `json:"picture"`
 	Sub      *string `json:"sub"`
+}
+
+// fallbackFrom populates missing claims fields from extra (UserInfo) claims.
+// It only fills fields that are nil or empty, preserving any existing values from the ID token.
+func (c *claims) fallbackFrom(extra map[string]any) {
+	for _, k := range []string{"name", "email", "picture"} {
+		if v, ok := extra[k].(string); ok && v != "" {
+			switch k {
+			case "name":
+				if c.Name == nil || *c.Name == "" {
+					c.Name = new(v)
+				}
+			case "email":
+				if c.Email == nil || *c.Email == "" {
+					c.Email = new(v)
+				}
+			case "picture":
+				if c.Picture == nil || *c.Picture == "" {
+					c.Picture = new(v)
+				}
+			}
+		}
+	}
 }
 
 func (c claims) addToMetadata(m map[string]string) {
