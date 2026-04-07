@@ -3,7 +3,7 @@ module go.flipt.io/build
 go 1.26
 
 require (
-	cloud.google.com/go/storage v1.61.3
+	cloud.google.com/go/storage v1.62.0
 	code.gitea.io/sdk/gitea v0.24.1
 	dagger.io/dagger v0.20.3
 	github.com/99designs/gqlgen v0.17.89
