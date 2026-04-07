@@ -233,10 +233,10 @@ func k8sServiceAccountToken(t *testing.T, opts ...ClientOpt) string {
 	})
 
 	// write out JWT into service account token slot
-	require.NoError(t, os.MkdirAll("/var/run/secrets/kubernetes.io/serviceaccount", 0755))
+	require.NoError(t, os.MkdirAll("/var/run/secrets/kubernetes.io/serviceaccount", 0o755))
 
 	tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token"
-	require.NoError(t, os.WriteFile(tokenPath, []byte(saToken), 0644))
+	require.NoError(t, os.WriteFile(tokenPath, []byte(saToken), 0o644))
 
 	return tokenPath
 }

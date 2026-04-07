@@ -209,15 +209,7 @@ run = """
 #!/usr/bin/env bash
 set -euo pipefail
 echo " > Formatting..."
-find . -name '*.go' \
-  -not -path '*.devenv/*' \
-  -not -path './rpc/*' \
-  -not -path './sdk/*' \
-  -not -path './.git/*' \
-  -not -name '*.pb.go' \
-  -not -name '*.gen.go' \
-  -not -name '*_generated.go' \
-  -print0 | xargs -0 -n 50 go tool golang.org/x/tools/cmd/goimports -w
+golangci-lint fmt
 """
 
 [tasks."go:lint"]

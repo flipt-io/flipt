@@ -117,7 +117,7 @@ func (f *Filesystem) OpenFile(filename string, flag int, perm os.FileMode) (fs.F
 func (f *Filesystem) Stat(filename string) (os.FileInfo, error) {
 	f.t.Logf("Stat(%q)", filename)
 
-	fi, err := f.OpenFile(filename, os.O_RDONLY, 0644)
+	fi, err := f.OpenFile(filename, os.O_RDONLY, 0o644)
 	if err != nil {
 		return nil, err
 	}

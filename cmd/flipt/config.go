@@ -59,7 +59,7 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// get path to file, create directory if not exists
-	if err := os.MkdirAll(filepath.Dir(file), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(file), 0o700); err != nil {
 		return err
 	}
 
@@ -74,7 +74,7 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 	b.WriteString("# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/v2/config/flipt.schema.json\n\n")
 	b.Write(out)
 
-	if err := os.WriteFile(file, b.Bytes(), 0600); err != nil {
+	if err := os.WriteFile(file, b.Bytes(), 0o600); err != nil {
 		return err
 	}
 
@@ -136,7 +136,7 @@ func newConfigCommand() *cobra.Command {
 		editCmd = &editCommand{}
 	)
 
-	var init = &cobra.Command{
+	init := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize Flipt configuration",
 		RunE:  initCmd.run,
@@ -144,7 +144,7 @@ func newConfigCommand() *cobra.Command {
 
 	init.Flags().BoolVarP(&initCmd.force, "force", "y", false, "Overwrite existing configuration file")
 
-	var edit = &cobra.Command{
+	edit := &cobra.Command{
 		Use:   "edit",
 		Short: "Edit Flipt configuration",
 		RunE:  editCmd.run,

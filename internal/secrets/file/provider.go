@@ -81,7 +81,7 @@ func (p *Provider) PutSecret(ctx context.Context, path string, secret *secrets.S
 
 	// Ensure directory exists
 	dir := filepath.Dir(fullPath)
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("creating directory: %w", err)
 	}
 
@@ -96,7 +96,7 @@ func (p *Provider) PutSecret(ctx context.Context, path string, secret *secrets.S
 		zap.String("file", fullPath))
 
 	// Write the raw secret value with restricted permissions
-	if err := os.WriteFile(fullPath, secretValue, 0600); err != nil {
+	if err := os.WriteFile(fullPath, secretValue, 0o600); err != nil {
 		return fmt.Errorf("writing secret file: %w", err)
 	}
 
@@ -166,7 +166,6 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("listing secrets: %w", err)
 	}

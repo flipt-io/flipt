@@ -22,7 +22,6 @@ func PromptPlaintext(message string, defaultVal string) (string, error) {
 	}
 
 	return strings.TrimSpace(value), nil
-
 }
 
 // PromptPassword prompts a user to input a hidden field

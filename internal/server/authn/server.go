@@ -65,9 +65,7 @@ func GetActorFromAuthentication(authentication *auth.Authentication, ip string) 
 }
 
 func ActorFromContext(ctx context.Context) *audit.Actor {
-	var (
-		ipAddress string
-	)
+	var ipAddress string
 
 	md, _ := metadata.FromIncomingContext(ctx)
 	if len(md[ipKey]) > 0 {

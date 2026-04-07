@@ -18,7 +18,7 @@ func TryOpenFeaturesFile(fs Filesystem, dir string) (io.ReadCloser, string, erro
 	// Try .yaml first for backward compatibility
 	for _, filename := range []string{"features.yaml", "features.yml"} {
 		filePath := path.Join(dir, filename)
-		fi, err := fs.OpenFile(filePath, os.O_RDONLY, 0644)
+		fi, err := fs.OpenFile(filePath, os.O_RDONLY, 0o644)
 		if err == nil {
 			return fi, filename, nil
 		}

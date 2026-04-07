@@ -12,8 +12,7 @@ var NoopPublisher = &noopPublisher{}
 
 // noopPublisher is a publisher that does nothing.
 // It is used in branched environments where evaluation is not enabled.
-type noopPublisher struct {
-}
+type noopPublisher struct{}
 
 func (p *noopPublisher) Publish(snap *storagefs.Snapshot) error {
 	return nil

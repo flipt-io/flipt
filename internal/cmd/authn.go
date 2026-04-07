@@ -38,7 +38,6 @@ func getAuthStore(
 	logger *zap.Logger,
 	cfg *config.Config,
 ) (storageauth.Store, error) {
-
 	var (
 		cleanupGracePeriod                   = cfg.Authentication.Session.Storage.Cleanup.GracePeriod
 		prefix                               = cfg.Authentication.Session.Storage.Redis.Prefix
@@ -74,7 +73,6 @@ func authenticationGRPC(
 	handlers *grpchan.HandlerMap,
 	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
 ) ([]grpc.UnaryServerInterceptor, []grpc.StreamServerInterceptor, func(context.Context) error, error) {
-
 	var (
 		shutdown = func(ctx context.Context) error {
 			return nil

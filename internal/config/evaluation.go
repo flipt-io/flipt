@@ -2,9 +2,7 @@ package config
 
 import "github.com/spf13/viper"
 
-var (
-	_ defaulter = (*EvaluationConfig)(nil)
-)
+var _ defaulter = (*EvaluationConfig)(nil)
 
 // EvaluationConfig contains fields which configure flag evaluation behavior.
 type EvaluationConfig struct {

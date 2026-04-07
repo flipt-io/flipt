@@ -6,9 +6,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	_ defaulter = (*LogConfig)(nil)
-)
+var _ defaulter = (*LogConfig)(nil)
 
 // LogConfig contains fields which control, direct and filter
 // the logging telemetry produces by Flipt.

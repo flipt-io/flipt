@@ -517,7 +517,7 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	}
 
 	// Determine which set to scan based on method filter
-	var key = authAllKey(s.prefix)
+	key := authAllKey(s.prefix)
 	if req.Predicate.Method != nil {
 		key = authMethodKey(s.prefix, *req.Predicate.Method)
 	}

@@ -20,7 +20,7 @@ func TestFilesystem_Operations(t *testing.T) {
 	fs := New(tmpDir)
 
 	t.Run("MkdirAll", func(t *testing.T) {
-		err := fs.MkdirAll("testdir", 0755)
+		err := fs.MkdirAll("testdir", 0o755)
 		require.NoError(t, err)
 
 		info, err := fs.Stat("testdir")
@@ -29,7 +29,7 @@ func TestFilesystem_Operations(t *testing.T) {
 	})
 
 	t.Run("OpenFile for writing", func(t *testing.T) {
-		f, err := fs.OpenFile("testfile.txt", os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := fs.OpenFile("testfile.txt", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 
 		content := []byte("test content")
@@ -63,9 +63,9 @@ func TestFilesystem_Operations(t *testing.T) {
 	t.Run("ReadDir", func(t *testing.T) {
 		// Create a few files in testdir
 		//nolint:gosec
-		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "testdir", "file1.txt"), []byte("content1"), 0644))
+		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "testdir", "file1.txt"), []byte("content1"), 0o644))
 		//nolint:gosec
-		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "testdir", "file2.txt"), []byte("content2"), 0644))
+		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "testdir", "file2.txt"), []byte("content2"), 0o644))
 
 		entries, err := fs.ReadDir("testdir")
 		require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestFile_Operations(t *testing.T) {
 
 	t.Run("file stat matches filesystem stat", func(t *testing.T) {
 		// Create a test file
-		f, err := fs.OpenFile("stattest.txt", os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := fs.OpenFile("stattest.txt", os.O_CREATE|os.O_WRONLY, 0o644)
 		require.NoError(t, err)
 		_, err = f.Write([]byte("test content"))
 		require.NoError(t, err)
