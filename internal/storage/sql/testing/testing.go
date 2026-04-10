@@ -249,8 +249,8 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "postgres:11.2",
 			ExposedPorts: []string{"5432/tcp"},
-			WaitingFor: wait.ForSQL(port, "postgres", func(host string, port nat.Port) string {
-				return fmt.Sprintf("postgres://flipt:password@%s:%s/flipt_test?sslmode=disable", host, port.Port())
+			WaitingFor: wait.ForSQL(port.Port(), "postgres", func(host string, port string) string {
+				return fmt.Sprintf("postgres://flipt:password@%s:%s/flipt_test?sslmode=disable", host, port)
 			}),
 			Env: map[string]string{
 				"POSTGRES_USER":     "flipt",
@@ -263,8 +263,8 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "cockroachdb/cockroach:latest-v24.2",
 			ExposedPorts: []string{"26257/tcp", "8080/tcp"},
-			WaitingFor: wait.ForSQL(port, "postgres", func(host string, port nat.Port) string {
-				return fmt.Sprintf("postgres://root@%s:%s/defaultdb?sslmode=disable", host, port.Port())
+			WaitingFor: wait.ForSQL(port.Port(), "postgres", func(host string, port string) string {
+				return fmt.Sprintf("postgres://root@%s:%s/defaultdb?sslmode=disable", host, port)
 			}),
 			Env: map[string]string{
 				"COCKROACH_USER":     "root",
@@ -277,8 +277,8 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "mysql:8",
 			ExposedPorts: []string{"3306/tcp"},
-			WaitingFor: wait.ForSQL(port, "mysql", func(host string, port nat.Port) string {
-				return fmt.Sprintf("flipt:password@tcp(%s:%s)/flipt_test?multiStatements=true", host, port.Port())
+			WaitingFor: wait.ForSQL(port.Port(), "mysql", func(host string, port string) string {
+				return fmt.Sprintf("flipt:password@tcp(%s:%s)/flipt_test?multiStatements=true", host, port)
 			}),
 			Env: map[string]string{
 				"MYSQL_USER":                 "flipt",
@@ -307,7 +307,7 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		container.FollowOutput(&logger)
 	}
 
-	mappedPort, err := container.MappedPort(ctx, port)
+	mappedPort, err := container.MappedPort(ctx, port.Port())
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		return nil, err
 	}
 
-	return &DBContainer{Container: container, Host: hostIP, Port: mappedPort.Int()}, nil
+	return &DBContainer{Container: container, Host: hostIP, Port: int(mappedPort.Num())}, nil
 }
 
 type testContainerLogger struct{}
