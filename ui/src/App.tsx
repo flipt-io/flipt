@@ -1,6 +1,5 @@
-import loadable from '@loadable/component';
 import formbricks from '@formbricks/js/website';
-import { useEffect, useState } from 'react';
+import { lazy, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectConfig } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -16,21 +15,21 @@ import Segment from './app/segments/Segment';
 import SessionProvider from './components/SessionProvider';
 import { Theme } from './types/Preferences';
 import { store } from './store';
-const Flags = loadable(() => import('./app/flags/Flags'));
-const ConditionalFlagRouter = loadable(
+const Flags = lazy(() => import('./app/flags/Flags'));
+const ConditionalFlagRouter = lazy(
   () => import('./app/flags/ConditionalFlagRouter')
 );
-const Rules = loadable(() => import('./app/flags/rules/Rules'));
-const Analytics = loadable(() => import('./app/flags/analytics/Analytics'));
-const Segments = loadable(() => import('./app/segments/Segments'));
-const Console = loadable(() => import('./app/console/Console'));
-const Login = loadable(() => import('./app/auth/Login'));
-const Settings = loadable(() => import('./app/Settings'));
-const Onboarding = loadable(() => import('./app/Onboarding'));
-const Support = loadable(() => import('./app/Support'));
-const Preferences = loadable(() => import('./app/preferences/Preferences'));
-const Namespaces = loadable(() => import('./app/namespaces/Namespaces'));
-const Tokens = loadable(() => import('./app/tokens/Tokens'));
+const Rules = lazy(() => import('./app/flags/rules/Rules'));
+const Analytics = lazy(() => import('./app/flags/analytics/Analytics'));
+const Segments = lazy(() => import('./app/segments/Segments'));
+const Console = lazy(() => import('./app/console/Console'));
+const Login = lazy(() => import('./app/auth/Login'));
+const Settings = lazy(() => import('./app/Settings'));
+const Onboarding = lazy(() => import('./app/Onboarding'));
+const Support = lazy(() => import('./app/Support'));
+const Preferences = lazy(() => import('./app/preferences/Preferences'));
+const Namespaces = lazy(() => import('./app/namespaces/Namespaces'));
+const Tokens = lazy(() => import('./app/tokens/Tokens'));
 
 if (typeof window !== 'undefined') {
   formbricks.init({
