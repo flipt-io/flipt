@@ -26,7 +26,15 @@ import { DataTableViewOptions } from '~/components/ui/table-view-options';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';
+<<<<<<< HEAD
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
+=======
+import { selectLoadSegmentFlagReferences } from '~/app/preferences/preferencesSlice';
+import {
+  useGetSegmentFlagCountsQuery,
+  useListSegmentsQuery
+} from '~/app/segments/segmentsApi';
+>>>>>>> f5591c11 (Make segment flag usage configurable with UI preference)
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
 import Well from '~/components/Well';
@@ -129,7 +137,20 @@ export default function SegmentTable(props: SegmentTableProps) {
   const [filter, setFilter] = useState<string>('');
 
   const sorting = useSelector(selectSorting);
+  const loadSegmentFlagReferences = useSelector(
+    selectLoadSegmentFlagReferences
+  );
   const { data, isLoading, error } = useListSegmentsQuery(namespace.key);
+<<<<<<< HEAD
+=======
+  const { data: flagCounts } = useGetSegmentFlagCountsQuery(
+    { namespaceKey: namespace.key },
+    {
+      skip: !data?.segments?.length || !loadSegmentFlagReferences,
+      refetchOnMountOrArgChange: true
+    }
+  );
+>>>>>>> f5591c11 (Make segment flag usage configurable with UI preference)
   const segments = useMemo(() => data?.segments || [], [data]);
   const table = useReactTable({
     data: segments,

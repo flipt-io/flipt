@@ -8,6 +8,7 @@ import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
+import { selectLoadSegmentFlagReferences } from '~/app/preferences/preferencesSlice';
 import {
   useCopySegmentMutation,
   useDeleteConstraintMutation,
@@ -90,6 +91,9 @@ export default function Segment() {
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
+  const loadSegmentFlagReferences = useSelector(
+    selectLoadSegmentFlagReferences
+  );
 
   const {
     data: segment,
@@ -101,6 +105,20 @@ export default function Segment() {
     segmentKey: segmentKey || ''
   });
 
+<<<<<<< HEAD
+=======
+  const { data: flagsForSegment } = useListFlagsForSegmentQuery(
+    {
+      namespaceKey: namespace.key,
+      segmentKey: segmentKey || ''
+    },
+    {
+      skip: !segmentKey || !loadSegmentFlagReferences,
+      refetchOnMountOrArgChange: true
+    }
+  );
+
+>>>>>>> f5591c11 (Make segment flag usage configurable with UI preference)
   const [deleteSegment] = useDeleteSegmentMutation();
   const [deleteSegmentConstraint] = useDeleteConstraintMutation();
   const [copySegment] = useCopySegmentMutation();
@@ -256,6 +274,49 @@ export default function Segment() {
         <SegmentForm segment={segment} />
       </div>
 
+<<<<<<< HEAD
+=======
+      {loadSegmentFlagReferences && (
+        <div className="mb-8">
+          <h3 className="text-secondary-foreground leading-6 font-medium">
+            Used in flags
+          </h3>
+          <p className="text-muted-foreground mt-1 mb-3 text-sm">
+            Flags that reference this segment (in rules or rollouts). Changing
+            constraints may affect how these flags evaluate.
+          </p>
+          {!flagsForSegment ? (
+            <Loading size="sm" variant="start" />
+          ) : flagsForSegment.flags.length === 0 ? (
+            <p className="text-secondary-foreground/80 text-sm">
+              This segment is not used by any flags.
+            </p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {flagsForSegment.flags.map((ref) => (
+                <li key={ref.key}>
+                  <Link
+                    tabIndex={0}
+                    to={`/namespaces/${namespace.key}/flags/${ref.key}`}
+                    className="focus:ring-offset-brand focus:ring-brand block shrink-0 cursor-pointer rounded-md text-xs focus:ring-1 focus:ring-offset-1"
+                  >
+                    <Badge
+                      variant="secondary"
+                      title={ref.name + ' | ' + ref.key}
+                      className="shrink-0 gap-1.5 border-0 px-3 py-1.5 text-xs"
+                    >
+                      <FlagIcon className="h-4 w-4" />{' '}
+                      <span className="max-w-24 truncate">{ref.name}</span>
+                    </Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+>>>>>>> f5591c11 (Make segment flag usage configurable with UI preference)
       <div>
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
