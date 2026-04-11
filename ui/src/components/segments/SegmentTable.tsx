@@ -24,17 +24,13 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Searchbox from '~/components/Searchbox';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
 import { DataTablePagination } from '~/components/ui/table-pagination';
-import { AsteriskIcon, SigmaIcon } from 'lucide-react';
+import { AsteriskIcon, FlagIcon, SigmaIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';
-<<<<<<< HEAD
-import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
-=======
 import { selectLoadSegmentFlagReferences } from '~/app/preferences/preferencesSlice';
 import {
   useGetSegmentFlagCountsQuery,
   useListSegmentsQuery
 } from '~/app/segments/segmentsApi';
->>>>>>> f5591c11 (Make segment flag usage configurable with UI preference)
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
 import Well from '~/components/Well';
@@ -43,10 +39,27 @@ type SegmentTableProps = {
   namespace: INamespaceBase;
 };
 
-function SegmentDetails({ item }: { item: ISegment }) {
+function SegmentDetails({
+  item,
+  flagCount,
+  flagCountsLoaded
+}: {
+  item: ISegment;
+  flagCount?: number;
+  flagCountsLoaded: boolean;
+}) {
   const { inTimezone } = useTimezone();
   return (
     <div className="text-muted-foreground flex items-center gap-2 text-xs">
+      {flagCountsLoaded && (
+        <>
+          <span className="flex items-center gap-1">
+            <FlagIcon className="h-4 w-4" />
+            Used in {flagCount ?? 0} flag{(flagCount ?? 0) !== 1 ? 's' : ''}
+          </span>
+          <span className="hidden sm:block">•</span>
+        </>
+      )}
       <span className="flex items-center gap-1">
         {item.matchType === SegmentMatchType.ALL ? (
           <SigmaIcon className="h-4 w-4" />
@@ -141,8 +154,6 @@ export default function SegmentTable(props: SegmentTableProps) {
     selectLoadSegmentFlagReferences
   );
   const { data, isLoading, error } = useListSegmentsQuery(namespace.key);
-<<<<<<< HEAD
-=======
   const { data: flagCounts } = useGetSegmentFlagCountsQuery(
     { namespaceKey: namespace.key },
     {
@@ -150,7 +161,6 @@ export default function SegmentTable(props: SegmentTableProps) {
       refetchOnMountOrArgChange: true
     }
   );
->>>>>>> f5591c11 (Make segment flag usage configurable with UI preference)
   const segments = useMemo(() => data?.segments || [], [data]);
   const table = useReactTable({
     data: segments,
@@ -234,7 +244,11 @@ export default function SegmentTable(props: SegmentTableProps) {
             <div className="text-secondary-foreground line-clamp-2 text-xs">
               {item.description}
             </div>
-            <SegmentDetails item={item} />
+            <SegmentDetails
+              item={item}
+              flagCount={flagCounts?.[item.key] ?? 0}
+              flagCountsLoaded={flagCounts !== undefined}
+            />
           </button>
         );
       })}

@@ -1,8 +1,8 @@
-import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
+import { CalendarIcon, FlagIcon, FilesIcon, Trash2Icon } from 'lucide-react';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
@@ -13,7 +13,8 @@ import {
   useCopySegmentMutation,
   useDeleteConstraintMutation,
   useDeleteSegmentMutation,
-  useGetSegmentQuery
+  useGetSegmentQuery,
+  useListFlagsForSegmentQuery
 } from '~/app/segments/segmentsApi';
 import Chips from '~/components/Chips';
 import EmptyState from '~/components/EmptyState';
@@ -37,6 +38,7 @@ import {
   IConstraint
 } from '~/types/Constraint';
 import { PageHeader } from '~/components/ui/page';
+import { Badge } from '~/components/Badge';
 
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
   const items: string[] | number[] = useMemo(() => {
@@ -105,8 +107,6 @@ export default function Segment() {
     segmentKey: segmentKey || ''
   });
 
-<<<<<<< HEAD
-=======
   const { data: flagsForSegment } = useListFlagsForSegmentQuery(
     {
       namespaceKey: namespace.key,
@@ -118,7 +118,6 @@ export default function Segment() {
     }
   );
 
->>>>>>> f5591c11 (Make segment flag usage configurable with UI preference)
   const [deleteSegment] = useDeleteSegmentMutation();
   const [deleteSegmentConstraint] = useDeleteConstraintMutation();
   const [copySegment] = useCopySegmentMutation();
@@ -274,8 +273,6 @@ export default function Segment() {
         <SegmentForm segment={segment} />
       </div>
 
-<<<<<<< HEAD
-=======
       {loadSegmentFlagReferences && (
         <div className="mb-8">
           <h3 className="text-secondary-foreground leading-6 font-medium">
@@ -286,7 +283,7 @@ export default function Segment() {
             constraints may affect how these flags evaluate.
           </p>
           {!flagsForSegment ? (
-            <Loading size="sm" variant="start" />
+            <p className="text-muted-foreground text-sm">Loading…</p>
           ) : flagsForSegment.flags.length === 0 ? (
             <p className="text-secondary-foreground/80 text-sm">
               This segment is not used by any flags.
@@ -316,7 +313,6 @@ export default function Segment() {
         </div>
       )}
 
->>>>>>> f5591c11 (Make segment flag usage configurable with UI preference)
       <div>
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">

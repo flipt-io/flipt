@@ -20,7 +20,6 @@ export default function Preferences() {
   const loadSegmentFlagReferences = useSelector(
     selectLoadSegmentFlagReferences
   );
-
   const dispatch = useDispatch();
 
   const initialValues = {

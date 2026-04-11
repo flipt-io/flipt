@@ -62,6 +62,11 @@ export const preferencesSlice = createSlice({
         sidebar = currentPreference.sidebar;
       }
       state.sidebar = sidebar;
+
+      if (typeof currentPreference.loadSegmentFlagReferences === 'boolean') {
+        state.loadSegmentFlagReferences =
+          currentPreference.loadSegmentFlagReferences;
+      }
     });
   }
 });
