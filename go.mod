@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	cloud.google.com/go/secretmanager v1.17.0
 	code.gitea.io/sdk/gitea v0.24.1
-	cuelang.org/go v0.16.0
+	cuelang.org/go v0.16.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
