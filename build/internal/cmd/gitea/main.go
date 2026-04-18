@@ -15,6 +15,7 @@ import (
 	"github.com/go-git/go-billy/v6/memfs"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/config"
+	"github.com/go-git/go-git/v6/plumbing/client"
 	"github.com/go-git/go-git/v6/plumbing/object"
 	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/go-git/go-git/v6/storage/memory"
@@ -125,7 +126,9 @@ func main() {
 
 	fmt.Fprintln(os.Stderr, "Pushing to", origin.CloneURL)
 	repo.Push(&git.PushOptions{
-		Auth:       &githttp.BasicAuth{Username: "root", Password: "password"},
+		ClientOptions: []client.Option{
+			client.WithHTTPAuth(&githttp.BasicAuth{Username: "root", Password: "password"}),
+		},
 		RemoteName: "origin",
 		RefSpecs: []config.RefSpec{
 			"refs/heads/main:refs/heads/main",

@@ -10,10 +10,11 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"sync/atomic"
 	"testing"
 
+	"github.com/go-git/go-git/v6/plumbing/client"
 	"github.com/go-git/go-git/v6/plumbing/transport"
-	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
@@ -91,10 +92,10 @@ func TestCredential_GitAuthentication(t *testing.T) {
 	logger := zap.NewNop()
 
 	tests := []struct {
-		name      string
-		config    *config.CredentialConfig
-		wantErr   bool
-		checkAuth func(*testing.T, transport.AuthMethod)
+		name     string
+		config   *config.CredentialConfig
+		wantErr  bool
+		wantAuth string
 	}{
 		{
 			name: "basic auth",
@@ -105,13 +106,8 @@ func TestCredential_GitAuthentication(t *testing.T) {
 					Password: "pass",
 				},
 			},
-			wantErr: false,
-			checkAuth: func(t *testing.T, auth transport.AuthMethod) {
-				basicAuth, ok := auth.(*githttp.BasicAuth)
-				require.True(t, ok, "expected BasicAuth")
-				assert.Equal(t, "user", basicAuth.Username)
-				assert.Equal(t, "pass", basicAuth.Password)
-			},
+			wantAuth: "Basic dXNlcjpwYXNz",
+			wantErr:  false,
 		},
 		{
 			name: "access token",
@@ -122,14 +118,8 @@ func TestCredential_GitAuthentication(t *testing.T) {
 					return &s
 				}(),
 			},
-			wantErr: false,
-			checkAuth: func(t *testing.T, auth transport.AuthMethod) {
-				// Access tokens should be converted to BasicAuth for Git operations
-				basicAuth, ok := auth.(*githttp.BasicAuth)
-				require.True(t, ok, "expected BasicAuth for access token")
-				assert.Equal(t, "x-token-auth", basicAuth.Username)
-				assert.Equal(t, "token123", basicAuth.Password)
-			},
+			wantAuth: "Basic eC10b2tlbi1hdXRoOnRva2VuMTIz",
+			wantErr:  false,
 		},
 		{
 			name: "ssh with private key bytes",
@@ -141,10 +131,7 @@ func TestCredential_GitAuthentication(t *testing.T) {
 					PrivateKeyBytes: "invalid-key-for-testing",
 				},
 			},
-			wantErr: true, // Will error due to invalid key
-			checkAuth: func(t *testing.T, auth transport.AuthMethod) {
-				// This test expects an error, so auth should be nil
-			},
+			wantErr: true,
 		},
 	}
 
@@ -155,18 +142,32 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				config: tt.config,
 			}
 
-			auth, err := c.GitAuthentication()
+			opt, err := c.GitAuthentication()
 			if tt.wantErr {
 				require.Error(t, err)
-				assert.Nil(t, auth)
+				assert.Nil(t, opt)
 				return
 			}
 
 			require.NoError(t, err)
-			assert.NotNil(t, auth)
+			assert.NotNil(t, opt)
+			if tt.wantAuth != "" {
+				var s atomic.Value
+				mux := http.NewServeMux()
+				mux.HandleFunc("GET /info/refs", func(w http.ResponseWriter, r *http.Request) {
+					s.Store(r.Header.Get("Authorization"))
+				})
+				ts := httptest.NewServer(mux)
+				t.Cleanup(ts.Close)
+				gtc := client.New(opt)
 
-			if tt.checkAuth != nil {
-				tt.checkAuth(t, auth)
+				turl, err := url.Parse(ts.URL)
+				require.NoError(t, err)
+				_, err = gtc.Handshake(t.Context(), &transport.Request{
+					URL: turl,
+				})
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantAuth, s.Load())
 			}
 		})
 	}
@@ -458,16 +459,15 @@ func TestGithubAppCredentials(t *testing.T) {
 		ghau, err := NewGitHubAppCredentials(zaptest.NewLogger(t), c.config.GitHubApp)
 		require.NoError(t, err)
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
-		ghau.SetAuth(r)
+		err = ghau.Authorizer(r)
+		require.NoError(t, err)
 		assert.Equal(t, "Basic eC10b2tlbi1hdXRoOmdoc19Nb2NrQWNjZXNzVG9rZW4=", r.Header.Get("Authorization"))
 	})
 }
 
-func TestGitHubAppAuth_SetAuth_Errors(t *testing.T) {
-	// Test with a token source that always returns an error
+func TestGitHubAppAuth_Authorizer_Errors(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 
-	// Create a GitHubAppCredentials with a mock token source that will fail
 	creds := &GitHubAppCredentials{
 		logger:         logger,
 		clientID:       "test-client",
@@ -477,11 +477,10 @@ func TestGitHubAppAuth_SetAuth_Errors(t *testing.T) {
 
 	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 
-	// SetAuth should handle the error gracefully and log it
-	creds.SetAuth(r)
-
-	// The request should not have Authorization header set due to the error
+	err := creds.Authorizer(r)
+	require.Error(t, err)
 	assert.Empty(t, r.Header.Get("Authorization"))
+	assert.Contains(t, err.Error(), "token source error")
 }
 
 func TestNewGitHubAppAuth_PrivateKeyFilePath(t *testing.T) {
