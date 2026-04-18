@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/go-git/go-git/v6/plumbing/transport"
+	"github.com/go-git/go-git/v6/plumbing/client"
 	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
 	gitssh "github.com/go-git/go-git/v6/plumbing/transport/ssh"
 	"github.com/jferrl/go-githubauth"
@@ -40,18 +40,21 @@ type Credential struct {
 	config *config.CredentialConfig
 }
 
-// GitAuthentication returns the appropriate transport.AuthMethod for Git operations.
+// GitAuthentication returns the appropriate client.Option for Git operations.
 // This method handles the complexity of converting different credential types
 // to the format expected by Git operations.
-func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) {
+func (c *Credential) GitAuthentication() (client.Option, error) {
 	switch c.config.Type {
 	case config.CredentialTypeBasic:
-		return &githttp.BasicAuth{
+		return client.WithHTTPAuth(&githttp.BasicAuth{
 			Username: c.config.Basic.Username,
 			Password: c.config.Basic.Password,
-		}, nil
+		}), nil
 	case config.CredentialTypeSSH:
-		var method *gitssh.PublicKeys
+		var (
+			method *gitssh.PublicKeys
+			err    error
+		)
 		if c.config.SSH.PrivateKeyBytes != "" {
 			method, err = gitssh.NewPublicKeys(
 				c.config.SSH.User,
@@ -76,7 +79,7 @@ func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) 
 			method.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 		}
 
-		return method, nil
+		return client.WithSSHAuth(method), nil
 	case config.CredentialTypeAccessToken:
 		// For Git operations, access tokens need to be converted to HTTP Basic Auth
 		// Different providers have different conventions:
@@ -84,18 +87,22 @@ func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) 
 		// - GitHub: username=token, password="" OR username={anynonemptystring}, password=token
 		// - BitBucket: username="x-token-auth", password=token for repo access tokens
 		// We'll use the BitBucket format as it requires a specific string and the others dont
-		return &githttp.BasicAuth{
+		return client.WithHTTPAuth(&githttp.BasicAuth{
 			Username: "x-token-auth",
 			Password: *c.config.AccessToken,
-		}, nil
+		}), nil
 	case config.CredentialTypeGithubApp:
-		return NewGitHubAppCredentials(c.logger, c.config.GitHubApp)
+		gha, err := NewGitHubAppCredentials(c.logger, c.config.GitHubApp)
+		if err != nil {
+			return nil, err
+		}
+		return client.WithHTTPAuth(gha), err
 	}
 
 	return nil, fmt.Errorf("unexpected credential type: %q", c.config.Type)
 }
 
-var _ githttp.AuthMethod = (*GitHubAppCredentials)(nil)
+var _ client.HTTPAuth = (*GitHubAppCredentials)(nil)
 
 // GitHubAppCredentials holds the configuration and token source for GitHub App authentication.
 // This centralizes the GitHub App auth logic for both Git operations and API operations.
@@ -163,17 +170,18 @@ func (g *GitHubAppCredentials) String() string {
 	return fmt.Sprintf("%s - %s/%d", g.Name(), g.ClientID(), g.InstallationID())
 }
 
-func (g *GitHubAppCredentials) SetAuth(r *http.Request) {
+func (g *GitHubAppCredentials) Authorizer(r *http.Request) error {
 	token, err := g.TokenSource().Token()
 	if err != nil {
 		g.logger.Error("failed to get GitHub App token", zap.Error(err))
-		return
+		return err
 	}
 	if !token.Valid() {
 		g.logger.Error("GitHub App token is invalid", zap.String("token_type", token.Type()))
-		return
+		return fmt.Errorf("token is invalid")
 	}
 	r.SetBasicAuth("x-token-auth", token.AccessToken)
+	return nil
 }
 
 // APIAuth represents different ways to authenticate with SCM APIs.

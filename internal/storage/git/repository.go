@@ -18,6 +18,7 @@ import (
 	"github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/cache"
+	"github.com/go-git/go-git/v6/plumbing/client"
 	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/go-git/go-git/v6/plumbing/transport"
 	"github.com/go-git/go-git/v6/storage"
@@ -39,9 +40,7 @@ type Repository struct {
 	remote                    *config.RemoteConfig
 	lenientFetchPolicyEnabled bool
 	defaultBranch             string
-	auth                      transport.AuthMethod
-	insecureSkipTLS           bool
-	caBundle                  []byte
+	gitClientOptions          []client.Option
 	localPath                 string
 	readme                    []byte
 	sigName                   string
@@ -398,13 +397,11 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	}
 
 	opts := &git.FetchOptions{
-		RemoteName:      r.remote.Name,
-		Auth:            r.auth,
-		CABundle:        r.caBundle,
-		InsecureSkipTLS: r.insecureSkipTLS,
-		RefSpecs:        refSpecs,
-		Prune:           true,
-		Tags:            plumbing.NoTags,
+		RemoteName:    r.remote.Name,
+		ClientOptions: r.gitClientOptions,
+		RefSpecs:      refSpecs,
+		Prune:         true,
+		Tags:          plumbing.NoTags,
 	}
 
 	// For bare repositories (i.e., repositories without a working tree),
@@ -671,10 +668,8 @@ func (r *Repository) UpdateAndPush(
 			zap.Stringer("refSpec", config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", local))))
 
 		if err := r.PushContext(ctx, &git.PushOptions{
-			RemoteName:      r.remote.Name,
-			Auth:            r.auth,
-			CABundle:        r.caBundle,
-			InsecureSkipTLS: r.insecureSkipTLS,
+			RemoteName:    r.remote.Name,
+			ClientOptions: r.gitClientOptions,
 			RefSpecs: []config.RefSpec{
 				config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", local)),
 			},
@@ -797,11 +792,9 @@ func (r *Repository) CreateBranchIfNotExists(ctx context.Context, branch string,
 		localRef := plumbing.NewRemoteReferenceName(remoteName, branch)
 		refSpec := config.RefSpec(fmt.Sprintf("%s:%s", localRef, plumbing.NewBranchReferenceName(branch)))
 		if err := r.PushContext(ctx, &git.PushOptions{
-			RemoteName:      r.remote.Name,
-			Auth:            r.auth,
-			CABundle:        r.caBundle,
-			InsecureSkipTLS: r.insecureSkipTLS,
-			RefSpecs:        []config.RefSpec{refSpec},
+			RemoteName:    r.remote.Name,
+			ClientOptions: r.gitClientOptions,
+			RefSpecs:      []config.RefSpec{refSpec},
 		}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return fmt.Errorf("failed to push branch to remote: %w", err)
 		}
@@ -827,11 +820,9 @@ func (r *Repository) DeleteBranch(ctx context.Context, branch string) (err error
 	if r.remote != nil {
 		refSpec := config.RefSpec(fmt.Sprintf(":%s", plumbing.NewBranchReferenceName(branch)))
 		err := r.PushContext(ctx, &git.PushOptions{
-			RemoteName:      r.remote.Name,
-			Auth:            r.auth,
-			CABundle:        r.caBundle,
-			InsecureSkipTLS: r.insecureSkipTLS,
-			RefSpecs:        []config.RefSpec{refSpec},
+			RemoteName:    r.remote.Name,
+			ClientOptions: r.gitClientOptions,
+			RefSpecs:      []config.RefSpec{refSpec},
 		})
 		if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return fmt.Errorf("failed to delete remote branch: %w", err)
@@ -903,9 +894,9 @@ func WithDefaultBranch(ref string) containers.Option[Repository] {
 
 // WithAuth returns an option which configures the auth method used
 // by the provided source.
-func WithAuth(auth transport.AuthMethod) containers.Option[Repository] {
+func WithAuth(auth client.Option) containers.Option[Repository] {
 	return func(s *Repository) {
-		s.auth = auth
+		s.gitClientOptions = append(s.gitClientOptions, auth)
 	}
 }
 
@@ -913,7 +904,9 @@ func WithAuth(auth transport.AuthMethod) containers.Option[Repository] {
 // setting for the provided source.
 func WithInsecureTLS(insecureSkipTLS bool) containers.Option[Repository] {
 	return func(s *Repository) {
-		s.insecureSkipTLS = insecureSkipTLS
+		if insecureSkipTLS {
+			s.gitClientOptions = append(s.gitClientOptions, client.WithInsecureSkipTLS())
+		}
 	}
 }
 
@@ -922,7 +915,7 @@ func WithInsecureTLS(insecureSkipTLS bool) containers.Option[Repository] {
 func WithCABundle(caCertBytes []byte) containers.Option[Repository] {
 	return func(s *Repository) {
 		if caCertBytes != nil {
-			s.caBundle = caCertBytes
+			s.gitClientOptions = append(s.gitClientOptions, client.WithCABundle(caCertBytes))
 		}
 	}
 }
