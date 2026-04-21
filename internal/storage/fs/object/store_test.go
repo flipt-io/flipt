@@ -54,7 +54,8 @@ func Test_Store(t *testing.T) {
 			return
 		}
 
-		ctx := context.Background()
+		ctx := t.Context()
+
 		client := s3Client(t, minioURL)
 		_, err := client.CreateBucket(ctx, &s3.CreateBucketInput{
 			Bucket: &bucketName,
@@ -97,7 +98,7 @@ func Test_Store(t *testing.T) {
 		os.Setenv("AZURE_STORAGE_IS_LOCAL_EMULATOR", strconv.FormatBool(u.Scheme == "http"))
 		os.Setenv("AZURE_STORAGE_DOMAIN", u.Host)
 
-		ctx := context.Background()
+		ctx := t.Context()
 		client := azureClient(t, azuriteURL)
 		_, err = client.CreateContainer(ctx, bucketName, &azblob.CreateContainerOptions{})
 		require.NoError(t, err)
@@ -125,7 +126,7 @@ func Test_Store(t *testing.T) {
 			return
 		}
 
-		ctx := context.Background()
+		ctx := t.Context()
 
 		client := gcsClient(t)
 		bucket := client.Bucket(bucketName)
@@ -140,12 +141,57 @@ func Test_Store(t *testing.T) {
 			return fmt.Sprintf("%s://%s", gcsblob.Scheme, bucketName)
 		})
 	})
+
+	t.Run("memblob_without_md5_rebuilds_on_overwrite", func(t *testing.T) {
+		ctx := t.Context()
+		bucket := memblob.OpenBucket(&memblob.Options{NoMD5: true})
+		t.Cleanup(func() { require.NoError(t, bucket.Close()) })
+
+		require.NoError(t, bucket.WriteAll(ctx, "features.yml", []byte(`namespace: production
+flags:
+    - key: foo
+      name: Foo`), &gcblob.WriterOptions{}))
+
+		store, err := NewSnapshotStore(
+			ctx,
+			zaptest.NewLogger(t),
+			memblob.Scheme,
+			bucket,
+		)
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = store.Close() })
+
+		require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
+			_, err := s.GetFlag(ctx, storage.NewResource("production", "foo"))
+			require.NoError(t, err)
+			_, err = s.GetFlag(ctx, storage.NewResource("production", "bar"))
+			require.Error(t, err)
+			return nil
+		}))
+
+		require.NoError(t, bucket.WriteAll(ctx, "features.yml", []byte(`namespace: production
+flags:
+    - key: bar
+      name: Bar`), &gcblob.WriterOptions{}))
+
+		modified, err := store.update(ctx)
+		require.NoError(t, err)
+		require.True(t, modified)
+
+		require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
+			_, err := s.GetFlag(ctx, storage.NewResource("production", "foo"))
+			require.Error(t, err)
+			_, err = s.GetFlag(ctx, storage.NewResource("production", "bar"))
+			require.NoError(t, err)
+			return nil
+		}))
+	})
 }
 
 func testStore(t *testing.T, fn func(t *testing.T) string) {
 	t.Helper()
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	t.Run("WithoutPrefix", func(t *testing.T) {
 		ch := make(chan struct{})
@@ -201,7 +247,7 @@ func testStore(t *testing.T, fn func(t *testing.T) string) {
 
 		// update features.yml
 		path := "features.yml"
-		require.NoError(t, bucket.WriteAll(context.TODO(), path,
+		require.NoError(t, bucket.WriteAll(t.Context(), path,
 			[]byte(`namespace: production
 flags:
     - key: foo
@@ -218,13 +264,13 @@ flags:
 		t.Log("received new snapshot")
 
 		require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
-			_, err = s.GetNamespace(context.TODO(), storage.NewNamespace("production"))
+			_, err = s.GetNamespace(t.Context(), storage.NewNamespace("production"))
 			require.NoError(t, err)
 
-			_, err = s.GetFlag(context.TODO(), storage.NewResource("production", "foo"))
+			_, err = s.GetFlag(t.Context(), storage.NewResource("production", "foo"))
 			require.NoError(t, err)
 
-			_, err = s.GetNamespace(context.TODO(), storage.NewNamespace("prefix"))
+			_, err = s.GetNamespace(t.Context(), storage.NewNamespace("prefix"))
 			require.NoError(t, err)
 
 			return nil
@@ -310,7 +356,7 @@ func writeTestDataToBucket(t *testing.T, ctx context.Context, bucket *gcblob.Buc
 func s3Client(t *testing.T, endpoint string) *s3.Client {
 	t.Helper()
 
-	cfg, err := config.LoadDefaultConfig(context.Background(),
+	cfg, err := config.LoadDefaultConfig(t.Context(),
 		config.WithRegion("minio"))
 	require.NoError(t, err)
 
@@ -338,7 +384,7 @@ func azureClient(t *testing.T, endpoint string) *azblob.Client {
 
 func gcsClient(t *testing.T) *gstorage.Client {
 	t.Helper()
-	client, err := gstorage.NewClient(context.Background())
+	client, err := gstorage.NewClient(t.Context())
 	require.NoError(t, err)
 	return client
 }
