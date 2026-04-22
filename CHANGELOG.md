@@ -3,6 +3,39 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0](https://github.com/flipt-io/flipt/releases/tag/v2.9.0) - 2026-04-22
+
+### Added
+
+- **Real-time updates for UI and OFREP**: Implement Server-Sent Events (SSE) for live UI and OFREP evaluation updates (#5617)
+- **Buf publishing for v2 protobufs**: Publish Flipt v2 protobuf definitions to `buf.io/v2` (#5589)
+- **Devcontainer support**: Add a devcontainer setup for Flipt v2 development environments (#5542)
+
+### Changed
+
+- **Rollout distribution normalization**: Normalize rollout distribution buckets for more consistent rollout behavior (#5581)
+- **Build tooling migration**: Migrate build tooling and CI workflows from Mage to Mise (#5504, #5519)
+- **gRPC middleware modernization**: Migrate `grpc-middleware` from v1 to v2 (#5668)
+- **UI bundle optimization**: Reduce bundle size by removing heavier UI dependencies (#5682)
+
+### Fixed
+
+- **OIDC profile fallback**: Use UserInfo claims as a fallback when required OIDC fields are missing (#5692)
+- **Unauthenticated UI requests**: Skip environment API calls and SSE subscriptions when the user is not authenticated (#5670)
+- **Authentication cookie cleanup**: Add `HttpOnly` and `Secure` attributes when clearing auth cookies (#5655)
+- **GitHub OAuth and OIDC nonce handling**: Fix PKCE challenge generation for GitHub and correct OIDC nonce behavior (#5647)
+- **Generated SDK HTTP client**: Add the `Content-Type` header and improve generated HTTP client error messages (#5560)
+- **Key generation**: Preserve trailing separators in generated keys (#5594)
+- **Snapshot publishing and rule evaluation**: Fix snapshot publisher subscriptions and correct constraint short-circuiting (#5565)
+
+### Security
+
+- **TLS configuration hardening**: Address a CodeQL warning about insecure TLS configuration (#5614)
+
+### Dependencies
+
+- Updated various dependencies including go-git v6, OpenTelemetry, gRPC, Google and AWS SDKs, Vault, OIDC libraries, and UI packages such as React Router, React DOM, MUI, CodeMirror, Tailwind, Vite, and Playwright
+
 ## [2.8.0](https://github.com/flipt-io/flipt/releases/tag/v2.8.0) - 2026-03-06
 
 ### Added
