@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 )
 
 func Test_Store_String(t *testing.T) {
@@ -66,4 +67,48 @@ func Test_Store(t *testing.T) {
 		_, err = s.GetNamespace(ctx, storage.NewNamespace("staging"))
 		return err
 	}))
+}
+
+func Test_Store_ContextWithSnapshot(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(dir+"/features.yml", []byte(`namespace: testing
+flags:
+    - key: test-flag
+      name: Test Flag
+`), 0600))
+
+	snap, err := storagefs.SnapshotFromFS(logger, os.DirFS(dir))
+	require.NoError(t, err)
+	require.NotNil(t, snap)
+
+	store := &SnapshotStore{
+		snap: snap,
+	}
+
+	t.Run("captures snapshot in context", func(t *testing.T) {
+		pinnedCtx := store.ContextWithSnapshot(t.Context())
+
+		err := store.View(pinnedCtx, func(s storage.ReadOnlyStore) error {
+			flag, err := s.GetFlag(t.Context(), storage.NewResource("testing", "test-flag"))
+			require.NoError(t, err)
+			require.Equal(t, "Test Flag", flag.Name)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("pinned snapshot in context is valid ReadOnlyStore", func(t *testing.T) {
+		pinnedCtx := store.ContextWithSnapshot(t.Context())
+
+		snap, ok := pinnedCtx.Value(snapshotCtxKey).(storage.ReadOnlyStore)
+		require.True(t, ok)
+		require.NotNil(t, snap)
+	})
+
+	t.Run("no pinned snapshot without ContextWithSnapshot", func(t *testing.T) {
+		_, ok := t.Context().Value(snapshotCtxKey).(storage.ReadOnlyStore)
+		require.False(t, ok)
+	})
 }

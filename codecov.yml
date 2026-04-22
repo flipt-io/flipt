@@ -7,3 +7,4 @@ ignore:
   - "rpc"
   - "ui"
   - "**/mock_*.go"
+  - "**/*_mock.go"

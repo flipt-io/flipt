@@ -454,3 +454,12 @@ func NewID(id string, opts ...containers.Option[ReferenceRequest]) IDRequest {
 	containers.ApplyAll(&p.ReferenceRequest, opts...)
 	return p
 }
+
+type PinnableSnapshot interface {
+	// ContextWithSnapshot allows to optionally capture a snapshot and return a derived context.
+	//
+	// It wraps the provided parent context and attaches internal snapshot if available.
+	// This allows subsequent storage reads during the same evaluation request to use
+	// the captured snapshot, ensuring atomic evaluation.
+	ContextWithSnapshot(context.Context) context.Context
+}

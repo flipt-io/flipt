@@ -542,6 +542,84 @@ func Test_Store_SelfSignedCABytes(t *testing.T) {
 	require.ErrorIs(t, err, transport.ErrRepositoryNotFound)
 }
 
+func Test_Store_ContextWithSnapshot(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(dir+"/features.yml", []byte(`namespace: testing
+flags:
+    - key: test-flag
+      name: Test Flag
+`), 0600))
+
+	snap, err := fs.SnapshotFromFS(logger, os.DirFS(dir))
+	require.NoError(t, err)
+	require.NotNil(t, snap)
+
+	cache, err := fs.NewSnapshotCache[plumbing.Hash](logger, 3)
+	require.NoError(t, err)
+
+	cache.AddFixed(t.Context(), "main", plumbing.NewHash("abc123def456abc123def456abc123def456abc1"), snap)
+
+	store := &SnapshotStore{
+		baseRef: "main",
+		snaps:   cache,
+	}
+
+	t.Run("captures base ref snapshot in context", func(t *testing.T) {
+		pinnedCtx := store.ContextWithSnapshot(t.Context())
+		_, ok := pinnedCtx.Value(snapshotCtxKey).(storage.ReadOnlyStore)
+		require.True(t, ok)
+
+		err := store.View(pinnedCtx, "", func(s storage.ReadOnlyStore) error {
+			flag, err := s.GetFlag(t.Context(), storage.NewResource("testing", "test-flag"))
+			require.NoError(t, err)
+			require.Equal(t, "Test Flag", flag.Name)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("uses pinned snapshot for explicit base ref", func(t *testing.T) {
+		pinnedCtx := store.ContextWithSnapshot(t.Context())
+
+		err := store.View(pinnedCtx, "main", func(s storage.ReadOnlyStore) error {
+			flag, err := s.GetFlag(t.Context(), storage.NewResource("testing", "test-flag"))
+			require.NoError(t, err)
+			require.Equal(t, "Test Flag", flag.Name)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("pinned snapshot in context is a valid ReadOnlyStore", func(t *testing.T) {
+		pinnedCtx := store.ContextWithSnapshot(t.Context())
+
+		snap, ok := pinnedCtx.Value(snapshotCtxKey).(storage.ReadOnlyStore)
+		require.True(t, ok)
+		require.NotNil(t, snap)
+	})
+
+	t.Run("no pinned snapshot without ContextWithSnapshot", func(t *testing.T) {
+		_, ok := t.Context().Value(snapshotCtxKey).(storage.ReadOnlyStore)
+		require.False(t, ok)
+	})
+
+	t.Run("ContextWithSnapshot returns original ctx when base ref not in cache", func(t *testing.T) {
+		emptyCache, err := fs.NewSnapshotCache[plumbing.Hash](logger, 3)
+		require.NoError(t, err)
+
+		emptyStore := &SnapshotStore{
+			baseRef: "main",
+			snaps:   emptyCache,
+		}
+
+		pinnedCtx := store.ContextWithSnapshot(t.Context())
+		result := emptyStore.ContextWithSnapshot(pinnedCtx)
+		require.Equal(t, pinnedCtx, result)
+	})
+}
+
 func testStore(t *testing.T, gitRepoURL string, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, bool) {
 	t.Helper()
 
