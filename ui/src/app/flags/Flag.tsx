@@ -11,7 +11,10 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { useParams } from 'react-router';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectAllEnvironments,
+  selectCurrentEnvironment
+} from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
@@ -23,7 +26,7 @@ import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import { PageHeader } from '~/components/Page';
 import FlagForm from '~/components/flags/FlagForm';
-import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
+import CopyFlagPanel from '~/components/panels/CopyFlagPanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 
 import { FlagType, flagTypeToLabel } from '~/types/Flag';
@@ -51,6 +54,7 @@ export default function Flag() {
   const navigate = useNavigate();
 
   const environment = useSelector(selectCurrentEnvironment);
+  const environments = useSelector(selectAllEnvironments);
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
 
@@ -74,6 +78,10 @@ export default function Flag() {
 
   const [deleteFlag] = useDeleteFlagMutation();
   const [copyFlag] = useCopyFlagMutation();
+
+  const hasCopyDestinations =
+    namespaces.some((candidate) => candidate.key !== namespace.key) ||
+    environments.some((candidate) => candidate.key !== environment.key);
 
   useEffect(() => {
     if (isError) {
@@ -117,22 +125,28 @@ export default function Flag() {
       />
 
       {/* flag copy modal */}
-      <CopyToNamespacePanel
+      <CopyFlagPanel
         open={showCopyFlagModal}
         panelMessage={
           <>
             Copy the flag{' '}
             <span className="font-medium text-brand">{flag.key}</span> to the
-            namespace:
+            selected environment and namespace:
           </>
         }
-        panelType="Flag"
         setOpen={setShowCopyFlagModal}
-        handleCopy={(namespaceKey: string) =>
+        handleCopy={({ environmentKey, namespaceKey }) =>
           copyFlag({
-            environmentKey: environment.key,
-            from: { namespaceKey: namespace.key, flagKey: flag.key },
-            to: { namespaceKey: namespaceKey, flagKey: flag.key }
+            from: {
+              environmentKey: environment.key,
+              namespaceKey: namespace.key,
+              flagKey: flag.key
+            },
+            to: {
+              environmentKey,
+              namespaceKey,
+              flagKey: flag.key
+            }
           }).unwrap()
         }
         onSuccess={() => {
@@ -198,8 +212,8 @@ export default function Flag() {
             },
             {
               id: 'flag-copy',
-              label: 'Copy to Namespace',
-              disabled: namespaces.length < 2,
+              label: 'Copy to Environment / Namespace',
+              disabled: !hasCopyDestinations,
               onClick: () => {
                 setShowCopyFlagModal(true);
               },
