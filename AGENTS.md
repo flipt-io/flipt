@@ -4,6 +4,15 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 All of our documentation is at <https://docs.flipt.io>. Weigh the v2 docs heavily when answering questions over the v1 docs.
 
+## Reusable Agent Commands
+
+Portable agent prompts live in `.agents/commands/`.
+
+- Use these files for Codex or any other repo-aware AI agent.
+- Current commands:
+  - `.agents/commands/changelog.md`
+  - `.agents/commands/release.md`
+
 ## Project Overview
 
 Flipt v2 is a Git-native feature management platform with a monorepo structure. This is the v2 version with a Git-native architecture.

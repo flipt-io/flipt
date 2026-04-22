@@ -32,12 +32,23 @@ The process for each looks roughly the same using GitHub Actions and GoReleaser 
 6. Push the tag to GitHub.
 7. CI will build and publish the release to GitHub and Docker Hub.
 
-#### Using Claude Code
+#### Using AI Agent Commands
 
-The stable release process can be automated using [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Two commands are available in `.claude/commands/`:
+The stable release process can be automated with the prompts in
+`.agents/commands/`:
 
-- **`/release <version>`** — Walks through the full release process step-by-step (branch, changelog, PR, tag) with confirmations at each stage.
-- **`/changelog <version>`** — Generates the changelog entry for a given version. This is called automatically by `/release` but can also be used standalone.
+- **`.agents/commands/release.md`** — Walks through the full release process
+  step-by-step with confirmations at each stage.
+- **`.agents/commands/changelog.md`** — Generates the changelog entry for a
+  given version. This is called by the release workflow but can also be used
+  standalone.
+
+Provide the version explicitly when invoking the prompt with your agent. For
+example:
+
+```text
+Use .agents/commands/release.md for version 2.9.0.
+```
 
 ### Snapshot Releases
 
