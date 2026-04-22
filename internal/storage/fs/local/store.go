@@ -13,6 +13,10 @@ import (
 
 var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 
+type contextKey struct{}
+
+var snapshotCtxKey = contextKey{}
+
 // SnapshotStore implements storagefs.SnapshotStore which
 // is backed by the local filesystem through os.DirFS
 type SnapshotStore struct {
@@ -58,7 +62,10 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 
 // View passes the current snapshot to the provided function
 // while holding a read lock.
-func (s *SnapshotStore) View(_ context.Context, fn func(storage.ReadOnlyStore) error) error {
+func (s *SnapshotStore) View(ctx context.Context, fn func(storage.ReadOnlyStore) error) error {
+	if snap, ok := ctx.Value(snapshotCtxKey).(storage.ReadOnlyStore); ok {
+		return fn(snap)
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return fn(s.snap)
@@ -82,4 +89,10 @@ func (s *SnapshotStore) update(context.Context) (bool, error) {
 // String returns an identifier string for the store type.
 func (s *SnapshotStore) String() string {
 	return "local"
+}
+
+func (s *SnapshotStore) ContextWithSnapshot(ctx context.Context) context.Context {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return context.WithValue(ctx, snapshotCtxKey, s.snap)
 }

@@ -19,6 +19,10 @@ import (
 
 var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 
+type contextKey struct{}
+
+var snapshotCtxKey = contextKey{}
+
 type SnapshotStore struct {
 	*storagefs.Poller
 
@@ -66,7 +70,11 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 // View accepts a function which takes a *StoreSnapshot.
 // The SnapshotStore will supply a snapshot which is valid
 // for the lifetime of the provided function call.
-func (s *SnapshotStore) View(_ context.Context, fn func(storage.ReadOnlyStore) error) error {
+func (s *SnapshotStore) View(ctx context.Context, fn func(storage.ReadOnlyStore) error) error {
+	if snap, ok := ctx.Value(snapshotCtxKey).(storage.ReadOnlyStore); ok {
+		return fn(snap)
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return fn(s.snap)
@@ -131,7 +139,6 @@ func (s *SnapshotStore) build(ctx context.Context) (*storagefs.Snapshot, error) 
 
 func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, error) {
 	rd, err := s.bucket.NewReader(ctx, storagefs.IndexFileName, &gcblob.ReaderOptions{})
-
 	if err != nil {
 		if gcerrors.Code(err) != gcerrors.NotFound {
 			return nil, err
@@ -149,4 +156,10 @@ func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, er
 	}
 
 	return idx, nil
+}
+
+func (s *SnapshotStore) ContextWithSnapshot(ctx context.Context) context.Context {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return context.WithValue(ctx, snapshotCtxKey, s.snap)
 }
