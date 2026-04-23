@@ -501,9 +501,21 @@ components:
                     type: string
                     description: The connection type identifying the push mechanism to use
                 endpoint:
-                    type: string
+                    allOf:
+                        - $ref: '#/components/schemas/EventStreamEndpoint'
                     description: The endpoint URL the client should connect to for real-time flag change notifications
             description: A real-time change notification connection endpoint
+        EventStreamEndpoint:
+            required:
+                - requestUri
+            type: object
+            properties:
+                requestUri:
+                    type: string
+                    description: The path + query portion of the endpoint URL. Must start with `/`.
+                origin:
+                    type: string
+                    description: The scheme + host + optional port portion of the endpoint URL.
         Flag:
             type: object
             properties:

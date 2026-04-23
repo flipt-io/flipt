@@ -249,20 +249,74 @@ func (x *EvaluateBulkRequest) GetContext() map[string]string {
 	return nil
 }
 
+type EventStreamEndpoint struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The path + query portion of the endpoint URL. Must start with `/`.
+	RequestUri string `protobuf:"bytes,1,opt,name=request_uri,json=requestUri,proto3" json:"request_uri,omitempty"`
+	// The scheme + host + optional port portion of the endpoint URL.
+	Origin        string `protobuf:"bytes,2,opt,name=origin,proto3" json:"origin,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EventStreamEndpoint) Reset() {
+	*x = EventStreamEndpoint{}
+	mi := &file_ofrep_ofrep_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EventStreamEndpoint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EventStreamEndpoint) ProtoMessage() {}
+
+func (x *EventStreamEndpoint) ProtoReflect() protoreflect.Message {
+	mi := &file_ofrep_ofrep_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EventStreamEndpoint.ProtoReflect.Descriptor instead.
+func (*EventStreamEndpoint) Descriptor() ([]byte, []int) {
+	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *EventStreamEndpoint) GetRequestUri() string {
+	if x != nil {
+		return x.RequestUri
+	}
+	return ""
+}
+
+func (x *EventStreamEndpoint) GetOrigin() string {
+	if x != nil {
+		return x.Origin
+	}
+	return ""
+}
+
 // A real-time change notification connection endpoint
 type EventStream struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The connection type identifying the push mechanism to use
 	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
 	// The endpoint URL the client should connect to for real-time flag change notifications
-	Endpoint      string `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Endpoint      *EventStreamEndpoint `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EventStream) Reset() {
 	*x = EventStream{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[3]
+	mi := &file_ofrep_ofrep_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -274,7 +328,7 @@ func (x *EventStream) String() string {
 func (*EventStream) ProtoMessage() {}
 
 func (x *EventStream) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[3]
+	mi := &file_ofrep_ofrep_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -287,7 +341,7 @@ func (x *EventStream) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventStream.ProtoReflect.Descriptor instead.
 func (*EventStream) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{3}
+	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EventStream) GetType() string {
@@ -297,11 +351,11 @@ func (x *EventStream) GetType() string {
 	return ""
 }
 
-func (x *EventStream) GetEndpoint() string {
+func (x *EventStream) GetEndpoint() *EventStreamEndpoint {
 	if x != nil {
 		return x.Endpoint
 	}
-	return ""
+	return nil
 }
 
 type BulkEvaluationResponse struct {
@@ -315,7 +369,7 @@ type BulkEvaluationResponse struct {
 
 func (x *BulkEvaluationResponse) Reset() {
 	*x = BulkEvaluationResponse{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[4]
+	mi := &file_ofrep_ofrep_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -327,7 +381,7 @@ func (x *BulkEvaluationResponse) String() string {
 func (*BulkEvaluationResponse) ProtoMessage() {}
 
 func (x *BulkEvaluationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[4]
+	mi := &file_ofrep_ofrep_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -340,7 +394,7 @@ func (x *BulkEvaluationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkEvaluationResponse.ProtoReflect.Descriptor instead.
 func (*BulkEvaluationResponse) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{4}
+	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *BulkEvaluationResponse) GetFlags() []*EvaluationResponse {
@@ -378,10 +432,14 @@ const file_ofrep_ofrep_proto_rawDesc = "" +
 	"\acontext\x18\x02 \x03(\v2-.flipt.ofrep.EvaluateBulkRequest.ContextEntryR\acontext\x1a:\n" +
 	"\fContextEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"G\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"X\n" +
+	"\x13EventStreamEndpoint\x12$\n" +
+	"\vrequest_uri\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
+	"requestUri\x12\x1b\n" +
+	"\x06origin\x18\x02 \x01(\tB\x03\xe0A\x01R\x06origin\"i\n" +
 	"\vEventStream\x12\x17\n" +
-	"\x04type\x18\x01 \x01(\tB\x03\xe0A\x05R\x04type\x12\x1f\n" +
-	"\bendpoint\x18\x02 \x01(\tB\x03\xe0A\x02R\bendpoint\"\x98\x01\n" +
+	"\x04type\x18\x01 \x01(\tB\x03\xe0A\x05R\x04type\x12A\n" +
+	"\bendpoint\x18\x02 \x01(\v2 .flipt.ofrep.EventStreamEndpointB\x03\xe0A\x02R\bendpoint\"\x98\x01\n" +
 	"\x16BulkEvaluationResponse\x12:\n" +
 	"\x05flags\x18\x01 \x03(\v2\x1f.flipt.ofrep.EvaluationResponseB\x03\xe0A\x02R\x05flags\x12B\n" +
 	"\revent_streams\x18\x02 \x03(\v2\x18.flipt.ofrep.EventStreamB\x03\xe0A\x01R\feventStreams*M\n" +
@@ -407,36 +465,38 @@ func file_ofrep_ofrep_proto_rawDescGZIP() []byte {
 }
 
 var file_ofrep_ofrep_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_ofrep_ofrep_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_ofrep_ofrep_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_ofrep_ofrep_proto_goTypes = []any{
 	(EvaluateReason)(0),            // 0: flipt.ofrep.EvaluateReason
 	(*EvaluateFlagRequest)(nil),    // 1: flipt.ofrep.EvaluateFlagRequest
 	(*EvaluationResponse)(nil),     // 2: flipt.ofrep.EvaluationResponse
 	(*EvaluateBulkRequest)(nil),    // 3: flipt.ofrep.EvaluateBulkRequest
-	(*EventStream)(nil),            // 4: flipt.ofrep.EventStream
-	(*BulkEvaluationResponse)(nil), // 5: flipt.ofrep.BulkEvaluationResponse
-	nil,                            // 6: flipt.ofrep.EvaluateFlagRequest.ContextEntry
-	nil,                            // 7: flipt.ofrep.EvaluateBulkRequest.ContextEntry
-	(*structpb.Struct)(nil),        // 8: google.protobuf.Struct
-	(*structpb.Value)(nil),         // 9: google.protobuf.Value
+	(*EventStreamEndpoint)(nil),    // 4: flipt.ofrep.EventStreamEndpoint
+	(*EventStream)(nil),            // 5: flipt.ofrep.EventStream
+	(*BulkEvaluationResponse)(nil), // 6: flipt.ofrep.BulkEvaluationResponse
+	nil,                            // 7: flipt.ofrep.EvaluateFlagRequest.ContextEntry
+	nil,                            // 8: flipt.ofrep.EvaluateBulkRequest.ContextEntry
+	(*structpb.Struct)(nil),        // 9: google.protobuf.Struct
+	(*structpb.Value)(nil),         // 10: google.protobuf.Value
 }
 var file_ofrep_ofrep_proto_depIdxs = []int32{
-	6, // 0: flipt.ofrep.EvaluateFlagRequest.context:type_name -> flipt.ofrep.EvaluateFlagRequest.ContextEntry
-	0, // 1: flipt.ofrep.EvaluationResponse.reason:type_name -> flipt.ofrep.EvaluateReason
-	8, // 2: flipt.ofrep.EvaluationResponse.metadata:type_name -> google.protobuf.Struct
-	9, // 3: flipt.ofrep.EvaluationResponse.value:type_name -> google.protobuf.Value
-	7, // 4: flipt.ofrep.EvaluateBulkRequest.context:type_name -> flipt.ofrep.EvaluateBulkRequest.ContextEntry
-	2, // 5: flipt.ofrep.BulkEvaluationResponse.flags:type_name -> flipt.ofrep.EvaluationResponse
-	4, // 6: flipt.ofrep.BulkEvaluationResponse.event_streams:type_name -> flipt.ofrep.EventStream
-	1, // 7: flipt.ofrep.OFREPService.EvaluateFlag:input_type -> flipt.ofrep.EvaluateFlagRequest
-	3, // 8: flipt.ofrep.OFREPService.EvaluateBulk:input_type -> flipt.ofrep.EvaluateBulkRequest
-	2, // 9: flipt.ofrep.OFREPService.EvaluateFlag:output_type -> flipt.ofrep.EvaluationResponse
-	5, // 10: flipt.ofrep.OFREPService.EvaluateBulk:output_type -> flipt.ofrep.BulkEvaluationResponse
-	9, // [9:11] is the sub-list for method output_type
-	7, // [7:9] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	7,  // 0: flipt.ofrep.EvaluateFlagRequest.context:type_name -> flipt.ofrep.EvaluateFlagRequest.ContextEntry
+	0,  // 1: flipt.ofrep.EvaluationResponse.reason:type_name -> flipt.ofrep.EvaluateReason
+	9,  // 2: flipt.ofrep.EvaluationResponse.metadata:type_name -> google.protobuf.Struct
+	10, // 3: flipt.ofrep.EvaluationResponse.value:type_name -> google.protobuf.Value
+	8,  // 4: flipt.ofrep.EvaluateBulkRequest.context:type_name -> flipt.ofrep.EvaluateBulkRequest.ContextEntry
+	4,  // 5: flipt.ofrep.EventStream.endpoint:type_name -> flipt.ofrep.EventStreamEndpoint
+	2,  // 6: flipt.ofrep.BulkEvaluationResponse.flags:type_name -> flipt.ofrep.EvaluationResponse
+	5,  // 7: flipt.ofrep.BulkEvaluationResponse.event_streams:type_name -> flipt.ofrep.EventStream
+	1,  // 8: flipt.ofrep.OFREPService.EvaluateFlag:input_type -> flipt.ofrep.EvaluateFlagRequest
+	3,  // 9: flipt.ofrep.OFREPService.EvaluateBulk:input_type -> flipt.ofrep.EvaluateBulkRequest
+	2,  // 10: flipt.ofrep.OFREPService.EvaluateFlag:output_type -> flipt.ofrep.EvaluationResponse
+	6,  // 11: flipt.ofrep.OFREPService.EvaluateBulk:output_type -> flipt.ofrep.BulkEvaluationResponse
+	10, // [10:12] is the sub-list for method output_type
+	8,  // [8:10] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_ofrep_ofrep_proto_init() }
@@ -450,7 +510,7 @@ func file_ofrep_ofrep_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ofrep_ofrep_proto_rawDesc), len(file_ofrep_ofrep_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

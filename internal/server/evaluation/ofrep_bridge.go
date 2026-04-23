@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/google/uuid"
 	flipterrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/common"
@@ -16,6 +17,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -169,6 +171,10 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 	}
 
 	responses := make([]*ofrep.EvaluationResponse, 0, len(keys))
+	hmac := xxhash.New()
+	// xxhash.WriteString doesn't return the error
+	_, _ = hmac.WriteString(env.Key())
+	_, _ = hmac.WriteString(namespaceKey)
 	for _, flagKey := range keys {
 		resp, err := s.OFREPFlagEvaluation(ctx, &ofrep.EvaluateFlagRequest{
 			Key:     flagKey,
@@ -178,15 +184,30 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 			return nil, err
 		}
 		responses = append(responses, resp)
+		_, _ = hmac.WriteString(resp.Key)
+		_, _ = hmac.WriteString(resp.Variant)
+	}
+
+	etag := fmt.Sprintf("%08x", hmac.Sum64())
+	_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
+	err = nil
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		// set etag header in the response
+		// get If-None-Match header from request
+		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 && etag == vals[0] {
+			err = flipterrors.ErrNotModifiedf("etag is the same")
+		}
 	}
 
 	return &ofrep.BulkEvaluationResponse{
 		Flags: responses,
 		EventStreams: []*ofrep.EventStream{{
-			Type:     "sse",
-			Endpoint: fmt.Sprintf("/client/v2/environments/%s/namespaces/%s/stream", env.Key(), namespaceKey),
+			Type: "sse",
+			Endpoint: &ofrep.EventStreamEndpoint{
+				RequestUri: fmt.Sprintf("/client/v2/environments/%s/namespaces/%s/stream", env.Key(), namespaceKey),
+			},
 		}},
-	}, nil
+	}, err
 }
 
 const ofrepCtxTargetingKey = "targetingKey"
