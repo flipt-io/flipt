@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.16
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.57.1
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.38.14
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.99.1
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.100.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/coreos/go-oidc/v3 v3.18.0
@@ -67,7 +67,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.42.0
 	github.com/tursodatabase/libsql-client-go v0.0.0-20251219100830-236aa1ff8acc
 	github.com/twmb/franz-go v1.21.0
-	github.com/twmb/franz-go/pkg/kadm v1.17.2
+	github.com/twmb/franz-go/pkg/kadm v1.18.0
 	github.com/twmb/franz-go/pkg/sr v1.7.0
 	github.com/twmb/franz-go/plugin/kzap v1.1.2
 	github.com/xeipuuv/gojsonschema v1.2.0

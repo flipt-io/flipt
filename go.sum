@@ -129,8 +129,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.22 h1:PUmZeJU6
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.22/go.mod h1:nO6egFBoAaoXze24a2C0NjQCvdpk8OueRoYimvEB9jo=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.22 h1:SE+aQ4DEqG53RRCAIHlCf//B2ycxGH7jFkpnAh/kKPM=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.22/go.mod h1:ES3ynECd7fYeJIL6+oax+uIEljmfps0S70BaQzbMd/o=
-github.com/aws/aws-sdk-go-v2/service/s3 v1.99.1 h1:kU/eBN5+MWNo/LcbNa4hWDdN76hdcd7hocU5kvu7IsU=
-github.com/aws/aws-sdk-go-v2/service/s3 v1.99.1/go.mod h1:Fw9aqhJicIVee1VytBBjH+l+5ov6/PhbtIK/u3rt/ls=
+github.com/aws/aws-sdk-go-v2/service/s3 v1.100.0 h1:7G26Sae6PMKn4kMcU5JzNfrm1YrKwyOhowXPYR2WiWY=
+github.com/aws/aws-sdk-go-v2/service/s3 v1.100.0/go.mod h1:Fw9aqhJicIVee1VytBBjH+l+5ov6/PhbtIK/u3rt/ls=
 github.com/aws/aws-sdk-go-v2/service/signin v1.0.10 h1:a1Fq/KXn75wSzoJaPQTgZO0wHGqE9mjFnylnqEPTchA=
 github.com/aws/aws-sdk-go-v2/service/signin v1.0.10/go.mod h1:p6+MXNxW7IA6dMgHfTAzljuwSKD0NCm/4lbS4t6+7vI=
 github.com/aws/aws-sdk-go-v2/service/sso v1.30.16 h1:x6bKbmDhsgSZwv6q19wY/u3rLk/3FGjJWyqKcIRufpE=
@@ -791,8 +791,8 @@ github.com/tursodatabase/libsql-client-go v0.0.0-20251219100830-236aa1ff8acc h1:
 github.com/tursodatabase/libsql-client-go v0.0.0-20251219100830-236aa1ff8acc/go.mod h1:08inkKyguB6CGGssc/JzhmQWwBgFQBgjlYFjxjRh7nU=
 github.com/twmb/franz-go v1.21.0 h1:J3uB/poWgHD6VIilER2uCPFAZHDRXVFT+11pBgRKod4=
 github.com/twmb/franz-go v1.21.0/go.mod h1:1o+jj5oRbItsIMoE+DGpfJIcPcPtDdtkcNFPj4bWNwU=
-github.com/twmb/franz-go/pkg/kadm v1.17.2 h1:g5f1sAxnTkYC6G96pV5u715HWhxd66hWaDZUAQ8xHY8=
-github.com/twmb/franz-go/pkg/kadm v1.17.2/go.mod h1:ST55zUB+sUS+0y+GcKY/Tf1XxgVilaFpB9I19UubLmU=
+github.com/twmb/franz-go/pkg/kadm v1.18.0 h1:WRf/LZmDdcDXwX7WMbtDU++v+b3NzYh2bCGoPMmzirw=
+github.com/twmb/franz-go/pkg/kadm v1.18.0/go.mod h1:XeLhGoLXLFzK8/ryv5FfpxPxGwj4oFEGpPJMB/x6KDE=
 github.com/twmb/franz-go/pkg/kmsg v1.13.1 h1:fG5kItwysTk5UXqVwb64EpQEy3TydF3vYYK21nUQ+bI=
 github.com/twmb/franz-go/pkg/kmsg v1.13.1/go.mod h1:+DPt4NC8RmI6hqb8G09+3giKObE6uD2Eya6CfqBpeJY=
 github.com/twmb/franz-go/pkg/sr v1.7.0 h1:wHStlO6aOPWWgZ68ZYcdtQe9tRbkcTc1gRLbgs+8QAA=
