@@ -1,13 +1,18 @@
 package object
 
 import (
+	"cmp"
 	"context"
 	"encoding/hex"
 	"errors"
 	"io"
 	"io/fs"
+	"slices"
+	"strconv"
 	"sync"
 	"time"
+
+	"github.com/cespare/xxhash/v2"
 
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
@@ -29,6 +34,7 @@ type SnapshotStore struct {
 
 	mu   sync.RWMutex
 	snap storage.ReadOnlyStore
+	hash uint64
 }
 
 func NewSnapshotStore(ctx context.Context, logger *zap.Logger, scheme string, bucket *gcblob.Bucket, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, error) {
@@ -78,60 +84,105 @@ func (s *SnapshotStore) String() string {
 
 // Update fetches a new snapshot and swaps it out for the current one.
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
-	snap, err := s.build(ctx)
+	files, hash, err := s.list(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	s.mu.RLock()
+	previousHash := s.hash
+	hasSnapshot := s.snap != nil
+	s.mu.RUnlock()
+
+	if hasSnapshot && hash != 0 && previousHash == hash {
+		return false, nil
+	}
+
+	snap, err := s.build(ctx, files)
 	if err != nil {
 		return false, err
 	}
 
 	s.mu.Lock()
+	s.hash = hash
 	s.snap = snap
 	s.mu.Unlock()
 
 	return true, nil
 }
 
-func (s *SnapshotStore) build(ctx context.Context) (*storagefs.Snapshot, error) {
-	idx, err := s.getIndex(ctx)
+func (s *SnapshotStore) build(ctx context.Context, files []*File) (*storagefs.Snapshot, error) {
+	var err error
+	fsFiles := make([]fs.File, 0, len(files))
+	for _, item := range files {
+		item.body, err = s.bucket.NewReader(ctx, item.key, &gcblob.ReaderOptions{})
+		if err != nil {
+			return nil, err
+		}
+		fsFiles = append(fsFiles, item)
+	}
+	snapshot, err := storagefs.SnapshotFromFiles(s.logger, fsFiles)
 	if err != nil {
 		return nil, err
+	}
+	return snapshot, nil
+}
+
+func (s *SnapshotStore) list(ctx context.Context) ([]*File, uint64, error) {
+	idx, err := s.getIndex(ctx)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	iterator := s.bucket.List(&gcblob.ListOptions{})
 
-	var files []fs.File
+	var files []*File
+	unknownHash := false
 	for {
 		item, err := iterator.Next(ctx)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				break
 			}
-			return nil, err
+			return nil, 0, err
 		}
 
 		if !idx.Match(item.Key) {
 			continue
 		}
 
-		rd, err := s.bucket.NewReader(ctx, item.Key, &gcblob.ReaderOptions{})
-		if err != nil {
-			return nil, err
+		if item.MD5 == nil {
+			unknownHash = true
 		}
 
 		files = append(files, NewFile(
 			item.Key,
 			item.Size,
-			rd,
+			nil,
 			item.ModTime,
 			hex.EncodeToString(item.MD5),
 		))
 	}
 
-	return storagefs.SnapshotFromFiles(s.logger, files)
+	slices.SortFunc(files, func(a *File, b *File) int { return cmp.Compare(a.key, b.key) })
+
+	if unknownHash {
+		return files, 0, nil
+	}
+
+	h := xxhash.New()
+	for _, f := range files {
+		_, _ = h.WriteString(f.key)
+		_, _ = h.WriteString(f.etag)
+		_, _ = h.WriteString(strconv.FormatInt(f.length, 16))
+		_, _ = h.WriteString(f.modTime.String())
+	}
+
+	return files, h.Sum64(), nil
 }
 
 func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, error) {
 	rd, err := s.bucket.NewReader(ctx, storagefs.IndexFileName, &gcblob.ReaderOptions{})
-
 	if err != nil {
 		if gcerrors.Code(err) != gcerrors.NotFound {
 			return nil, err
