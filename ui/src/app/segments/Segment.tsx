@@ -1,18 +1,20 @@
-import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
+import { CalendarIcon, FlagIcon, FilesIcon, Trash2Icon } from 'lucide-react';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
+import { selectLoadSegmentFlagReferences } from '~/app/preferences/preferencesSlice';
 import {
   useCopySegmentMutation,
   useDeleteConstraintMutation,
   useDeleteSegmentMutation,
-  useGetSegmentQuery
+  useGetSegmentQuery,
+  useListFlagsForSegmentQuery
 } from '~/app/segments/segmentsApi';
 import Chips from '~/components/Chips';
 import EmptyState from '~/components/EmptyState';
@@ -36,6 +38,7 @@ import {
   IConstraint
 } from '~/types/Constraint';
 import { PageHeader } from '~/components/ui/page';
+import { Badge } from '~/components/Badge';
 
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
   const items: string[] | number[] = useMemo(() => {
@@ -90,6 +93,9 @@ export default function Segment() {
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
+  const loadSegmentFlagReferences = useSelector(
+    selectLoadSegmentFlagReferences
+  );
 
   const {
     data: segment,
@@ -100,6 +106,17 @@ export default function Segment() {
     namespaceKey: namespace.key,
     segmentKey: segmentKey || ''
   });
+
+  const { data: flagsForSegment } = useListFlagsForSegmentQuery(
+    {
+      namespaceKey: namespace.key,
+      segmentKey: segmentKey || ''
+    },
+    {
+      skip: !segmentKey || !loadSegmentFlagReferences,
+      refetchOnMountOrArgChange: true
+    }
+  );
 
   const [deleteSegment] = useDeleteSegmentMutation();
   const [deleteSegmentConstraint] = useDeleteConstraintMutation();
@@ -255,6 +272,46 @@ export default function Segment() {
       <div className="mb-8">
         <SegmentForm segment={segment} />
       </div>
+
+      {loadSegmentFlagReferences && (
+        <div className="mb-8">
+          <h3 className="text-secondary-foreground leading-6 font-medium">
+            Used in flags
+          </h3>
+          <p className="text-muted-foreground mt-1 mb-3 text-sm">
+            Flags that reference this segment (in rules or rollouts). Changing
+            constraints may affect how these flags evaluate.
+          </p>
+          {!flagsForSegment ? (
+            <p className="text-muted-foreground text-sm">Loading…</p>
+          ) : flagsForSegment.flags.length === 0 ? (
+            <p className="text-secondary-foreground/80 text-sm">
+              This segment is not used by any flags.
+            </p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {flagsForSegment.flags.map((ref) => (
+                <li key={ref.key}>
+                  <Link
+                    tabIndex={0}
+                    to={`/namespaces/${namespace.key}/flags/${ref.key}`}
+                    className="focus:ring-offset-brand focus:ring-brand block shrink-0 cursor-pointer rounded-md text-xs focus:ring-1 focus:ring-offset-1"
+                  >
+                    <Badge
+                      variant="secondary"
+                      title={ref.name + ' | ' + ref.key}
+                      className="shrink-0 gap-1.5 border-0 px-3 py-1.5 text-xs"
+                    >
+                      <FlagIcon className="h-4 w-4" />{' '}
+                      <span className="max-w-24 truncate">{ref.name}</span>
+                    </Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <div>
         <div className="sm:flex sm:items-center">

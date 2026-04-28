@@ -10,12 +10,15 @@ interface IPreferencesState {
   theme: Theme;
   timezone: Timezone;
   sidebar: Sidebar;
+  /** When true, the UI loads which flags reference each segment (extra API calls). */
+  loadSegmentFlagReferences?: boolean;
 }
 
 const initialState: IPreferencesState = {
   theme: Theme.SYSTEM,
   timezone: Timezone.LOCAL,
-  sidebar: Sidebar.OPEN
+  sidebar: Sidebar.OPEN,
+  loadSegmentFlagReferences: false
 };
 
 export const preferencesSlice = createSlice({
@@ -30,6 +33,12 @@ export const preferencesSlice = createSlice({
     },
     sidebarChanged: (state, action: PayloadAction<boolean>) => {
       state.sidebar = action.payload ? Sidebar.OPEN : Sidebar.CLOSE;
+    },
+    loadSegmentFlagReferencesChanged: (
+      state,
+      action: PayloadAction<boolean>
+    ) => {
+      state.loadSegmentFlagReferences = action.payload;
     }
   },
   extraReducers(builder) {
@@ -53,16 +62,28 @@ export const preferencesSlice = createSlice({
         sidebar = currentPreference.sidebar;
       }
       state.sidebar = sidebar;
+
+      if (typeof currentPreference.loadSegmentFlagReferences === 'boolean') {
+        state.loadSegmentFlagReferences =
+          currentPreference.loadSegmentFlagReferences;
+      }
     });
   }
 });
 
-export const { themeChanged, timezoneChanged, sidebarChanged } =
-  preferencesSlice.actions;
+export const {
+  themeChanged,
+  timezoneChanged,
+  sidebarChanged,
+  loadSegmentFlagReferencesChanged
+} = preferencesSlice.actions;
 
 export const selectTheme = (state: RootState) => state.preferences.theme;
 export const selectTimezone = (state: RootState) => state.preferences.timezone;
 export const selectSidebar = (state: RootState) =>
   state.preferences.sidebar === Sidebar.OPEN;
+/** Off by default; must be explicitly enabled in Preferences. */
+export const selectLoadSegmentFlagReferences = (state: RootState) =>
+  state.preferences.loadSegmentFlagReferences === true;
 
 export default preferencesSlice.reducer;
