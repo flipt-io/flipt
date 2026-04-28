@@ -250,6 +250,10 @@ func NewGRPCServer(
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 	}
 
+	if s, ok := store.(storage.PinnableSnapshot); ok {
+		interceptors = append(interceptors, middlewaregrpc.FliptPinSnapshot(s.ContextWithSnapshot))
+	}
+
 	if cfg.Storage.IsReadOnly() {
 		store = unmodifiable.NewStore(store)
 	}
