@@ -34,12 +34,19 @@ message EvaluateBulkRequest {
   map<string, string> context = 2;
 }
 
+message EventStreamEndpoint {
+  // The path + query portion of the endpoint URL. Must start with `/`.
+  string request_uri = 1 [(google.api.field_behavior) = REQUIRED];
+  // The scheme + host + optional port portion of the endpoint URL.
+  string origin = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
 // A real-time change notification connection endpoint
 message EventStream {
   // The connection type identifying the push mechanism to use
   string type = 1 [(google.api.field_behavior) = IMMUTABLE];
   // The endpoint URL the client should connect to for real-time flag change notifications
-  string endpoint = 2 [(google.api.field_behavior) = REQUIRED];
+  EventStreamEndpoint endpoint = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message BulkEvaluationResponse {

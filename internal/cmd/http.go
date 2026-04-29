@@ -81,6 +81,7 @@ func NewHTTPServer(
 		ofrepAPI = gateway.NewGatewayServeMux(logger,
 			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment),
 			runtime.WithMetadata(grpc_middleware.ForwardFliptNamespace),
+			runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier),
 			runtime.WithErrorHandler(ofrep_middleware.ErrorHandler(logger)),
 		)
 
