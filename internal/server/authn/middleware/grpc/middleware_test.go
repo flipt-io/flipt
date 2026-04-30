@@ -256,7 +256,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
 
-				ctx     = context.Background()
+				ctx     = t.Context()
 				handler = func(ctx context.Context, req any) (any, error) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
@@ -289,9 +289,9 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 
 		t.Run(fmt.Sprintf("%s/remote", tt.name), func(t *testing.T) {
 			tp := oidc.StartTestProvider(t, oidc.WithNoTLS())
-			tp.SetSigningKeys(priv, priv.Public(), oidc.RS256, "test")
+			tp.SetSigningKeys(priv, priv.Public(), oidc.RS256, "test-key")
 
-			ks, err := jwt.NewJSONWebKeySet(context.Background(), tp.Addr()+"/.well-known/jwks.json", "")
+			ks, err := jwt.NewJSONWebKeySet(t.Context(), tp.Addr()+"/.well-known/jwks.json", "")
 			require.NoError(t, err)
 
 			validator, err := jwt.NewValidator(ks)
