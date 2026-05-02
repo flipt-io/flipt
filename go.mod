@@ -9,7 +9,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.4
 	github.com/ClickHouse/clickhouse-go/v2 v2.45.0
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/Masterminds/semver/v3 v3.4.0
+	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.42.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.17
