@@ -3,7 +3,7 @@ module go.flipt.io/flipt
 go 1.26.0
 
 require (
-	cloud.google.com/go/secretmanager v1.17.0
+	cloud.google.com/go/secretmanager v1.20.0
 	code.gitea.io/sdk/gitea v0.24.1
 	cuelang.org/go v0.16.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -113,7 +113,7 @@ require (
 	cloud.google.com/go/auth v0.20.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
-	cloud.google.com/go/iam v1.6.0 // indirect
+	cloud.google.com/go/iam v1.7.0 // indirect
 	cloud.google.com/go/monitoring v1.24.3 // indirect
 	cloud.google.com/go/storage v1.57.2 // indirect
 	dario.cat/mergo v1.0.2 // indirect
