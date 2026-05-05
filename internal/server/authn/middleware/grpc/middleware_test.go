@@ -541,7 +541,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 
 		t.Run(fmt.Sprintf("%s/remote", tt.name), func(t *testing.T) {
 			tp := oidc.StartTestProvider(t, oidc.WithNoTLS())
-			tp.SetSigningKeys(priv, priv.Public(), oidc.RS256, "test")
+			tp.SetSigningKeys(priv, priv.Public(), oidc.RS256, "test-key")
 
 			ks, err := jwt.NewJSONWebKeySet(t.Context(), tp.Addr()+"/.well-known/jwks.json", "")
 			require.NoError(t, err)
