@@ -2,10 +2,13 @@ syntax = "proto3";
 
 package environments;
 
+import "core/core.proto";
 import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/visibility.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/api.proto";
+import "google/protobuf/descriptor.proto";
 import "google/protobuf/empty.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/v2/environments";
@@ -128,6 +131,16 @@ service EnvironmentsService {
   rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {
     option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteResource"};
+  }
+
+  rpc Schema(google.protobuf.Empty) returns (SchemaAnchor) {
+    option (google.api.http) = {get: "/api/v2/_payloadschema"};
+    option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
+    option (gnostic.openapi.v3.operation) = {
+      tags: "internal"
+      deprecated: true
+      description: "Schema anchor endpoint"
+    };
   }
 }
 
@@ -391,6 +404,15 @@ message Resource {
   // The arbitrary typed resource payload (e.g. flipt.core.Flag, flipt.core.Segment).
   // {"@type": "flipt.core.Flag", "key": "my_flag"}
   google.protobuf.Any payload = 3;
+}
+
+// SchemaAnchor is a helper for openapi.
+// Deprecated: DO NO USE.
+message SchemaAnchor {
+  oneof in_oneof {
+    flipt.core.Flag flag = 1;
+    flipt.core.Segment segment = 2;
+  }
 }
 
 // The response message for getting a resource.

@@ -8,11 +8,14 @@ package environments
 
 import (
 	_ "github.com/google/gnostic/openapiv3"
+	core "go.flipt.io/flipt/rpc/flipt/core"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "google.golang.org/genproto/googleapis/api/visibility"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	_ "google.golang.org/protobuf/types/descriptorpb"
 	anypb "google.golang.org/protobuf/types/known/anypb"
+	_ "google.golang.org/protobuf/types/known/apipb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
@@ -1631,6 +1634,90 @@ func (x *Resource) GetPayload() *anypb.Any {
 	return nil
 }
 
+// SchemaAnchor is a helper for openapi.
+// Deprecated: DO NO USE.
+type SchemaAnchor struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to InOneof:
+	//
+	//	*SchemaAnchor_Flag
+	//	*SchemaAnchor_Segment
+	InOneof       isSchemaAnchor_InOneof `protobuf_oneof:"in_oneof"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SchemaAnchor) Reset() {
+	*x = SchemaAnchor{}
+	mi := &file_environments_environments_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SchemaAnchor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SchemaAnchor) ProtoMessage() {}
+
+func (x *SchemaAnchor) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_environments_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SchemaAnchor.ProtoReflect.Descriptor instead.
+func (*SchemaAnchor) Descriptor() ([]byte, []int) {
+	return file_environments_environments_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *SchemaAnchor) GetInOneof() isSchemaAnchor_InOneof {
+	if x != nil {
+		return x.InOneof
+	}
+	return nil
+}
+
+func (x *SchemaAnchor) GetFlag() *core.Flag {
+	if x != nil {
+		if x, ok := x.InOneof.(*SchemaAnchor_Flag); ok {
+			return x.Flag
+		}
+	}
+	return nil
+}
+
+func (x *SchemaAnchor) GetSegment() *core.Segment {
+	if x != nil {
+		if x, ok := x.InOneof.(*SchemaAnchor_Segment); ok {
+			return x.Segment
+		}
+	}
+	return nil
+}
+
+type isSchemaAnchor_InOneof interface {
+	isSchemaAnchor_InOneof()
+}
+
+type SchemaAnchor_Flag struct {
+	Flag *core.Flag `protobuf:"bytes,1,opt,name=flag,proto3,oneof"`
+}
+
+type SchemaAnchor_Segment struct {
+	Segment *core.Segment `protobuf:"bytes,2,opt,name=segment,proto3,oneof"`
+}
+
+func (*SchemaAnchor_Flag) isSchemaAnchor_InOneof() {}
+
+func (*SchemaAnchor_Segment) isSchemaAnchor_InOneof() {}
+
 // The response message for getting a resource.
 type ResourceResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1644,7 +1731,7 @@ type ResourceResponse struct {
 
 func (x *ResourceResponse) Reset() {
 	*x = ResourceResponse{}
-	mi := &file_environments_environments_proto_msgTypes[24]
+	mi := &file_environments_environments_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1656,7 +1743,7 @@ func (x *ResourceResponse) String() string {
 func (*ResourceResponse) ProtoMessage() {}
 
 func (x *ResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_environments_proto_msgTypes[24]
+	mi := &file_environments_environments_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1669,7 +1756,7 @@ func (x *ResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceResponse.ProtoReflect.Descriptor instead.
 func (*ResourceResponse) Descriptor() ([]byte, []int) {
-	return file_environments_environments_proto_rawDescGZIP(), []int{24}
+	return file_environments_environments_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ResourceResponse) GetResource() *Resource {
@@ -1701,7 +1788,7 @@ type ListResourcesRequest struct {
 
 func (x *ListResourcesRequest) Reset() {
 	*x = ListResourcesRequest{}
-	mi := &file_environments_environments_proto_msgTypes[25]
+	mi := &file_environments_environments_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1713,7 +1800,7 @@ func (x *ListResourcesRequest) String() string {
 func (*ListResourcesRequest) ProtoMessage() {}
 
 func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_environments_proto_msgTypes[25]
+	mi := &file_environments_environments_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1726,7 +1813,7 @@ func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesRequest.ProtoReflect.Descriptor instead.
 func (*ListResourcesRequest) Descriptor() ([]byte, []int) {
-	return file_environments_environments_proto_rawDescGZIP(), []int{25}
+	return file_environments_environments_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListResourcesRequest) GetEnvironmentKey() string {
@@ -1763,7 +1850,7 @@ type ListResourcesResponse struct {
 
 func (x *ListResourcesResponse) Reset() {
 	*x = ListResourcesResponse{}
-	mi := &file_environments_environments_proto_msgTypes[26]
+	mi := &file_environments_environments_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1775,7 +1862,7 @@ func (x *ListResourcesResponse) String() string {
 func (*ListResourcesResponse) ProtoMessage() {}
 
 func (x *ListResourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_environments_proto_msgTypes[26]
+	mi := &file_environments_environments_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1788,7 +1875,7 @@ func (x *ListResourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesResponse.ProtoReflect.Descriptor instead.
 func (*ListResourcesResponse) Descriptor() ([]byte, []int) {
-	return file_environments_environments_proto_rawDescGZIP(), []int{26}
+	return file_environments_environments_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListResourcesResponse) GetResources() []*Resource {
@@ -1825,7 +1912,7 @@ type UpdateResourceRequest struct {
 
 func (x *UpdateResourceRequest) Reset() {
 	*x = UpdateResourceRequest{}
-	mi := &file_environments_environments_proto_msgTypes[27]
+	mi := &file_environments_environments_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1837,7 +1924,7 @@ func (x *UpdateResourceRequest) String() string {
 func (*UpdateResourceRequest) ProtoMessage() {}
 
 func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_environments_proto_msgTypes[27]
+	mi := &file_environments_environments_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1850,7 +1937,7 @@ func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResourceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResourceRequest) Descriptor() ([]byte, []int) {
-	return file_environments_environments_proto_rawDescGZIP(), []int{27}
+	return file_environments_environments_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *UpdateResourceRequest) GetEnvironmentKey() string {
@@ -1906,7 +1993,7 @@ type DeleteResourceRequest struct {
 
 func (x *DeleteResourceRequest) Reset() {
 	*x = DeleteResourceRequest{}
-	mi := &file_environments_environments_proto_msgTypes[28]
+	mi := &file_environments_environments_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1918,7 +2005,7 @@ func (x *DeleteResourceRequest) String() string {
 func (*DeleteResourceRequest) ProtoMessage() {}
 
 func (x *DeleteResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_environments_proto_msgTypes[28]
+	mi := &file_environments_environments_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1931,7 +2018,7 @@ func (x *DeleteResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResourceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteResourceRequest) Descriptor() ([]byte, []int) {
-	return file_environments_environments_proto_rawDescGZIP(), []int{28}
+	return file_environments_environments_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DeleteResourceRequest) GetEnvironmentKey() string {
@@ -1980,7 +2067,7 @@ type DeleteResourceResponse struct {
 
 func (x *DeleteResourceResponse) Reset() {
 	*x = DeleteResourceResponse{}
-	mi := &file_environments_environments_proto_msgTypes[29]
+	mi := &file_environments_environments_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1992,7 +2079,7 @@ func (x *DeleteResourceResponse) String() string {
 func (*DeleteResourceResponse) ProtoMessage() {}
 
 func (x *DeleteResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_environments_proto_msgTypes[29]
+	mi := &file_environments_environments_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2005,7 +2092,7 @@ func (x *DeleteResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResourceResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResourceResponse) Descriptor() ([]byte, []int) {
-	return file_environments_environments_proto_rawDescGZIP(), []int{29}
+	return file_environments_environments_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *DeleteResourceResponse) GetRevision() string {
@@ -2019,7 +2106,7 @@ var File_environments_environments_proto protoreflect.FileDescriptor
 
 const file_environments_environments_proto_rawDesc = "" +
 	"\n" +
-	"\x1fenvironments/environments.proto\x12\fenvironments\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/protobuf/any.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xc3\x01\n" +
+	"\x1fenvironments/environments.proto\x12\fenvironments\x1a\x0fcore/core.proto\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/protobuf/any.proto\x1a\x19google/protobuf/api.proto\x1a google/protobuf/descriptor.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xc3\x01\n" +
 	"\vEnvironment\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -2134,7 +2221,12 @@ const file_environments_environments_proto_rawDesc = "" +
 	"\bResource\x12#\n" +
 	"\rnamespace_key\x18\x01 \x01(\tR\fnamespaceKey\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12.\n" +
-	"\apayload\x18\x03 \x01(\v2\x14.google.protobuf.AnyR\apayload\"b\n" +
+	"\apayload\x18\x03 \x01(\v2\x14.google.protobuf.AnyR\apayload\"s\n" +
+	"\fSchemaAnchor\x12&\n" +
+	"\x04flag\x18\x01 \x01(\v2\x10.flipt.core.FlagH\x00R\x04flag\x12/\n" +
+	"\asegment\x18\x02 \x01(\v2\x13.flipt.core.SegmentH\x00R\asegmentB\n" +
+	"\n" +
+	"\bin_oneof\"b\n" +
 	"\x10ResourceResponse\x122\n" +
 	"\bresource\x18\x01 \x01(\v2\x16.environments.ResourceR\bresource\x12\x1a\n" +
 	"\brevision\x18d \x01(\tR\brevision\"\x7f\n" +
@@ -2172,7 +2264,7 @@ const file_environments_environments_proto_rawDesc = "" +
 	"\x16PROPOSAL_STATE_UNKNOWN\x10\x00\x12\x17\n" +
 	"\x13PROPOSAL_STATE_OPEN\x10\x01\x12\x19\n" +
 	"\x15PROPOSAL_STATE_MERGED\x10\x02\x12\x19\n" +
-	"\x15PROPOSAL_STATE_CLOSED\x10\x032\xf1\x18\n" +
+	"\x15PROPOSAL_STATE_CLOSED\x10\x032\x8f\x1a\n" +
 	"\x13EnvironmentsService\x12\x94\x01\n" +
 	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"1\xbaG\x12*\x10listEnvironments\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v2/environments\x12\xc6\x01\n" +
 	"\x11BranchEnvironment\x12&.environments.BranchEnvironmentRequest\x1a\x19.environments.Environment\"n\xbaG\x19*\x17createBranchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x024:\x01*\"//api/v2/environments/{environment_key}/branches\x12\xd2\x01\n" +
@@ -2189,7 +2281,9 @@ const file_environments_environments_proto_rawDesc = "" +
 	"\rListResources\x12\".environments.ListResourcesRequest\x1a#.environments.ListResourcesResponse\"p\xbaG\x0f*\rlistResources\x82\xd3\xe4\x93\x02X\x12V/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}\x12\xc0\x01\n" +
 	"\x0eCreateResource\x12#.environments.UpdateResourceRequest\x1a\x1e.environments.ResourceResponse\"i\xbaG\x10*\x0ecreateResource\x82\xd3\xe4\x93\x02P:\x01*\"K/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources\x12\xc0\x01\n" +
 	"\x0eUpdateResource\x12#.environments.UpdateResourceRequest\x1a\x1e.environments.ResourceResponse\"i\xbaG\x10*\x0eupdateResource\x82\xd3\xe4\x93\x02P:\x01*\x1aK/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources\x12\xd4\x01\n" +
-	"\x0eDeleteResource\x12#.environments.DeleteResourceRequest\x1a$.environments.DeleteResourceResponse\"w\xbaG\x10*\x0edeleteResource\x82\xd3\xe4\x93\x02^*\\/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}B'Z%go.flipt.io/flipt/rpc/v2/environmentsb\x06proto3"
+	"\x0eDeleteResource\x12#.environments.DeleteResourceRequest\x1a$.environments.DeleteResourceResponse\"w\xbaG\x10*\x0edeleteResource\x82\xd3\xe4\x93\x02^*\\/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url}/{key}\x12\x9b\x01\n" +
+	"\x06Schema\x12\x16.google.protobuf.Empty\x1a\x1a.environments.SchemaAnchor\"]\xbaG$\n" +
+	"\binternal\x1a\x16Schema anchor endpointP\x01\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v2/_payloadschemaB'Z%go.flipt.io/flipt/rpc/v2/environmentsb\x06proto3"
 
 var (
 	file_environments_environments_proto_rawDescOnce sync.Once
@@ -2204,7 +2298,7 @@ func file_environments_environments_proto_rawDescGZIP() []byte {
 }
 
 var file_environments_environments_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_environments_environments_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_environments_environments_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_environments_environments_proto_goTypes = []any{
 	(SCM)(0),                                       // 0: environments.SCM
 	(ProposalState)(0),                             // 1: environments.ProposalState
@@ -2232,14 +2326,17 @@ var file_environments_environments_proto_goTypes = []any{
 	(*DeleteNamespaceResponse)(nil),                // 23: environments.DeleteNamespaceResponse
 	(*GetResourceRequest)(nil),                     // 24: environments.GetResourceRequest
 	(*Resource)(nil),                               // 25: environments.Resource
-	(*ResourceResponse)(nil),                       // 26: environments.ResourceResponse
-	(*ListResourcesRequest)(nil),                   // 27: environments.ListResourcesRequest
-	(*ListResourcesResponse)(nil),                  // 28: environments.ListResourcesResponse
-	(*UpdateResourceRequest)(nil),                  // 29: environments.UpdateResourceRequest
-	(*DeleteResourceRequest)(nil),                  // 30: environments.DeleteResourceRequest
-	(*DeleteResourceResponse)(nil),                 // 31: environments.DeleteResourceResponse
-	(*anypb.Any)(nil),                              // 32: google.protobuf.Any
-	(*emptypb.Empty)(nil),                          // 33: google.protobuf.Empty
+	(*SchemaAnchor)(nil),                           // 26: environments.SchemaAnchor
+	(*ResourceResponse)(nil),                       // 27: environments.ResourceResponse
+	(*ListResourcesRequest)(nil),                   // 28: environments.ListResourcesRequest
+	(*ListResourcesResponse)(nil),                  // 29: environments.ListResourcesResponse
+	(*UpdateResourceRequest)(nil),                  // 30: environments.UpdateResourceRequest
+	(*DeleteResourceRequest)(nil),                  // 31: environments.DeleteResourceRequest
+	(*DeleteResourceResponse)(nil),                 // 32: environments.DeleteResourceResponse
+	(*anypb.Any)(nil),                              // 33: google.protobuf.Any
+	(*core.Flag)(nil),                              // 34: flipt.core.Flag
+	(*core.Segment)(nil),                           // 35: flipt.core.Segment
+	(*emptypb.Empty)(nil),                          // 36: google.protobuf.Empty
 }
 var file_environments_environments_proto_depIdxs = []int32{
 	3,  // 0: environments.Environment.configuration:type_name -> environments.EnvironmentConfiguration
@@ -2251,47 +2348,51 @@ var file_environments_environments_proto_depIdxs = []int32{
 	13, // 6: environments.ListBranchedEnvironmentChangesResponse.changes:type_name -> environments.Change
 	16, // 7: environments.NamespaceResponse.namespace:type_name -> environments.Namespace
 	16, // 8: environments.ListNamespacesResponse.items:type_name -> environments.Namespace
-	32, // 9: environments.Resource.payload:type_name -> google.protobuf.Any
-	25, // 10: environments.ResourceResponse.resource:type_name -> environments.Resource
-	25, // 11: environments.ListResourcesResponse.resources:type_name -> environments.Resource
-	32, // 12: environments.UpdateResourceRequest.payload:type_name -> google.protobuf.Any
-	4,  // 13: environments.EnvironmentsService.ListEnvironments:input_type -> environments.ListEnvironmentsRequest
-	6,  // 14: environments.EnvironmentsService.BranchEnvironment:input_type -> environments.BranchEnvironmentRequest
-	7,  // 15: environments.EnvironmentsService.DeleteBranchEnvironment:input_type -> environments.DeleteBranchEnvironmentRequest
-	9,  // 16: environments.EnvironmentsService.ListEnvironmentBranches:input_type -> environments.ListEnvironmentBranchesRequest
-	14, // 17: environments.EnvironmentsService.ListBranchedEnvironmentChanges:input_type -> environments.ListBranchedEnvironmentChangesRequest
-	11, // 18: environments.EnvironmentsService.ProposeEnvironment:input_type -> environments.ProposeEnvironmentRequest
-	17, // 19: environments.EnvironmentsService.GetNamespace:input_type -> environments.GetNamespaceRequest
-	19, // 20: environments.EnvironmentsService.ListNamespaces:input_type -> environments.ListNamespacesRequest
-	21, // 21: environments.EnvironmentsService.CreateNamespace:input_type -> environments.UpdateNamespaceRequest
-	21, // 22: environments.EnvironmentsService.UpdateNamespace:input_type -> environments.UpdateNamespaceRequest
-	22, // 23: environments.EnvironmentsService.DeleteNamespace:input_type -> environments.DeleteNamespaceRequest
-	24, // 24: environments.EnvironmentsService.GetResource:input_type -> environments.GetResourceRequest
-	27, // 25: environments.EnvironmentsService.ListResources:input_type -> environments.ListResourcesRequest
-	29, // 26: environments.EnvironmentsService.CreateResource:input_type -> environments.UpdateResourceRequest
-	29, // 27: environments.EnvironmentsService.UpdateResource:input_type -> environments.UpdateResourceRequest
-	30, // 28: environments.EnvironmentsService.DeleteResource:input_type -> environments.DeleteResourceRequest
-	5,  // 29: environments.EnvironmentsService.ListEnvironments:output_type -> environments.ListEnvironmentsResponse
-	2,  // 30: environments.EnvironmentsService.BranchEnvironment:output_type -> environments.Environment
-	33, // 31: environments.EnvironmentsService.DeleteBranchEnvironment:output_type -> google.protobuf.Empty
-	10, // 32: environments.EnvironmentsService.ListEnvironmentBranches:output_type -> environments.ListEnvironmentBranchesResponse
-	15, // 33: environments.EnvironmentsService.ListBranchedEnvironmentChanges:output_type -> environments.ListBranchedEnvironmentChangesResponse
-	12, // 34: environments.EnvironmentsService.ProposeEnvironment:output_type -> environments.EnvironmentProposalDetails
-	18, // 35: environments.EnvironmentsService.GetNamespace:output_type -> environments.NamespaceResponse
-	20, // 36: environments.EnvironmentsService.ListNamespaces:output_type -> environments.ListNamespacesResponse
-	18, // 37: environments.EnvironmentsService.CreateNamespace:output_type -> environments.NamespaceResponse
-	18, // 38: environments.EnvironmentsService.UpdateNamespace:output_type -> environments.NamespaceResponse
-	23, // 39: environments.EnvironmentsService.DeleteNamespace:output_type -> environments.DeleteNamespaceResponse
-	26, // 40: environments.EnvironmentsService.GetResource:output_type -> environments.ResourceResponse
-	28, // 41: environments.EnvironmentsService.ListResources:output_type -> environments.ListResourcesResponse
-	26, // 42: environments.EnvironmentsService.CreateResource:output_type -> environments.ResourceResponse
-	26, // 43: environments.EnvironmentsService.UpdateResource:output_type -> environments.ResourceResponse
-	31, // 44: environments.EnvironmentsService.DeleteResource:output_type -> environments.DeleteResourceResponse
-	29, // [29:45] is the sub-list for method output_type
-	13, // [13:29] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	33, // 9: environments.Resource.payload:type_name -> google.protobuf.Any
+	34, // 10: environments.SchemaAnchor.flag:type_name -> flipt.core.Flag
+	35, // 11: environments.SchemaAnchor.segment:type_name -> flipt.core.Segment
+	25, // 12: environments.ResourceResponse.resource:type_name -> environments.Resource
+	25, // 13: environments.ListResourcesResponse.resources:type_name -> environments.Resource
+	33, // 14: environments.UpdateResourceRequest.payload:type_name -> google.protobuf.Any
+	4,  // 15: environments.EnvironmentsService.ListEnvironments:input_type -> environments.ListEnvironmentsRequest
+	6,  // 16: environments.EnvironmentsService.BranchEnvironment:input_type -> environments.BranchEnvironmentRequest
+	7,  // 17: environments.EnvironmentsService.DeleteBranchEnvironment:input_type -> environments.DeleteBranchEnvironmentRequest
+	9,  // 18: environments.EnvironmentsService.ListEnvironmentBranches:input_type -> environments.ListEnvironmentBranchesRequest
+	14, // 19: environments.EnvironmentsService.ListBranchedEnvironmentChanges:input_type -> environments.ListBranchedEnvironmentChangesRequest
+	11, // 20: environments.EnvironmentsService.ProposeEnvironment:input_type -> environments.ProposeEnvironmentRequest
+	17, // 21: environments.EnvironmentsService.GetNamespace:input_type -> environments.GetNamespaceRequest
+	19, // 22: environments.EnvironmentsService.ListNamespaces:input_type -> environments.ListNamespacesRequest
+	21, // 23: environments.EnvironmentsService.CreateNamespace:input_type -> environments.UpdateNamespaceRequest
+	21, // 24: environments.EnvironmentsService.UpdateNamespace:input_type -> environments.UpdateNamespaceRequest
+	22, // 25: environments.EnvironmentsService.DeleteNamespace:input_type -> environments.DeleteNamespaceRequest
+	24, // 26: environments.EnvironmentsService.GetResource:input_type -> environments.GetResourceRequest
+	28, // 27: environments.EnvironmentsService.ListResources:input_type -> environments.ListResourcesRequest
+	30, // 28: environments.EnvironmentsService.CreateResource:input_type -> environments.UpdateResourceRequest
+	30, // 29: environments.EnvironmentsService.UpdateResource:input_type -> environments.UpdateResourceRequest
+	31, // 30: environments.EnvironmentsService.DeleteResource:input_type -> environments.DeleteResourceRequest
+	36, // 31: environments.EnvironmentsService.Schema:input_type -> google.protobuf.Empty
+	5,  // 32: environments.EnvironmentsService.ListEnvironments:output_type -> environments.ListEnvironmentsResponse
+	2,  // 33: environments.EnvironmentsService.BranchEnvironment:output_type -> environments.Environment
+	36, // 34: environments.EnvironmentsService.DeleteBranchEnvironment:output_type -> google.protobuf.Empty
+	10, // 35: environments.EnvironmentsService.ListEnvironmentBranches:output_type -> environments.ListEnvironmentBranchesResponse
+	15, // 36: environments.EnvironmentsService.ListBranchedEnvironmentChanges:output_type -> environments.ListBranchedEnvironmentChangesResponse
+	12, // 37: environments.EnvironmentsService.ProposeEnvironment:output_type -> environments.EnvironmentProposalDetails
+	18, // 38: environments.EnvironmentsService.GetNamespace:output_type -> environments.NamespaceResponse
+	20, // 39: environments.EnvironmentsService.ListNamespaces:output_type -> environments.ListNamespacesResponse
+	18, // 40: environments.EnvironmentsService.CreateNamespace:output_type -> environments.NamespaceResponse
+	18, // 41: environments.EnvironmentsService.UpdateNamespace:output_type -> environments.NamespaceResponse
+	23, // 42: environments.EnvironmentsService.DeleteNamespace:output_type -> environments.DeleteNamespaceResponse
+	27, // 43: environments.EnvironmentsService.GetResource:output_type -> environments.ResourceResponse
+	29, // 44: environments.EnvironmentsService.ListResources:output_type -> environments.ListResourcesResponse
+	27, // 45: environments.EnvironmentsService.CreateResource:output_type -> environments.ResourceResponse
+	27, // 46: environments.EnvironmentsService.UpdateResource:output_type -> environments.ResourceResponse
+	32, // 47: environments.EnvironmentsService.DeleteResource:output_type -> environments.DeleteResourceResponse
+	26, // 48: environments.EnvironmentsService.Schema:output_type -> environments.SchemaAnchor
+	32, // [32:49] is the sub-list for method output_type
+	15, // [15:32] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_environments_environments_proto_init() }
@@ -2307,13 +2408,17 @@ func file_environments_environments_proto_init() {
 	file_environments_environments_proto_msgTypes[12].OneofWrappers = []any{}
 	file_environments_environments_proto_msgTypes[14].OneofWrappers = []any{}
 	file_environments_environments_proto_msgTypes[19].OneofWrappers = []any{}
+	file_environments_environments_proto_msgTypes[24].OneofWrappers = []any{
+		(*SchemaAnchor_Flag)(nil),
+		(*SchemaAnchor_Segment)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_environments_environments_proto_rawDesc), len(file_environments_environments_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   30,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
