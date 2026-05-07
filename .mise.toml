@@ -14,6 +14,8 @@ set -euo pipefail
 echo " > Bootstrapping tools..."
 (cd internal/cmd/protoc-gen-go-flipt-sdk && go install .)
 go install tool
+(cd internal/cmd/protoc-gen-flipt-openapi && go install .)
+go install tool
 """
 
 [tasks.clean]
