@@ -12,7 +12,7 @@ The main entrypoint within this package is [New], which takes an instance of [Tr
 
 # GRPC Transport
 
-The following is an example of creating and instance of the SDK using the gRPC transport.
+The following is an example of creating an instance of the SDK using the gRPC transport.
 
 	func main() {
 		conn, _ := grpc.NewClient("localhost:9000")
@@ -31,7 +31,7 @@ The following is an example of creating an instance of the SDK using the HTTP tr
 
 # Authenticating the SDK
 
-The remote procedure calls mades by this SDK are authenticated via a [ClientAuthenticationProvider] implementation.
+The remote procedure calls made by this SDK are authenticated via a [ClientAuthenticationProvider] implementation.
 This can be supplied to [New] via the [WithAuthenticationProvider] option.
 Note that each of these methods will only work if the target Flipt server instance has the authentication method enabled.
 
@@ -57,10 +57,10 @@ This provider sets a pre-generated JSON web-token via the Authentication header 
 
 - [KubernetesAuthenticationProvider](https://www.flipt.io/docs/authentication/methods#kubernetes):
 
-This automatically uses the service account token on the host and exchanges it with Flipt for a Flipt client token credential. The credential is then used to authenticate requests, again via the Authentication header and the Bearer scheme. It ensures that the client token is not-expired and requests fresh tokens automatically without intervention. Use this method to automatically authenticate your application with a Flipt deployed into the same Kubernetes cluster.
+This automatically uses the service account token on the host and exchanges it with Flipt for a Flipt client token credential. The credential is then used to authenticate requests, again via the Authentication header and the Bearer scheme. It ensures that the client token is not expired and requests fresh tokens automatically without intervention. Use this method to automatically authenticate your application with a Flipt deployed into the same Kubernetes cluster.
 
 	func main() {
-	    provider := sdk.NewKuberntesAuthenticationProvider(transport)
+	    provider := sdk.NewKubernetesAuthenticationProvider(transport)
 	    client := sdk.New(transport, sdk.WithAuthenticationProvider(provider))
 	}
 
@@ -129,13 +129,13 @@ Learn more about the Variant flag type: <https://www.flipt.io/docs/concepts#vari
 	}
 
 	fmt.Println(resp.VariantKey)
-	fmt.Println(resp.VariantAttachment) Optional
+	fmt.Println(resp.VariantAttachment) // Optional
 
 # Batch
 
 The Batch method returns a response containing the evaluation results for a batch of requests. These requests can be for a mix of boolean and variant flags.
 
-	resp, err := client.Batch(ctx, &evaluation.BatchRequest{
+	resp, err := client.Batch(ctx, &evaluation.BatchEvaluationRequest{
 		RequestId: "my_request_id",
 		Requests: []*evaluation.EvaluationRequest{
 			{
