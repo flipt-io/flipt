@@ -15,7 +15,6 @@ linters:
     - errorlint
     - gocheckcompilerdirectives
     - gochecksumtype
-    - goconst
     - gocritic
     - gosec
     - gosmopolitan
@@ -55,6 +54,7 @@ linters:
         - G602
         - G115
         - G118
+        - G124
         - G703
         - G704
         - G705
