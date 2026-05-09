@@ -36,7 +36,6 @@ const (
 	EnvironmentsService_CreateResource_FullMethodName                 = "/environments.EnvironmentsService/CreateResource"
 	EnvironmentsService_UpdateResource_FullMethodName                 = "/environments.EnvironmentsService/UpdateResource"
 	EnvironmentsService_DeleteResource_FullMethodName                 = "/environments.EnvironmentsService/DeleteResource"
-	EnvironmentsService_Schema_FullMethodName                         = "/environments.EnvironmentsService/Schema"
 )
 
 // EnvironmentsServiceClient is the client API for EnvironmentsService service.
@@ -75,7 +74,6 @@ type EnvironmentsServiceClient interface {
 	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
 	// Delete a resource within a given namespace.
 	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
-	Schema(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SchemaAnchor, error)
 }
 
 type environmentsServiceClient struct {
@@ -246,16 +244,6 @@ func (c *environmentsServiceClient) DeleteResource(ctx context.Context, in *Dele
 	return out, nil
 }
 
-func (c *environmentsServiceClient) Schema(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SchemaAnchor, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SchemaAnchor)
-	err := c.cc.Invoke(ctx, EnvironmentsService_Schema_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // EnvironmentsServiceServer is the server API for EnvironmentsService service.
 // All implementations must embed UnimplementedEnvironmentsServiceServer
 // for forward compatibility.
@@ -292,7 +280,6 @@ type EnvironmentsServiceServer interface {
 	UpdateResource(context.Context, *UpdateResourceRequest) (*ResourceResponse, error)
 	// Delete a resource within a given namespace.
 	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
-	Schema(context.Context, *emptypb.Empty) (*SchemaAnchor, error)
 	mustEmbedUnimplementedEnvironmentsServiceServer()
 }
 
@@ -350,9 +337,6 @@ func (UnimplementedEnvironmentsServiceServer) UpdateResource(context.Context, *U
 }
 func (UnimplementedEnvironmentsServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteResource not implemented")
-}
-func (UnimplementedEnvironmentsServiceServer) Schema(context.Context, *emptypb.Empty) (*SchemaAnchor, error) {
-	return nil, status.Error(codes.Unimplemented, "method Schema not implemented")
 }
 func (UnimplementedEnvironmentsServiceServer) mustEmbedUnimplementedEnvironmentsServiceServer() {}
 func (UnimplementedEnvironmentsServiceServer) testEmbeddedByValue()                             {}
@@ -663,24 +647,6 @@ func _EnvironmentsService_DeleteResource_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EnvironmentsService_Schema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EnvironmentsServiceServer).Schema(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: EnvironmentsService_Schema_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnvironmentsServiceServer).Schema(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // EnvironmentsService_ServiceDesc is the grpc.ServiceDesc for EnvironmentsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -751,10 +717,6 @@ var EnvironmentsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteResource",
 			Handler:    _EnvironmentsService_DeleteResource_Handler,
-		},
-		{
-			MethodName: "Schema",
-			Handler:    _EnvironmentsService_Schema_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

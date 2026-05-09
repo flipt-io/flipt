@@ -29,7 +29,3 @@ func (x *EnvironmentsServiceClient) ProposeEnvironment(ctx context.Context, v *e
 func (x *EnvironmentsServiceClient) ListBranchedEnvironmentChanges(ctx context.Context, v *environments.ListBranchedEnvironmentChangesRequest, _ ...grpc.CallOption) (*environments.ListBranchedEnvironmentChangesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBranchedEnvironmentChanges not implemented")
 }
-
-func (x *EnvironmentsServiceClient) Schema(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*environments.SchemaAnchor, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Schema not implemented")
-}

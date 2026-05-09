@@ -643,9 +643,13 @@ components:
                 metadata:
                     type: object
         GoogleProtobufAny:
-            oneOf:
-                - $ref: '#/components/schemas/FlagResourcePayload'
-                - $ref: '#/components/schemas/SegmentResourcePayload'
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
         GoogleProtobufValue:
             description: Represents a dynamically typed value which can be either null, a number, a string, a boolean, a recursive struct value, or a list of values.
         ListBranchedEnvironmentChangesResponse:
@@ -756,7 +760,7 @@ components:
                     description: The resource key.
                 payload:
                     allOf:
-                        - $ref: '#/components/schemas/GoogleProtobufAny'
+                        - $ref: '#/components/schemas/ResourcePayload'
                     description: |-
                         The arbitrary typed resource payload (e.g. flipt.core.Flag, flipt.core.Segment).
                          {"@type": "flipt.core.Flag", "key": "my_flag"}
@@ -883,7 +887,7 @@ components:
                     description: The resource key.
                 payload:
                     allOf:
-                        - $ref: '#/components/schemas/GoogleProtobufAny'
+                        - $ref: '#/components/schemas/ResourcePayload'
                     description: |-
                         The arbitrary typed resource payload (e.g. flipt.core.Flag, flipt.core.Segment).
                          {"@type": "flipt.core.Flag", "key": "my_flag"}
@@ -915,12 +919,22 @@ components:
                     type: string
             description: The type of the message.
         FlagResourcePayload:
+            type: object
             allOf:
                 - $ref: '#/components/schemas/AtType'
                 - $ref: '#/components/schemas/Flag'
+            description: contains a serialized Flag message with an @type of flipt.core.Flag
         SegmentResourcePayload:
+            type: object
             allOf:
                 - $ref: '#/components/schemas/AtType'
                 - $ref: '#/components/schemas/Segment'
+            description: contains a serialized Segment message with an @type of flipt.core.Segment
+        ResourcePayload:
+            type: object
+            oneOf:
+                - $ref: '#/components/schemas/FlagResourcePayload'
+                - $ref: '#/components/schemas/SegmentResourcePayload'
+            description: Contains a Flag or Segment serialized message along with an @type that describes the type of the serialized message.
 tags:
     - name: EnvironmentsService

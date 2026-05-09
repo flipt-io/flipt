@@ -4,8 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"path/filepath"
-	"slices"
+	"reflect"
 	"strings"
+	"unsafe"
 
 	"github.com/google/gnostic/cmd/protoc-gen-openapi/generator"
 	v3 "github.com/google/gnostic/openapiv3"
@@ -46,6 +47,8 @@ func main() {
 				outfileName := strings.TrimSuffix(file.Desc.Path(), filepath.Ext(file.Desc.Path())) + ".openapi.gen.out"
 				outputFile := plugin.NewGeneratedFile(outfileName, "")
 				gen := generator.NewOpenAPIv3Generator(plugin, conf, []*protogen.File{file})
+				// force injecting extra well-known types so they will be included in the openapi.yaml
+				appendRequiredSchemaWithReflectDangerous(gen, "Flag", "Segment")
 				if err := gen.Run(outputFile); err != nil {
 					return err
 				}
@@ -62,7 +65,11 @@ func main() {
 			}
 		} else {
 			outputFile := plugin.NewGeneratedFile("openapi.gen.out", "")
-			err := generator.NewOpenAPIv3Generator(plugin, conf, plugin.Files).Run(outputFile)
+
+			gen := generator.NewOpenAPIv3Generator(plugin, conf, plugin.Files)
+			// force injecting extra well-known types so they will be included in the openapi.yaml
+			appendRequiredSchemaWithReflectDangerous(gen, "Flag", "Segment")
+			err := gen.Run(outputFile)
 			if err != nil {
 				return err
 			}
@@ -86,38 +93,40 @@ func run(data []byte, outputFile *protogen.GeneratedFile) error {
 		return err
 	}
 
-	for _, s := range doc.Components.Schemas.AdditionalProperties {
-		if s.Name == "GoogleProtobufAny" {
-			s.Value = &v3.SchemaOrReference{
-				Oneof: &v3.SchemaOrReference_Schema{
-					Schema: &v3.Schema{
-						OneOf: []*v3.SchemaOrReference{
-							{Oneof: &v3.SchemaOrReference_Reference{Reference: &v3.Reference{XRef: "#/components/schemas/FlagResourcePayload"}}},
-							{Oneof: &v3.SchemaOrReference_Reference{Reference: &v3.Reference{XRef: "#/components/schemas/SegmentResourcePayload"}}},
-						},
-					},
-				},
-			}
-		}
-	}
-
+	// Add Resource-specific OpenAPI schemas.
 	doc.Components.Schemas.AdditionalProperties = append(
 		doc.Components.Schemas.AdditionalProperties,
 		&v3.NamedSchemaOrReference{Name: "AtType", Value: buildPayloadType()},
 		&v3.NamedSchemaOrReference{Name: "FlagResourcePayload", Value: buildAnyVariant("flipt.core.Flag", "Flag")},
 		&v3.NamedSchemaOrReference{Name: "SegmentResourcePayload", Value: buildAnyVariant("flipt.core.Segment", "Segment")},
-	)
-
-	doc.Components.Schemas.AdditionalProperties = slices.DeleteFunc(
-		doc.Components.Schemas.AdditionalProperties,
-		func(e *v3.NamedSchemaOrReference) bool {
-			return e.Name == "SchemaAnchor"
+		&v3.NamedSchemaOrReference{
+			Name: "ResourcePayload", Value: &v3.SchemaOrReference{
+				Oneof: &v3.SchemaOrReference_Schema{
+					Schema: &v3.Schema{
+						Type: "object",
+						OneOf: []*v3.SchemaOrReference{
+							{Oneof: &v3.SchemaOrReference_Reference{Reference: &v3.Reference{XRef: "#/components/schemas/FlagResourcePayload"}}},
+							{Oneof: &v3.SchemaOrReference_Reference{Reference: &v3.Reference{XRef: "#/components/schemas/SegmentResourcePayload"}}},
+						},
+						Description: "Contains a Flag or Segment serialized message along with an @type that describes the type of the serialized message.",
+					},
+				},
+			},
 		},
 	)
 
-	doc.Paths.Path = slices.DeleteFunc(doc.Paths.Path, func(p *v3.NamedPathItem) bool {
-		return p.Name == "/api/v2/_payloadschema"
-	})
+	// Point Resource payload fields at the Flipt-specific ResourcePayload schema
+	// instead of GoogleProtobufAny.
+	for _, s := range doc.Components.Schemas.AdditionalProperties {
+		if s.Name == "Resource" || s.Name == "UpdateResourceRequest" {
+			schema := s.Value.GetSchema()
+			for _, item := range schema.Properties.AdditionalProperties {
+				if item.Name == "payload" {
+					item.Value.GetSchema().AllOf[0].GetReference().XRef = "#/components/schemas/ResourcePayload"
+				}
+			}
+		}
+	}
 
 	bytes, err := doc.YAMLValue("# Generated with protoc-gen-flipt-openapi")
 	if err != nil {
@@ -161,6 +170,8 @@ func buildAnyVariant(typeURL string, schemaName string) *v3.SchemaOrReference {
 	return &v3.SchemaOrReference{
 		Oneof: &v3.SchemaOrReference_Schema{
 			Schema: &v3.Schema{
+				Type:        "object",
+				Description: fmt.Sprintf("contains a serialized %s message with an @type of %s", schemaName, typeURL),
 				AllOf: []*v3.SchemaOrReference{
 					{
 						Oneof: &v3.SchemaOrReference_Reference{
@@ -179,5 +190,41 @@ func buildAnyVariant(typeURL string, schemaName string) *v3.SchemaOrReference {
 				},
 			},
 		},
+	}
+}
+
+// appendRequiredSchemaWithReflectDangerous injects additional types into the
+// generator's requiredSchemas list so they are included in the generated
+// OpenAPI v3 output.
+//
+// This relies on reflection and unsafe access to mutate internal, unexported
+// fields of the upstream generator implementation. It is intentionally fragile
+// and may break if the original library changes its internal structure or field
+// names.
+func appendRequiredSchemaWithReflectDangerous(gen *generator.OpenAPIv3Generator, values ...string) {
+	v := reflect.ValueOf(gen).Elem()
+
+	reflectField := v.FieldByName("reflect")
+
+	reflectPtr := reflect.NewAt(
+		reflectField.Type(),
+		unsafe.Pointer(reflectField.UnsafeAddr()),
+	).Elem()
+
+	requiredSchemasField := reflectPtr.Elem().FieldByName("requiredSchemas")
+
+	requiredSchemas := reflect.NewAt(
+		requiredSchemasField.Type(),
+		unsafe.Pointer(requiredSchemasField.UnsafeAddr()),
+	).Elem()
+
+	for _, value := range values {
+		// append
+		requiredSchemas.Set(
+			reflect.Append(
+				requiredSchemas,
+				reflect.ValueOf(value),
+			),
+		)
 	}
 }
