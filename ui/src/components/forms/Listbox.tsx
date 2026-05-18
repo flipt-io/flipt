@@ -13,7 +13,7 @@ type ListBoxProps<T extends ISelectable> = {
   id: string;
   name: string;
   values?: T[];
-  selected: T;
+  selected?: T;
   setSelected?: (v: T) => void;
   disabled?: boolean;
   className?: string;
@@ -27,7 +27,7 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
     <Select
       name={name}
       disabled={disabled}
-      defaultValue={selected?.key}
+      value={selected?.key}
       onValueChange={(key) => {
         if (setSelected) {
           const value = values?.find((el) => el.key == key) as T;
