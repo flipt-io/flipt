@@ -6,8 +6,10 @@ import Select from '~/components/forms/Select';
 import { useTimezone } from '~/data/hooks/timezone';
 import { Theme, Timezone } from '~/types/Preferences';
 import {
+  selectLoadSegmentFlagReferences,
   selectTheme,
   selectTimezone,
+  loadSegmentFlagReferencesChanged,
   themeChanged,
   timezoneChanged
 } from './preferencesSlice';
@@ -15,7 +17,9 @@ import {
 export default function Preferences() {
   const timezone = useSelector(selectTimezone);
   const theme = useSelector(selectTheme);
-
+  const loadSegmentFlagReferences = useSelector(
+    selectLoadSegmentFlagReferences
+  );
   const dispatch = useDispatch();
 
   const initialValues = {
@@ -60,6 +64,32 @@ export default function Preferences() {
                   dispatch(themeChanged(e.target.value as Theme));
                 }}
               />
+            </div>
+            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
+              <span
+                className="text-muted-foreground text-sm font-bold"
+                id="label-switch-segment-flags"
+              >
+                Segment flag usage
+                <p className="mt-2 text-xs font-normal">
+                  Load which flags reference each segment on the segment page
+                  and segments list. Turning this off avoids extra API requests
+                  when you have many flags.
+                </p>
+              </span>
+              <dd className="sm:col-span-2 sm:mt-0 sm:text-right">
+                <Switch
+                  checked={loadSegmentFlagReferences}
+                  aria-labelledby="label-switch-segment-flags"
+                  onCheckedChange={() => {
+                    dispatch(
+                      loadSegmentFlagReferencesChanged(
+                        !loadSegmentFlagReferences
+                      )
+                    );
+                  }}
+                />
+              </dd>
             </div>
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
               <span

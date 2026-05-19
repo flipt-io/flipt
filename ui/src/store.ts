@@ -49,7 +49,8 @@ listenerMiddleware.startListening({
   matcher: isAnyOf(
     preferencesSlice.actions.themeChanged,
     preferencesSlice.actions.timezoneChanged,
-    preferencesSlice.actions.sidebarChanged
+    preferencesSlice.actions.sidebarChanged,
+    preferencesSlice.actions.loadSegmentFlagReferencesChanged
   ),
   effect: (_action, api) => {
     // save to local storage
