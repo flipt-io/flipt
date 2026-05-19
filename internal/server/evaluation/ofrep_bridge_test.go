@@ -1,7 +1,6 @@
 package evaluation
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -55,7 +54,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		},
 	}, nil)
 
-	output, err := s.OFREPFlagEvaluation(context.TODO(), ofrep.EvaluationBridgeInput{
+	output, err := s.OFREPFlagEvaluation(t.Context(), ofrep.EvaluationBridgeInput{
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
 		Context: map[string]string{
@@ -90,7 +89,7 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
 
-	output, err := s.OFREPFlagEvaluation(context.TODO(), ofrep.EvaluationBridgeInput{
+	output, err := s.OFREPFlagEvaluation(t.Context(), ofrep.EvaluationBridgeInput{
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
 		Context: map[string]string{

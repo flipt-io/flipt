@@ -247,6 +247,10 @@ func (s snapshotStoreMock) View(_ context.Context, _ storage.Reference, fn func(
 	return fn(s.MockStore)
 }
 
+func (s snapshotStoreMock) ContextWithSnapshot(ctx context.Context) context.Context {
+	return ctx
+}
+
 func (s snapshotStoreMock) String() string {
 	return "mock"
 }
