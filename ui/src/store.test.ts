@@ -14,4 +14,8 @@ describe('shouldInvalidateFromStreamEvent', () => {
   it('does not invalidate for error events', () => {
     expect(shouldInvalidateFromStreamEvent({ type: 'error' })).toBe(false);
   });
+
+  it('does not invalidate for null payloads', () => {
+    expect(shouldInvalidateFromStreamEvent(null)).toBe(false);
+  });
 });

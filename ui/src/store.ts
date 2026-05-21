@@ -116,7 +116,7 @@ listenerMiddleware.startListening({
     } | null;
 
     if (!shouldInvalidateFromStreamEvent(eventData)) {
-      console.warn('unexpected sse event', eventData);
+      console.warn('skipping cache invalidation for sse event', eventData);
       return;
     }
 
