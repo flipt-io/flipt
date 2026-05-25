@@ -29,7 +29,7 @@ type resource struct {
 }
 
 type claims struct {
-	Expiration int64    `jsom:"exp"`
+	Expiration int64    `json:"exp"`
 	Identity   identity `json:"kubernetes.io"`
 }
 
