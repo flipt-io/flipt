@@ -34,7 +34,21 @@ export function NavUser({ user }: { user: User }) {
       await expireAuthSelf();
       clearSession();
       if (user?.issuer) {
-        window.location.href = `//${user.issuer}`;
+        const logoutUrl = new URL(
+          'protocol/openid-connect/logout',
+          user.issuer.endsWith('/') ? user.issuer : user.issuer + '/'
+        );
+        if (user?.idToken) {
+          logoutUrl.searchParams.set('id_token_hint', user.idToken);
+        }
+        if (user?.clientId) {
+          logoutUrl.searchParams.set('client_id', user.clientId);
+        }
+        logoutUrl.searchParams.set(
+          'post_logout_redirect_uri',
+          window.location.origin
+        );
+        window.location.href = logoutUrl.toString();
       } else {
         navigate('/login');
       }

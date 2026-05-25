@@ -13,6 +13,9 @@ export interface IAuthMethodOIDC extends IAuthMethod {
 
 export interface IAuthMethodOIDCMetadata {
   'io.flipt.auth.oidc.provider': string;
+  'io.flipt.auth.oidc.issuer'?: string;
+  'io.flipt.auth.oidc.client_id'?: string;
+  'io.flipt.auth.oidc.id_token'?: string;
   'io.flipt.auth.oidc.email'?: string;
   'io.flipt.auth.oidc.email_verified'?: string;
   'io.flipt.auth.oidc.name'?: string;

@@ -549,9 +549,14 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 		claims := response.Authentication.Metadata["io.flipt.auth.claims"]
 		delete(response.Authentication.Metadata, "io.flipt.auth.claims")
 
+		idToken := response.Authentication.Metadata["io.flipt.auth.oidc.id_token"]
+		delete(response.Authentication.Metadata, "io.flipt.auth.oidc.id_token")
+
 		assert.Equal(t, map[string]string{
 			"io.flipt.auth.oidc.provider": "google",
-			"io.flipt.auth.oidc.email":    "mark@flipt.io",
+			"io.flipt.auth.oidc.issuer":    tpAddr,
+			"io.flipt.auth.oidc.client_id": "client_id",
+			"io.flipt.auth.oidc.email":     "mark@flipt.io",
 			"io.flipt.auth.email":         "mark@flipt.io",
 			"io.flipt.auth.oidc.name":     "Mark Phelps",
 			"io.flipt.auth.name":          "Mark Phelps",
@@ -559,6 +564,7 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 		}, response.Authentication.Metadata)
 
 		assert.NotEmpty(t, claims)
+		assert.NotEmpty(t, idToken)
 		if expectedUserInfoClaims != nil {
 			var claimSet map[string]any
 			require.NoError(t, json.Unmarshal([]byte(claims), &claimSet))
