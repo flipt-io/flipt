@@ -1124,12 +1124,19 @@ func (x *EvaluationNamespaceSnapshotRequest) GetEnvironmentKey() string {
 	return ""
 }
 
+// Subscribes to a stream of namespace snapshots. The server sends the latest
+// snapshot whenever flag data changes, or immediately if the client's digest
+// is stale. Skips sending when the client is already up to date.
 type EvaluationNamespaceSnapshotStreamRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Key            string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	EnvironmentKey string                 `protobuf:"bytes,2,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Namespace key to stream.
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Environment key to stream.
+	EnvironmentKey string `protobuf:"bytes,2,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	// Last snapshot digest the client has. Stream skips sending snapshots with a matching digest.
+	Digest        *string `protobuf:"bytes,3,opt,name=digest,proto3,oneof" json:"digest,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EvaluationNamespaceSnapshotStreamRequest) Reset() {
@@ -1172,6 +1179,13 @@ func (x *EvaluationNamespaceSnapshotStreamRequest) GetKey() string {
 func (x *EvaluationNamespaceSnapshotStreamRequest) GetEnvironmentKey() string {
 	if x != nil {
 		return x.EnvironmentKey
+	}
+	return ""
+}
+
+func (x *EvaluationNamespaceSnapshotStreamRequest) GetDigest() string {
+	if x != nil && x.Digest != nil {
+		return *x.Digest
 	}
 	return ""
 }
@@ -1299,10 +1313,12 @@ const file_evaluation_evaluationv2_proto_rawDesc = "" +
 	"\"EvaluationNamespaceSnapshotRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1c\n" +
 	"\treference\x18\x02 \x01(\tR\treference\x12'\n" +
-	"\x0fenvironment_key\x18\x03 \x01(\tR\x0eenvironmentKey\"e\n" +
+	"\x0fenvironment_key\x18\x03 \x01(\tR\x0eenvironmentKey\"\x8d\x01\n" +
 	"(EvaluationNamespaceSnapshotStreamRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12'\n" +
-	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\"\xcc\x01\n" +
+	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\x12\x1b\n" +
+	"\x06digest\x18\x03 \x01(\tH\x00R\x06digest\x88\x01\x01B\t\n" +
+	"\a_digest\"\xcc\x01\n" +
 	"\x12EvaluationSnapshot\x12N\n" +
 	"\n" +
 	"namespaces\x18\x01 \x03(\v2..evaluation.EvaluationSnapshot.NamespacesEntryR\n" +
@@ -1416,6 +1432,7 @@ func file_evaluation_evaluationv2_proto_init() {
 		(*EvaluationRollout_Threshold)(nil),
 	}
 	file_evaluation_evaluationv2_proto_msgTypes[6].OneofWrappers = []any{}
+	file_evaluation_evaluationv2_proto_msgTypes[12].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

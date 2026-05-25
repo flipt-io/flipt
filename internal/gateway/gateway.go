@@ -89,6 +89,8 @@ func (m *eventSourceMarshaler) Marshal(v any) ([]byte, error) {
 			converted[k] = v
 		}
 		return m.marshalEventSourceMap(converted)
+	case *status.Status:
+		return m.marshalStatus(val)
 	default:
 		return nil, fmt.Errorf("unsupported event-stream payload %T", v)
 	}
@@ -116,19 +118,23 @@ func (m *eventSourceMarshaler) marshalEventSourceMap(val map[string]any) ([]byte
 	}
 
 	if errStatus, ok := val["error"].(*status.Status); ok {
-		if codes.Code(errStatus.Code) == codes.Canceled {
-			return nil, nil
-		}
-		b, err := m.JSONPb.Marshal(map[string]any{
-			"type":    "error",
-			"code":    errStatus.Code,
-			"message": errStatus.Message,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return fmt.Appendf(nil, "data: %s\n\n", b), nil
+		return m.marshalStatus(errStatus)
 	}
 
 	return nil, fmt.Errorf("unsupported event-stream payload map: %T", val)
+}
+
+func (m *eventSourceMarshaler) marshalStatus(errStatus *status.Status) ([]byte, error) {
+	if codes.Code(errStatus.Code) == codes.Canceled {
+		return nil, nil
+	}
+	b, err := m.JSONPb.Marshal(map[string]any{
+		"type":    "error",
+		"code":    errStatus.Code,
+		"message": errStatus.Message,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fmt.Appendf(nil, "data: %s\n\n", b), nil
 }
