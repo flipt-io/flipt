@@ -42,7 +42,8 @@ export const ConstraintStringOperators: Record<string, string> = {
   isoneof: 'IS ONE OF',
   isnotoneof: 'IS NOT ONE OF',
   contains: 'CONTAINS',
-  notcontains: 'DOES NOT CONTAIN'
+  notcontains: 'DOES NOT CONTAIN',
+  regex: 'MATCHES REGEX'
 };
 
 export const ConstraintEntityIdOperators: Record<string, string> = {

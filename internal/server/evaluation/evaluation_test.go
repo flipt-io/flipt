@@ -1214,6 +1214,62 @@ func Test_matchesString(t *testing.T) {
 			},
 			value: "foobar",
 		},
+		{
+			name: "regex",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "regex",
+				Value:    "^bar.*",
+			},
+			value:     "barbaz",
+			wantMatch: true,
+		},
+		{
+			name: "negative regex",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "regex",
+				Value:    "^bar.*",
+			},
+			value: "foobaz",
+		},
+		{
+			name: "regex with complex pattern",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "regex",
+				Value:    `^[a-z]+@(gmail|googlemail)\.com$`,
+			},
+			value:     "user@gmail.com",
+			wantMatch: true,
+		},
+		{
+			name: "negative regex with complex pattern",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "regex",
+				Value:    `^[a-z]+@(gmail|googlemail)\.com$`,
+			},
+			value: "user@yahoo.com",
+		},
+		{
+			name: "regex with invalid pattern",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "regex",
+				Value:    "[invalid",
+			},
+			value: "anything",
+		},
+		{
+			name: "regex with empty value",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "regex",
+				Value:    "^bar$",
+			},
+			value: "",
+		},
 	}
 	for _, tt := range tests {
 		var (

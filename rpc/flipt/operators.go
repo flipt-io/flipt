@@ -19,6 +19,7 @@ const (
 	OpIsNotOneOf  = "isnotoneof"
 	OpContains    = "contains"
 	OpNotContains = "notcontains"
+	OpRegex       = "regex"
 )
 
 var (
@@ -41,6 +42,7 @@ var (
 		OpIsNotOneOf:  {},
 		OpContains:    {},
 		OpNotContains: {},
+		OpRegex:       {},
 	}
 	NoValueOperators = map[string]struct{}{
 		OpTrue:       {},
@@ -61,6 +63,7 @@ var (
 		OpIsNotOneOf:  {},
 		OpContains:    {},
 		OpNotContains: {},
+		OpRegex:       {},
 	}
 	NumberOperators = map[string]struct{}{
 		OpEQ:         {},

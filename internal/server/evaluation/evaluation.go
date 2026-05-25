@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
+	"regexp"
 	"slices"
 	"sort"
 	"strconv"
@@ -690,6 +691,12 @@ func matchesString(c storage.EvaluationConstraint, v string) bool {
 		return strings.Contains(v, value)
 	case flipt.OpNotContains:
 		return !strings.Contains(v, value)
+	case flipt.OpRegex:
+		re, err := regexp.Compile(value)
+		if err != nil {
+			return false
+		}
+		return re.MatchString(v)
 	}
 
 	return false
