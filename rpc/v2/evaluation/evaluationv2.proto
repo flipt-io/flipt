@@ -128,9 +128,16 @@ message EvaluationNamespaceSnapshotRequest {
   string environment_key = 3;
 }
 
+// Subscribes to a stream of namespace snapshots. The server sends the latest
+// snapshot whenever flag data changes, or immediately if the client's digest
+// is stale. Skips sending when the client is already up to date.
 message EvaluationNamespaceSnapshotStreamRequest {
+  // Namespace key to stream.
   string key = 1;
+  // Environment key to stream.
   string environment_key = 2;
+  // Last snapshot digest the client has. Stream skips sending snapshots with a matching digest.
+  optional string digest = 3;
 }
 
 message EvaluationSnapshot {

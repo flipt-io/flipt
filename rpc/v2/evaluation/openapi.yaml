@@ -41,12 +41,19 @@ paths:
             parameters:
                 - name: environmentKey
                   in: path
+                  description: Environment key to stream.
                   required: true
                   schema:
                     type: string
                 - name: key
                   in: path
+                  description: Namespace key to stream.
                   required: true
+                  schema:
+                    type: string
+                - name: digest
+                  in: query
+                  description: Last snapshot digest the client has. Stream skips sending snapshots with a matching digest.
                   schema:
                     type: string
             responses:

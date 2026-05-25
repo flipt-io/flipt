@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
+	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.uber.org/zap/zaptest"
@@ -457,11 +458,13 @@ func TestOFREPFlagEvaluationBulkWithEtag(t *testing.T) {
 				store          = storage.NewMockReadOnlyStore(t)
 				logger         = zaptest.NewLogger(t)
 				s              = New(logger, envStore)
+				namespaceKey   = "test-namespace"
 			)
 
 			environment.On("Key").Return(environmentKey)
 			envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 			environment.On("EvaluationStore").Return(store, nil)
+			environment.EXPECT().EvaluationNamespaceSnapshot(mock.Anything, namespaceKey).Return(&rpcevaluationv2.EvaluationNamespaceSnapshot{Digest: "abcdefg"}, nil).Maybe()
 
 			for _, flag := range tt.flags {
 				if flag.Key == "" {
@@ -523,6 +526,7 @@ func TestOFREPFlagEvaluationBulk(t *testing.T) {
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
+	environment.EXPECT().EvaluationNamespaceSnapshot(mock.Anything, namespaceKey).Return(&rpcevaluationv2.EvaluationNamespaceSnapshot{Digest: "abcdefg"}, nil).Maybe()
 
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(flag, nil)
 
@@ -582,6 +586,6 @@ func TestOFREPFlagEvaluationBulk(t *testing.T) {
 	stream := result.EventStreams[0]
 	assert.Equal(t, "sse", stream.Type)
 	assert.NotNil(t, stream.Endpoint)
-	assert.Equal(t, "/client/v2/environments/test-environment/namespaces/test-namespace/stream", stream.Endpoint.GetRequestUri())
+	assert.Equal(t, "/client/v2/environments/test-environment/namespaces/test-namespace/stream?digest=abcdefg", stream.Endpoint.GetRequestUri())
 	assert.Empty(t, stream.Endpoint.GetOrigin())
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"runtime/debug"
+	"slices"
 	"sync"
 
 	prom "github.com/prometheus/client_golang/prometheus"
@@ -303,7 +304,8 @@ func NewGRPCServer(
 			tracingProvider.RegisterSpanProcessor(
 				tracesdk.NewBatchSpanProcessor(
 					analyticsExporter,
-					tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod)),
+					tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod),
+				),
 			)
 			server.onShutdown(func(ctx context.Context) error {
 				return analyticsExporter.Shutdown(ctx)
@@ -339,15 +341,19 @@ func NewGRPCServer(
 	))
 
 	// add auth interceptors to the server
-	unaryInterceptors = append(unaryInterceptors,
-		append(authUnaryInterceptors,
+	unaryInterceptors = append(
+		unaryInterceptors,
+		append(
+			authUnaryInterceptors,
 			middlewaregrpc.FliptHeadersUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(),
 		)...,
 	)
 
-	streamInterceptors = append(streamInterceptors,
-		append(authStreamInterceptors,
+	streamInterceptors = append(
+		streamInterceptors,
+		append(
+			authStreamInterceptors,
 			middlewaregrpc.FliptHeadersStreamInterceptor(logger),
 		)...,
 	)
@@ -441,8 +447,8 @@ func (s *GRPCServer) Shutdown(ctx context.Context) error {
 	s.logger.Info("shutting down GRPC server...")
 
 	// call in reverse order to emulate pop semantics of a stack
-	for i := len(s.shutdownFuncs) - 1; i >= 0; i-- {
-		if fn := s.shutdownFuncs[i]; fn != nil {
+	for _, fn := range slices.Backward(s.shutdownFuncs) {
+		if fn != nil {
 			if err := fn(ctx); err != nil {
 				return err
 			}

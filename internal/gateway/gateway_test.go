@@ -74,6 +74,33 @@ func TestEventSourceMarshalerError(t *testing.T) {
 	require.Equal(t, "boom", got["message"])
 }
 
+func TestEventSourceMarshalerStatus(t *testing.T) {
+	m := &eventSourceMarshaler{JSONPb: runtime.JSONPb{}}
+	errStatus := grpcstatus.New(codes.Internal, "boom").Proto()
+
+	buf, err := m.Marshal(errStatus)
+	require.NoError(t, err)
+
+	payload, ok := extractEventPayload(t, buf)
+	require.True(t, ok)
+
+	var got map[string]any
+	require.NoError(t, json.Unmarshal(payload, &got))
+
+	require.Equal(t, "error", got["type"])
+	require.InDelta(t, float64(codes.Internal), got["code"], 0)
+	require.Equal(t, "boom", got["message"])
+}
+
+func TestEventSourceMarshalerCanceledStatus(t *testing.T) {
+	m := &eventSourceMarshaler{JSONPb: runtime.JSONPb{}}
+	errStatus := grpcstatus.New(codes.Canceled, "disconnected").Proto()
+
+	buf, err := m.Marshal(errStatus)
+	require.NoError(t, err)
+	require.Nil(t, buf)
+}
+
 func TestEventSourceMarshalerCanceledErrorIsIgnored(t *testing.T) {
 	m := &eventSourceMarshaler{JSONPb: runtime.JSONPb{}}
 	errStatus := grpcstatus.New(codes.Canceled, "client disconnected").Proto()
