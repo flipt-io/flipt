@@ -139,6 +139,7 @@ test.describe('Flags', () => {
     await page
       .getByRole('menuitem', { name: 'Copy to Environment / Namespace' })
       .click();
+    await page.locator('#copyToNamespace-select-button').waitFor({ state: 'visible', timeout: 30000 });
     await page.locator('#copyToNamespace-select-button').click();
     await page.getByRole('option', { name: 'copy flag', exact: true }).click();
     await page.getByRole('button', { name: 'Copy', exact: true }).click();
@@ -170,8 +171,11 @@ test.describe('Flags', () => {
     await page
       .getByRole('menuitem', { name: 'Copy to Environment / Namespace' })
       .click();
+    await page.locator('#copyToEnvironment-select-button').waitFor({ state: 'visible', timeout: 30000 });
     await page.locator('#copyToEnvironment-select-button').click();
+    await page.getByRole('option', { name: 'production', exact: true }).waitFor({ state: 'visible', timeout: 30000 });
     await page.getByRole('option', { name: 'production', exact: true }).click();
+    await page.locator('#copyToNamespace-select-button').waitFor({ state: 'visible', timeout: 30000 });
     await page.locator('#copyToNamespace-select-button').click();
     await page.getByRole('option', { name: 'production', exact: true }).click();
     await page.getByRole('button', { name: 'Copy', exact: true }).click();
