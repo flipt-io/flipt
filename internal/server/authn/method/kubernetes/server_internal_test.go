@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -117,6 +118,14 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 func Test_Server_SkipsAuthentication(t *testing.T) {
 	server := &Server{}
 	assert.True(t, server.SkipsAuthentication(context.Background()))
+}
+
+func Test_Claims_Expiration(t *testing.T) {
+	var c claims
+	err := json.Unmarshal([]byte(`{"exp": 1234567890, "kubernetes.io": {"namespace": "test"}}`), &c)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1234567890), c.Expiration)
+	assert.Equal(t, "test", c.Identity.Namespace)
 }
 
 type mockTokenVerifier map[string]claims
