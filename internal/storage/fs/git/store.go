@@ -34,6 +34,10 @@ const REFERENCE_CACHE_EXTRA_CAPACITY = 3
 // ensure that the git *Store implements storage.ReferencedSnapshotStore
 var _ storagefs.ReferencedSnapshotStore = (*SnapshotStore)(nil)
 
+type contextKey struct{}
+
+var snapshotCtxKey = contextKey{}
+
 // SnapshotStore is an implementation of storage.SnapshotStore
 // This implementation is backed by a Git repository and it tracks an upstream reference.
 // When subscribing to this source, the upstream reference is tracked
@@ -269,6 +273,10 @@ func (s *SnapshotStore) View(ctx context.Context, storeRef storage.Reference, fn
 		ref = s.baseRef
 	}
 
+	if snap, ok := ctx.Value(snapshotCtxKey).(storage.ReadOnlyStore); ok && ref == s.baseRef {
+		return fn(snap)
+	}
+
 	snap, ok := s.snaps.Get(ref)
 	if ok {
 		return fn(snap)
@@ -473,4 +481,12 @@ func (s *SnapshotStore) buildSnapshot(ctx context.Context, hash plumbing.Hash) (
 	}
 
 	return storagefs.SnapshotFromFS(s.logger, gfs, storagefs.WithEtag(hash.String()))
+}
+
+func (s *SnapshotStore) ContextWithSnapshot(ctx context.Context) context.Context {
+	snap, ok := s.snaps.Get(s.baseRef)
+	if ok {
+		return context.WithValue(ctx, snapshotCtxKey, snap)
+	}
+	return ctx
 }

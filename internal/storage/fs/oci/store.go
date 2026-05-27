@@ -14,6 +14,10 @@ import (
 
 var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 
+type contextKey struct{}
+
+var snapshotCtxKey = contextKey{}
+
 // SnapshotStore is an implementation storage.SnapshotStore backed by OCI repositories.
 // It fetches instances of OCI manifests and uses them to build snapshots from their contents.
 type SnapshotStore struct {
@@ -34,7 +38,11 @@ type SnapshotStore struct {
 // View accepts a function which takes a *StoreSnapshot.
 // The SnapshotStore will supply a snapshot which is valid
 // for the lifetime of the provided function call.
-func (s *SnapshotStore) View(_ context.Context, fn func(storage.ReadOnlyStore) error) error {
+func (s *SnapshotStore) View(ctx context.Context, fn func(storage.ReadOnlyStore) error) error {
+	if snap, ok := ctx.Value(snapshotCtxKey).(storage.ReadOnlyStore); ok {
+		return fn(snap)
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return fn(s.snap)
@@ -100,4 +108,10 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	s.mu.Unlock()
 
 	return true, nil
+}
+
+func (s *SnapshotStore) ContextWithSnapshot(ctx context.Context) context.Context {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return context.WithValue(ctx, snapshotCtxKey, s.snap)
 }

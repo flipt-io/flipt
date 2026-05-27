@@ -411,3 +411,10 @@ func forwardHeader(ctx context.Context, req *http.Request, headerKey string) met
 	}
 	return md
 }
+
+func FliptPinSnapshot(fn func(context.Context) context.Context) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		ctx = fn(ctx)
+		return handler(ctx, req)
+	}
+}

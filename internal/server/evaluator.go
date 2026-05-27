@@ -20,7 +20,7 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 	flag, err := s.store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
 	if err != nil {
-		var resp = &flipt.EvaluationResponse{}
+		resp := &flipt.EvaluationResponse{}
 		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 
 		var errnf errs.ErrNotFound

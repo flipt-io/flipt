@@ -47,7 +47,6 @@ func (s *Store) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (st
 		RunWith(s.db).
 		QueryRowContext(ctx).
 		Scan(&stateModifiedAt)
-
 	if err != nil {
 		return "", err
 	}

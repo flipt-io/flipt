@@ -31,6 +31,7 @@ type ReferencedSnapshotStore interface {
 	// Empty reference will be regarded as the default reference by the store.
 	View(context.Context, storage.Reference, func(storage.ReadOnlyStore) error) error
 	fmt.Stringer
+	storage.PinnableSnapshot
 }
 
 // SnapshotStore is a type which has a single function View.
@@ -42,6 +43,7 @@ type SnapshotStore interface {
 	// for the lifetime of the provided function call.
 	View(context.Context, func(storage.ReadOnlyStore) error) error
 	fmt.Stringer
+	storage.PinnableSnapshot
 }
 
 // SingleReferenceSnapshotStore implements ReferencedSnapshotStore but delegates to a SnapshotStore implementation.
@@ -75,6 +77,8 @@ func (s *SingleReferenceSnapshotStore) View(ctx context.Context, ref storage.Ref
 type Store struct {
 	viewer ReferencedSnapshotStore
 }
+
+var _ storage.PinnableSnapshot = (*Store)(nil)
 
 func NewStore(viewer ReferencedSnapshotStore) *Store {
 	return &Store{viewer: viewer}
@@ -321,4 +325,8 @@ func (s *Store) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (ve
 		version, err = ss.GetVersion(ctx, ns)
 		return err
 	})
+}
+
+func (s *Store) ContextWithSnapshot(ctx context.Context) context.Context {
+	return s.viewer.ContextWithSnapshot(ctx)
 }
