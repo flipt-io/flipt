@@ -1,0 +1,42 @@
+name: PR Review
+
+# AI code review for PRs targeting v2, including PRs from forks.
+#
+# Uses `pull_request_target` (not `pull_request`) on purpose: a `pull_request`
+# event from a fork gets a read-only token with no secrets or GitHub Models
+# access, so the reviewer couldn't call the model or post a review. With
+# `pull_request_target` the job runs in the base-repo context with a writable
+# token + `models: read`.
+#
+# SECURITY: this is safe ONLY because the reviewer never checks out or executes
+# the PR's code — it reads the diff via the `gh` API. Do NOT add
+# `ref: ${{ github.event.pull_request.head.* }}` to the checkout, and do not run
+# any build steps, scripts, or Make targets from the PR in this workflow.
+
+on:
+  pull_request_target:
+    branches: [v2]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  models: read
+
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Skip Dependabot (it runs in a restricted context and we don't review it).
+    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # Default ref is the base branch (v2), NOT the PR head — keep it that way.
+      - uses: actions/checkout@v4
+
+      - uses: flipt-io/agents/actions/pr-review@main # pin to a tag/SHA to freeze the reviewer
+        with:
+          pr-number: ${{ github.event.pull_request.number }}
