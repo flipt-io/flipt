@@ -80,13 +80,13 @@ func newMigrator(db *sql.DB, driver fliptsql.Driver) (*migrate.Migrate, error) {
 	return mm, nil
 }
 
-func NewAnalyticsDBContainer(ctx context.Context) (testcontainers.Container, string, int, error) {
+func NewAnalyticsDBContainer(ctx context.Context) (testcontainers.Container, string, uint16, error) {
 	port := nat.Port("9000/tcp")
 
 	req := testcontainers.ContainerRequest{
 		Image:        "clickhouse/clickhouse-server:24.1-alpine",
 		ExposedPorts: []string{"9000/tcp"},
-		WaitingFor:   wait.ForListeningPort(port),
+		WaitingFor:   wait.ForListeningPort(port.Port()),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -101,7 +101,7 @@ func NewAnalyticsDBContainer(ctx context.Context) (testcontainers.Container, str
 		return nil, "", 0, err
 	}
 
-	mappedPort, err := container.MappedPort(ctx, port)
+	mappedPort, err := container.MappedPort(ctx, port.Port())
 	if err != nil {
 		return nil, "", 0, err
 	}
@@ -111,5 +111,5 @@ func NewAnalyticsDBContainer(ctx context.Context) (testcontainers.Container, str
 		return nil, "", 0, err
 	}
 
-	return container, hostIP, mappedPort.Int(), nil
+	return container, hostIP, mappedPort.Num(), nil
 }

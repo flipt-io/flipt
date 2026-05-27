@@ -162,6 +162,11 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 				continue
 			}
 
+			// Skip sending data the client already has (digest unchanged).
+			if r.GetDigest() == snap.GetDigest() {
+				continue
+			}
+
 			hash.Write([]byte(snap.Digest))
 
 			// only send the snapshot if we have a new digest

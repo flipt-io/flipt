@@ -1,10 +1,12 @@
 version: v2
 plugins:
-  - remote: buf.build/community/google-gnostic-openapi:v0.7.0
+  #- remote: buf.build/community/google-gnostic-openapi:v0.7.0
+  - local: protoc-gen-flipt-openapi
     out: environments
     opt:
       - paths=source_relative
       - fq_schema_naming=false
       - default_response=false
       - enum_type=string
-      - description=
+      - description=Flipt Management REST API
+      - version=2.9.0

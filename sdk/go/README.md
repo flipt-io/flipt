@@ -5,7 +5,7 @@
 The Flipt Go SDK supports developing applications in Go against Flipt.
 It also supports the ability to access the resource management APIs and other systems, such as authentication and metadata.
 
-The SDK supports both Flipts `gRPC` and `HTTP` RPC APIs.
+The SDK supports both Flipt's `gRPC` and `HTTP` RPC APIs.
 A majority of this client is generated directly from Flipt's `protobuf` definitions.
 The [Flipt SDK Generator](../../internal/cmd/protoc-gen-go-flipt-sdk/) can be found locally within this repository.
 
@@ -32,7 +32,7 @@ go get go.flipt.io/flipt/sdk/go
 
 Constructing an SDK client is easy.
 
-1. Pick your transport of choice. Both`grpc` or `http` are sub-packages with respective implementations.
+1. Pick your transport of choice. Both `grpc` and `http` are sub-packages with respective implementations.
 2. Pass a constructed `Transport` implementation to `sdk.New(...)`.
 3. Optionally pass in a `sdk.ClientAuthenticationProvider` to authenticate your RPC calls.
 

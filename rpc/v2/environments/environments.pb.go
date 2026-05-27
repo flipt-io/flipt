@@ -8,6 +8,7 @@ package environments
 
 import (
 	_ "github.com/google/gnostic/openapiv3"
+	_ "go.flipt.io/flipt/rpc/flipt/core"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "google.golang.org/genproto/googleapis/api/visibility"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -2019,7 +2020,7 @@ var File_environments_environments_proto protoreflect.FileDescriptor
 
 const file_environments_environments_proto_rawDesc = "" +
 	"\n" +
-	"\x1fenvironments/environments.proto\x12\fenvironments\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/protobuf/any.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xc3\x01\n" +
+	"\x1fenvironments/environments.proto\x12\fenvironments\x1a\x0fcore/core.proto\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/protobuf/any.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xc3\x01\n" +
 	"\vEnvironment\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +

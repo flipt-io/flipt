@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -157,99 +158,277 @@ type fakeCloser struct{}
 
 func (f *fakeCloser) Close() error { return nil }
 
-func TestServer_EvaluationSnapshotNamespaceStream_Success(t *testing.T) {
-	var (
-		logger   = zaptest.NewLogger(t)
-		mockEnv  = environments.NewMockEnvironment(t)
-		envStore = evaluation.NewMockEnvironmentStore(t)
-	)
+func TestServer_EvaluationSnapshotNamespaceStream(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
 
-	mockEnv.On("Key").Return("env-key")
-	envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
 
-	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
-		&fakeCloser{}, nil,
-	).Run(func(args mock.Arguments) {
-		ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
-		go func() {
-			ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
-			ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d2"}
-			close(ch)
-		}()
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
+			&fakeCloser{}, nil,
+		).Run(func(args mock.Arguments) {
+			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+			go func() {
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d2"}
+				close(ch)
+			}()
+		})
+
+		stream := &mockStream{ctx: t.Context()}
+		stream.On("Send", mock.Anything).Return(nil)
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.NoError(t, err)
+		assert.Len(t, stream.sent, 2)
+		assert.Equal(t, "d1", stream.sent[0].Digest)
+		assert.Equal(t, "d2", stream.sent[1].Digest)
 	})
 
-	stream := &mockStream{ctx: t.Context()}
-	stream.On("Send", mock.Anything).Return(nil)
-	s := NewServer(logger, envStore)
-	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+	t.Run("subscribe error", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
 
-	err := s.EvaluationSnapshotNamespaceStream(req, stream)
-	require.NoError(t, err)
-	assert.Len(t, stream.sent, 2)
-	assert.Equal(t, "d1", stream.sent[0].Digest)
-	assert.Equal(t, "d2", stream.sent[1].Digest)
-}
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
 
-func TestServer_EvaluationSnapshotNamespaceStream_SubscribeError(t *testing.T) {
-	var (
-		logger   = zaptest.NewLogger(t)
-		mockEnv  = environments.NewMockEnvironment(t)
-		envStore = evaluation.NewMockEnvironmentStore(t)
-	)
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(nil, errors.New("subscribe error"))
 
-	mockEnv.On("Key").Return("env-key")
-	envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+		stream := &mockStream{ctx: t.Context()}
+		stream.On("Send", mock.Anything).Return(nil)
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
 
-	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(nil, errors.New("subscribe error"))
-
-	stream := &mockStream{ctx: t.Context()}
-	stream.On("Send", mock.Anything).Return(nil)
-	s := NewServer(logger, envStore)
-	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
-
-	err := s.EvaluationSnapshotNamespaceStream(req, stream)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "subscribe error")
-}
-
-func TestServer_EvaluationSnapshotNamespaceStream_ContextCancel(t *testing.T) {
-	var (
-		logger   = zaptest.NewLogger(t)
-		mockEnv  = environments.NewMockEnvironment(t)
-		envStore = evaluation.NewMockEnvironmentStore(t)
-	)
-
-	mockEnv.On("Key").Return("env-key")
-	envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
-
-	wait := make(chan struct{})
-	t.Cleanup(func() { close(wait) })
-
-	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
-		&fakeCloser{}, nil,
-	).Run(func(args mock.Arguments) {
-		ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
-		go func() {
-			ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
-			// wait for Send to be called before closing
-			<-wait
-			close(ch)
-		}()
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "subscribe error")
 	})
 
-	ctx, cancel := context.WithCancel(t.Context())
-	t.Cleanup(cancel)
-	stream := &mockStream{ctx: ctx}
-	stream.On("Send", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		// signal that Send was called, then cancel context
-		wait <- struct{}{}
-		cancel()
-	})
-	s := NewServer(logger, envStore)
-	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+	t.Run("context cancel", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
 
-	err := s.EvaluationSnapshotNamespaceStream(req, stream)
-	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(stream.sent), 1)
-	assert.Equal(t, "d1", stream.sent[0].Digest)
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+
+		var (
+			wait = make(chan struct{})
+			once sync.Once
+		)
+
+		closeWait := func() { once.Do(func() { close(wait) }) }
+
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
+			&fakeCloser{}, nil,
+		).Run(func(args mock.Arguments) {
+			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+			go func() {
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
+				<-wait
+				close(ch)
+			}()
+		})
+
+		ctx, cancel := context.WithCancel(t.Context())
+		t.Cleanup(func() { closeWait(); cancel() })
+		stream := &mockStream{ctx: ctx}
+		stream.On("Send", mock.Anything).Return(nil).Run(func(_ mock.Arguments) {
+			closeWait()
+			cancel()
+		})
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(stream.sent), 1)
+		assert.Equal(t, "d1", stream.sent[0].Digest)
+	})
+
+	t.Run("nil snapshot", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
+
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
+			&fakeCloser{}, nil,
+		).Run(func(args mock.Arguments) {
+			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+			go func() {
+				ch <- nil
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
+				close(ch)
+			}()
+		})
+
+		stream := &mockStream{ctx: t.Context()}
+		stream.On("Send", mock.Anything).Return(nil)
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.NoError(t, err)
+		require.Len(t, stream.sent, 1)
+		assert.Equal(t, "d1", stream.sent[0].Digest)
+	})
+
+	t.Run("request digest match", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
+
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
+			&fakeCloser{}, nil,
+		).Run(func(args mock.Arguments) {
+			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+			go func() {
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
+				close(ch)
+			}()
+		})
+
+		stream := &mockStream{ctx: t.Context()}
+		stream.On("Send", mock.Anything).Return(nil)
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{
+			EnvironmentKey: "env-key",
+			Key:            "ns-key",
+			Digest:         new("d1"),
+		}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.NoError(t, err)
+		require.Empty(t, stream.sent)
+	})
+
+	t.Run("same digest dedup", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
+
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
+			&fakeCloser{}, nil,
+		).Run(func(args mock.Arguments) {
+			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+			go func() {
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
+				close(ch)
+			}()
+		})
+
+		stream := &mockStream{ctx: t.Context()}
+		stream.On("Send", mock.Anything).Return(nil)
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.NoError(t, err)
+		require.Len(t, stream.sent, 1)
+		assert.Equal(t, "d1", stream.sent[0].Digest)
+	})
+
+	t.Run("channel closed", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
+
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
+			&fakeCloser{}, nil,
+		).Run(func(args mock.Arguments) {
+			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+			go func() {
+				close(ch)
+			}()
+		})
+
+		stream := &mockStream{ctx: t.Context()}
+		stream.On("Send", mock.Anything).Return(nil)
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.NoError(t, err)
+		require.Empty(t, stream.sent)
+	})
+
+	t.Run("send error", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
+
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
+			&fakeCloser{}, nil,
+		).Run(func(args mock.Arguments) {
+			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+			go func() {
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
+				close(ch)
+			}()
+		})
+
+		stream := &mockStream{ctx: t.Context()}
+		stream.On("Send", mock.Anything).Return(errors.New("send error"))
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "send error")
+	})
+
+	t.Run("env not found", func(t *testing.T) {
+		var (
+			logger   = zaptest.NewLogger(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
+
+		envStore.On("Get", mock.Anything, "env-key").Return(nil, errors.New("not found"))
+		envStore.On("GetFromContext", mock.Anything).Return(nil, errors.New("not found from context"))
+
+		stream := &mockStream{ctx: t.Context()}
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{EnvironmentKey: "env-key", Key: "ns-key"}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.Error(t, err)
+	})
 }

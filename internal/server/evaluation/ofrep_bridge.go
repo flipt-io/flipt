@@ -70,7 +70,8 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 		}
 
 		if s.tracingEnabled {
-			s.addEvaluationEvent(ctx, env, namespaceKey, r.Key, entityId, "",
+			s.addEvaluationEvent(
+				ctx, env, namespaceKey, r.Key, entityId, "",
 				tracing.AttributeMatch.Bool(resp.Match),
 				tracing.AttributeVariant.String(resp.VariantKey),
 				tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
@@ -110,7 +111,8 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 		}
 
 		if s.tracingEnabled {
-			s.addEvaluationEvent(ctx, env, namespaceKey, r.Key, entityId, "",
+			s.addEvaluationEvent(
+				ctx, env, namespaceKey, r.Key, entityId, "",
 				tracing.AttributeVariant.Bool(resp.Enabled),
 				tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 				tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
@@ -146,10 +148,15 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 	}
 
 	var (
-		namespaceKey = getNamespace(ctx)
-		flagKeys, ok = r.Context["flags"]
-		keys         = strings.Split(flagKeys, ",")
+		namespaceKey   = getNamespace(ctx)
+		flagKeys, ok   = r.Context["flags"]
+		keys           = strings.Split(flagKeys, ",")
+		snapshotDigest string
 	)
+
+	if sn, err := env.EvaluationNamespaceSnapshot(ctx, namespaceKey); err == nil {
+		snapshotDigest = sn.GetDigest()
+	}
 
 	if !ok {
 		flags, err := store.ListFlags(ctx, storage.ListWithOptions(storage.NewNamespace(namespaceKey)))
@@ -204,7 +211,7 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 		EventStreams: []*ofrep.EventStream{{
 			Type: "sse",
 			Endpoint: &ofrep.EventStreamEndpoint{
-				RequestUri: fmt.Sprintf("/client/v2/environments/%s/namespaces/%s/stream", env.Key(), namespaceKey),
+				RequestUri: fmt.Sprintf("/client/v2/environments/%s/namespaces/%s/stream?digest=%s", env.Key(), namespaceKey, snapshotDigest),
 			},
 		}},
 	}, err

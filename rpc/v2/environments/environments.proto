@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package environments;
 
+import "core/core.proto";
 import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/visibility.proto";
