@@ -1,11 +1,8 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"time"
-
-	"crypto/sha1" //nolint:gosec
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/environments"
@@ -102,17 +99,18 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 		ctx        = stream.Context()
 	)
 
+	if d := len(r.GetDigest()); d > 0 && d != 40 {
+		return errors.InvalidFieldError("digest", "must be a 40-character string")
+	}
+
 	env, err := s.getCurrentEnvironment(ctx, r.EnvironmentKey)
 	if err != nil {
 		return err
 	}
 
 	var (
-		//nolint:gosec // this is a hash for a stream
-		hash = sha1.New()
-		// lastDigest is the digest of the last snapshot we sent
-		// this includes all namespaces
-		lastDigest []byte
+		// lastDigest tracks the digest of the last snapshot we sent
+		lastDigest = r.GetDigest()
 
 		environmentKey = env.Key()
 		namespaceKey   = r.Key
@@ -162,28 +160,16 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 				continue
 			}
 
-			// Skip the initial snapshot if the client already has it. Once we have
-			// sent at least one update (lastDigest != nil), rely solely on the
-			// hash-based dedup below so that a revert to the original digest is
-			// still delivered.
-			if lastDigest == nil && r.GetDigest() == snap.GetDigest() {
-				continue
-			}
-
-			hash.Write([]byte(snap.Digest))
-
 			// only send the snapshot if we have a new digest
-			if digest := hash.Sum(nil); !bytes.Equal(lastDigest, digest) {
+			if snap.Digest != lastDigest {
 				if err := stream.Send(snap); err != nil {
 					metrics.EvaluationsStreamErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
 					s.logger.Error("error sending evaluation namespace snapshot", zap.Error(err), zap.String("namespace", namespaceKey), zap.String("environment", environmentKey))
 					return err
 				}
 				metrics.EvaluationsStreamMessagesTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
-				lastDigest = digest
+				lastDigest = snap.Digest
 			}
-
-			hash.Reset()
 		}
 	}
 }
