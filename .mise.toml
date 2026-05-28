@@ -300,6 +300,15 @@ grep -rl --include='*_test.go' 'func Fuzz' . | while read -r file; do
 done
 """
 
+[tasks."dagger:integration"]
+alias = "di"
+description = "Run a Dagger integration test by name (e.g. mise di signing/azure)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+dagger call test --source . integration --cases="$*"
+"""
+
 [tasks."go:generate"]
 description = "Generate mocks and proto files"
 depends = ["go:mockery", "go:proto"]
