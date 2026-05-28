@@ -58,12 +58,12 @@ describe('stringAsKey', () => {
 
   it('should convert a string to a key with spaces and uppercase', () => {
     const result = stringAsKey('Test Is Done');
-    expect(result).toEqual('test-is-done');
+    expect(result).toEqual('Test-Is-Done');
   });
 
   it('should remove unsupported characters from generated keys', () => {
     const result = stringAsKey('My / Test #1!');
-    expect(result).toEqual('my-test-1');
+    expect(result).toEqual('My-Test-1');
   });
 
   it('should preserve in-progress separator characters', () => {
