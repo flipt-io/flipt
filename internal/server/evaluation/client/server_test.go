@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
@@ -159,6 +160,27 @@ type fakeCloser struct{}
 func (f *fakeCloser) Close() error { return nil }
 
 func TestServer_EvaluationSnapshotNamespaceStream(t *testing.T) {
+	const (
+		d1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+		d2 = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	)
+
+	t.Run("invalid request digest length", func(t *testing.T) {
+		logger := zaptest.NewLogger(t)
+		stream := &mockStream{ctx: t.Context()}
+		s := NewServer(logger, nil)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{
+			EnvironmentKey: "env-key",
+			Key:            "ns-key",
+			Digest:         new("too-short"),
+		}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		var target errs.ErrValidation
+		require.ErrorAs(t, err, &target)
+		assert.Equal(t, "invalid field digest: must be a 40-character string", target.Error())
+	})
+
 	t.Run("success", func(t *testing.T) {
 		var (
 			logger   = zaptest.NewLogger(t)
@@ -305,7 +327,7 @@ func TestServer_EvaluationSnapshotNamespaceStream(t *testing.T) {
 		).Run(func(args mock.Arguments) {
 			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
 			go func() {
-				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: d1}
 				close(ch)
 			}()
 		})
@@ -316,7 +338,7 @@ func TestServer_EvaluationSnapshotNamespaceStream(t *testing.T) {
 		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{
 			EnvironmentKey: "env-key",
 			Key:            "ns-key",
-			Digest:         new("d1"),
+			Digest:         new(d1),
 		}
 
 		err := s.EvaluationSnapshotNamespaceStream(req, stream)
@@ -354,6 +376,47 @@ func TestServer_EvaluationSnapshotNamespaceStream(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, stream.sent, 1)
 		assert.Equal(t, "d1", stream.sent[0].Digest)
+	})
+
+	t.Run("request digest revert", func(t *testing.T) {
+		// Regression test: after the stream sends d2 to the client (who started with d1),
+		// a snapshot reverting to d1 must still be sent. The initial-request digest
+		// should only suppress the very first snapshot, not subsequent ones.
+		var (
+			logger   = zaptest.NewLogger(t)
+			mockEnv  = environments.NewMockEnvironment(t)
+			envStore = evaluation.NewMockEnvironmentStore(t)
+		)
+
+		mockEnv.On("Key").Return("env-key")
+		envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
+
+		mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
+			&fakeCloser{}, nil,
+		).Run(func(args mock.Arguments) {
+			ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+			go func() {
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: d1} // skipped: client already has d1
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: d2} // sent: new state
+				ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: d1} // must be sent: client has d2, not d1
+				close(ch)
+			}()
+		})
+
+		stream := &mockStream{ctx: t.Context()}
+		stream.On("Send", mock.Anything).Return(nil)
+		s := NewServer(logger, envStore)
+		req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{
+			EnvironmentKey: "env-key",
+			Key:            "ns-key",
+			Digest:         new(d1),
+		}
+
+		err := s.EvaluationSnapshotNamespaceStream(req, stream)
+		require.NoError(t, err)
+		require.Len(t, stream.sent, 2)
+		assert.Equal(t, d2, stream.sent[0].Digest)
+		assert.Equal(t, d1, stream.sent[1].Digest)
 	})
 
 	t.Run("channel closed", func(t *testing.T) {
