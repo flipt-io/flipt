@@ -157,6 +157,8 @@ func local_request_ClientEvaluationService_EvaluationSnapshotNamespace_1(ctx con
 	return msg, metadata, err
 }
 
+var filter_ClientEvaluationService_EvaluationSnapshotNamespaceStream_0 = &utilities.DoubleArray{Encoding: map[string]int{"environment_key": 0, "key": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+
 func request_ClientEvaluationService_EvaluationSnapshotNamespaceStream_0(ctx context.Context, marshaler runtime.Marshaler, client ClientEvaluationServiceClient, req *http.Request, pathParams map[string]string) (ClientEvaluationService_EvaluationSnapshotNamespaceStreamClient, runtime.ServerMetadata, error) {
 	var (
 		protoReq EvaluationNamespaceSnapshotStreamRequest
@@ -181,6 +183,12 @@ func request_ClientEvaluationService_EvaluationSnapshotNamespaceStream_0(ctx con
 	protoReq.Key, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClientEvaluationService_EvaluationSnapshotNamespaceStream_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	stream, err := client.EvaluationSnapshotNamespaceStream(ctx, &protoReq)
 	if err != nil {

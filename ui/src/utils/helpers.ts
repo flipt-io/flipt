@@ -64,11 +64,11 @@ export function titleCase(str: string) {
 export function stringAsKey(str: string) {
   if (!str) return '';
 
-  const normalized = str.trim().toLowerCase();
+  const normalized = str.trim();
   const preserveLeadingSeparator = /^[-_]/.test(normalized);
   const preserveTrailingSeparator = /[-_]$/.test(normalized);
 
-  const key = normalized.replace(/[^a-z0-9_-]+/g, '-').replace(/-+/g, '-');
+  const key = normalized.replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/-+/g, '-');
 
   const withLeading = preserveLeadingSeparator
     ? key
