@@ -162,8 +162,11 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 				continue
 			}
 
-			// Skip sending data the client already has (digest unchanged).
-			if r.GetDigest() == snap.GetDigest() {
+			// Skip the initial snapshot if the client already has it. Once we have
+			// sent at least one update (lastDigest != nil), rely solely on the
+			// hash-based dedup below so that a revert to the original digest is
+			// still delivered.
+			if lastDigest == nil && r.GetDigest() == snap.GetDigest() {
 				continue
 			}
 
