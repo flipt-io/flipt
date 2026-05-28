@@ -714,12 +714,13 @@ permit_slice(allowed, requested) if {
 }
 `
 
-		return fn(ctx, client, base, flipt.
-			WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
-			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
-			WithNewFile(policyPath, string(policy)).
-			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
-			WithNewFile(policyData, string(data)),
+		return fn(
+			ctx, client, base, flipt.
+				WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
+				WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
+				WithNewFile(policyPath, string(policy)).
+				WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
+				WithNewFile(policyData, string(data)),
 			conf,
 		)
 	}
@@ -1073,7 +1074,7 @@ func main() {
 	fmt.Println("Secret stored successfully in Lowkey Vault")
 }
 GOEOF
-				cd /tmp/setup && go mod init setup && go mod tidy && go run main.go
+				cd /tmp/setup && go mod init setup && go get github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets@v1.4.0 && go mod tidy && go run main.go
 			`,
 			}).Sync(ctx)
 		if err != nil {
