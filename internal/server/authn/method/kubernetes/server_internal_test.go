@@ -116,6 +116,14 @@ func Test_Server_SkipsAuthentication(t *testing.T) {
 	assert.True(t, server.SkipsAuthentication(t.Context()))
 }
 
+func Test_Claims_Expiration(t *testing.T) {
+	var c claims
+	err := json.Unmarshal([]byte(`{"exp": 1234567890, "kubernetes.io": {"namespace": "test"}}`), &c)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1234567890), c.Expiration)
+	assert.Equal(t, "test", c.Identity.Namespace)
+}
+
 type mockTokenValidator map[string]claims
 
 func (m mockTokenValidator) Validate(_ context.Context, jwt string) (map[string]any, error) {
