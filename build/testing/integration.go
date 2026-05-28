@@ -1005,6 +1005,7 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 		// Setup container to generate GPG key and store it in Lowkey Vault.
 		_, err := client.Container().
 			From("golang:1.26-alpine").
+			WithEnvVariable("UNIQUE", uuid.NewString()).
 			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
 			WithServiceBinding("lowkey-vault", lowkeyVault).
 			WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).

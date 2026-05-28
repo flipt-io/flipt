@@ -205,7 +205,7 @@ func (t *Test) Integration(
 			fmt.Println("\t> ", c)
 		}
 
-		return nil, nil
+		return dag.Directory(), nil
 	}
 
 	var opts []testing.IntegrationOptions
@@ -216,7 +216,11 @@ func (t *Test) Integration(
 		opts = append(opts, testing.WithCoverageOutput())
 	}
 
-	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
+	d, err := testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
+	if err == nil && d == nil {
+		d = dag.Directory()
+	}
+	return d, err
 }
 
 // CheckCacheExists checks if a cached image exists in the registry
