@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.41.0"
 
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel"
@@ -176,7 +176,8 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 
 			switch u.Scheme {
 			case "https":
-				exporter, err = otlpmetrichttp.New(ctx,
+				exporter, err = otlpmetrichttp.New(
+					ctx,
 					otlpmetrichttp.WithEndpoint(u.Host+u.Path),
 					otlpmetrichttp.WithHeaders(cfg.OTLP.Headers),
 				)
@@ -185,7 +186,8 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 					return
 				}
 			case "http":
-				exporter, err = otlpmetrichttp.New(ctx,
+				exporter, err = otlpmetrichttp.New(
+					ctx,
 					otlpmetrichttp.WithEndpoint(u.Host+u.Path),
 					otlpmetrichttp.WithHeaders(cfg.OTLP.Headers),
 					otlpmetrichttp.WithInsecure(),
@@ -195,7 +197,8 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 					return
 				}
 			case "grpc":
-				exporter, err = otlpmetricgrpc.New(ctx,
+				exporter, err = otlpmetricgrpc.New(
+					ctx,
 					otlpmetricgrpc.WithEndpoint(u.Host+u.Path),
 					otlpmetricgrpc.WithHeaders(cfg.OTLP.Headers),
 					// TODO: support TLS
@@ -207,7 +210,8 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 				}
 			default:
 				// because of url parsing ambiguity, we'll assume that the endpoint is a host:port with no scheme
-				exporter, err = otlpmetricgrpc.New(ctx,
+				exporter, err = otlpmetricgrpc.New(
+					ctx,
 					otlpmetricgrpc.WithEndpoint(cfg.OTLP.Endpoint),
 					otlpmetricgrpc.WithHeaders(cfg.OTLP.Headers),
 					// TODO: support TLS
