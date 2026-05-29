@@ -175,7 +175,7 @@ type AuthenticationSessionConfig struct {
 	TokenLifetime time.Duration `json:"tokenLifetime,omitempty" mapstructure:"token_lifetime" yaml:"token_lifetime,omitempty"`
 	// StateLifetime is the lifetime duration of the state cookie.
 	StateLifetime time.Duration `json:"stateLifetime,omitempty" mapstructure:"state_lifetime" yaml:"state_lifetime,omitempty"`
-	// CSRF configures CSRF provention mechanisms.
+	// CSRF configures CSRF prevention mechanisms.
 	CSRF AuthenticationSessionCSRFConfig `json:"csrf,omitempty" mapstructure:"csrf" yaml:"csrf,omitempty"`
 	// Storage configures the storage mechanism for the session.
 	Storage AuthenticationSessionStorageConfig `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
