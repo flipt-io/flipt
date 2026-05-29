@@ -1,255 +1,58 @@
-# AGENTS - UI Directory
+# AGENTS — UI
 
-This file provides guidance to AI Agents when working with the Flipt UI application.
+The Flipt UI: a React 19 + TypeScript single-page app that is **embedded into the Flipt server binary** for production. Follow the root `AGENTS.md` for repo-wide rules; this file covers the `ui/` package.
 
-## UI Overview
+## Stack
 
-The Flipt UI is a React-based single-page application that provides a web interface for managing feature flags. It's built with modern technologies and gets embedded into the main Flipt server binary.
+React 19 · TypeScript · Redux Toolkit + RTK Query · React Router v7 (hash router) · Tailwind CSS **v4** · Radix UI primitives · Vite 6 · Jest (unit) + Playwright (e2e) · ESLint + Prettier.
 
-## Technology Stack
+## Commands
 
-- **Framework**: React 19 with TypeScript
-- **State Management**: Redux Toolkit with RTK Query
-- **Styling**: Tailwind CSS
-- **Build Tool**: Vite
-- **Testing**: Jest (unit), Playwright (E2E)
-- **Code Quality**: ESLint, Prettier
-- **UI Components**: Custom components with Radix UI
-
-## Project Structure
-
-```
-ui/
-├── src/
-│   ├── app/              # Redux store and root configuration
-│   │   ├── hooks.ts      # Typed Redux hooks
-│   │   └── store.ts      # Store configuration
-│   ├── components/       # Reusable React components
-│   │   ├── common/       # Shared UI components
-│   │   ├── flags/        # Flag-specific components
-│   │   ├── segments/     # Segment-specific components
-│   │   └── rules/        # Rule-specific components
-│   ├── data/            # API integration and data layer
-│   │   └── api/         # RTK Query API slices
-│   ├── types/           # TypeScript type definitions
-│   ├── utils/           # Utility functions and helpers
-│   ├── App.tsx          # Root application component
-│   └── main.tsx         # Application entry point
-├── public/              # Static assets
-├── tests/               # Test files
-├── package.json         # Dependencies and scripts
-├── tsconfig.json        # TypeScript configuration
-├── vite.config.ts       # Vite build configuration
-└── tailwind.config.js   # Tailwind CSS configuration
-```
-
-## Development Workflow
-
-### Running the UI
+Node 20 (pinned in root `.mise.toml`). From the repo root:
 
 ```bash
-# From repository root
-mise run ui:dev
-
-# Or from ui directory
-npm run dev
+mise run ui:dev    # dev server on :5173, proxies API to backend :8080
+mise run ui:build  # production build (embedded into the server binary)
+mise run ui:fmt    # prettier
+mise run ui:lint   # eslint
 ```
 
-The development server runs on port 5173 and proxies API requests to the backend on port 8080.
+Or from `ui/`: `npm run dev | build | lint | format | test | knip`.
+`npm run build` runs `tsc` first, so **type errors fail the build**.
 
-### Building for Production
+## Architecture (the non-obvious parts)
 
-```bash
-# From repository root
-mise run ui:build
+- **`src/app/<feature>/`** = feature/route modules — pages, layouts, and the feature's **co-located RTK Query slice** (`flagsApi.ts`, `authApi.ts`, `environmentsApi.ts`, …). This is where most logic lives.
+- **`src/components/`** = shared, reusable components (built on Radix UI primitives).
+- **`src/data/`** = cross-cutting data layer: `api.ts` (shared base URLs, `APIError`, fetch/browser helpers, session) and `hooks/` (shared hooks like `useChangesStream`).
+- **`src/store.ts`** = Redux store (`configureStore`); `src/types/`, `src/utils/`, `src/hooks/`.
+- **Routing**: `createHashRouter` from `react-router` (hash-based URLs).
+- **Path alias**: `~/` maps to `src/` (e.g. `import { FlagType } from '~/types/Flag'`).
+- **Backend API is v2-first**: base paths `api/v2/environments`, `auth/v1`, `evaluate/v1`, `internal/v2`, `meta/info`. Requests carry an `x-csrf-token` header.
+- **Real-time** flag changes use **SSE** (`EventSource` in `useChangesStream`), not WebSocket.
+- **Styling**: Tailwind **v4** — config is CSS-first in `src/index.css`; there is **no `tailwind.config.js`**. Dark mode is driven by the Redux `preferencesSlice` theme.
 
-# Or from ui directory
-npm run build
-```
+## Conventions
 
-Production builds are embedded into the server binary during the main build process.
+Concise essentials below; for a full review checklist with examples use `.agents/personas/react-reviewer.md`.
 
-## Code Style Guidelines
-
-### Component Structure
-
-```tsx
-// Use functional components with TypeScript
-export default function FlagList({ namespace }: FlagListProps) {
-  const { data, isLoading, error } = useListFlagsQuery({ namespace });
-
-  if (isLoading) return <Loading />;
-  if (error) return <ErrorMessage error={error} />;
-
-  return (
-    <div className="space-y-4">
-      {data?.flags.map((flag) => (
-        <FlagCard key={flag.key} flag={flag} />
-      ))}
-    </div>
-  );
-}
-```
-
-### State Management
-
-Use Redux Toolkit with RTK Query for API calls:
-
-```typescript
-// data/api/flagsApi.ts
-export const flagsApi = createApi({
-  reducerPath: 'flagsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api/v1' }),
-  tagTypes: ['Flag'],
-  endpoints: (builder) => ({
-    listFlags: builder.query<FlagList, ListFlagsRequest>({
-      query: ({ namespace }) => `namespaces/${namespace}/flags`,
-      providesTags: ['Flag']
-    })
-  })
-});
-```
-
-### TypeScript Best Practices
-
-- Define interfaces for all props and API responses
-- Use strict typing throughout the application
-- Avoid `any` types unless absolutely necessary
-- Export types from their domain modules
-
-### Styling with Tailwind
-
-```tsx
-// Use Tailwind utility classes
-<div className="flex items-center justify-between p-4 bg-white rounded-lg shadow">
-  <h2 className="text-lg font-semibold text-gray-900">Flag Name</h2>
-  <Switch enabled={enabled} onChange={handleToggle} />
-</div>
-```
-
-### File Naming Conventions
-
-- **Components**: PascalCase (`FlagList.tsx`, `SegmentEditor.tsx`)
-- **Hooks**: camelCase with 'use' prefix (`useAuth.ts`, `useFlags.ts`)
-- **Utils**: camelCase (`formatters.ts`, `validators.ts`)
-- **API slices**: camelCase with 'Api' suffix (`flagsApi.ts`)
-- **Types**: PascalCase (`Flag.ts`, `Segment.ts`)
-
-## API Integration
-
-### API Structure
-
-The UI communicates with the backend through:
-
-- **REST API**: Primary interface on `/api/v1` and `/api/v2`
-- **WebSocket**: Real-time updates for flag changes (when enabled)
-
-### Authentication
-
-The UI supports multiple authentication methods:
-
-- Basic authentication
-- OIDC (OpenID Connect)
-- Token-based authentication
-
-Authentication state is managed in Redux and tokens are stored securely.
+- Functional components with hooks; strict TypeScript, avoid `any`; type all props and API responses.
+- RTK Query slices co-located per feature under `src/app/<feature>/<feature>Api.ts`; invalidate cache tags after mutations.
+- Every API call handles loading and error states.
+- File naming: Components `PascalCase.tsx`, hooks `useThing.ts`, API slices `thingApi.ts`, types `Thing.ts`, utils `camelCase.ts`.
+- Accessibility: ARIA labels and keyboard navigation.
 
 ## Testing
 
-### Unit Tests
+- Unit (Jest): `cd ui && npm run test` (config in `jest.config.ts`).
+- E2E (Playwright): specs in `ui/tests/*.spec.ts`, run with `npx playwright test` (requires a running backend).
+- `npm run knip` finds unused files/exports/deps.
 
-```bash
-# Run unit tests
-npm run test
+## Before you commit
 
-# Run with coverage
-npm run test:coverage
-```
+`mise run ui:fmt && mise run ui:lint` — both are enforced by CI (the UI lint job runs eslint + prettier check).
 
-### E2E Tests
+## Notes
 
-```bash
-# Run E2E tests (requires backend running)
-npm run test:e2e
-```
-
-## Common Development Tasks
-
-### Adding a New Feature
-
-1. Create TypeScript types in `types/`
-2. Add API endpoints in `data/api/`
-3. Build React components in `components/`
-4. Add routing if needed in `App.tsx`
-5. Write tests for new functionality
-
-### Modifying API Calls
-
-1. Update the RTK Query slice in `data/api/`
-2. Regenerate TypeScript types if needed
-3. Update components using the API
-4. Test with both mock and real backend
-
-### Updating Styles
-
-1. Use Tailwind classes for styling
-2. Add custom styles sparingly in component files
-3. Update `tailwind.config.js` for theme changes
-4. Keep dark mode support in mind
-
-## Build and Deployment
-
-### Production Build Process
-
-1. Vite bundles the application
-2. Assets are optimized and minified
-3. Build output goes to `dist/` directory
-4. Server embeds the built assets
-
-### Environment Variables
-
-- `VITE_API_URL`: Backend API URL (defaults to proxy in dev)
-- `VITE_ENABLE_TELEMETRY`: Enable usage telemetry
-- `VITE_SENTRY_DSN`: Sentry error reporting DSN
-
-## Performance Considerations
-
-- Use React.memo for expensive components
-- Implement virtualization for long lists
-- Lazy load routes and heavy components
-- Optimize bundle size with code splitting
-
-## Debugging Tips
-
-- Use React DevTools for component inspection
-- Redux DevTools for state debugging
-- Network tab for API call inspection
-- Console for development logs
-- Source maps are available in development
-
-## Common Issues and Solutions
-
-### CORS Issues
-
-- Ensure proxy configuration in `vite.config.ts` is correct
-- Check backend CORS settings if running separately
-
-### State Management
-
-- Clear Redux store on logout
-- Handle optimistic updates carefully
-- Invalidate cache tags after mutations
-
-### Build Issues
-
-- Clear `node_modules` and reinstall
-- Check Node.js version (18+)
-- Verify all dependencies are installed
-
-## Important Notes
-
-- The UI is embedded in the server binary for production
-- Development runs as a separate process with proxy
-- All API calls should handle loading and error states
-- Maintain backward compatibility with v1 API
-- Follow accessibility best practices (ARIA labels, keyboard navigation)
+- Production embeds the built assets into the server binary; dev runs separately and proxies to :8080.
+- Maintain backward compatibility with the v1 API where the UI still depends on it.
