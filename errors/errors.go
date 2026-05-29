@@ -36,7 +36,7 @@ func NewErrorf[E StringError](format string, args ...any) error {
 // ErrNotFound represents a not found error
 type ErrNotFound string
 
-// ErrNotFoundf is a convience function for producing ErrNotFound.
+// ErrNotFoundf is a convenience function for producing ErrNotFound.
 var ErrNotFoundf = NewErrorf[ErrNotFound]
 
 func (e ErrNotFound) Error() string {
@@ -46,7 +46,7 @@ func (e ErrNotFound) Error() string {
 // ErrInvalid represents an invalid error
 type ErrInvalid string
 
-// ErrInvalidf is a convience function for producing ErrInvalid.
+// ErrInvalidf is a convenience function for producing ErrInvalid.
 var ErrInvalidf = NewErrorf[ErrInvalid]
 
 func (e ErrInvalid) Error() string {
@@ -66,7 +66,7 @@ func (e ErrValidation) Error() string {
 // ErrCanceled is returned when an operation has been prematurely canceled by the requester.
 type ErrCanceled string
 
-// ErrCanceledf is a convience function for producing ErrCanceled.
+// ErrCanceledf is a convenience function for producing ErrCanceled.
 var ErrCanceledf = NewErrorf[ErrCanceled]
 
 func (e ErrCanceled) Error() string {
@@ -87,7 +87,7 @@ func EmptyFieldError(field string) error {
 // client in an authenticated context.
 type ErrUnauthenticated string
 
-// ErrUnauthenticatedf is a convience function for producing ErrUnauthenticated.
+// ErrUnauthenticatedf is a convenience function for producing ErrUnauthenticated.
 var ErrUnauthenticatedf = NewErrorf[ErrUnauthenticated]
 
 // Error() returns the underlying string of the error.
@@ -107,7 +107,7 @@ func (e ErrUnauthorized) Error() string {
 // already exists
 type ErrAlreadyExists string
 
-// ErrAlreadyExistsf is a convience function for producing ErrAlreadyExists
+// ErrAlreadyExistsf is a convenience function for producing ErrAlreadyExists
 var ErrAlreadyExistsf = NewErrorf[ErrAlreadyExists]
 
 // Error returns the underlying string of the error
@@ -119,7 +119,7 @@ func (e ErrAlreadyExists) Error() string {
 // underlying storage revision has advanced since the operations was first attempted
 type ErrConflict string
 
-// ErrConflictf is a convience function for producing ErrConflict
+// ErrConflictf is a convenience function for producing ErrConflict
 var ErrConflictf = NewErrorf[ErrConflict]
 
 // Error returns the underlying string of the error
@@ -131,7 +131,7 @@ func (e ErrConflict) Error() string {
 // either because it is not yet implemented or because it has been disabled in Flipt
 type ErrNotImplemented string
 
-// ErrNotImplementedf is a convience function for producing ErrNotImplemented
+// ErrNotImplementedf is a convenience function for producing ErrNotImplemented
 var ErrNotImplementedf = NewErrorf[ErrNotImplemented]
 
 // Error returns the underlying string of the error
@@ -141,7 +141,7 @@ func (e ErrNotImplemented) Error() string {
 
 // ErrNotModified is returned when a request is made containing an If-None-Match header
 // which matches the current digest for the given requested resource
-// It us up to the client to reuse a previous response in this situation
+// It is up to the client to reuse a previous response in this situation
 type ErrNotModified string
 
 var ErrNotModifiedf = NewErrorf[ErrNotModified]
