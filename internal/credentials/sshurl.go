@@ -13,7 +13,7 @@ var sshURLRegex = regexp.MustCompile(`^([^@]+)@([^:]+):(.+)$`)
 // NormalizeSSHRemoteURL transforms a remote URL for use with SSH credentials.
 // It handles the following cases:
 //  1. Strips https:// or http:// protocol if present (SSH doesn't use HTTP(S) URLs)
-//  2. Converts ssh:// protocol URLs to SCP-style format
+//  2. Converts ssh:// protocol URLs to SCP-style format when possible
 //  3. Prepends the SSH user to the URL if not already present
 //  4. Returns an error if the URL contains a user that differs from sshUser
 //
@@ -26,6 +26,7 @@ var sshURLRegex = regexp.MustCompile(`^([^@]+)@([^:]+):(.+)$`)
 //   - git@github.com:org/repo.git + user="git" -> git@github.com:org/repo.git (unchanged)
 //   - git@github.com:org/repo.git + user="other" -> error (conflicting users)
 //   - ssh://git@github.com/org/repo.git + user="git" -> git@github.com:org/repo.git
+//   - ssh://git@example.com:2222/org/repo.git + user="git" -> ssh://git@example.com:2222/org/repo.git
 func NormalizeSSHRemoteURL(remoteURL, sshUser string) (string, error) {
 	if sshUser == "" {
 		sshUser = "git"
@@ -84,8 +85,9 @@ func NormalizeSSHRemoteURL(remoteURL, sshUser string) (string, error) {
 	return sshUser + "@" + host + ":" + path, nil
 }
 
-// convertSSHProtocolURL converts ssh:// protocol URLs to SCP-style format.
-// ssh://[user@]host[:port]/path -> user@host:path
+// convertSSHProtocolURL converts ssh:// protocol URLs for use with SSH credentials.
+// It emits SCP-style syntax for the default SSH port and preserves ssh:// syntax
+// for non-default ports because SCP-style URLs cannot encode custom ports.
 func convertSSHProtocolURL(url, sshUser string) (string, error) {
 	url = strings.TrimPrefix(url, "ssh://")
 
@@ -114,13 +116,15 @@ func convertSSHProtocolURL(url, sshUser string) (string, error) {
 	hostPort := hostPortAndPath[:slashIndex]
 	path := hostPortAndPath[slashIndex+1:]
 
-	// Strip port from host if present (e.g., github.com:22 -> github.com)
-	host := hostPort
+	// Preserve ssh:// syntax for non-default ports because SCP-style remotes
+	// cannot represent a custom port without changing the repository path.
 	if colonIndex := strings.LastIndex(hostPort, ":"); colonIndex != -1 {
-		if hostPort[colonIndex+1:] == "22" {
-			host = hostPort[:colonIndex]
+		if hostPort[colonIndex+1:] != "22" {
+			return "ssh://" + sshUser + "@" + hostPort + "/" + path, nil
 		}
+
+		hostPort = hostPort[:colonIndex]
 	}
 
-	return sshUser + "@" + host + ":" + path, nil
+	return sshUser + "@" + hostPort + ":" + path, nil
 }
