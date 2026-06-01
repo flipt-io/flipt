@@ -47,6 +47,18 @@ type HTTPServer struct {
 	listenAndServe func() error
 }
 
+// newCORSHandler creates the CORS middleware handler from config.
+func newCORSHandler(cfg *config.Config) func(http.Handler) http.Handler {
+	return cors.New(cors.Options{
+		AllowedOrigins:   cfg.Cors.AllowedOrigins,
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedHeaders:   cfg.Cors.AllowedHeaders,
+		ExposedHeaders:   []string{"Link", "Etag"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}).Handler
+}
+
 // NewHTTPServer constructs and configures the HTTPServer instance.
 // The HTTPServer depends upon a running gRPC server instance which is why
 // it explicitly requires and established gRPC connection as an argument.
@@ -121,16 +133,7 @@ func NewHTTPServer(
 	}
 
 	if cfg.Cors.Enabled {
-		cors := cors.New(cors.Options{
-			AllowedOrigins:   cfg.Cors.AllowedOrigins,
-			AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-			AllowedHeaders:   cfg.Cors.AllowedHeaders,
-			ExposedHeaders:   []string{"Link"},
-			AllowCredentials: true,
-			MaxAge:           300,
-		})
-
-		r.Use(cors.Handler)
+		r.Use(newCORSHandler(cfg))
 		logger.Debug("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
 	}
 

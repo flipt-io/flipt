@@ -254,7 +254,7 @@ type EventStreamEndpoint struct {
 	// The path + query portion of the endpoint URL. Must start with `/`.
 	RequestUri string `protobuf:"bytes,1,opt,name=request_uri,json=requestUri,proto3" json:"request_uri,omitempty"`
 	// The scheme + host + optional port portion of the endpoint URL.
-	Origin        string `protobuf:"bytes,2,opt,name=origin,proto3" json:"origin,omitempty"`
+	Origin        *string `protobuf:"bytes,2,opt,name=origin,proto3,oneof" json:"origin,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -297,8 +297,8 @@ func (x *EventStreamEndpoint) GetRequestUri() string {
 }
 
 func (x *EventStreamEndpoint) GetOrigin() string {
-	if x != nil {
-		return x.Origin
+	if x != nil && x.Origin != nil {
+		return *x.Origin
 	}
 	return ""
 }
@@ -432,11 +432,12 @@ const file_ofrep_ofrep_proto_rawDesc = "" +
 	"\acontext\x18\x02 \x03(\v2-.flipt.ofrep.EvaluateBulkRequest.ContextEntryR\acontext\x1a:\n" +
 	"\fContextEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"X\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"h\n" +
 	"\x13EventStreamEndpoint\x12$\n" +
 	"\vrequest_uri\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
-	"requestUri\x12\x1b\n" +
-	"\x06origin\x18\x02 \x01(\tB\x03\xe0A\x01R\x06origin\"i\n" +
+	"requestUri\x12 \n" +
+	"\x06origin\x18\x02 \x01(\tB\x03\xe0A\x01H\x00R\x06origin\x88\x01\x01B\t\n" +
+	"\a_origin\"i\n" +
 	"\vEventStream\x12\x17\n" +
 	"\x04type\x18\x01 \x01(\tB\x03\xe0A\x05R\x04type\x12A\n" +
 	"\bendpoint\x18\x02 \x01(\v2 .flipt.ofrep.EventStreamEndpointB\x03\xe0A\x02R\bendpoint\"\x98\x01\n" +
@@ -504,6 +505,7 @@ func file_ofrep_ofrep_proto_init() {
 	if File_ofrep_ofrep_proto != nil {
 		return
 	}
+	file_ofrep_ofrep_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

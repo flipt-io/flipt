@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -59,6 +60,34 @@ func TestTrailingSlashMiddleware(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, res.StatusCode)
 	res.Body.Close()
+}
+
+func TestCORSExposedHeaders(t *testing.T) {
+	r := chi.NewRouter()
+	r.Use(newCORSHandler(&config.Config{
+		Cors: config.CorsConfig{
+			Enabled:        true,
+			AllowedOrigins: []string{"*"},
+			AllowedHeaders: []string{"*"},
+		},
+	}))
+	r.Get("/test", func(w http.ResponseWriter, r *http.Request) {})
+
+	s := httptest.NewServer(r)
+	t.Cleanup(s.Close)
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, s.URL+"/test", nil)
+	require.NoError(t, err)
+	req.Header.Set("Origin", "http://localhost:5173")
+
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer res.Body.Close()
+
+	exposed := res.Header.Get("Access-Control-Expose-Headers")
+	require.NotEmpty(t, exposed, "Access-Control-Expose-Headers must be present")
+	assert.Contains(t, exposed, "Etag", "Access-Control-Expose-Headers must include Etag for client-side conditional requests")
+	assert.Contains(t, exposed, "Link", "Access-Control-Expose-Headers must include Link")
 }
 
 func TestCrossOriginProtection(t *testing.T) {
