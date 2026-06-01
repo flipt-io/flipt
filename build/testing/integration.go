@@ -983,7 +983,7 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 		// Lowkey Vault container for Azure Key Vault emulation.
 		// Uses assumed identity mode which accepts any bearer token.
 		lowkeyVault := client.Container().
-			From("nagyesta/lowkey-vault:7.1.13").
+			From("nagyesta/lowkey-vault:7.2.18").
 			// Register the vault with an alias matching the service hostname used by Dagger.
 			// Lowkey Vault creates vaults at https://<name>.localhost:<port> by default,
 			// so we alias it to the hostname that Flipt and the setup container will use.
@@ -1050,6 +1050,9 @@ func main() {
 		&fakeCredential{},
 		&azsecrets.ClientOptions{
 			DisableChallengeResourceVerification: true,
+			ClientOptions: azcore.ClientOptions{
+				APIVersion: "7.6",
+			},
 		},
 	)
 	if err != nil {
@@ -1075,7 +1078,7 @@ func main() {
 	fmt.Println("Secret stored successfully in Lowkey Vault")
 }
 GOEOF
-				cd /tmp/setup && go mod init setup && go get github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets@v1.4.0 && go mod tidy && go run main.go
+				cd /tmp/setup && go mod init setup && go mod tidy && go run main.go
 			`,
 			}).Sync(ctx)
 		if err != nil {
