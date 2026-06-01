@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 30
     steps:
       # Default ref is the base branch (v2), NOT the PR head — keep it that way.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: flipt-io/agents/actions/pr-review@main # pin to a tag/SHA to freeze the reviewer
         env:
