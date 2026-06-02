@@ -580,5 +580,5 @@ func TestOFREPFlagEvaluationBulk(t *testing.T) {
 	stream := result.EventStreams[0]
 	assert.Equal(t, "sse", stream.Type)
 	assert.NotNil(t, stream.Endpoint)
-	assert.Equal(t, "/client/v2/environments/test-environment/namespaces/test-namespace/stream", stream.Endpoint.GetRequestUri())
+	assert.Equal(t, "/ofrep/v1/_stream/test-environment/test-namespace/events", stream.Endpoint.GetRequestUri())
 }

@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -58,6 +60,10 @@ func NewGatewayServeMux(logger *zap.Logger, opts ...runtime.ServeMuxOption) *run
 			runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
 				if h := http.CanonicalHeaderKey(key); slices.Contains([]string{"Traceparent", "Tracestate", "Baggage"}, h) {
 					return h, true
+				}
+				// Prevent clients from spoofing the internal OFREP stream marker.
+				if isOFREPReservedHeader(key) {
+					return "", false
 				}
 				return runtime.DefaultHeaderMatcher(key)
 			}),
@@ -122,6 +128,24 @@ func (m *eventSourceMarshaler) marshalEventSourceMap(val map[string]any) ([]byte
 	}
 
 	return nil, fmt.Errorf("unsupported event-stream payload map: %T", val)
+}
+
+// isOFREPReservedHeader checks whether the given HTTP header key is reserved for
+// internal use and must not be forwarded as gRPC metadata from client requests.
+func isOFREPReservedHeader(key string) bool {
+	canonicalKey := http.CanonicalHeaderKey(key)
+	reservedCanonical := http.CanonicalHeaderKey(common.HeaderFliptOFREPStream)
+	if canonicalKey == reservedCanonical {
+		return true
+	}
+	// Also check the Grpc-Metadata-* prefixed form which DefaultHeaderMatcher
+	// would forward after stripping the prefix.
+	if trimmed, ok := strings.CutPrefix(key, "Grpc-Metadata-"); ok {
+		if http.CanonicalHeaderKey(trimmed) == reservedCanonical {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *eventSourceMarshaler) marshalStatus(errStatus *status.Status) ([]byte, error) {

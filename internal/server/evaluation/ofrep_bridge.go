@@ -206,7 +206,7 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 		EventStreams: []*ofrep.EventStream{{
 			Type: "sse",
 			Endpoint: &ofrep.EventStreamEndpoint{
-				RequestUri: fmt.Sprintf("/client/v2/environments/%s/namespaces/%s/stream", env.Key(), namespaceKey),
+				RequestUri: fmt.Sprintf("/ofrep/v1/_stream/%s/%s/events", env.Key(), namespaceKey),
 			},
 		}},
 	}, err

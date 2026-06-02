@@ -233,6 +233,18 @@ func forwardHeader(ctx context.Context, req *http.Request, headerKey string) met
 	return md
 }
 
+// ForwardOFREPStreamMarker is a grpc-gateway WithMetadata callback that
+// forwards the OFREP stream marker to gRPC metadata when the request context
+// carries the OFREP stream marker. Unlike an HTTP-header-based approach,
+// this cannot be spoofed by external clients because only ofrepStreamHandler
+// can set the context value.
+func ForwardOFREPStreamMarker(ctx context.Context, _ *http.Request) metadata.MD {
+	if common.IsOFREPStream(ctx) {
+		return metadata.Pairs(common.HeaderFliptOFREPStream, "true")
+	}
+	return nil
+}
+
 // ZapInterceptorLogger wraps a zap.Logger to conform to the grpclogging.Logger interface.
 // It translates grpclogging log levels to zap log levels and properly formats log fields.
 func ZapInterceptorLogger(l *zap.Logger) grpclogging.Logger {
