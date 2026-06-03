@@ -355,18 +355,18 @@
                   "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
                   "default": "5m"
                 }
-              },
-              "data": {
-                "type": ["object", "null"],
-                "additionalproperties": false,
-                "properties": {
-                  "path": { "type": "string" },
-                  "poll_interval": {
+              }
+            },
+            "data": {
+              "type": ["object", "null"],
+              "additionalProperties": false,
+              "properties": {
+                "path": { "type": "string" },
+                "poll_interval": {
                     "type": "string",
                     "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
                     "default": "5m"
                   }
-                }
               }
             }
           }
