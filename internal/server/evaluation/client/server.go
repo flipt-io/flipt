@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/server/metrics"
@@ -14,6 +15,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 )
 
 // getEnvironmentFromContext retrieves the environment by key. If environment isn't found by key, it falls back to retrieving it from the context.
@@ -34,10 +36,24 @@ type Server struct {
 	envs   evaluation.EnvironmentStore
 
 	rpcevaluation.UnimplementedClientEvaluationServiceServer
+
+	skipOFREPAuthn bool
 }
 
-func NewServer(logger *zap.Logger, envs evaluation.EnvironmentStore) *Server {
-	return &Server{logger: logger, envs: envs}
+type Option func(*Server)
+
+func WithSkipOFREPAuthn(skip bool) Option {
+	return func(s *Server) {
+		s.skipOFREPAuthn = skip
+	}
+}
+
+func NewServer(logger *zap.Logger, envs evaluation.EnvironmentStore, opts ...Option) *Server {
+	s := &Server{logger: logger, envs: envs}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 // RegisterGRPC registers the *Server onto the provided grpc Server.
@@ -175,5 +191,27 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 }
 
 func (s *Server) SkipsAuthorization(ctx context.Context) bool {
+	return true
+}
+
+func (s *Server) SkipsAuthentication(ctx context.Context) bool {
+	if !s.skipOFREPAuthn {
+		return false
+	}
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return false
+	}
+
+	if vals := md.Get(common.HeaderFliptOFREPStream); len(vals) == 0 || vals[0] != "true" {
+		return false
+	}
+
+	p, ok := peer.FromContext(ctx)
+	if !ok || p.Addr.Network() != "inproc" {
+		return false
+	}
+
 	return true
 }

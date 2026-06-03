@@ -26,6 +26,7 @@ func (c *CorsConfig) setDefaults(v *viper.Viper) error {
 		"X-Flipt-Accept-Server-Version",
 		common.HeaderFliptEnvironment,
 		common.HeaderFliptNamespace,
+		"If-None-Match",
 	})
 	return nil
 }
