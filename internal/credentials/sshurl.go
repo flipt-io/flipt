@@ -13,7 +13,8 @@ var sshURLRegex = regexp.MustCompile(`^([^@]+)@([^:]+):(.+)$`)
 // NormalizeSSHRemoteURL transforms a remote URL for use with SSH credentials.
 // It handles the following cases:
 //  1. Strips https:// or http:// protocol if present (SSH doesn't use HTTP(S) URLs)
-//  2. Converts ssh:// protocol URLs to SCP-style format when possible
+//  2. Converts ssh:// protocol URLs to SCP-style format for the default SSH port (22);
+//     preserves the ssh:// form for non-default ports because SCP-style cannot encode a custom port
 //  3. Prepends the SSH user to the URL if not already present
 //  4. Returns an error if the URL contains a user that differs from sshUser
 //
