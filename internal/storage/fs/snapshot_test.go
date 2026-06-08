@@ -680,8 +680,8 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 				Flags: []*evaluation.EvaluationFlag{
 					{
 						Key:         "flag_boolean_2",
-						Name:        "FLAG_BOOLEAN",
-						Description: "Boolean Flag Description",
+						Name:        "",
+						Description: "",
 						Enabled:     false,
 						Type:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE,
 						Rollouts: []*evaluation.EvaluationRollout{
@@ -694,8 +694,8 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 										Segments: []*evaluation.EvaluationSegment{
 											{
 												Key:         "segment2",
-												Name:        "segment2",
-												Description: "description",
+												Name:        "",
+												Description: "",
 												MatchType:   evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 												Constraints: []*evaluation.EvaluationConstraint{
 													{
@@ -730,8 +730,8 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 					},
 					{
 						Key:         "prod-flag-1",
-						Name:        "Prod Flag 1",
-						Description: "description",
+						Name:        "",
+						Description: "",
 						Enabled:     true,
 						Type:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE,
 						DefaultVariant: &evaluation.EvaluationVariant{
@@ -743,8 +743,8 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 								Segments: []*evaluation.EvaluationSegment{
 									{
 										Key:         "segment2",
-										Name:        "segment2",
-										Description: "description",
+										Name:        "",
+										Description: "",
 										MatchType:   evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 										Constraints: []*evaluation.EvaluationConstraint{
 											{

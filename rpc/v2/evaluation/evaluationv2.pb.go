@@ -549,9 +549,15 @@ func (x *EvaluationRolloutSegment) GetSegments() []*EvaluationSegment {
 }
 
 type EvaluationSegment struct {
-	state         protoimpl.MessageState     `protogen:"open.v1"`
-	Key           string                     `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Name          string                     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Key   string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// name will be empty to avoid exposing internal information.
+	//
+	// Deprecated: Marked as deprecated in evaluation/evaluationv2.proto.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// description will be empty to avoid exposing internal information.
+	//
+	// Deprecated: Marked as deprecated in evaluation/evaluationv2.proto.
 	Description   string                     `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	MatchType     EvaluationSegmentMatchType `protobuf:"varint,4,opt,name=match_type,json=matchType,proto3,enum=evaluation.EvaluationSegmentMatchType" json:"match_type,omitempty"`
 	CreatedAt     *timestamppb.Timestamp     `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
@@ -598,6 +604,7 @@ func (x *EvaluationSegment) GetKey() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in evaluation/evaluationv2.proto.
 func (x *EvaluationSegment) GetName() string {
 	if x != nil {
 		return x.Name
@@ -605,6 +612,7 @@ func (x *EvaluationSegment) GetName() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in evaluation/evaluationv2.proto.
 func (x *EvaluationSegment) GetDescription() string {
 	if x != nil {
 		return x.Description
@@ -701,9 +709,15 @@ func (x *EvaluationVariant) GetAttachment() string {
 }
 
 type EvaluationFlag struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Key            string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Key   string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// name will be empty to avoid exposing internal information.
+	//
+	// Deprecated: Marked as deprecated in evaluation/evaluationv2.proto.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// description will be empty to avoid exposing internal information.
+	//
+	// Deprecated: Marked as deprecated in evaluation/evaluationv2.proto.
 	Description    string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Enabled        bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	Type           EvaluationFlagType     `protobuf:"varint,5,opt,name=type,proto3,enum=evaluation.EvaluationFlagType" json:"type,omitempty"`
@@ -753,6 +767,7 @@ func (x *EvaluationFlag) GetKey() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in evaluation/evaluationv2.proto.
 func (x *EvaluationFlag) GetName() string {
 	if x != nil {
 		return x.Name
@@ -760,6 +775,7 @@ func (x *EvaluationFlag) GetName() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in evaluation/evaluationv2.proto.
 func (x *EvaluationFlag) GetDescription() string {
 	if x != nil {
 		return x.Description
@@ -1260,11 +1276,11 @@ const file_evaluation_evaluationv2_proto_rawDesc = "" +
 	"\x18EvaluationRolloutSegment\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\bR\x05value\x12P\n" +
 	"\x10segment_operator\x18\x02 \x01(\x0e2%.evaluation.EvaluationSegmentOperatorR\x0fsegmentOperator\x129\n" +
-	"\bsegments\x18\x03 \x03(\v2\x1d.evaluation.EvaluationSegmentR\bsegments\"\xdc\x02\n" +
+	"\bsegments\x18\x03 \x03(\v2\x1d.evaluation.EvaluationSegmentR\bsegments\"\xe4\x02\n" +
 	"\x11EvaluationSegment\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12E\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x16\n" +
+	"\x04name\x18\x02 \x01(\tB\x02\x18\x01R\x04name\x12$\n" +
+	"\vdescription\x18\x03 \x01(\tB\x02\x18\x01R\vdescription\x12E\n" +
 	"\n" +
 	"match_type\x18\x04 \x01(\x0e2&.evaluation.EvaluationSegmentMatchTypeR\tmatchType\x129\n" +
 	"\n" +
@@ -1277,11 +1293,11 @@ const file_evaluation_evaluationv2_proto_rawDesc = "" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1e\n" +
 	"\n" +
 	"attachment\x18\x03 \x01(\tR\n" +
-	"attachment\"\xea\x03\n" +
+	"attachment\"\xf2\x03\n" +
 	"\x0eEvaluationFlag\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x18\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x16\n" +
+	"\x04name\x18\x02 \x01(\tB\x02\x18\x01R\x04name\x12$\n" +
+	"\vdescription\x18\x03 \x01(\tB\x02\x18\x01R\vdescription\x12\x18\n" +
 	"\aenabled\x18\x04 \x01(\bR\aenabled\x122\n" +
 	"\x04type\x18\x05 \x01(\x0e2\x1e.evaluation.EvaluationFlagTypeR\x04type\x129\n" +
 	"\n" +
