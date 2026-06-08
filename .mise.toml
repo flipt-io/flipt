@@ -212,6 +212,7 @@ run = """
 set -euo pipefail
 echo " > Formatting..."
 golangci-lint fmt
+buf format --write
 """
 
 [tasks."go:lint"]

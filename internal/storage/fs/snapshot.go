@@ -287,10 +287,8 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 				MatchType:   core.MatchType(matchType),
 			}
 			evalSnapSegment = &evaluation.EvaluationSegment{
-				Key:         s.Key,
-				Name:        s.Name,
-				Description: s.Description,
-				MatchType:   toEvaluationSegmentMatchType(core.MatchType(matchType)),
+				Key:       s.Key,
+				MatchType: toEvaluationSegmentMatchType(core.MatchType(matchType)),
 			}
 		)
 
@@ -330,13 +328,11 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 			// evaluation snapshot
 
 			evalSnapFlag = &evaluation.EvaluationFlag{
-				Key:         f.Key,
-				Name:        f.Name,
-				Description: f.Description,
-				Enabled:     f.Enabled,
-				Type:        toEvaluationFlagType(f.Type),
-				CreatedAt:   s.now,
-				UpdatedAt:   s.now,
+				Key:       f.Key,
+				Enabled:   f.Enabled,
+				Type:      toEvaluationFlagType(f.Type),
+				CreatedAt: s.now,
+				UpdatedAt: s.now,
 			}
 		)
 

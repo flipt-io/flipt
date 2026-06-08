@@ -129,8 +129,10 @@ components:
                     type: string
                 name:
                     type: string
+                    description: name will be empty to avoid exposing internal information.
                 description:
                     type: string
+                    description: description will be empty to avoid exposing internal information.
                 enabled:
                     type: boolean
                 type:
@@ -240,8 +242,10 @@ components:
                     type: string
                 name:
                     type: string
+                    description: name will be empty to avoid exposing internal information.
                 description:
                     type: string
+                    description: description will be empty to avoid exposing internal information.
                 matchType:
                     enum:
                         - ALL_SEGMENT_MATCH_TYPE

@@ -55,8 +55,10 @@ enum EvaluationSegmentMatchType {
 
 message EvaluationSegment {
   string key = 1;
-  string name = 2;
-  string description = 3;
+  // name will be empty to avoid exposing internal information.
+  string name = 2 [deprecated = true];
+  // description will be empty to avoid exposing internal information.
+  string description = 3 [deprecated = true];
   EvaluationSegmentMatchType match_type = 4;
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
@@ -76,8 +78,10 @@ enum EvaluationFlagType {
 
 message EvaluationFlag {
   string key = 1;
-  string name = 2;
-  string description = 3;
+  // name will be empty to avoid exposing internal information.
+  string name = 2 [deprecated = true];
+  // description will be empty to avoid exposing internal information.
+  string description = 3 [deprecated = true];
   bool enabled = 4;
   EvaluationFlagType type = 5;
   google.protobuf.Timestamp created_at = 6;
