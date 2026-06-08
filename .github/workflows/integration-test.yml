@@ -168,7 +168,7 @@ jobs:
           fi
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         if: always()
         with:
           files: coverage-${{ env.INTEGRATION_TEST_NAME }}.txt
