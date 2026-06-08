@@ -31,10 +31,6 @@ metrics:
   enabled: true
   exporter: prometheus
 
-diagnostics:
-  profiling:
-    enabled: true
-
 meta:
   check_for_updates: true
   telemetry_enabled: true

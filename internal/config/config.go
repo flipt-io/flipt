@@ -603,7 +603,7 @@ func Default() *Config {
 
 		Diagnostics: DiagnosticConfig{
 			Profiling: ProfilingDiagnosticConfig{
-				Enabled: true,
+				Enabled: false,
 			},
 		},
 
