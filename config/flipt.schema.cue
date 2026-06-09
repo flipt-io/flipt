@@ -186,7 +186,7 @@ JsonPath: string
 
 	#diagnostics: {
 		profiling?: {
-			enabled?: bool | *true
+			enabled?: bool | *false
 		}
 	}
 
