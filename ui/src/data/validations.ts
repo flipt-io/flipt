@@ -55,7 +55,7 @@ export const contextValidation = Yup.string()
     }
   });
 
-const MAX_JSON_ARRAY_ITEMS = 100;
+const MAX_JSON_ARRAY_ITEMS = 10000;
 
 const checkJsonArray =
   (checkItem: (v: any) => boolean) => (value: any, ctx: any) => {

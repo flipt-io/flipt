@@ -431,11 +431,11 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 					})
 				}
 
-				segments[segmentKey] = &storage.EvaluationSegment{
-					SegmentKey:  segmentKey,
-					MatchType:   segment.MatchType,
-					Constraints: evc,
+				evalSeg, err := storage.NewEvaluationSegment(segmentKey, segment.MatchType, evc)
+				if err != nil {
+					return err
 				}
+				segments[segmentKey] = evalSeg
 
 				if segment, ok := evalSnapSegments[segmentKey]; ok {
 					evalSnapRule.Segments = append(evalSnapRule.Segments, segment)
@@ -556,11 +556,11 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 						})
 					}
 
-					segments[segmentKey] = &storage.EvaluationSegment{
-						SegmentKey:  segmentKey,
-						MatchType:   segment.MatchType,
-						Constraints: constraints,
+					evalSeg, err := storage.NewEvaluationSegment(segmentKey, segment.MatchType, constraints)
+					if err != nil {
+						return err
 					}
+					segments[segmentKey] = evalSeg
 
 					if segment, ok := evalSnapSegments[segmentKey]; ok {
 						evalSnapRolloutSegment.Segment.Segments = append(evalSnapRolloutSegment.Segment.Segments,

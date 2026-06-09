@@ -2,8 +2,10 @@ package storage
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path"
+	"strconv"
 
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -36,6 +38,22 @@ type EvaluationSegment struct {
 	Constraints []EvaluationConstraint `json:"constraints,omitempty"`
 }
 
+// NewEvaluationSegment constructs an EvaluationSegment and prepares all
+// constraints for evaluation. This is the only way to build a segment
+// whose constraints are guaranteed ready for matching.
+func NewEvaluationSegment(segmentKey string, matchType core.MatchType, constraints []EvaluationConstraint) (*EvaluationSegment, error) {
+	for i := range constraints {
+		if err := constraints[i].PrepareForEvaluation(); err != nil {
+			return nil, fmt.Errorf("segment %q: %w", segmentKey, err)
+		}
+	}
+	return &EvaluationSegment{
+		SegmentKey:  segmentKey,
+		MatchType:   matchType,
+		Constraints: constraints,
+	}, nil
+}
+
 // EvaluationRollout represents a rollout in the form that helps with evaluation.
 type EvaluationRollout struct {
 	NamespaceKey string            `json:"namespace_key,omitempty"`
@@ -65,6 +83,47 @@ type EvaluationConstraint struct {
 	Property string              `json:"property,omitempty"`
 	Operator string              `json:"operator,omitempty"`
 	Value    string              `json:"value,omitempty"`
+
+	// Pre-parsed fields populated by PrepareForEvaluation, excluded from JSON serialization.
+	StringSet map[string]struct{}  `json:"-"`
+	NumberSet map[float64]struct{} `json:"-"`
+	Number    float64              `json:"-"`
+}
+
+// Pre-parses the Value field to deduplicate JSON deserialization and avoid linear scans.
+func (c *EvaluationConstraint) PrepareForEvaluation() error {
+	switch c.Operator {
+	case flipt.OpIsOneOf, flipt.OpIsNotOneOf:
+		switch c.Type {
+		case core.ComparisonType_STRING_COMPARISON_TYPE, core.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
+			var values []string
+			if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+				return fmt.Errorf("constraint %q: parsing string set: %w", c.Property, err)
+			}
+			c.StringSet = make(map[string]struct{}, len(values))
+			for _, v := range values {
+				c.StringSet[v] = struct{}{}
+			}
+		case core.ComparisonType_NUMBER_COMPARISON_TYPE:
+			var values []float64
+			if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+				return fmt.Errorf("constraint %q: parsing number set: %w", c.Property, err)
+			}
+			c.NumberSet = make(map[float64]struct{}, len(values))
+			for _, v := range values {
+				c.NumberSet[v] = struct{}{}
+			}
+		}
+	case flipt.OpEQ, flipt.OpNEQ, flipt.OpLT, flipt.OpLTE, flipt.OpGT, flipt.OpGTE:
+		if c.Type == core.ComparisonType_NUMBER_COMPARISON_TYPE && c.Value != "" {
+			n, err := strconv.ParseFloat(c.Value, 64)
+			if err != nil {
+				return fmt.Errorf("constraint %q: parsing number: %w", c.Property, err)
+			}
+			c.Number = n
+		}
+	}
+	return nil
 }
 
 // EvaluationDistribution represents a rule distribution along with its variant for evaluation
