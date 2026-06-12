@@ -1728,15 +1728,41 @@ func Test_matchesString_ErrorsWithoutPrepare(t *testing.T) {
 }
 
 func Test_matchesNumber_ErrorsWithoutPrepare(t *testing.T) {
-	c := storage.EvaluationConstraint{
-		Property: "count",
-		Operator: "isnotoneof",
-		Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
-		Value:    `[1,2,3]`,
-	}
-	match, err := matchesNumber(c, "1")
-	require.ErrorContains(t, err, `constraint "count" not prepared for evaluation`)
-	assert.False(t, match)
+	t.Run("is not one of", func(t *testing.T) {
+		c := storage.EvaluationConstraint{
+			Property: "count",
+			Operator: "isnotoneof",
+			Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+			Value:    `[1,2,3]`,
+		}
+		match, err := matchesNumber(c, "1")
+		require.ErrorContains(t, err, `constraint "count" not prepared for evaluation`)
+		assert.False(t, match)
+	})
+
+	t.Run("scalar eq", func(t *testing.T) {
+		c := storage.EvaluationConstraint{
+			Property: "count",
+			Operator: "eq",
+			Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+			Value:    "5",
+		}
+		match, err := matchesNumber(c, "1")
+		require.ErrorContains(t, err, `constraint "count" not prepared for evaluation`)
+		assert.False(t, match)
+	})
+
+	t.Run("scalar lt", func(t *testing.T) {
+		c := storage.EvaluationConstraint{
+			Property: "count",
+			Operator: "lt",
+			Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+			Value:    "5",
+		}
+		match, err := matchesNumber(c, "1")
+		require.ErrorContains(t, err, `constraint "count" not prepared for evaluation`)
+		assert.False(t, match)
+	})
 }
 
 func Test_matchesNumberWithPreparedSets(t *testing.T) {

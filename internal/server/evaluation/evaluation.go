@@ -724,27 +724,25 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 		}
 		_, ok := c.NumberSet[n]
 		return !ok, nil
-	}
-
-	if c.Value == "" {
-		return false, errs.ErrInvalidf("parsing number from %q", c.Value)
-	}
-
-	value := c.Number
-
-	switch c.Operator {
-	case flipt.OpEQ:
-		return value == n, nil
-	case flipt.OpNEQ:
-		return value != n, nil
-	case flipt.OpLT:
-		return n < value, nil
-	case flipt.OpLTE:
-		return n <= value, nil
-	case flipt.OpGT:
-		return n > value, nil
-	case flipt.OpGTE:
-		return n >= value, nil
+	case flipt.OpEQ, flipt.OpNEQ, flipt.OpLT, flipt.OpLTE, flipt.OpGT, flipt.OpGTE:
+		if c.Number == nil {
+			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
+		}
+		value := *c.Number
+		switch c.Operator {
+		case flipt.OpEQ:
+			return value == n, nil
+		case flipt.OpNEQ:
+			return value != n, nil
+		case flipt.OpLT:
+			return n < value, nil
+		case flipt.OpLTE:
+			return n <= value, nil
+		case flipt.OpGT:
+			return n > value, nil
+		case flipt.OpGTE:
+			return n >= value, nil
+		}
 	}
 
 	return false, nil
