@@ -1723,7 +1723,9 @@ func Test_matchesString_ErrorsWithoutPrepare(t *testing.T) {
 		Value:    `["a","b"]`,
 	}
 	match, err := matchesString(c, "a")
-	require.ErrorContains(t, err, `constraint "tenant" not prepared for evaluation`)
+	require.Error(t, err)
+	var ierr errs.ErrInvalid
+	require.ErrorAs(t, err, &ierr)
 	assert.False(t, match)
 }
 
@@ -1736,7 +1738,9 @@ func Test_matchesNumber_ErrorsWithoutPrepare(t *testing.T) {
 			Value:    `[1,2,3]`,
 		}
 		match, err := matchesNumber(c, "1")
-		require.ErrorContains(t, err, `constraint "count" not prepared for evaluation`)
+		require.Error(t, err)
+		var ierr errs.ErrInvalid
+		require.ErrorAs(t, err, &ierr)
 		assert.False(t, match)
 	})
 
@@ -1748,7 +1752,9 @@ func Test_matchesNumber_ErrorsWithoutPrepare(t *testing.T) {
 			Value:    "5",
 		}
 		match, err := matchesNumber(c, "1")
-		require.ErrorContains(t, err, `constraint "count" not prepared for evaluation`)
+		require.Error(t, err)
+		var ierr errs.ErrInvalid
+		require.ErrorAs(t, err, &ierr)
 		assert.False(t, match)
 	})
 
@@ -1760,7 +1766,9 @@ func Test_matchesNumber_ErrorsWithoutPrepare(t *testing.T) {
 			Value:    "5",
 		}
 		match, err := matchesNumber(c, "1")
-		require.ErrorContains(t, err, `constraint "count" not prepared for evaluation`)
+		require.Error(t, err)
+		var ierr errs.ErrInvalid
+		require.ErrorAs(t, err, &ierr)
 		assert.False(t, match)
 	})
 }

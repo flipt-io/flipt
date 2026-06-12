@@ -674,13 +674,13 @@ func matchesString(c storage.EvaluationConstraint, v string) (bool, error) {
 		return strings.HasSuffix(strings.TrimSpace(v), value), nil
 	case flipt.OpIsOneOf:
 		if c.StringSet == nil {
-			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
+			return false, errs.ErrInvalidf("constraint %q not prepared for evaluation", c.Property)
 		}
 		_, ok := c.StringSet[v]
 		return ok, nil
 	case flipt.OpIsNotOneOf:
 		if c.StringSet == nil {
-			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
+			return false, errs.ErrInvalidf("constraint %q not prepared for evaluation", c.Property)
 		}
 		_, ok := c.StringSet[v]
 		return !ok, nil
@@ -714,19 +714,19 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 	switch c.Operator {
 	case flipt.OpIsOneOf:
 		if c.NumberSet == nil {
-			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
+			return false, errs.ErrInvalidf("constraint %q not prepared for evaluation", c.Property)
 		}
 		_, ok := c.NumberSet[n]
 		return ok, nil
 	case flipt.OpIsNotOneOf:
 		if c.NumberSet == nil {
-			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
+			return false, errs.ErrInvalidf("constraint %q not prepared for evaluation", c.Property)
 		}
 		_, ok := c.NumberSet[n]
 		return !ok, nil
 	case flipt.OpEQ, flipt.OpNEQ, flipt.OpLT, flipt.OpLTE, flipt.OpGT, flipt.OpGTE:
 		if c.Number == nil {
-			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
+			return false, errs.ErrInvalidf("constraint %q not prepared for evaluation", c.Property)
 		}
 		value := *c.Number
 		switch c.Operator {
