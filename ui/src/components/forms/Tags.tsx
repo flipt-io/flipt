@@ -241,7 +241,12 @@ export default function Tags(props: TagsProps) {
         {bulkMode ? (
           <div className="space-y-2">
             <textarea
-              className="block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-violet-500 dark:focus:ring-violet-500 sm:text-sm"
+              className={cls(
+                'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-violet-500 dark:focus:ring-violet-500 sm:text-sm',
+                {
+                  'border-red-400 dark:border-red-500': hasError
+                }
+              )}
               rows={10}
               value={bulkValue}
               placeholder="One value per line, or load from a file"

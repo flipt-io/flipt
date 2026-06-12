@@ -1674,6 +1674,34 @@ func TestPrepareForEvaluation_Errors(t *testing.T) {
 				Value:    "42.5",
 			},
 		},
+		{
+			name: "invalid datetime",
+			constraint: storage.EvaluationConstraint{
+				Property: "created_at",
+				Operator: "gte",
+				Type:     core.ComparisonType_DATETIME_COMPARISON_TYPE,
+				Value:    "not a date",
+			},
+			wantErr: `constraint "created_at": parsing datetime from "not a date"`,
+		},
+		{
+			name: "no error for valid RFC3339 datetime",
+			constraint: storage.EvaluationConstraint{
+				Property: "created_at",
+				Operator: "gte",
+				Type:     core.ComparisonType_DATETIME_COMPARISON_TYPE,
+				Value:    "2024-01-15T10:30:00Z",
+			},
+		},
+		{
+			name: "no error for valid DateOnly datetime",
+			constraint: storage.EvaluationConstraint{
+				Property: "created_at",
+				Operator: "eq",
+				Type:     core.ComparisonType_DATETIME_COMPARISON_TYPE,
+				Value:    "2024-01-15",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

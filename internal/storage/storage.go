@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path"
 	"strconv"
+	"time"
 
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -85,9 +86,10 @@ type EvaluationConstraint struct {
 	Value    string              `json:"value,omitempty"`
 
 	// Pre-parsed fields populated by PrepareForEvaluation, excluded from JSON serialization.
-	StringSet map[string]struct{}  `json:"-"`
-	NumberSet map[float64]struct{} `json:"-"`
-	Number    float64              `json:"-"`
+	StringSet map[string]struct{}  `json:"-"` // populated for string/entity-id isoneof/isnotoneof constraints; used by matchesStringSet.
+	NumberSet map[float64]struct{} `json:"-"` // populated for number isoneof/isnotoneof constraints; used by matchesNumberSet.
+	Number    float64              `json:"-"` // populated for scalar number comparisons (eq, neq, lt, lte, gt, gte); used by matchesNumber.
+	Datetime  time.Time            `json:"-"` // populated for scalar datetime comparisons (eq, neq, lt, lte, gt, gte); used by matchesDatetime.
 }
 
 // Pre-parses the Value field to deduplicate JSON deserialization and avoid linear scans.
@@ -115,15 +117,33 @@ func (c *EvaluationConstraint) PrepareForEvaluation() error {
 			}
 		}
 	case flipt.OpEQ, flipt.OpNEQ, flipt.OpLT, flipt.OpLTE, flipt.OpGT, flipt.OpGTE:
-		if c.Type == core.ComparisonType_NUMBER_COMPARISON_TYPE && c.Value != "" {
+		switch {
+		case c.Type == core.ComparisonType_NUMBER_COMPARISON_TYPE && c.Value != "":
 			n, err := strconv.ParseFloat(c.Value, 64)
 			if err != nil {
 				return fmt.Errorf("constraint %q: parsing number: %w", c.Property, err)
 			}
 			c.Number = n
+		case c.Type == core.ComparisonType_DATETIME_COMPARISON_TYPE && c.Value != "":
+			d, err := parseDatetime(c.Value)
+			if err != nil {
+				return fmt.Errorf("constraint %q: %w", c.Property, err)
+			}
+			c.Datetime = d
 		}
 	}
 	return nil
+}
+
+// parseDatetime attempts to parse v as an RFC 3339 or date-only timestamp.
+func parseDatetime(v string) (time.Time, error) {
+	if d, err := time.Parse(time.RFC3339, v); err == nil {
+		return d.UTC(), nil
+	}
+	if d, err := time.Parse(time.DateOnly, v); err == nil {
+		return d.UTC(), nil
+	}
+	return time.Time{}, fmt.Errorf("parsing datetime from %q", v)
 }
 
 // EvaluationDistribution represents a rule distribution along with its variant for evaluation
