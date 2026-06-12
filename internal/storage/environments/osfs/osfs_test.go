@@ -1,8 +1,10 @@
 package osfs
 
 import (
+	"cmp"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -70,6 +72,11 @@ func TestFilesystem_Operations(t *testing.T) {
 		entries, err := fs.ReadDir("testdir")
 		require.NoError(t, err)
 		assert.Len(t, entries, 2)
+
+		// go-git/go-billy/v6 v6.0.0-alpha.1 has started to return files sorted.
+		// https://github.com/go-git/go-billy/issues/221.
+		// The next line is a workaround until this issue is resolved.
+		slices.SortFunc(entries, func(a, b os.DirEntry) int { return cmp.Compare(a.Name(), b.Name()) })
 
 		// Verify entries are sorted by filename
 		assert.Equal(t, "file1.txt", entries[0].Name())
