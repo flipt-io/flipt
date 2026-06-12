@@ -31,6 +31,14 @@ export function getUser(session?: Session): User | undefined {
       if (metadata[authMethodIssuerKey as keyof typeof metadata]) {
         u.issuer = metadata[authMethodIssuerKey as keyof typeof metadata];
       }
+      const authMethodClientIdKey = `io.flipt.auth.${authMethod}.client_id`;
+      if (metadata[authMethodClientIdKey as keyof typeof metadata]) {
+        u.clientId = metadata[authMethodClientIdKey as keyof typeof metadata];
+      }
+      const authMethodIdTokenKey = `io.flipt.auth.${authMethod}.id_token`;
+      if (metadata[authMethodIdTokenKey as keyof typeof metadata]) {
+        u.idToken = metadata[authMethodIdTokenKey as keyof typeof metadata];
+      }
     }
     return u;
   }

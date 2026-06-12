@@ -3,5 +3,7 @@ export type User = {
   login: string | undefined;
   imgURL: string | undefined;
   issuer: string | undefined;
+  clientId: string | undefined;
+  idToken: string | undefined;
   authMethod: string | undefined;
 };
