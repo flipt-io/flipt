@@ -96,9 +96,8 @@ export default function Tags(props: TagsProps) {
     setInputValue('');
   };
 
-  const removeTag = (i: number) => {
-    const newTags = [...tags];
-    newTags.splice(i, 1);
+  const removeTag = (tag: Item) => {
+    const newTags = tags.filter((t) => t !== tag);
     setFieldValue(newTags);
   };
 
@@ -197,9 +196,9 @@ export default function Tags(props: TagsProps) {
           {!bulkMode && tags.length > 0 && (
             <>
               <ul className="inline-flex w-full flex-wrap gap-1">
-                {visibleTags.map((tag, i) => (
+                {visibleTags.map((tag) => (
                   <li
-                    key={i}
+                    key={String(tag)}
                     className="flex flex-row items-center justify-center rounded bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-sm text-gray-900 dark:text-gray-100"
                   >
                     <span className="max-w-32 truncate" title={String(tag)}>
@@ -209,7 +208,7 @@ export default function Tags(props: TagsProps) {
                       className="ml-1 p-1"
                       type="button"
                       onClick={() => {
-                        removeTag(i);
+                        removeTag(tag);
                       }}
                     >
                       <Trash2Icon className="h-3 w-3" aria-hidden="true" />
