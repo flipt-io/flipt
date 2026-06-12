@@ -88,7 +88,7 @@ type EvaluationConstraint struct {
 	// Pre-parsed fields populated by PrepareForEvaluation, excluded from JSON serialization.
 	StringSet map[string]struct{}  `json:"-"` // populated for string/entity-id isoneof/isnotoneof constraints; used by matchesStringSet.
 	NumberSet map[float64]struct{} `json:"-"` // populated for number isoneof/isnotoneof constraints; used by matchesNumberSet.
-	Number    float64              `json:"-"` // populated for scalar number comparisons (eq, neq, lt, lte, gt, gte); used by matchesNumber.
+	Number    *float64             `json:"-"` // populated for scalar number comparisons (eq, neq, lt, lte, gt, gte); used by matchesNumber.
 	Datetime  time.Time            `json:"-"` // populated for scalar datetime comparisons (eq, neq, lt, lte, gt, gte); used by matchesDatetime.
 }
 
@@ -123,7 +123,7 @@ func (c *EvaluationConstraint) PrepareForEvaluation() error {
 			if err != nil {
 				return fmt.Errorf("constraint %q: parsing number: %w", c.Property, err)
 			}
-			c.Number = n
+			c.Number = &n
 		case c.Type == core.ComparisonType_DATETIME_COMPARISON_TYPE && c.Value != "":
 			d, err := parseDatetime(c.Value)
 			if err != nil {
