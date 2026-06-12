@@ -136,7 +136,9 @@ test.describe('Flags', () => {
 
     // perform copy to new namespace
     await page.getByRole('button', { name: 'Actions' }).click();
-    await page.getByRole('menuitem', { name: 'Copy to Namespace' }).click();
+    await page
+      .getByRole('menuitem', { name: 'Copy to Environment / Namespace' })
+      .click();
     await page.locator('#copyToNamespace-select-button').click();
     await page.getByRole('option', { name: 'copy flag', exact: true }).click();
     await page.getByRole('button', { name: 'Copy', exact: true }).click();
@@ -157,6 +159,38 @@ test.describe('Flags', () => {
     await page.getByRole('link', { name: 'test-flag' }).click();
 
     // verify variants were copied
+    await expect(page.getByText('chrome', { exact: true })).toBeVisible();
+    await expect(page.getByText('firefox', { exact: true })).toBeVisible();
+  });
+
+  test('can copy flag to another environment', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-flag' }).click();
+
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page
+      .getByRole('menuitem', { name: 'Copy to Environment / Namespace' })
+      .click();
+    await page.locator('#copyToEnvironment-select-button').click();
+    await page.getByRole('option', { name: 'production', exact: true }).click();
+    await page.locator('#copyToNamespace-select-button').click();
+    await page.getByRole('option', { name: 'production', exact: true }).click();
+    await page.getByRole('button', { name: 'Copy', exact: true }).click();
+    await expect(page.getByText('Successfully copied flag')).toBeVisible();
+
+    await page
+      .getByTestId('environment-namespace-switcher')
+      .getByRole('button')
+      .click();
+    await page
+      .getByTestId('environment-listbox')
+      .getByRole('button', { name: 'production' })
+      .click();
+    await page
+      .getByTestId('namespace-listbox')
+      .getByRole('button', { name: 'production' })
+      .click();
+
+    await page.getByRole('link', { name: 'test-flag' }).click();
     await expect(page.getByText('chrome', { exact: true })).toBeVisible();
     await expect(page.getByText('firefox', { exact: true })).toBeVisible();
   });
