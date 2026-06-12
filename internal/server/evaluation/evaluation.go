@@ -2,11 +2,9 @@ package evaluation
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/crc32"
-	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -585,7 +583,7 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 
 		switch c.Type {
 		case core.ComparisonType_STRING_COMPARISON_TYPE:
-			match = matchesString(c, v)
+			match, err = matchesString(c, v)
 		case core.ComparisonType_NUMBER_COMPARISON_TYPE:
 			match, err = matchesNumber(c, v)
 		case core.ComparisonType_BOOLEAN_COMPARISON_TYPE:
@@ -593,7 +591,7 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 		case core.ComparisonType_DATETIME_COMPARISON_TYPE:
 			match, err = matchesDateTime(c, v)
 		case core.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
-			match = matchesString(c, entityId)
+			match, err = matchesString(c, entityId)
 		default:
 			return false, reason, errs.ErrInvalid("unknown constraint type")
 		}
@@ -651,48 +649,48 @@ const (
 	percentMultiplier float32 = float32(totalBucketNum) / 100
 )
 
-func matchesString(c storage.EvaluationConstraint, v string) bool {
+func matchesString(c storage.EvaluationConstraint, v string) (bool, error) {
 	switch c.Operator {
 	case flipt.OpEmpty:
-		return len(strings.TrimSpace(v)) == 0
+		return len(strings.TrimSpace(v)) == 0, nil
 	case flipt.OpNotEmpty:
-		return len(strings.TrimSpace(v)) != 0
+		return len(strings.TrimSpace(v)) != 0, nil
 	}
 
 	if v == "" {
-		return false
+		return false, nil
 	}
 
 	value := c.Value
 
 	switch c.Operator {
 	case flipt.OpEQ:
-		return value == v
+		return value == v, nil
 	case flipt.OpNEQ:
-		return value != v
+		return value != v, nil
 	case flipt.OpPrefix:
-		return strings.HasPrefix(strings.TrimSpace(v), value)
+		return strings.HasPrefix(strings.TrimSpace(v), value), nil
 	case flipt.OpSuffix:
-		return strings.HasSuffix(strings.TrimSpace(v), value)
+		return strings.HasSuffix(strings.TrimSpace(v), value), nil
 	case flipt.OpIsOneOf:
-		values := []string{}
-		if err := json.Unmarshal([]byte(value), &values); err != nil {
-			return false
+		if c.StringSet == nil {
+			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
 		}
-		return slices.Contains(values, v)
+		_, ok := c.StringSet[v]
+		return ok, nil
 	case flipt.OpIsNotOneOf:
-		values := []string{}
-		if err := json.Unmarshal([]byte(value), &values); err != nil {
-			return false
+		if c.StringSet == nil {
+			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
 		}
-		return !slices.Contains(values, v)
+		_, ok := c.StringSet[v]
+		return !ok, nil
 	case flipt.OpContains:
-		return strings.Contains(v, value)
+		return strings.Contains(v, value), nil
 	case flipt.OpNotContains:
-		return !strings.Contains(v, value)
+		return !strings.Contains(v, value), nil
 	}
 
-	return false
+	return false, nil
 }
 
 func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
@@ -715,24 +713,24 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 
 	switch c.Operator {
 	case flipt.OpIsOneOf:
-		values := []float64{}
-		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
-			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
+		if c.NumberSet == nil {
+			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
 		}
-		return slices.Contains(values, n), nil
+		_, ok := c.NumberSet[n]
+		return ok, nil
 	case flipt.OpIsNotOneOf:
-		values := []float64{}
-		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
-			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
+		if c.NumberSet == nil {
+			return false, fmt.Errorf("constraint %q not prepared for evaluation", c.Property)
 		}
-		return !slices.Contains(values, n), nil
+		_, ok := c.NumberSet[n]
+		return !ok, nil
 	}
 
-	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values
-	value, err := strconv.ParseFloat(c.Value, 64)
-	if err != nil {
+	if c.Value == "" {
 		return false, errs.ErrInvalidf("parsing number from %q", c.Value)
 	}
+
+	value := c.Number
 
 	switch c.Operator {
 	case flipt.OpEQ:

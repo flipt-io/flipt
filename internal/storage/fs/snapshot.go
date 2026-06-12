@@ -121,7 +121,7 @@ func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.O
 		}
 
 		for _, doc := range docs {
-			if err := s.addDoc(doc); err != nil {
+			if err := s.addDoc(logger, doc); err != nil {
 				return nil, err
 			}
 		}
@@ -249,7 +249,7 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 // codepaths (v1 types / eval).
 // The snapshot generated contains all the necessary state to serve server-side
 // evaluation as well as returning entire snapshot state for client-side evaluation.
-func (s *Snapshot) addDoc(doc *ext.Document) error {
+func (s *Snapshot) addDoc(logger *zap.Logger, doc *ext.Document) error {
 	var (
 		namespaceKey = doc.Namespace.GetKey()
 		ns           = s.ns[namespaceKey]
@@ -431,11 +431,15 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 					})
 				}
 
-				segments[segmentKey] = &storage.EvaluationSegment{
-					SegmentKey:  segmentKey,
-					MatchType:   segment.MatchType,
-					Constraints: evc,
+				evalSeg, err := storage.NewEvaluationSegment(segmentKey, segment.MatchType, evc)
+				if err != nil {
+					logger.Error("skipping segment with malformed constraint",
+						zap.String("namespace", namespaceKey),
+						zap.String("segment", segmentKey),
+						zap.Error(err))
+					continue
 				}
+				segments[segmentKey] = evalSeg
 
 				if segment, ok := evalSnapSegments[segmentKey]; ok {
 					evalSnapRule.Segments = append(evalSnapRule.Segments, segment)
@@ -556,11 +560,15 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 						})
 					}
 
-					segments[segmentKey] = &storage.EvaluationSegment{
-						SegmentKey:  segmentKey,
-						MatchType:   segment.MatchType,
-						Constraints: constraints,
+					evalSeg, err := storage.NewEvaluationSegment(segmentKey, segment.MatchType, constraints)
+					if err != nil {
+						logger.Error("skipping segment with malformed constraint",
+							zap.String("namespace", namespaceKey),
+							zap.String("segment", segmentKey),
+							zap.Error(err))
+						continue
 					}
+					segments[segmentKey] = evalSeg
 
 					if segment, ok := evalSnapSegments[segmentKey]; ok {
 						evalSnapRolloutSegment.Segment.Segments = append(evalSnapRolloutSegment.Segment.Segments,
