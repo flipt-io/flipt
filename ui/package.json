@@ -64,7 +64,7 @@
     "@tailwindcss/forms": "^0.5.11",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/jest": "^29.5.14",
-    "@types/node": "^18.19.130",
+    "@types/node": "^20.19.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@types/react-redux": "^7.1.34",
