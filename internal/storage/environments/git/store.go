@@ -8,6 +8,7 @@ import (
 	"iter"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"text/template"
 
 	"go.flipt.io/flipt/errors"
@@ -51,7 +52,7 @@ type Environment struct {
 	currentBranch string
 	base          string
 	head          plumbing.Hash
-	snap          *storagefs.Snapshot
+	snap          atomic.Pointer[storagefs.Snapshot]
 	publisher     evaluation.SnapshotPublisher
 }
 
@@ -76,11 +77,11 @@ func NewEnvironmentFromRepo(
 		repo:            repo,
 		storage:         storage,
 		refs:            map[string]string{},
-		snap:            storagefs.EmptySnapshot(),
 		publisher:       publisher,
 		currentBranch:   repo.GetDefaultBranch(),
 		branches:        map[string]*Environment{},
 	}
+	env.snap.Store(storagefs.EmptySnapshot())
 
 	// Build initial snapshot if repository has existing data
 	// This ensures that existing data is loaded into the snapshot on restart
@@ -558,17 +559,11 @@ func (s *store) DeleteResource(ctx context.Context, namespace string, key string
 }
 
 func (e *Environment) EvaluationStore() (storage.ReadOnlyStore, error) {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	return e.snap, nil
+	return e.snap.Load(), nil
 }
 
 func (e *Environment) EvaluationNamespaceSnapshot(ctx context.Context, ns string) (*rpcevaluation.EvaluationNamespaceSnapshot, error) {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	return e.snap.EvaluationNamespaceSnapshot(ctx, ns)
+	return e.snap.Load().EvaluationNamespaceSnapshot(ctx, ns)
 }
 
 func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
@@ -590,7 +585,8 @@ func (e *Environment) Notify(ctx context.Context, refs map[string]string) error 
 			oldRef := e.refs[e.currentBranch]
 			e.mu.RUnlock()
 
-			e.logger.Debug("updating base env snapshot",
+			e.logger.Debug(
+				"updating base env snapshot",
 				zap.String("environment", e.cfg.Name),
 				zap.String("from", oldRef),
 				zap.String("to", hash),
@@ -639,7 +635,8 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 			oldRef := e.refs[e.currentBranch]
 			e.mu.RUnlock()
 
-			e.logger.Debug("updating base env snapshot",
+			e.logger.Debug(
+				"updating base env snapshot",
 				zap.String("environment", e.cfg.Name),
 				zap.String("from", oldRef),
 				zap.String("to", hash),
@@ -704,7 +701,8 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 		e.mu.RUnlock()
 
 		if hash, ok := refs[cfg.branch]; ok && oldRef != hash {
-			e.logger.Debug("updating branch env snapshot",
+			e.logger.Debug(
+				"updating branch env snapshot",
 				zap.String("environment", cfg.Name),
 				zap.String("from", oldRef),
 				zap.String("to", hash),
@@ -728,7 +726,8 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 	e.mu.Lock()
 	for branchName := range e.branches {
 		if _, exists := existingBranches[branchName]; !exists {
-			e.logger.Debug("removing deleted branch from cache",
+			e.logger.Debug(
+				"removing deleted branch from cache",
 				zap.String("environment", e.cfg.Name),
 				zap.String("branch", branchName),
 			)
@@ -777,7 +776,7 @@ func (e *Environment) updateSnapshot(ctx context.Context) error {
 	defer e.mu.Unlock()
 
 	e.head = hash
-	e.snap = snap
+	e.snap.Store(snap)
 
 	return nil
 }
