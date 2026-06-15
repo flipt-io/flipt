@@ -3,6 +3,7 @@ package evaluation
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,11 +16,51 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.uber.org/zap/zaptest"
 )
+
+var testMetricReader *sdkmetric.ManualReader
+
+func TestMain(m *testing.M) {
+	testMetricReader = sdkmetric.NewManualReader()
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(testMetricReader))
+	otel.SetMeterProvider(mp)
+	os.Exit(m.Run())
+}
+
+func collectMetrics(t *testing.T) metricdata.ResourceMetrics {
+	t.Helper()
+	var data metricdata.ResourceMetrics
+	require.NoError(t, testMetricReader.Collect(t.Context(), &data))
+	return data
+}
+
+func metricCounterValue(t *testing.T, data *metricdata.ResourceMetrics, name string) int64 {
+	t.Helper()
+	for _, sm := range data.ScopeMetrics {
+		for _, m := range sm.Metrics {
+			if m.Name == name {
+				if sum, ok := m.Data.(metricdata.Sum[int64]); ok {
+					for _, dp := range sum.DataPoints {
+						return dp.Value
+					}
+				}
+			}
+		}
+	}
+	return 0
+}
+
+func metricCounterValueDelta(t *testing.T, metricName string, before, after *metricdata.ResourceMetrics) int64 {
+	t.Helper()
+	return metricCounterValue(t, after, metricName) - metricCounterValue(t, before, metricName)
+}
 
 // prepareSegments calls PrepareForEvaluation on every constraint in the map,
 // mirroring what NewEvaluationSegment does in production.
@@ -49,7 +90,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
 
-	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -83,7 +124,7 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
-	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -105,7 +146,7 @@ func TestVariant_FlagDisabled(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -118,7 +159,7 @@ func TestVariant_FlagDisabled(t *testing.T) {
 		Type:    core.FlagType_VARIANT_FLAG_TYPE,
 	}, nil)
 
-	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -141,7 +182,7 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 		flag           = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
@@ -156,7 +197,7 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
 	store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRule{}, errs.ErrInvalid("some invalid error"))
 
-	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -178,7 +219,7 @@ func TestVariant_Success(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 		flag           = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
@@ -214,7 +255,8 @@ func TestVariant_Success(t *testing.T) {
 					},
 				}),
 			},
-		}, nil)
+		}, nil,
+	)
 
 	store.On(
 		"GetEvaluationDistributions",
@@ -223,7 +265,7 @@ func TestVariant_Success(t *testing.T) {
 		storage.NewID("1"),
 	).Return([]*storage.EvaluationDistribution{}, nil)
 
-	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -238,23 +280,56 @@ func TestVariant_Success(t *testing.T) {
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
-func TestBoolean_FlagNotFoundError(t *testing.T) {
+func TestVariant_MatchConstraintsError_WithMetrics(t *testing.T) {
+	baseline := collectMetrics(t)
+
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: true,
+		Type:    core.FlagType_VARIANT_FLAG_TYPE,
+	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:      "1",
+				FlagKey: flagKey,
+				Rank:    0,
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  core.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     core.ComparisonType_UNKNOWN_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
+					},
+				}),
+			},
+		}, nil,
+	)
+
+	res, err := s.Variant(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -264,7 +339,113 @@ func TestBoolean_FlagNotFoundError(t *testing.T) {
 	})
 
 	require.Nil(t, res)
-	assert.EqualError(t, err, "test-flag not found")
+	require.EqualError(t, err, "unknown constraint type")
+
+	data := collectMetrics(t)
+	assert.Equal(t, int64(1), metricCounterValueDelta(t, "flipt_evaluations_errors", &baseline, &data))
+	assert.Equal(t, int64(0), metricCounterValueDelta(t, "flipt_evaluations_results", &baseline, &data))
+}
+
+func TestVariant_GetEvaluationDistributionsError_WithMetrics(t *testing.T) {
+	baseline := collectMetrics(t)
+
+	var (
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore, WithMetrics(true))
+	)
+
+	environment.On("Key").Return(environmentKey)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: true,
+		Type:    core.FlagType_VARIANT_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:      "1",
+				FlagKey: flagKey,
+				Rank:    0,
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  core.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
+					},
+				}),
+			},
+		}, nil,
+	)
+
+	store.On(
+		"GetEvaluationDistributions",
+		mock.Anything,
+		storage.NewResource(namespaceKey, flagKey),
+		storage.NewID("1"),
+	).Return(nil, errors.New("distribution error"))
+
+	res, err := s.Variant(t.Context(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.Nil(t, res)
+	require.EqualError(t, err, "distribution error")
+
+	data := collectMetrics(t)
+	assert.Equal(t, int64(1), metricCounterValueDelta(t, "flipt_evaluations_errors", &baseline, &data))
+	assert.Equal(t, int64(0), metricCounterValueDelta(t, "flipt_evaluations_results", &baseline, &data))
+}
+
+func TestBoolean_FlagNotFoundError(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, envStore, WithMetrics(true))
+	)
+
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
+
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.Nil(t, res)
+	require.EqualError(t, err, "test-flag not found")
 }
 
 func TestBoolean_NonBooleanFlagError(t *testing.T) {
@@ -275,7 +456,7 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 		environment  = environments.NewMockEnvironment(t)
 		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		s            = New(logger, envStore, WithMetrics(true))
 	)
 
 	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
@@ -287,7 +468,7 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 		Type:    core.FlagType_VARIANT_FLAG_TYPE,
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -309,7 +490,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -324,7 +505,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -348,7 +529,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -373,7 +554,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -397,7 +578,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -422,7 +603,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -446,7 +627,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -508,7 +689,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -533,7 +714,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -578,7 +759,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -602,7 +783,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -641,7 +822,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "user@core.io",
 		NamespaceKey: namespaceKey,
@@ -663,7 +844,7 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -714,7 +895,7 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -739,7 +920,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -787,7 +968,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -800,6 +981,73 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	assert.EqualError(t, err, "rollout rank: 0 detected out of order")
 }
 
+func TestBoolean_MatchConstraintsError_WithMetrics(t *testing.T) {
+	baseline := collectMetrics(t)
+
+	var (
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore, WithMetrics(true))
+	)
+
+	environment.On("Key").Return(environmentKey)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
+		{
+			NamespaceKey: namespaceKey,
+			Rank:         1,
+			RolloutType:  core.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			Segment: &storage.RolloutSegment{
+				Value:           true,
+				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
+					"test-segment": {
+						SegmentKey: "test-segment",
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     core.ComparisonType_UNKNOWN_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
+					},
+				}),
+			},
+		},
+	}, nil)
+
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.Nil(t, res)
+	require.EqualError(t, err, "unknown constraint type")
+
+	data := collectMetrics(t)
+	assert.Equal(t, int64(1), metricCounterValueDelta(t, "flipt_evaluations_errors", &baseline, &data))
+	assert.Equal(t, int64(0), metricCounterValueDelta(t, "flipt_evaluations_results", &baseline, &data))
+}
+
 func TestBatch_UnknownFlagType(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
@@ -808,7 +1056,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		environment  = environments.NewMockEnvironment(t)
 		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		s            = New(logger, envStore, WithMetrics(true))
 	)
 
 	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
@@ -821,7 +1069,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		Type:        3,
 	}, nil)
 
-	_, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
+	_, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
 			{
 				FlagKey:      flagKey,
@@ -846,7 +1094,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 		environment  = environments.NewMockEnvironment(t)
 		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		s            = New(logger, envStore, WithMetrics(true))
 	)
 
 	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
@@ -854,7 +1102,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errors.New("internal error"))
 
-	_, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
+	_, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
 			{
 				FlagKey:      flagKey,
@@ -882,7 +1130,7 @@ func TestBatch_Success(t *testing.T) {
 		environment    = environments.NewMockEnvironment(t)
 		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, envStore)
+		s              = New(logger, envStore, WithMetrics(true))
 	)
 
 	environment.On("Key").Return(environmentKey)
@@ -937,7 +1185,8 @@ func TestBatch_Success(t *testing.T) {
 					},
 				}),
 			},
-		}, nil)
+		}, nil,
+	)
 
 	store.On(
 		"GetEvaluationDistributions",
@@ -946,7 +1195,7 @@ func TestBatch_Success(t *testing.T) {
 		storage.NewID("1"),
 	).Return([]*storage.EvaluationDistribution{}, nil)
 
-	res, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
+	res, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
 			{
 				RequestId:    "1",
@@ -2243,7 +2492,8 @@ func TestEvaluationWithTracing(t *testing.T) {
 								},
 							}),
 						},
-					}, nil)
+					}, nil,
+				)
 
 				store.On(
 					"GetEvaluationDistributions",
@@ -2404,7 +2654,8 @@ func TestEvaluationWithTracing(t *testing.T) {
 								},
 							}),
 						},
-					}, nil)
+					}, nil,
+				)
 
 				store.On(
 					"GetEvaluationDistributions",
@@ -2541,7 +2792,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 			)
 			tracer := tp.Tracer("test")
 
-			s := New(logger, envStore, WithTracing(tt.tracingEnabled))
+			s := New(logger, envStore, WithMetrics(true), WithTracing(tt.tracingEnabled))
 
 			tt.setupMocks(t, envStore, environment, store, namespaceKey)
 
