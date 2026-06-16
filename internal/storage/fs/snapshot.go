@@ -609,9 +609,17 @@ func (s *Snapshot) addDoc(logger *zap.Logger, doc *ext.Document) error {
 		ns.evalRollouts[f.Key] = evalRollouts
 	}
 
-	ns.etag = doc.Etag
+	etag := doc.Etag
+	if ns.etag != "" {
+		hash := sha1.New() //nolint:gosec
+		hash.Write([]byte(ns.etag))
+		hash.Write([]byte(etag))
+		etag = fmt.Sprintf("%x", hash.Sum(nil))
+		etag = etag[:32] // truncate to 32 characters for consistency
+	}
+	ns.etag = etag
 	s.ns[namespaceKey] = ns
-	snap.Digest = doc.Etag
+	snap.Digest = ns.etag
 	s.evalSnap.Namespaces[namespaceKey] = snap
 	s.evalDists = evalDists
 
