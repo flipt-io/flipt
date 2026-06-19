@@ -131,7 +131,7 @@ func Load(ctx context.Context, path string) (*Result, error) {
 		// tries to restore the original case of the keys in allowed_teams if they match any of the allowed_organizations.
 		if v.IsSet("authentication.methods.github.allowed_teams") && v.IsSet("authentication.methods.github.allowed_organizations") {
 			allowedTeams := v.GetStringMapStringSlice("authentication.methods.github.allowed_teams")
-			orgs := (v.GetStringSlice("authentication.methods.github.allowed_organizations"))
+			orgs := v.GetStringSlice("authentication.methods.github.allowed_organizations")
 			for org, teams := range allowedTeams {
 				if slices.Contains(orgs, org) {
 					continue
@@ -597,12 +597,13 @@ func Default() *Config {
 				"X-Flipt-Accept-Server-Version",
 				"X-Flipt-Environment",
 				"X-Flipt-Namespace",
+				"If-None-Match",
 			},
 		},
 
 		Diagnostics: DiagnosticConfig{
 			Profiling: ProfilingDiagnosticConfig{
-				Enabled: true,
+				Enabled: false,
 			},
 		},
 

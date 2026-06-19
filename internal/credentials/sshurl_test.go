@@ -159,10 +159,16 @@ func TestNormalizeSSHRemoteURL(t *testing.T) {
 			want:      "git@gitlab.com:group/subgroup/project.git",
 		},
 		{
-			name:      "ssh with self-holted gitlab",
+			name:      "ssh:// with non-default port preserves protocol URL",
 			remoteURL: "ssh://git@gitlab.localhost:6022/root/demo.git",
 			sshUser:   "git",
-			want:      "git@gitlab.localhost:6022:root/demo.git",
+			want:      "ssh://git@gitlab.localhost:6022/root/demo.git",
+		},
+		{
+			name:      "ssh:// without user and non-default port preserves protocol URL",
+			remoteURL: "ssh://gitlab.localhost:6022/root/demo.git",
+			sshUser:   "git",
+			want:      "ssh://git@gitlab.localhost:6022/root/demo.git",
 		},
 
 		// Error cases

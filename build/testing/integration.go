@@ -714,12 +714,13 @@ permit_slice(allowed, requested) if {
 }
 `
 
-		return fn(ctx, client, base, flipt.
-			WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
-			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
-			WithNewFile(policyPath, string(policy)).
-			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
-			WithNewFile(policyData, string(data)),
+		return fn(
+			ctx, client, base, flipt.
+				WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
+				WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
+				WithNewFile(policyPath, string(policy)).
+				WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
+				WithNewFile(policyData, string(data)),
 			conf,
 		)
 	}
@@ -982,7 +983,7 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 		// Lowkey Vault container for Azure Key Vault emulation.
 		// Uses assumed identity mode which accepts any bearer token.
 		lowkeyVault := client.Container().
-			From("nagyesta/lowkey-vault:7.1.13").
+			From("nagyesta/lowkey-vault:7.2.18").
 			// Register the vault with an alias matching the service hostname used by Dagger.
 			// Lowkey Vault creates vaults at https://<name>.localhost:<port> by default,
 			// so we alias it to the hostname that Flipt and the setup container will use.
@@ -1004,6 +1005,7 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 		// Setup container to generate GPG key and store it in Lowkey Vault.
 		_, err := client.Container().
 			From("golang:1.26-alpine").
+			WithEnvVariable("UNIQUE", uuid.NewString()).
 			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
 			WithServiceBinding("lowkey-vault", lowkeyVault).
 			WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).
@@ -1048,6 +1050,9 @@ func main() {
 		&fakeCredential{},
 		&azsecrets.ClientOptions{
 			DisableChallengeResourceVerification: true,
+			ClientOptions: azcore.ClientOptions{
+				APIVersion: "7.6",
+			},
 		},
 	)
 	if err != nil {

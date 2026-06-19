@@ -3,6 +3,33 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0](https://github.com/flipt-io/flipt/releases/tag/v2.10.0) - 2026-06-12
+
+### Added
+
+- **Bulk constraint editing**: Add bulk edit mode for constraints in the UI (#6017)
+
+### Changed
+
+- **Snapshot stream efficiency**: Skip sending evaluation snapshots when the client digest already matches (#5909)
+- **Evaluation snapshot compatibility**: Deprecate `name` and `description` in evaluation snapshots (#5990)
+
+### Fixed
+
+- **Number constraint evaluation**: Refactor number constraint evaluation to use nil checks consistently (#6018)
+- **CUE validation**: Fix validation for boolean rollouts and null descriptions (#5385)
+- **Profiling diagnostics**: Disable profiling diagnostics by default (#5991)
+- **OFREP streaming**: Add the new SSE event stream endpoint, conditional request support, and correct bulk event stream metadata (#5957, #5669)
+- **SSH credentials**: Preserve non-default SSH ports in remote URLs (#5945)
+- **Snapshot stream digest reverts**: Avoid suppressing digest reverts in the snapshot stream (#5923)
+- **Kubernetes auth claims**: Correct the JSON struct tag for expiration claims (#5908)
+- **UI flag keys**: Allow camelCase flag keys in the UI (#5917)
+- **OpenAPI generation**: Improve OpenAPI generation and inject missing schemas into the gnostic generator (#5823, #5825)
+
+### Dependencies
+
+- Updated various dependencies including go-git, go-billy, AWS SDK, Azure SDK, OpenTelemetry, gRPC, Redis, ClickHouse, testcontainers, React Router, React DOM, Redux Toolkit, Radix UI, CodeMirror, Tailwind, Playwright, and GitHub Actions
+
 ## [2.9.0](https://github.com/flipt-io/flipt/releases/tag/v2.9.0) - 2026-04-22
 
 ### Added

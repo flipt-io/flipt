@@ -1,10 +1,10 @@
 module go.flipt.io/flipt/core
 
-go 1.25
+go 1.25.0
 
 require (
 	cuelang.org/go v0.11.1
-	github.com/go-git/go-billy/v6 v6.0.0-20250906064328-0118fd22f1d9
+	github.com/go-git/go-billy/v6 v6.0.0-alpha.1
 	github.com/gobwas/glob v0.2.3
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v3 v3.0.1

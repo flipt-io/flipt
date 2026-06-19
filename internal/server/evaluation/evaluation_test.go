@@ -21,6 +21,18 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+// prepareSegments calls PrepareForEvaluation on every constraint in the map,
+// mirroring what NewEvaluationSegment does in production.
+func prepareSegments(t *testing.T, segments map[string]*storage.EvaluationSegment) map[string]*storage.EvaluationSegment {
+	t.Helper()
+	for _, seg := range segments {
+		for i := range seg.Constraints {
+			require.NoError(t, seg.Constraints[i].PrepareForEvaluation())
+		}
+	}
+	return segments
+}
+
 func TestVariant_FlagNotFound(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
@@ -186,7 +198,7 @@ func TestVariant_Success(t *testing.T) {
 				ID:      "1",
 				FlagKey: flagKey,
 				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 					"bar": {
 						SegmentKey: "bar",
 						MatchType:  core.MatchType_ALL_MATCH_TYPE,
@@ -200,7 +212,7 @@ func TestVariant_Success(t *testing.T) {
 							},
 						},
 					},
-				},
+				}),
 			},
 		}, nil)
 
@@ -455,7 +467,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 			Segment: &storage.RolloutSegment{
 				Value:           true,
 				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
-				Segments: map[string]*storage.EvaluationSegment{
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
 						MatchType:  core.MatchType_ANY_MATCH_TYPE,
@@ -468,7 +480,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 							},
 						},
 					},
-				},
+				}),
 			},
 		},
 		{
@@ -478,7 +490,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 			Segment: &storage.RolloutSegment{
 				Value:           true,
 				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
-				Segments: map[string]*storage.EvaluationSegment{
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
 						MatchType:  core.MatchType_ANY_MATCH_TYPE,
@@ -491,7 +503,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 							},
 						},
 					},
-				},
+				}),
 			},
 		},
 	}, nil)
@@ -542,7 +554,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 			Segment: &storage.RolloutSegment{
 				Value:           true,
 				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
-				Segments: map[string]*storage.EvaluationSegment{
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
 						MatchType:  core.MatchType_ANY_MATCH_TYPE,
@@ -561,7 +573,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 							},
 						},
 					},
-				},
+				}),
 			},
 		},
 	}, nil)
@@ -611,7 +623,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 			Segment: &storage.RolloutSegment{
 				Value:           true,
 				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
-				Segments: map[string]*storage.EvaluationSegment{
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
 						MatchType:  core.MatchType_ANY_MATCH_TYPE,
@@ -624,7 +636,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 							},
 						},
 					},
-				},
+				}),
 			},
 		},
 	}, nil)
@@ -672,7 +684,7 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 			Segment: &storage.RolloutSegment{
 				Value:           true,
 				SegmentOperator: core.SegmentOperator_AND_SEGMENT_OPERATOR,
-				Segments: map[string]*storage.EvaluationSegment{
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
 						MatchType:  core.MatchType_ANY_MATCH_TYPE,
@@ -697,7 +709,7 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 							},
 						},
 					},
-				},
+				}),
 			},
 		},
 	}, nil)
@@ -757,7 +769,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 			Segment: &storage.RolloutSegment{
 				Value:           true,
 				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
-				Segments: map[string]*storage.EvaluationSegment{
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
 						MatchType:  core.MatchType_ANY_MATCH_TYPE,
@@ -770,7 +782,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 							},
 						},
 					},
-				},
+				}),
 			},
 		},
 	}, nil)
@@ -909,7 +921,7 @@ func TestBatch_Success(t *testing.T) {
 				ID:      "1",
 				FlagKey: variantFlagKey,
 				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 					"bar": {
 						SegmentKey: "bar",
 						MatchType:  core.MatchType_ALL_MATCH_TYPE,
@@ -923,7 +935,7 @@ func TestBatch_Success(t *testing.T) {
 							},
 						},
 					},
-				},
+				}),
 			},
 		}, nil)
 
@@ -1125,6 +1137,7 @@ func Test_matchesString(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 				Value:    "[\"bar\", \"baz\"]",
 			},
 			value:     "baz",
@@ -1135,33 +1148,17 @@ func Test_matchesString(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 				Value:    "[\"bar\", \"baz\"]",
 			},
 			value: "nope",
-		},
-		{
-			name: "negative is one of (invalid json)",
-			constraint: storage.EvaluationConstraint{
-				Property: "foo",
-				Operator: "isoneof",
-				Value:    "[\"bar\", \"baz\"",
-			},
-			value: "bar",
-		},
-		{
-			name: "negative is one of (non-string values)",
-			constraint: storage.EvaluationConstraint{
-				Property: "foo",
-				Operator: "isoneof",
-				Value:    "[\"bar\", 5]",
-			},
-			value: "bar",
 		},
 		{
 			name: "is not one of",
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isnotoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 				Value:    "[\"bar\", \"baz\"]",
 			},
 			value: "baz",
@@ -1171,6 +1168,7 @@ func Test_matchesString(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isnotoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 				Value:    "[\"bar\", \"baz\"]",
 			},
 			value:     "nope",
@@ -1222,8 +1220,11 @@ func Test_matchesString(t *testing.T) {
 			wantMatch  = tt.wantMatch
 		)
 
+		require.NoError(t, constraint.PrepareForEvaluation())
+
 		t.Run(tt.name, func(t *testing.T) {
-			match := matchesString(constraint, value)
+			match, err := matchesString(constraint, value)
+			require.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}
@@ -1270,20 +1271,11 @@ func Test_matchesNumber(t *testing.T) {
 			value: "1",
 		},
 		{
-			name: "NAN constraint value",
-			constraint: storage.EvaluationConstraint{
-				Property: "foo",
-				Operator: "eq",
-				Value:    "bar",
-			},
-			value:   "5",
-			wantErr: true,
-		},
-		{
 			name: "NAN context value",
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "5",
 			},
 			value:   "foo",
@@ -1294,6 +1286,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "42.0",
 			},
 			value:     "42.0",
@@ -1304,6 +1297,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "42.0",
 			},
 			value: "50",
@@ -1313,6 +1307,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "42.0",
 			},
 			value:     "50",
@@ -1323,6 +1318,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "42.0",
 			},
 			value: "42.0",
@@ -1332,6 +1328,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lt",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "42.0",
 			},
 			value:     "8",
@@ -1342,6 +1339,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lt",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "42.0",
 			},
 			value: "50",
@@ -1351,6 +1349,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lte",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "42.0",
 			},
 			value:     "42.0",
@@ -1361,6 +1360,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lte",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "42.0",
 			},
 			value: "102.0",
@@ -1370,6 +1370,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gt",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "10.11",
 			},
 			value:     "10.12",
@@ -1380,6 +1381,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gt",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "10.11",
 			},
 			value: "1",
@@ -1389,6 +1391,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gte",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "10.11",
 			},
 			value:     "10.11",
@@ -1399,6 +1402,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gte",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "10.11",
 			},
 			value: "0.11",
@@ -1408,6 +1412,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "0.11",
 			},
 		},
@@ -1433,6 +1438,7 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "[3, 3.14159, 4]",
 			},
 			value:     "3.14159",
@@ -1443,25 +1449,17 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "[5, 3.14159, 4]",
 			},
 			value: "9",
-		},
-		{
-			name: "negative is one of (non-number values)",
-			constraint: storage.EvaluationConstraint{
-				Property: "foo",
-				Operator: "isoneof",
-				Value:    "[5, \"str\"]",
-			},
-			value:   "5",
-			wantErr: true,
 		},
 		{
 			name: "is not one of",
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isnotoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "[5, 3.14159, 4]",
 			},
 			value:     "3",
@@ -1472,19 +1470,20 @@ func Test_matchesNumber(t *testing.T) {
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isnotoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 				Value:    "[5, 3.14159, 4]",
 			},
 			value:     "3.14159",
 			wantMatch: false,
 		},
 		{
-			name: "negative is not one of (invalid json)",
+			name: "empty constraint value with eq does not match zero",
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
-				Operator: "isnotoneof",
-				Value:    "[5, 6",
+				Operator: "eq",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 			},
-			value:   "5",
+			value:   "0",
 			wantErr: true,
 		},
 	}
@@ -1496,6 +1495,8 @@ func Test_matchesNumber(t *testing.T) {
 			wantMatch  = tt.wantMatch
 			wantErr    = tt.wantErr
 		)
+
+		require.NoError(t, constraint.PrepareForEvaluation())
 
 		t.Run(tt.name, func(t *testing.T) {
 			match, err := matchesNumber(constraint, value)
@@ -1509,6 +1510,328 @@ func Test_matchesNumber(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
+		})
+	}
+}
+
+func Test_matchesStringWithPreparedSets(t *testing.T) {
+	tests := []struct {
+		name       string
+		constraint storage.EvaluationConstraint
+		value      string
+		wantMatch  bool
+	}{
+		{
+			name: "is one of (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "isoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `["bar", "baz"]`,
+			},
+			value:     "baz",
+			wantMatch: true,
+		},
+		{
+			name: "negative is one of (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "isoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `["bar", "baz"]`,
+			},
+			value: "nope",
+		},
+		{
+			name: "is not one of (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "isnotoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `["bar", "baz"]`,
+			},
+			value: "baz",
+		},
+		{
+			name: "negative is not one of (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "isnotoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `["bar", "baz"]`,
+			},
+			value:     "nope",
+			wantMatch: true,
+		},
+		{
+			name: "is one of many values (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "tenant",
+				Operator: "isoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `["tenant-0","tenant-1","tenant-2","tenant-3","tenant-4","tenant-5","tenant-6","tenant-7","tenant-8","tenant-9"]`,
+			},
+			value:     "tenant-7",
+			wantMatch: true,
+		},
+		{
+			name: "is not in many values (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "tenant",
+				Operator: "isoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `["tenant-0","tenant-1","tenant-2","tenant-3","tenant-4","tenant-5","tenant-6","tenant-7","tenant-8","tenant-9"]`,
+			},
+			value: "tenant-99",
+		},
+	}
+	for _, tt := range tests {
+		constraint := tt.constraint
+		if constraint.StringSet == nil {
+			require.NoError(t, constraint.PrepareForEvaluation())
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			require.NotNil(t, constraint.StringSet, "StringSet should be populated after PrepareForEvaluation")
+			match, err := matchesString(constraint, tt.value)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantMatch, match)
+		})
+	}
+}
+
+func TestPrepareForEvaluation_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		constraint storage.EvaluationConstraint
+		wantErr    string
+	}{
+		{
+			name: "invalid JSON for string set",
+			constraint: storage.EvaluationConstraint{
+				Property: "tenant",
+				Operator: "isoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `["bar", "baz"`,
+			},
+			wantErr: `constraint "tenant": parsing string set`,
+		},
+		{
+			name: "non-string values in string set",
+			constraint: storage.EvaluationConstraint{
+				Property: "tenant",
+				Operator: "isnotoneof",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `[1, 2, 3]`,
+			},
+			wantErr: `constraint "tenant": parsing string set`,
+		},
+		{
+			name: "invalid JSON for number set",
+			constraint: storage.EvaluationConstraint{
+				Property: "age",
+				Operator: "isoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Value:    `not json`,
+			},
+			wantErr: `constraint "age": parsing number set`,
+		},
+		{
+			name: "non-number values in number set",
+			constraint: storage.EvaluationConstraint{
+				Property: "age",
+				Operator: "isnotoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Value:    `["a", "b"]`,
+			},
+			wantErr: `constraint "age": parsing number set`,
+		},
+		{
+			name: "invalid number for scalar operator",
+			constraint: storage.EvaluationConstraint{
+				Property: "age",
+				Operator: "gte",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Value:    "not a number",
+			},
+			wantErr: `constraint "age": parsing number`,
+		},
+		{
+			name: "no error for string eq with arbitrary value",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "eq",
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Value:    `not json`,
+			},
+		},
+		{
+			name: "no error for valid number scalar",
+			constraint: storage.EvaluationConstraint{
+				Property: "age",
+				Operator: "lt",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Value:    "42.5",
+			},
+		},
+		{
+			name: "invalid datetime",
+			constraint: storage.EvaluationConstraint{
+				Property: "created_at",
+				Operator: "gte",
+				Type:     core.ComparisonType_DATETIME_COMPARISON_TYPE,
+				Value:    "not a date",
+			},
+			wantErr: `constraint "created_at": parsing datetime from "not a date"`,
+		},
+		{
+			name: "no error for valid RFC3339 datetime",
+			constraint: storage.EvaluationConstraint{
+				Property: "created_at",
+				Operator: "gte",
+				Type:     core.ComparisonType_DATETIME_COMPARISON_TYPE,
+				Value:    "2024-01-15T10:30:00Z",
+			},
+		},
+		{
+			name: "no error for valid DateOnly datetime",
+			constraint: storage.EvaluationConstraint{
+				Property: "created_at",
+				Operator: "eq",
+				Type:     core.ComparisonType_DATETIME_COMPARISON_TYPE,
+				Value:    "2024-01-15",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.constraint.PrepareForEvaluation()
+			if tt.wantErr != "" {
+				require.ErrorContains(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func Test_matchesString_ErrorsWithoutPrepare(t *testing.T) {
+	c := storage.EvaluationConstraint{
+		Property: "tenant",
+		Operator: "isoneof",
+		Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+		Value:    `["a","b"]`,
+	}
+	match, err := matchesString(c, "a")
+	require.Error(t, err)
+	var ierr errs.ErrInvalid
+	require.ErrorAs(t, err, &ierr)
+	assert.False(t, match)
+}
+
+func Test_matchesNumber_ErrorsWithoutPrepare(t *testing.T) {
+	t.Run("is not one of", func(t *testing.T) {
+		c := storage.EvaluationConstraint{
+			Property: "count",
+			Operator: "isnotoneof",
+			Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+			Value:    `[1,2,3]`,
+		}
+		match, err := matchesNumber(c, "1")
+		require.Error(t, err)
+		var ierr errs.ErrInvalid
+		require.ErrorAs(t, err, &ierr)
+		assert.False(t, match)
+	})
+
+	t.Run("scalar eq", func(t *testing.T) {
+		c := storage.EvaluationConstraint{
+			Property: "count",
+			Operator: "eq",
+			Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+			Value:    "5",
+		}
+		match, err := matchesNumber(c, "1")
+		require.Error(t, err)
+		var ierr errs.ErrInvalid
+		require.ErrorAs(t, err, &ierr)
+		assert.False(t, match)
+	})
+
+	t.Run("scalar lt", func(t *testing.T) {
+		c := storage.EvaluationConstraint{
+			Property: "count",
+			Operator: "lt",
+			Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+			Value:    "5",
+		}
+		match, err := matchesNumber(c, "1")
+		require.Error(t, err)
+		var ierr errs.ErrInvalid
+		require.ErrorAs(t, err, &ierr)
+		assert.False(t, match)
+	})
+}
+
+func Test_matchesNumberWithPreparedSets(t *testing.T) {
+	tests := []struct {
+		name       string
+		constraint storage.EvaluationConstraint
+		value      string
+		wantMatch  bool
+	}{
+		{
+			name: "is one of (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "age",
+				Operator: "isoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Value:    `[1, 2, 3]`,
+			},
+			value:     "2",
+			wantMatch: true,
+		},
+		{
+			name: "negative is one of (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "age",
+				Operator: "isoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Value:    `[1, 2, 3]`,
+			},
+			value: "4",
+		},
+		{
+			name: "is not one of (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "age",
+				Operator: "isnotoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Value:    `[1, 2, 3]`,
+			},
+			value: "2",
+		},
+		{
+			name: "negative is not one of (prepared)",
+			constraint: storage.EvaluationConstraint{
+				Property: "age",
+				Operator: "isnotoneof",
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Value:    `[1, 2, 3]`,
+			},
+			value:     "4",
+			wantMatch: true,
+		},
+	}
+	for _, tt := range tests {
+		constraint := tt.constraint
+		require.NoError(t, constraint.PrepareForEvaluation())
+
+		t.Run(tt.name, func(t *testing.T) {
+			require.NotNil(t, constraint.NumberSet, "NumberSet should be populated after PrepareForEvaluation")
+			match, err := matchesNumber(constraint, tt.value)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantMatch, match)
 		})
 	}
 }
@@ -1904,7 +2227,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 							ID:      "1",
 							FlagKey: flagKey,
 							Rank:    0,
-							Segments: map[string]*storage.EvaluationSegment{
+							Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 								"segment-1": {
 									SegmentKey: "segment-1",
 									MatchType:  core.MatchType_ALL_MATCH_TYPE,
@@ -1918,7 +2241,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 										},
 									},
 								},
-							},
+							}),
 						},
 					}, nil)
 
@@ -2065,7 +2388,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 							ID:      "1",
 							FlagKey: variantFlagKey,
 							Rank:    0,
-							Segments: map[string]*storage.EvaluationSegment{
+							Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
 								"segment-1": {
 									SegmentKey: "segment-1",
 									MatchType:  core.MatchType_ALL_MATCH_TYPE,
@@ -2079,7 +2402,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 										},
 									},
 								},
-							},
+							}),
 						},
 					}, nil)
 

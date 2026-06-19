@@ -148,15 +148,10 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 	}
 
 	var (
-		namespaceKey   = getNamespace(ctx)
-		flagKeys, ok   = r.Context["flags"]
-		keys           = strings.Split(flagKeys, ",")
-		snapshotDigest string
+		namespaceKey = getNamespace(ctx)
+		flagKeys, ok = r.Context["flags"]
+		keys         = strings.Split(flagKeys, ",")
 	)
-
-	if sn, err := env.EvaluationNamespaceSnapshot(ctx, namespaceKey); err == nil {
-		snapshotDigest = sn.GetDigest()
-	}
 
 	if !ok {
 		flags, err := store.ListFlags(ctx, storage.ListWithOptions(storage.NewNamespace(namespaceKey)))
@@ -195,7 +190,7 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 		_, _ = hmac.WriteString(resp.Variant)
 	}
 
-	etag := fmt.Sprintf("%08x", hmac.Sum64())
+	etag := fmt.Sprintf("W/\"%08x\"", hmac.Sum64())
 	_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
 	err = nil
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
@@ -211,7 +206,7 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 		EventStreams: []*ofrep.EventStream{{
 			Type: "sse",
 			Endpoint: &ofrep.EventStreamEndpoint{
-				RequestUri: fmt.Sprintf("/client/v2/environments/%s/namespaces/%s/stream?digest=%s", env.Key(), namespaceKey, snapshotDigest),
+				RequestUri: fmt.Sprintf("/ofrep/v1/_stream/%s/%s/events", env.Key(), namespaceKey),
 			},
 		}},
 	}, err

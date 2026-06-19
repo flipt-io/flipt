@@ -19,6 +19,7 @@ import (
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server/authn/method"
+	"go.flipt.io/flipt/internal/server/common"
 	ofrep_middleware "go.flipt.io/flipt/internal/server/evaluation/ofrep"
 	grpc_middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	http_middleware "go.flipt.io/flipt/internal/server/middleware/http"
@@ -47,6 +48,18 @@ type HTTPServer struct {
 	listenAndServe func() error
 }
 
+// newCORSHandler creates the CORS middleware handler from config.
+func newCORSHandler(cfg *config.Config) func(http.Handler) http.Handler {
+	return cors.New(cors.Options{
+		AllowedOrigins:   cfg.Cors.AllowedOrigins,
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedHeaders:   cfg.Cors.AllowedHeaders,
+		ExposedHeaders:   []string{"Link", "Etag"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}).Handler
+}
+
 // NewHTTPServer constructs and configures the HTTPServer instance.
 // The HTTPServer depends upon a running gRPC server instance which is why
 // it explicitly requires and established gRPC connection as an argument.
@@ -71,14 +84,17 @@ func NewHTTPServer(
 		evaluateAPI = gateway.NewGatewayServeMux(logger,
 			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment))
 
-		clientEvaluationAPI = gateway.NewGatewayServeMux(logger,
+		clientEvaluationAPI = gateway.NewGatewayServeMux(
+			logger,
+			runtime.WithMetadata(grpc_middleware.ForwardOFREPStreamMarker),
 			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment),
 			runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier),
 		)
 
 		analyticsAPI = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment))
 
-		ofrepAPI = gateway.NewGatewayServeMux(logger,
+		ofrepAPI = gateway.NewGatewayServeMux(
+			logger,
 			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment),
 			runtime.WithMetadata(grpc_middleware.ForwardFliptNamespace),
 			runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier),
@@ -121,16 +137,7 @@ func NewHTTPServer(
 	}
 
 	if cfg.Cors.Enabled {
-		cors := cors.New(cors.Options{
-			AllowedOrigins:   cfg.Cors.AllowedOrigins,
-			AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-			AllowedHeaders:   cfg.Cors.AllowedHeaders,
-			ExposedHeaders:   []string{"Link"},
-			AllowCredentials: true,
-			MaxAge:           300,
-		})
-
-		r.Use(cors.Handler)
+		r.Use(newCORSHandler(cfg))
 		logger.Debug("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
 	}
 
@@ -187,6 +194,11 @@ func NewHTTPServer(
 
 		r.Mount("/api/v1", api)
 		r.Mount("/evaluate/v1", evaluateAPI)
+
+		// OFREP stream alias: must be registered before the /ofrep mount so the
+		// specific route takes precedence over the OFREP gateway catch-all.
+		r.Get("/ofrep/v1/_stream/{environmentKey}/{namespaceKey}/events", ofrepStreamHandler(clientEvaluationAPI))
+
 		r.Mount("/ofrep", ofrepAPI)
 		r.Mount("/internal/v1", clientEvaluationAPI) // for backwards compatibility
 
@@ -297,4 +309,36 @@ func removeTrailingSlash(h http.Handler) http.Handler {
 		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
 		h.ServeHTTP(w, r)
 	})
+}
+
+// ofrepStreamHandler returns an http.HandlerFunc that rewrites OFREP stream
+// requests to the existing client evaluation stream endpoint.
+//
+// Only SSE (text/event-stream) requests are accepted; all others receive 406.
+// An internal context marker is set so the downstream gateway metadata callback
+// can forward it as gRPC metadata, conditionally skipping authentication
+// when authentication.exclude.ofrep is enabled.
+func ofrepStreamHandler(next http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Only accept SSE (text/event-stream) requests for the stream endpoint.
+		if !strings.HasPrefix(r.Header.Get("Accept"), "text/event-stream") {
+			http.Error(w, "text/event-stream is the only supported content type for this endpoint", http.StatusNotAcceptable)
+			return
+		}
+
+		// Set context marker to identify this as an OFREP stream alias request.
+		r = r.WithContext(common.WithOFREPStream(r.Context()))
+
+		// Override Accept to text/event-stream so grpc-gateway selects the
+		// eventSourceMarshaler instead of the wildcard JSON marshaler,
+		// preventing full snapshot proto responses.
+		r.Header.Set("Accept", "text/event-stream")
+
+		environmentKey := chi.URLParam(r, "environmentKey")
+		namespaceKey := chi.URLParam(r, "namespaceKey")
+
+		r.URL.Path = fmt.Sprintf("/client/v2/environments/%s/namespaces/%s/stream", environmentKey, namespaceKey)
+
+		next.ServeHTTP(w, r)
+	}
 }

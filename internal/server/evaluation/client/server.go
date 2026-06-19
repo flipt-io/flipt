@@ -1,13 +1,11 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"time"
 
-	"crypto/sha1" //nolint:gosec
-
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/server/metrics"
@@ -17,6 +15,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 )
 
 // getEnvironmentFromContext retrieves the environment by key. If environment isn't found by key, it falls back to retrieving it from the context.
@@ -37,10 +36,24 @@ type Server struct {
 	envs   evaluation.EnvironmentStore
 
 	rpcevaluation.UnimplementedClientEvaluationServiceServer
+
+	skipOFREPAuthn bool
 }
 
-func NewServer(logger *zap.Logger, envs evaluation.EnvironmentStore) *Server {
-	return &Server{logger: logger, envs: envs}
+type Option func(*Server)
+
+func WithSkipOFREPAuthn(skip bool) Option {
+	return func(s *Server) {
+		s.skipOFREPAuthn = skip
+	}
+}
+
+func NewServer(logger *zap.Logger, envs evaluation.EnvironmentStore, opts ...Option) *Server {
+	s := &Server{logger: logger, envs: envs}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 // RegisterGRPC registers the *Server onto the provided grpc Server.
@@ -102,17 +115,18 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 		ctx        = stream.Context()
 	)
 
+	if d := len(r.GetDigest()); d > 0 && d != 40 {
+		return errors.InvalidFieldError("digest", "must be a 40-character string")
+	}
+
 	env, err := s.getCurrentEnvironment(ctx, r.EnvironmentKey)
 	if err != nil {
 		return err
 	}
 
 	var (
-		//nolint:gosec // this is a hash for a stream
-		hash = sha1.New()
-		// lastDigest is the digest of the last snapshot we sent
-		// this includes all namespaces
-		lastDigest []byte
+		// lastDigest tracks the digest of the last snapshot we sent
+		lastDigest = r.GetDigest()
 
 		environmentKey = env.Key()
 		namespaceKey   = r.Key
@@ -162,29 +176,42 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 				continue
 			}
 
-			// Skip sending data the client already has (digest unchanged).
-			if r.GetDigest() == snap.GetDigest() {
-				continue
-			}
-
-			hash.Write([]byte(snap.Digest))
-
 			// only send the snapshot if we have a new digest
-			if digest := hash.Sum(nil); !bytes.Equal(lastDigest, digest) {
+			if snap.Digest != lastDigest {
 				if err := stream.Send(snap); err != nil {
 					metrics.EvaluationsStreamErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
 					s.logger.Error("error sending evaluation namespace snapshot", zap.Error(err), zap.String("namespace", namespaceKey), zap.String("environment", environmentKey))
 					return err
 				}
 				metrics.EvaluationsStreamMessagesTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
-				lastDigest = digest
+				lastDigest = snap.Digest
 			}
-
-			hash.Reset()
 		}
 	}
 }
 
 func (s *Server) SkipsAuthorization(ctx context.Context) bool {
+	return true
+}
+
+func (s *Server) SkipsAuthentication(ctx context.Context) bool {
+	if !s.skipOFREPAuthn {
+		return false
+	}
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return false
+	}
+
+	if vals := md.Get(common.HeaderFliptOFREPStream); len(vals) == 0 || vals[0] != "true" {
+		return false
+	}
+
+	p, ok := peer.FromContext(ctx)
+	if !ok || p.Addr.Network() != "inproc" {
+		return false
+	}
+
 	return true
 }

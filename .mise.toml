@@ -3,7 +3,7 @@ go = "1.26"
 node = "20"
 golangci-lint = "2.12.2"
 buf = "1.70.0"
-dagger = "0.20.3"
+dagger = "0.21.0"
 mockery = "3.7.0"
 
 [tasks.bootstrap]
@@ -212,6 +212,7 @@ run = """
 set -euo pipefail
 echo " > Formatting..."
 golangci-lint fmt
+buf format --write
 """
 
 [tasks."go:lint"]
@@ -298,6 +299,15 @@ grep -rl --include='*_test.go' 'func Fuzz' . | while read -r file; do
     (cd "$mod_root" && go test -run='^$' -fuzz="^${func}$" -fuzztime="$FUZZ_TIME" -timeout=0 "$pkg_rel")
   done
 done
+"""
+
+[tasks."dagger:integration"]
+alias = "di"
+description = "Run a Dagger integration test by name (e.g. mise di signing/azure)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+dagger call test --source . integration --cases="$*"
 """
 
 [tasks."go:generate"]

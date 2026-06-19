@@ -1,6 +1,6 @@
 {
   "name": "flipt",
-  "engineVersion": "v0.20.3",
+  "engineVersion": "v0.21.0",
   "sdk": {
     "source": "go"
   },

@@ -751,7 +751,8 @@
             "X-CSRF-Token",
             "X-Flipt-Accept-Server-Version",
             "X-Flipt-Environment",
-            "X-Flipt-Namespace"
+            "X-Flipt-Namespace",
+            "If-None-Match"
           ]
         }
       }
@@ -767,7 +768,7 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "default": true
+              "default": false
             }
           }
         }

@@ -49,7 +49,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "~> v2.14"
-          args: build --clean -f .goreleaser.${{ matrix.name }}.yml
+          args: build -f .goreleaser.${{ matrix.name }}.yml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

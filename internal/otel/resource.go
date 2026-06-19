@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.41.0"
 )
 
 var (
@@ -14,7 +14,7 @@ var (
 	resourceErr  error
 )
 
-// newResource constructs a trace resource with Flipt-specific attributes.
+// NewResource constructs a trace resource with Flipt-specific attributes.
 // It incorporates schema URL, service name, service version, and OTLP environment data
 func NewResource(ctx context.Context, fliptVersion string) (*resource.Resource, error) {
 	resourceOnce.Do(func() {

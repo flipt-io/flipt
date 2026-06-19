@@ -3,10 +3,10 @@ name: PR Review
 # AI code review for PRs targeting v2, including PRs from forks.
 #
 # Uses `pull_request_target` (not `pull_request`) on purpose: a `pull_request`
-# event from a fork gets a read-only token with no secrets or GitHub Models
-# access, so the reviewer couldn't call the model or post a review. With
+# event from a fork gets a read-only token with no repo secrets, so the
+# reviewer couldn't reach Cloudflare Workers AI or post a review. With
 # `pull_request_target` the job runs in the base-repo context with a writable
-# token + `models: read`.
+# token and access to CLOUDFLARE_* secrets.
 #
 # SECURITY: this is safe ONLY because the reviewer never checks out or executes
 # the PR's code — it reads the diff via the `gh` API. Do NOT add
@@ -21,7 +21,6 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  models: read
 
 concurrency:
   group: pr-review-${{ github.event.pull_request.number }}
@@ -35,8 +34,16 @@ jobs:
     timeout-minutes: 30
     steps:
       # Default ref is the base branch (v2), NOT the PR head — keep it that way.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: flipt-io/agents/actions/pr-review@main # pin to a tag/SHA to freeze the reviewer
+        env:
+          # pi-ai's cloudflare-workers-ai provider reads these directly from
+          # process.env — passed through the composite action's inherited env.
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
           pr-number: ${{ github.event.pull_request.number }}
+          # Kimi K2.6 on Cloudflare Workers AI — 262k context, reasoning,
+          # vision, tool calling. Big enough for non-trivial diffs.
+          model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6

@@ -180,12 +180,13 @@ JsonPath: string
 			"X-Flipt-Accept-Server-Version",
 			"X-Flipt-Environment",
 			"X-Flipt-Namespace",
+			"If-None-Match",
 		]
 	}
 
 	#diagnostics: {
 		profiling?: {
-			enabled?: bool | *true
+			enabled?: bool | *false
 		}
 	}
 

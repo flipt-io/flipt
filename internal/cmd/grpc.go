@@ -262,7 +262,7 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("building environments server: %w", err)
 	}
 
-	clientevalsrv := serverclientevaluation.NewServer(logger, environmentStore)
+	clientevalsrv := serverclientevaluation.NewServer(logger, environmentStore, serverclientevaluation.WithSkipOFREPAuthn(cfg.Authentication.Exclude.OFREP))
 
 	var (
 		// authnOpts is a slice of options that will be passed to the authentication service.

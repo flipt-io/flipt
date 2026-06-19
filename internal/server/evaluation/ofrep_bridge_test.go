@@ -12,7 +12,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
-	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.uber.org/zap/zaptest"
@@ -377,7 +376,7 @@ func TestOFREPFlagEvaluationBulkWithEtag(t *testing.T) {
 			metadata: map[string]string{
 				"x-flipt-environment":       "test-environment",
 				"x-flipt-namespace":         "test-namespace",
-				"GrpcGateway-If-None-Match": "7e427de9ffaef7ba",
+				"GrpcGateway-If-None-Match": `W/"7e427de9ffaef7ba"`,
 			},
 			flags: []*core.Flag{{
 				Key:     "test-flag",
@@ -458,14 +457,11 @@ func TestOFREPFlagEvaluationBulkWithEtag(t *testing.T) {
 				store          = storage.NewMockReadOnlyStore(t)
 				logger         = zaptest.NewLogger(t)
 				s              = New(logger, envStore)
-				namespaceKey   = "test-namespace"
 			)
 
 			environment.On("Key").Return(environmentKey)
 			envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 			environment.On("EvaluationStore").Return(store, nil)
-			environment.EXPECT().EvaluationNamespaceSnapshot(mock.Anything, namespaceKey).Return(&rpcevaluationv2.EvaluationNamespaceSnapshot{Digest: "abcdefg"}, nil).Maybe()
-
 			for _, flag := range tt.flags {
 				if flag.Key == "" {
 					continue
@@ -526,8 +522,6 @@ func TestOFREPFlagEvaluationBulk(t *testing.T) {
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
-	environment.EXPECT().EvaluationNamespaceSnapshot(mock.Anything, namespaceKey).Return(&rpcevaluationv2.EvaluationNamespaceSnapshot{Digest: "abcdefg"}, nil).Maybe()
-
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(flag, nil)
 
 	store.On("ListFlags", mock.Anything, mock.Anything).Return(storage.ResultSet[*core.Flag]{
@@ -586,6 +580,5 @@ func TestOFREPFlagEvaluationBulk(t *testing.T) {
 	stream := result.EventStreams[0]
 	assert.Equal(t, "sse", stream.Type)
 	assert.NotNil(t, stream.Endpoint)
-	assert.Equal(t, "/client/v2/environments/test-environment/namespaces/test-namespace/stream?digest=abcdefg", stream.Endpoint.GetRequestUri())
-	assert.Empty(t, stream.Endpoint.GetOrigin())
+	assert.Equal(t, "/ofrep/v1/_stream/test-environment/test-namespace/events", stream.Endpoint.GetRequestUri())
 }

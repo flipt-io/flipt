@@ -121,7 +121,7 @@ func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.O
 		}
 
 		for _, doc := range docs {
-			if err := s.addDoc(doc); err != nil {
+			if err := s.addDoc(logger, doc); err != nil {
 				return nil, err
 			}
 		}
@@ -249,7 +249,7 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 // codepaths (v1 types / eval).
 // The snapshot generated contains all the necessary state to serve server-side
 // evaluation as well as returning entire snapshot state for client-side evaluation.
-func (s *Snapshot) addDoc(doc *ext.Document) error {
+func (s *Snapshot) addDoc(logger *zap.Logger, doc *ext.Document) error {
 	var (
 		namespaceKey = doc.Namespace.GetKey()
 		ns           = s.ns[namespaceKey]
@@ -287,10 +287,8 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 				MatchType:   core.MatchType(matchType),
 			}
 			evalSnapSegment = &evaluation.EvaluationSegment{
-				Key:         s.Key,
-				Name:        s.Name,
-				Description: s.Description,
-				MatchType:   toEvaluationSegmentMatchType(core.MatchType(matchType)),
+				Key:       s.Key,
+				MatchType: toEvaluationSegmentMatchType(core.MatchType(matchType)),
 			}
 		)
 
@@ -330,13 +328,11 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 			// evaluation snapshot
 
 			evalSnapFlag = &evaluation.EvaluationFlag{
-				Key:         f.Key,
-				Name:        f.Name,
-				Description: f.Description,
-				Enabled:     f.Enabled,
-				Type:        toEvaluationFlagType(f.Type),
-				CreatedAt:   s.now,
-				UpdatedAt:   s.now,
+				Key:       f.Key,
+				Enabled:   f.Enabled,
+				Type:      toEvaluationFlagType(f.Type),
+				CreatedAt: s.now,
+				UpdatedAt: s.now,
 			}
 		)
 
@@ -435,11 +431,15 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 					})
 				}
 
-				segments[segmentKey] = &storage.EvaluationSegment{
-					SegmentKey:  segmentKey,
-					MatchType:   segment.MatchType,
-					Constraints: evc,
+				evalSeg, err := storage.NewEvaluationSegment(segmentKey, segment.MatchType, evc)
+				if err != nil {
+					logger.Error("skipping segment with malformed constraint",
+						zap.String("namespace", namespaceKey),
+						zap.String("segment", segmentKey),
+						zap.Error(err))
+					continue
 				}
+				segments[segmentKey] = evalSeg
 
 				if segment, ok := evalSnapSegments[segmentKey]; ok {
 					evalSnapRule.Segments = append(evalSnapRule.Segments, segment)
@@ -560,11 +560,15 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 						})
 					}
 
-					segments[segmentKey] = &storage.EvaluationSegment{
-						SegmentKey:  segmentKey,
-						MatchType:   segment.MatchType,
-						Constraints: constraints,
+					evalSeg, err := storage.NewEvaluationSegment(segmentKey, segment.MatchType, constraints)
+					if err != nil {
+						logger.Error("skipping segment with malformed constraint",
+							zap.String("namespace", namespaceKey),
+							zap.String("segment", segmentKey),
+							zap.Error(err))
+						continue
 					}
+					segments[segmentKey] = evalSeg
 
 					if segment, ok := evalSnapSegments[segmentKey]; ok {
 						evalSnapRolloutSegment.Segment.Segments = append(evalSnapRolloutSegment.Segment.Segments,
@@ -605,9 +609,17 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 		ns.evalRollouts[f.Key] = evalRollouts
 	}
 
-	ns.etag = doc.Etag
+	etag := doc.Etag
+	if ns.etag != "" {
+		hash := sha1.New() //nolint:gosec
+		hash.Write([]byte(ns.etag))
+		hash.Write([]byte(etag))
+		etag = fmt.Sprintf("%x", hash.Sum(nil))
+		etag = etag[:32] // truncate to 32 characters for consistency
+	}
+	ns.etag = etag
 	s.ns[namespaceKey] = ns
-	snap.Digest = doc.Etag
+	snap.Digest = ns.etag
 	s.evalSnap.Namespaces[namespaceKey] = snap
 	s.evalDists = evalDists
 
