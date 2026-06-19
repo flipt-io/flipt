@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
@@ -841,4 +842,27 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEtagWithFewDocs(t *testing.T) {
+	var (
+		snapshot = EmptySnapshot()
+		logger   = zaptest.NewLogger(t)
+	)
+
+	for _, etag := range []string{"1", "2", "3"} {
+		err := snapshot.addDoc(logger, &ext.Document{
+			Namespace: ext.DefaultNamespace,
+			Etag:      etag,
+		})
+		require.NoError(t, err)
+	}
+
+	nssnap, err := snapshot.getNamespace(ext.DefaultNamespace.GetKey())
+	require.NoError(t, err)
+	assert.Equal(t, "dc26c96ddf6430ed603862ffe5d3ac9a", nssnap.etag)
+
+	evalSnap, err := snapshot.EvaluationNamespaceSnapshot(t.Context(), ext.DefaultNamespace.GetKey())
+	require.NoError(t, err)
+	assert.Equal(t, "dc26c96ddf6430ed603862ffe5d3ac9a", evalSnap.Digest)
 }
