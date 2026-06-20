@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import {
-  selectAllEnvironments,
-  selectCurrentEnvironment
+  selectCurrentEnvironment,
+  selectEnvironments,
+  useListEnvironmentsQuery
 } from '~/app/environments/environmentsApi';
 import {
   selectCurrentNamespace,
-  selectNamespaces
+  selectNamespaces,
+  useListNamespacesQuery
 } from '~/app/namespaces/namespacesApi';
 
 import { Button } from '~/components/Button';
@@ -67,9 +69,21 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
   const { setError, clearError } = useError();
 
   const environment = useSelector(selectCurrentEnvironment);
-  const environments = useSelector(selectAllEnvironments);
+  const environmentsFromStore = useSelector(selectEnvironments);
   const namespace = useSelector(selectCurrentNamespace);
-  const namespaces = useSelector(selectNamespaces);
+  const namespacesFromStore = useSelector(selectNamespaces);
+  const { data: environmentsData } = useListEnvironmentsQuery();
+  const { data: namespacesData } = useListNamespacesQuery(
+    {
+      environmentKey: environment.key
+    },
+    { skip: !environment.key }
+  );
+
+  const environments = (
+    environmentsData?.environments ?? environmentsFromStore
+  ).filter((candidate) => !candidate.configuration?.base);
+  const namespaces = namespacesData?.items ?? namespacesFromStore;
 
   const environmentOptions = useMemo(
     () => environments.map(toSelectableEnvironment),
@@ -85,9 +99,7 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
     useState<SelectableEnvironment>();
   const [selectedNamespace, setSelectedNamespace] =
     useState<SelectableNamespace>();
-  const [namespaceOptions, setNamespaceOptions] = useState<
-    SelectableNamespace[]
-  >([]);
+  const [remoteNamespaces, setRemoteNamespaces] = useState<INamespace[]>([]);
   const [namespacesLoading, setNamespacesLoading] = useState(false);
 
   useEffect(() => {
@@ -106,8 +118,16 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
         (candidate) => candidate.key === initialEnvironmentKey
       ) || environmentOptions[0];
 
-    setSelectedEnvironment(initialEnvironment);
-  }, [open, environment.key, environmentOptions, hasAlternativeNamespace]);
+    if (selectedEnvironment?.key !== initialEnvironment.key) {
+      setSelectedEnvironment(initialEnvironment);
+    }
+  }, [
+    open,
+    environment.key,
+    environmentOptions,
+    hasAlternativeNamespace,
+    selectedEnvironment?.key
+  ]);
 
   useEffect(() => {
     if (!open || !selectedEnvironment?.key) {
@@ -116,8 +136,13 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
 
     let active = true;
 
-    setNamespacesLoading(true);
+    if (selectedEnvironment.key === environment.key) {
+      setRemoteNamespaces((current) => (current.length > 0 ? [] : current));
+      setNamespacesLoading((current) => (current ? false : current));
+      return;
+    }
 
+    setNamespacesLoading(true);
     request('GET', `${apiURL}/${selectedEnvironment.key}/namespaces`)
       .then((response) => {
         if (!active) {
@@ -126,24 +151,14 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
 
         const data = response as { items?: INamespace[] };
 
-        setNamespaceOptions(
-          (data.items ?? [])
-            .filter((candidate) => {
-              if (selectedEnvironment.key !== environment.key) {
-                return true;
-              }
-
-              return candidate.key !== namespace.key;
-            })
-            .map(toSelectableNamespace)
-        );
+        setRemoteNamespaces(data.items ?? []);
       })
       .catch((err) => {
         if (!active) {
           return;
         }
 
-        setNamespaceOptions([]);
+        setRemoteNamespaces([]);
         setError(err);
       })
       .finally(() => {
@@ -155,7 +170,36 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
     return () => {
       active = false;
     };
-  }, [environment.key, namespace.key, open, selectedEnvironment, setError]);
+  }, [
+    environment.key,
+    namespace.key,
+    open,
+    selectedEnvironment?.key,
+    setError
+  ]);
+
+  const namespaceOptions = useMemo(() => {
+    const availableNamespaces =
+      selectedEnvironment?.key === environment.key
+        ? namespaces
+        : remoteNamespaces;
+
+    return availableNamespaces
+      .filter((candidate) => {
+        if (selectedEnvironment?.key !== environment.key) {
+          return true;
+        }
+
+        return candidate.key !== namespace.key;
+      })
+      .map(toSelectableNamespace);
+  }, [
+    environment.key,
+    namespace.key,
+    namespaces,
+    remoteNamespaces,
+    selectedEnvironment?.key
+  ]);
 
   useEffect(() => {
     if (!open) {
@@ -163,21 +207,23 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
     }
 
     if (namespaceOptions.length === 0) {
-      setSelectedNamespace(undefined);
+      if (selectedNamespace) {
+        setSelectedNamespace(undefined);
+      }
       return;
     }
 
-    setSelectedNamespace((current) => {
-      if (!current) {
-        return namespaceOptions[0];
-      }
+    const next =
+      (selectedNamespace
+        ? namespaceOptions.find(
+            (candidate) => candidate.key === selectedNamespace.key
+          )
+        : undefined) || namespaceOptions[0];
 
-      return (
-        namespaceOptions.find((candidate) => candidate.key === current.key) ||
-        namespaceOptions[0]
-      );
-    });
-  }, [open, namespaceOptions]);
+    if (selectedNamespace?.key !== next.key) {
+      setSelectedNamespace(next);
+    }
+  }, [open, namespaceOptions, selectedNamespace]);
 
   const handleSubmit = () => {
     if (!selectedEnvironment || !selectedNamespace) {

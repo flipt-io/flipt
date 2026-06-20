@@ -11,15 +11,9 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { useParams } from 'react-router';
 
-import {
-  selectAllEnvironments,
-  selectCurrentEnvironment
-} from '~/app/environments/environmentsApi';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
-import {
-  selectCurrentNamespace,
-  selectNamespaces
-} from '~/app/namespaces/namespacesApi';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
 import { Badge } from '~/components/Badge';
 import Dropdown from '~/components/Dropdown';
@@ -54,8 +48,6 @@ export default function Flag() {
   const navigate = useNavigate();
 
   const environment = useSelector(selectCurrentEnvironment);
-  const environments = useSelector(selectAllEnvironments);
-  const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
 
   const revision = getRevision();
@@ -78,10 +70,6 @@ export default function Flag() {
 
   const [deleteFlag] = useDeleteFlagMutation();
   const [copyFlag] = useCopyFlagMutation();
-
-  const hasCopyDestinations =
-    namespaces.some((candidate) => candidate.key !== namespace.key) ||
-    environments.some((candidate) => candidate.key !== environment.key);
 
   useEffect(() => {
     if (isError) {
@@ -213,9 +201,8 @@ export default function Flag() {
             {
               id: 'flag-copy',
               label: 'Copy to Environment / Namespace',
-              disabled: !hasCopyDestinations,
               onClick: () => {
-                setShowCopyFlagModal(true);
+                window.setTimeout(() => setShowCopyFlagModal(true), 0);
               },
               icon: FilesIcon
             },
