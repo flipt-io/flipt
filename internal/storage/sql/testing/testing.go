@@ -15,6 +15,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
+	"github.com/moby/moby/api/types/network"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.flipt.io/flipt/config/migrations"
@@ -249,8 +250,8 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "postgres:11.2",
 			ExposedPorts: []string{"5432/tcp"},
-			WaitingFor: wait.ForSQL(port.Port(), "postgres", func(host string, port string) string {
-				return fmt.Sprintf("postgres://flipt:password@%s:%s/flipt_test?sslmode=disable", host, port)
+			WaitingFor: wait.ForSQL(port.Port(), "postgres", func(host string, port network.Port) string {
+				return fmt.Sprintf("postgres://flipt:password@%s:%s/flipt_test?sslmode=disable", host, port.Port())
 			}),
 			Env: map[string]string{
 				"POSTGRES_USER":     "flipt",
@@ -263,8 +264,8 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "cockroachdb/cockroach:latest-v24.2",
 			ExposedPorts: []string{"26257/tcp", "8080/tcp"},
-			WaitingFor: wait.ForSQL(port.Port(), "postgres", func(host string, port string) string {
-				return fmt.Sprintf("postgres://root@%s:%s/defaultdb?sslmode=disable", host, port)
+			WaitingFor: wait.ForSQL(port.Port(), "postgres", func(host string, port network.Port) string {
+				return fmt.Sprintf("postgres://root@%s:%s/defaultdb?sslmode=disable", host, port.Port())
 			}),
 			Env: map[string]string{
 				"COCKROACH_USER":     "root",
@@ -277,8 +278,8 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "mysql:8",
 			ExposedPorts: []string{"3306/tcp"},
-			WaitingFor: wait.ForSQL(port.Port(), "mysql", func(host string, port string) string {
-				return fmt.Sprintf("flipt:password@tcp(%s:%s)/flipt_test?multiStatements=true", host, port)
+			WaitingFor: wait.ForSQL(port.Port(), "mysql", func(host string, port network.Port) string {
+				return fmt.Sprintf("flipt:password@tcp(%s:%s)/flipt_test?multiStatements=true", host, port.Port())
 			}),
 			Env: map[string]string{
 				"MYSQL_USER":                 "flipt",
