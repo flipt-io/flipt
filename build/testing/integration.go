@@ -1066,11 +1066,7 @@ GOEOF
 		lowkeyVault := client.Container().
 			From("nagyesta/lowkey-vault:7.2.18").
 			WithFile("/import/backup.json", lowkeyImport).
-			// Register the vault with an alias matching the service hostname used by Dagger.
-			// Lowkey Vault creates vaults at https://<name>.localhost:<port> by default,
-			// so we alias it to the hostname that Flipt and the setup container will use.
-			// Note: <port> is a Lowkey Vault placeholder that is replaced at runtime with the --server.port value (8443).
-			WithEnvVariable("LOWKEY_ARGS", "--LOWKEY_VAULT_NAMES=default --LOWKEY_VAULT_ALIASES=default.localhost=lowkey-vault:<port>").
+			WithEnvVariable("LOWKEY_ARGS", "--LOWKEY_VAULT_NAMES=default").
 			WithEnvVariable("LOWKEY_IMPORT_LOCATION", "/import/backup.json").
 			WithEnvVariable("LOWKEY_IMPORT_TEMPLATE_HOST", "lowkey-vault").
 			WithEnvVariable("LOWKEY_IMPORT_TEMPLATE_PORT", "8443").
