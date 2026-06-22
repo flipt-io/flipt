@@ -92,13 +92,13 @@ close({
 #Constraint: ({
 	type:         "STRING_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
-	value?:       string
+	value?:       string | [...string]
 	description?: string | null
 	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof" | "contains" | "notcontains"
 } | {
 	type:         "NUMBER_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
-	value?:       string
+	value?:       string | [...number]
 	description?: string | null
 	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte" | "isoneof" | "isnotoneof"
 } | {
@@ -116,7 +116,7 @@ close({
 } | {
 	type:         "ENTITY_ID_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
-	value?:       string
+	value?:       string | [...string]
 	description?: string | null
 	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof" | "contains" | "notcontains"
 })

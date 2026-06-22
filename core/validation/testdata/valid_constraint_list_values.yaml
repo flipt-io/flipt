@@ -1,0 +1,47 @@
+namespace:
+  key: default
+  name: Default
+  description: default namespace
+flags:
+- key: flag1
+  name: Flag 1
+  type: VARIANT_FLAG_TYPE
+  enabled: true
+  rules:
+  - segment: segment1
+    distributions: []
+segments:
+- key: segment1
+  name: Segment 1
+  match_type: ANY_MATCH_TYPE
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: org
+    operator: isoneof
+    value:
+      - org-a
+      - org-b
+      - org-c
+  - type: STRING_COMPARISON_TYPE
+    property: country
+    operator: isnotoneof
+    value:
+      - US
+      - UK
+  - type: NUMBER_COMPARISON_TYPE
+    property: age
+    operator: isoneof
+    value:
+      - 18
+      - 21
+      - 65
+  - type: ENTITY_ID_COMPARISON_TYPE
+    property: user_id
+    operator: isoneof
+    value:
+      - user-1
+      - user-2
+  - type: STRING_COMPARISON_TYPE
+    property: env
+    operator: eq
+    value: production

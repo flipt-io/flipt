@@ -266,6 +266,94 @@ func TestSegmentStorage_PutResource(t *testing.T) {
 	})
 }
 
+func TestSegmentStorage_PutResource_IsOneOf(t *testing.T) {
+	ctx := context.TODO()
+	logger := zaptest.NewLogger(t)
+	storage := NewSegmentStorage(logger)
+
+	fs := fstesting.NewFilesystem(
+		t,
+		fstesting.WithDirectory(
+			"default",
+			fstesting.WithFile("features.yaml", defaultContents),
+		),
+	)
+
+	segment := &core.Segment{
+		Key:       "isoneof_segment",
+		Name:      "IsOneOf Segment",
+		MatchType: core.MatchType_ALL_MATCH_TYPE,
+		Constraints: []*core.Constraint{
+			{
+				Type:        core.ComparisonType_STRING_COMPARISON_TYPE,
+				Property:    "org",
+				Operator:    "isoneof",
+				Value:       `["org-a","org-b","org-c"]`,
+				Description: "allowed orgs",
+			},
+			{
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Property: "country",
+				Operator: "isnotoneof",
+				Value:    `["US","UK"]`,
+			},
+			{
+				Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property: "age",
+				Operator: "isoneof",
+				Value:    `[18,21,65]`,
+			},
+			{
+				Type:     core.ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+				Property: "user_id",
+				Operator: "isoneof",
+				Value:    `["user-1","user-2"]`,
+			},
+			{
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Property: "env",
+				Operator: "eq",
+				Value:    "production",
+			},
+		},
+	}
+
+	any, err := newAny(segment)
+	require.NoError(t, err)
+
+	err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
+		NamespaceKey: "default",
+		Key:          segment.Key,
+		Payload:      any,
+	})
+	require.NoError(t, err)
+
+	resource, err := storage.GetResource(ctx, fs, "default", segment.Key)
+	require.NoError(t, err)
+
+	var got core.Segment
+	err = resource.Payload.UnmarshalTo(&got)
+	require.NoError(t, err)
+
+	require.Len(t, got.Constraints, 5)
+
+	assert.Equal(t, "isoneof", got.Constraints[0].Operator)
+	assert.Equal(t, `["org-a","org-b","org-c"]`, got.Constraints[0].Value)
+	assert.Equal(t, "allowed orgs", got.Constraints[0].Description)
+
+	assert.Equal(t, "isnotoneof", got.Constraints[1].Operator)
+	assert.Equal(t, `["UK","US"]`, got.Constraints[1].Value)
+
+	assert.Equal(t, "isoneof", got.Constraints[2].Operator)
+	assert.Equal(t, `[18,21,65]`, got.Constraints[2].Value)
+
+	assert.Equal(t, "isoneof", got.Constraints[3].Operator)
+	assert.Equal(t, `["user-1","user-2"]`, got.Constraints[3].Value)
+
+	assert.Equal(t, "eq", got.Constraints[4].Operator)
+	assert.Equal(t, "production", got.Constraints[4].Value)
+}
+
 func TestSegmentStorage_DeleteResource(t *testing.T) {
 	ctx := context.TODO()
 	logger := zaptest.NewLogger(t)

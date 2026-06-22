@@ -866,3 +866,39 @@ func TestEtagWithFewDocs(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "dc26c96ddf6430ed603862ffe5d3ac9a", evalSnap.Digest)
 }
+
+func TestSnapshot_IsOneOf_OldJSONFormat(t *testing.T) {
+	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(config.TemplatesConfig{}), testdata)
+	require.NoError(t, err)
+
+	rules, err := snap.GetEvaluationRules(t.Context(), storage.NewResource("isoneof", "flag1"))
+	require.NoError(t, err)
+	require.Len(t, rules, 1)
+
+	segments := rules[0].Segments
+	require.Contains(t, segments, "org_segment")
+
+	seg := segments["org_segment"]
+	require.Len(t, seg.Constraints, 4)
+
+	assert.Equal(t, "isoneof", seg.Constraints[0].Operator)
+	assert.Equal(t, `["org-a","org-b","org-c"]`, seg.Constraints[0].Value)
+
+	assert.Equal(t, "isoneof", seg.Constraints[1].Operator)
+	assert.Equal(t, `[18,21,65]`, seg.Constraints[1].Value)
+
+	assert.Equal(t, "isnotoneof", seg.Constraints[2].Operator)
+	assert.Equal(t, `["US","UK"]`, seg.Constraints[2].Value)
+
+	assert.Equal(t, "eq", seg.Constraints[3].Operator)
+	assert.Equal(t, "production", seg.Constraints[3].Value)
+
+	for i := range seg.Constraints {
+		require.NoError(t, seg.Constraints[i].PrepareForEvaluation(),
+			"PrepareForEvaluation failed for constraint %d (%s)", i, seg.Constraints[i].Operator)
+	}
+
+	assert.Equal(t, map[string]struct{}{"org-a": {}, "org-b": {}, "org-c": {}}, seg.Constraints[0].StringSet)
+	assert.Equal(t, map[float64]struct{}{18: {}, 21: {}, 65: {}}, seg.Constraints[1].NumberSet)
+	assert.Equal(t, map[string]struct{}{"US": {}, "UK": {}}, seg.Constraints[2].StringSet)
+}
