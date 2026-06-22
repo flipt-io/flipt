@@ -24,7 +24,7 @@ jobs:
     outputs:
       tests: ${{ steps.extract.outputs.tests }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Extract test cases
         id: extract
         run: |
@@ -49,7 +49,7 @@ jobs:
       cache-key: ${{ steps.cache-key.outputs.key }}
       cached-image: ${{ steps.set-image.outputs.image }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
 
       - name: Generate Cache Key
@@ -131,7 +131,7 @@ jobs:
       matrix:
         test: ${{ fromJson(needs.discover-tests.outputs.tests) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
@@ -188,7 +188,7 @@ jobs:
       (needs.build-cache.result == 'success' || needs.build-cache.result == 'skipped')
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
 
       - name: Log in to Container Registry
