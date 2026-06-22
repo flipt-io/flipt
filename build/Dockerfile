@@ -1,6 +1,6 @@
 # https://goreleaser.com/docker/
 
-FROM alpine:3.24.0
+FROM alpine:3.24.1
 
 ARG BINARY=flipt
 ARG TARGETPLATFORM
