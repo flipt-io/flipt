@@ -1,4 +1,5 @@
-namespace: isoneof
+version: "1.6"
+namespace: isoneof_1_6
 flags:
   - key: flag1
     name: Flag 1
@@ -21,15 +22,23 @@ segments:
       - type: STRING_COMPARISON_TYPE
         property: org
         operator: isoneof
-        value: '["org-a","org-b","org-c"]'
+        value:
+          - org-a
+          - org-b
+          - org-c
       - type: NUMBER_COMPARISON_TYPE
         property: age
         operator: isoneof
-        value: '[18,21,65]'
+        value:
+          - 18
+          - 21
+          - 65
       - type: STRING_COMPARISON_TYPE
         property: country
         operator: isnotoneof
-        value: '["US","UK"]'
+        value:
+          - US
+          - UK
       - type: STRING_COMPARISON_TYPE
         property: env
         operator: eq

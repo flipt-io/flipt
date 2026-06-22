@@ -16,14 +16,14 @@ import (
 )
 
 var (
-	defaultContents = `version: "1.5"
+	defaultContents = `version: "1.6"
 namespace:
   key: default
   name: Default
   description: The default namespace
 `
 
-	teamAContents = `version: "1.5"
+	teamAContents = `version: "1.6"
 namespace:
   key: team_a
   name: Team A
@@ -130,7 +130,7 @@ func Test_NamespaceStorage_PutNamespace(t *testing.T) {
 		data, err := io.ReadAll(fi)
 		require.NoError(t, err)
 
-		assert.Equal(t, `version: "1.5"
+		assert.Equal(t, `version: "1.6"
 namespace:
   key: team_b
   name: Team B

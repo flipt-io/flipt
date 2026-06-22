@@ -527,6 +527,12 @@ func TestThresholdRule_ZeroPercentage_YAML(t *testing.T) {
 	}
 }
 
+func TestLatestVersionString(t *testing.T) {
+	got := LatestVersionString()
+	want := "1.6"
+	assert.Equal(t, want, got, "LatestVersionString should return %q", want)
+}
+
 func TestThresholdRule_ZeroPercentage_JSON(t *testing.T) {
 	tests := []struct {
 		name       string

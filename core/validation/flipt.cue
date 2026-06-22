@@ -1,4 +1,8 @@
-version: "1.0" | "1.1" | "1.2" | "1.3" | "1.4" | *"1.5"
+import "list"
+
+#versions: ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]
+
+version: "1.0" | "1.1" | "1.2" | "1.3" | "1.4" | "1.5" | *"1.6"
 
 close({
 	version:    version
@@ -20,13 +24,13 @@ close({
 	enabled:      bool | *false
 	variants: [...#Variant]
 	rules: [...#Rule]
-	if version == "1.1" || version == "1.2" || version == "1.3" || version == "1.4" || version == "1.5" {
+	if list.Contains(#versions[1:], version) { // 1.1 or later
 		type: "BOOLEAN_FLAG_TYPE" | *"VARIANT_FLAG_TYPE"
 		if type == "BOOLEAN_FLAG_TYPE" {
 			#FlagBoolean
 		}
 	}
-	if version == "1.3" || version == "1.4" || version == "1.5" {
+	if list.Contains(#versions[3:], version) { // 1.3 or later
 		metadata: [string]: !=null
 	}
 }
@@ -44,7 +48,7 @@ close({
 	name?:        string & =~"^.+$"
 	description?: string | null
 	attachment: {...} | [...] | *null
-	if version == "1.3" || version == "1.4" || version == "1.5" {
+	if list.Contains(#versions[3:], version) { // 1.3 or later
 		default: bool | *false
 	}
 }
@@ -92,15 +96,37 @@ close({
 #Constraint: ({
 	type:         "STRING_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
-	value?:       string | [...string]
+	value?:       string
 	description?: string | null
-	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof" | "contains" | "notcontains"
+	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "contains" | "notcontains"
+} | {
+	type:         "STRING_COMPARISON_TYPE"
+	property:     string & =~"^.+$"
+	if list.Contains(#versions[:6], version) { // before 1.6
+		value: string
+	}
+	if !list.Contains(#versions[:6], version) { // 1.6 or later
+		value: [...string]
+	}
+	description?: string | null
+	operator:     "isoneof" | "isnotoneof"
 } | {
 	type:         "NUMBER_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
-	value?:       string | [...number]
+	value?:       string
 	description?: string | null
-	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte" | "isoneof" | "isnotoneof"
+	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+} | {
+	type:         "NUMBER_COMPARISON_TYPE"
+	property:     string & =~"^.+$"
+	if list.Contains(#versions[:6], version) { // before 1.6
+		value: string
+	}
+	if !list.Contains(#versions[:6], version) { // 1.6 or later
+		value: [...number]
+	}
+	description?: string | null
+	operator:     "isoneof" | "isnotoneof"
 } | {
 	type:         "BOOLEAN_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
@@ -116,7 +142,18 @@ close({
 } | {
 	type:         "ENTITY_ID_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
-	value?:       string | [...string]
+	value?:       string
 	description?: string | null
-	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof" | "contains" | "notcontains"
+	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "contains" | "notcontains"
+} | {
+	type:         "ENTITY_ID_COMPARISON_TYPE"
+	property:     string & =~"^.+$"
+	if list.Contains(#versions[:6], version) { // before 1.6
+		value: string
+	}
+	if !list.Contains(#versions[:6], version) { // 1.6 or later
+		value: [...string]
+	}
+	description?: string | null
+	operator:     "isoneof" | "isnotoneof"
 })

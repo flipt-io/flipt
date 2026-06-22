@@ -14,9 +14,19 @@ import (
 
 var (
 	// LatestVersion is the current latest supported export format for flag state
-	LatestVersion = v1_5
-	v1_5          = semver.Version{Major: 1, Minor: 5}
+	LatestVersion = v1_6
+	v1_6          = semver.Version{Major: 1, Minor: 6}
 )
+
+// LatestVersionString returns the latest supported version string
+// in "major.minor" format (e.g. "1.6").
+func LatestVersionString() string {
+	version := LatestVersion.FinalizeVersion()
+	if LatestVersion.Patch == 0 {
+		version = fmt.Sprintf("%d.%d", LatestVersion.Major, LatestVersion.Minor)
+	}
+	return version
+}
 
 type Document struct {
 	Version   string          `yaml:"version,omitempty" json:"version,omitempty"`
