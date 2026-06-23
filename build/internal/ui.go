@@ -16,13 +16,13 @@ func UI(ctx context.Context, client *dagger.Client, source *dagger.Directory, re
 		nodeBase = client.Container().From(nodeBaseRef)
 		if _, err := nodeBase.Sync(ctx); err != nil {
 			// Build fresh Node.js base and cache it
-			nodeBase = client.Container().From("node:22-bullseye-slim")
+			nodeBase = client.Container().From("node:24-bullseye-slim")
 			// Cache this Node.js base layer
 			nodeBase.Publish(ctx, nodeBaseRef)
 		}
 	} else {
 		// No cache - use regular build
-		nodeBase = client.Container().From("node:22-bullseye-slim")
+		nodeBase = client.Container().From("node:24-bullseye-slim")
 	}
 
 	// Use cache volume for dependencies (more reliable than registry caching for npm)
