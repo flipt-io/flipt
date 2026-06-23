@@ -258,13 +258,8 @@ func derefOrZero[T any](t *T) (v T) {
 }
 
 func NewDocumentForNS(ns *ext.NamespaceEmbed) *ext.Document {
-	version := ext.LatestVersion.FinalizeVersion()
-	if ext.LatestVersion.Patch == 0 {
-		version = fmt.Sprintf("%d.%d", ext.LatestVersion.Major, ext.LatestVersion.Minor)
-	}
-
 	return &ext.Document{
-		Version:   version,
+		Version:   ext.LatestVersionString(),
 		Namespace: ns,
 	}
 }

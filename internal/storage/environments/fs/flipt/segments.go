@@ -150,6 +150,7 @@ func (f *SegmentStorage) PutResource(ctx context.Context, fs environmentsfs.File
 
 	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
+		doc.Version = ext.LatestVersionString()
 		if err := enc.Encode(doc); err != nil {
 			return err
 		}
@@ -231,6 +232,7 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 
 	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
+		doc.Version = ext.LatestVersionString()
 		if err := enc.Encode(doc); err != nil {
 			return err
 		}

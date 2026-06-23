@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/gobwas/glob"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -865,4 +866,54 @@ func TestEtagWithFewDocs(t *testing.T) {
 	evalSnap, err := snapshot.EvaluationNamespaceSnapshot(t.Context(), ext.DefaultNamespace.GetKey())
 	require.NoError(t, err)
 	assert.Equal(t, "dc26c96ddf6430ed603862ffe5d3ac9a", evalSnap.Digest)
+}
+
+func TestSnapshot_IsOneOf(t *testing.T) {
+	tests := []struct {
+		name      string
+		namespace string
+	}{
+		{name: "1.5 JSON string format", namespace: "isoneof_1_5"},
+		{name: "1.6 YAML list format", namespace: "isoneof_1_6"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			snap, err := SnapshotFromFS(zaptest.NewLogger(t), &Config{Matchers: []glob.Glob{
+				glob.MustCompile("*/features_1_*.yaml"),
+			}}, testdata)
+			require.NoError(t, err)
+
+			rules, err := snap.GetEvaluationRules(t.Context(), storage.NewResource(tt.namespace, "flag1"))
+			require.NoError(t, err)
+			require.Len(t, rules, 1)
+
+			segments := rules[0].Segments
+			require.Contains(t, segments, "org_segment")
+
+			seg := segments["org_segment"]
+			require.Len(t, seg.Constraints, 4)
+
+			assert.Equal(t, "isoneof", seg.Constraints[0].Operator)
+			assert.Equal(t, `["org-a","org-b","org-c"]`, seg.Constraints[0].Value)
+
+			assert.Equal(t, "isoneof", seg.Constraints[1].Operator)
+			assert.Equal(t, `[18,21,65]`, seg.Constraints[1].Value)
+
+			assert.Equal(t, "isnotoneof", seg.Constraints[2].Operator)
+			assert.Equal(t, `["US","UK"]`, seg.Constraints[2].Value)
+
+			assert.Equal(t, "eq", seg.Constraints[3].Operator)
+			assert.Equal(t, "production", seg.Constraints[3].Value)
+
+			for i := range seg.Constraints {
+				require.NoError(t, seg.Constraints[i].PrepareForEvaluation(),
+					"PrepareForEvaluation failed for constraint %d (%s)", i, seg.Constraints[i].Operator)
+			}
+
+			assert.Equal(t, map[string]struct{}{"org-a": {}, "org-b": {}, "org-c": {}}, seg.Constraints[0].StringSet)
+			assert.Equal(t, map[float64]struct{}{18: {}, 21: {}, 65: {}}, seg.Constraints[1].NumberSet)
+			assert.Equal(t, map[string]struct{}{"US": {}, "UK": {}}, seg.Constraints[2].StringSet)
+		})
+	}
 }

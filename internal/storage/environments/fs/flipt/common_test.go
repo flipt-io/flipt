@@ -1,7 +1,6 @@
 package flipt
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,27 +13,27 @@ import (
 )
 
 var (
-	defaultContents = `version: "1.5"
+	defaultContents = `version: "1.6"
 namespace:
   key: default
   name: Default
   description: The default namespace
 `
 
-	teamAContents = `version: "1.5"
+	teamAContents = `version: "1.6"
 namespace:
   key: team_a
   name: Team A
   description: The Team A namespace
 `
 
-	multiDocContents = `version: "1.5"
+	multiDocContents = `version: "1.6"
 namespace:
   key: team_b
   name: Team B
   description: The Team B namespace
 ---
-version: "1.5"
+version: "1.6"
 namespace:
   key: team_c
   name: Team C
@@ -61,7 +60,7 @@ namespace:
 )
 
 func Test_getDocsAndNamespace(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	tests := []struct {
 		name         string
@@ -124,7 +123,7 @@ func Test_getDocsAndNamespace(t *testing.T) {
 }
 
 func Test_parseNamespace(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	tests := []struct {
 		name         string
@@ -193,7 +192,7 @@ func Test_parseNamespace(t *testing.T) {
 			t,
 			fstesting.WithDirectory(
 				"empty_ns",
-				fstesting.WithFile("features.yaml", "version: \"1.5\"\nnamespace: {}\n"),
+				fstesting.WithFile("features.yaml", "version: \"1.6\"\nnamespace: {}\n"),
 			),
 		)
 

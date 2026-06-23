@@ -189,6 +189,7 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 
 	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
+		doc.Version = ext.LatestVersionString()
 		if err := enc.Encode(doc); err != nil {
 			return err
 		}
@@ -247,6 +248,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 
 	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
+		doc.Version = ext.LatestVersionString()
 		if err := enc.Encode(doc); err != nil {
 			return err
 		}
@@ -265,6 +267,10 @@ func newDocumentEncoder(wr io.Writer, filename string) documentEncoder {
 	docEnc := documentEncoder{buf: &bytes.Buffer{}, filename: filename}
 	docEnc.Encoder = yaml.NewEncoder(io.MultiWriter(wr, docEnc.buf))
 	return docEnc
+}
+
+func (e documentEncoder) Encode(doc *ext.Document) error {
+	return e.Encoder.Encode(doc)
 }
 
 func (e documentEncoder) Close() error {
