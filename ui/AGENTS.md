@@ -8,7 +8,7 @@ React 19 · TypeScript · Redux Toolkit + RTK Query · React Router v7 (hash rou
 
 ## Commands
 
-Node 20 (pinned in root `.mise.toml`). From the repo root:
+Node 24 (pinned in root `.mise.toml`). From the repo root:
 
 ```bash
 mise run ui:dev    # dev server on :5173, proxies API to backend :8080
