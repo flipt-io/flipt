@@ -13,7 +13,7 @@ Flipt v2 is a Git-native feature management platform (Go server + React UI) in a
 
 ## Tooling
 
-Tool versions are pinned in `.mise.toml` (**Go 1.26**, **Node 20**). Install [mise](https://mise.jdx.dev/), then:
+Tool versions are pinned in `.mise.toml` (**Go 1.26**, **Node 24**). Install [mise](https://mise.jdx.dev/), then:
 
 ```bash
 mise install        # install pinned Go/Node

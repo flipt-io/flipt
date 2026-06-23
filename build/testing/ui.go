@@ -91,7 +91,7 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container, source *dagger.Directory) (_ *dagger.Container, err error) {
 	cache := client.CacheVolume("node-modules-cache")
 
-	ui, err := client.Container().From("node:22-bullseye-slim").
+	ui, err := client.Container().From("node:24-bullseye-slim").
 		// initially mount only the package json
 		WithMountedDirectory("/src", client.Directory().
 			WithFile("package.json", source.File("package.json")).
