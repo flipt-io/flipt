@@ -1,7 +1,6 @@
 package flipt
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -82,7 +81,7 @@ flags:
 )
 
 func TestFlagStorage_GetResource(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewFlagStorage(logger)
 
@@ -149,7 +148,7 @@ func TestFlagStorage_GetResource(t *testing.T) {
 }
 
 func TestFlagStorage_ListResources(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewFlagStorage(logger)
 
@@ -210,7 +209,7 @@ func TestFlagStorage_ListResources(t *testing.T) {
 }
 
 func TestFlagStorage_PutResource(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewFlagStorage(logger)
 
@@ -505,7 +504,7 @@ segments:
 }
 
 func TestFlagStorage_DeleteResource(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewFlagStorage(logger)
 
