@@ -1,0 +1,41 @@
+name: Issue Health Check
+
+# AI health check for newly opened issues.
+#
+# The central issue-health action fetches the issue, asks the model for structured
+# actionability data, renders a comment, and applies only labels that already
+# exist in this repository. It does not create labels, close issues, assign
+# maintainers, or edit issue bodies.
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: issue-health-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  issue-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: flipt-io/agents/actions/issue-health@main # pin to a tag/SHA to freeze the checker
+        env:
+          # pi-ai's cloudflare-workers-ai provider reads these directly from
+          # process.env — passed through the composite action's inherited env.
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          # Isolated from .agents/pr-review consumers (personas/commands) so the
+          # two fleet agents don't read each other's config.
+          local-config-dir: .agents/issue-health
+          # Kimi K2.6 on Cloudflare Workers AI — matches the PR reviewer setup.
+          model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6
