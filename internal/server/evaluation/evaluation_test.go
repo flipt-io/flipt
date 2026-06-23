@@ -47,9 +47,11 @@ func metricCounterValue(t *testing.T, data *metricdata.ResourceMetrics, name str
 		for _, m := range sm.Metrics {
 			if m.Name == name {
 				if sum, ok := m.Data.(metricdata.Sum[int64]); ok {
+					var total int64
 					for _, dp := range sum.DataPoints {
-						return dp.Value
+						total += dp.Value
 					}
+					return total
 				}
 			}
 		}
