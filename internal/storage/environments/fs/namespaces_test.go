@@ -1,7 +1,6 @@
 package fs_test
 
 import (
-	"context"
 	"io"
 	"os"
 	"testing"
@@ -45,7 +44,7 @@ namespace:
 )
 
 func Test_NamespaceStorage_GetNamespace(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := fs.NewNamespaceStorage(logger)
 
@@ -81,7 +80,7 @@ func Test_NamespaceStorage_GetNamespace(t *testing.T) {
 }
 
 func Test_NamespaceStorage_ListNamespaces(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := fs.NewNamespaceStorage(logger)
 
@@ -112,7 +111,7 @@ func Test_NamespaceStorage_ListNamespaces(t *testing.T) {
 }
 
 func Test_NamespaceStorage_PutNamespace(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := fs.NewNamespaceStorage(logger)
 
@@ -200,7 +199,7 @@ flags:
 }
 
 func Test_NamespaceStorage_DeleteNamespace(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := fs.NewNamespaceStorage(logger)
 
@@ -217,7 +216,7 @@ func Test_NamespaceStorage_DeleteNamespace(t *testing.T) {
 // Test YML extension support
 
 func Test_NamespaceStorage_YMLExtensionSupport(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := fs.NewNamespaceStorage(logger)
 
@@ -308,7 +307,7 @@ namespace:
 }
 
 func Test_NamespaceStorage_MixedExtensions(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := fs.NewNamespaceStorage(logger)
 
@@ -367,7 +366,7 @@ namespace:
 }
 
 func Test_NamespaceStorage_NewNamespaceDefaultsToYAML(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := fs.NewNamespaceStorage(logger)
 

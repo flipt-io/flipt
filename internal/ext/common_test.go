@@ -46,33 +46,33 @@ func TestConstraint_MarshalYAML(t *testing.T) {
 			want: "type: STRING_COMPARISON_TYPE\nproperty: env\noperator: eq\nvalue: production\n",
 		},
 		{
-			name: "isoneof with invalid JSON falls back to string",
+			name: "isoneof with invalid JSON produces empty list",
 			constraint: Constraint{
 				Type:     "STRING_COMPARISON_TYPE",
 				Property: "org",
 				Operator: "isoneof",
 				Value:    "not-json",
 			},
-			want: "type: STRING_COMPARISON_TYPE\nproperty: org\noperator: isoneof\nvalue: not-json\n",
+			want: "type: STRING_COMPARISON_TYPE\nproperty: org\noperator: isoneof\nvalue: []\n",
 		},
 		{
-			name: "isoneof with empty value omits value",
+			name: "isoneof with empty value produces empty list",
 			constraint: Constraint{
 				Type:     "STRING_COMPARISON_TYPE",
 				Property: "org",
 				Operator: "isoneof",
 			},
-			want: "type: STRING_COMPARISON_TYPE\nproperty: org\noperator: isoneof\n",
+			want: "type: STRING_COMPARISON_TYPE\nproperty: org\noperator: isoneof\nvalue: []\n",
 		},
 		{
-			name: "isoneof with empty JSON array falls back to string",
+			name: "isoneof with empty JSON array produces empty list",
 			constraint: Constraint{
 				Type:     "STRING_COMPARISON_TYPE",
 				Property: "org",
 				Operator: "isoneof",
 				Value:    "[]",
 			},
-			want: "type: STRING_COMPARISON_TYPE\nproperty: org\noperator: isoneof\nvalue: '[]'\n",
+			want: "type: STRING_COMPARISON_TYPE\nproperty: org\noperator: isoneof\nvalue: []\n",
 		},
 		{
 			name: "isoneof sorts values alphabetically",
@@ -523,6 +523,257 @@ func TestThresholdRule_ZeroPercentage_YAML(t *testing.T) {
 			require.NoError(t, err)
 			assert.InDelta(t, threshold.Percentage, unmarshaled.Percentage, 0.001)
 			assert.Equal(t, threshold.Value, unmarshaled.Value)
+		})
+	}
+}
+
+func TestConstraint_MarshalJSON(t *testing.T) {
+	tests := []struct {
+		name       string
+		constraint Constraint
+		want       string
+	}{
+		{
+			name: "isoneof string array expands to list",
+			constraint: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "isoneof",
+				Value:    `["org-a","org-b","org-c"]`,
+			},
+			want: `{"type":"STRING_COMPARISON_TYPE","property":"org","operator":"isoneof","value":["org-a","org-b","org-c"]}`,
+		},
+		{
+			name: "isoneof number array expands to list",
+			constraint: Constraint{
+				Type:     "NUMBER_COMPARISON_TYPE",
+				Property: "age",
+				Operator: "isoneof",
+				Value:    `[18,21,65]`,
+			},
+			want: `{"type":"NUMBER_COMPARISON_TYPE","property":"age","operator":"isoneof","value":[18,21,65]}`,
+		},
+		{
+			name: "eq operator stays as string",
+			constraint: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "env",
+				Operator: "eq",
+				Value:    "production",
+			},
+			want: `{"type":"STRING_COMPARISON_TYPE","property":"env","operator":"eq","value":"production"}`,
+		},
+		{
+			name: "isoneof with invalid JSON produces empty list",
+			constraint: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "isoneof",
+				Value:    "not-json",
+			},
+			want: `{"type":"STRING_COMPARISON_TYPE","property":"org","operator":"isoneof","value":[]}`,
+		},
+		{
+			name: "isoneof with empty value produces empty list",
+			constraint: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "isoneof",
+			},
+			want: `{"type":"STRING_COMPARISON_TYPE","property":"org","operator":"isoneof","value":[]}`,
+		},
+		{
+			name: "isoneof with empty JSON array produces empty list",
+			constraint: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "isoneof",
+				Value:    "[]",
+			},
+			want: `{"type":"STRING_COMPARISON_TYPE","property":"org","operator":"isoneof","value":[]}`,
+		},
+		{
+			name: "isoneof sorts values alphabetically",
+			constraint: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "isoneof",
+				Value:    `["zebra","apple","mango"]`,
+			},
+			want: `{"type":"STRING_COMPARISON_TYPE","property":"org","operator":"isoneof","value":["apple","mango","zebra"]}`,
+		},
+		{
+			name: "isoneof with numeric-looking strings preserves quoting",
+			constraint: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "code",
+				Operator: "isoneof",
+				Value:    `["123","456"]`,
+			},
+			want: `{"type":"STRING_COMPARISON_TYPE","property":"code","operator":"isoneof","value":["123","456"]}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(&tt.constraint)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, string(data))
+		})
+	}
+}
+
+func TestConstraint_UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  Constraint
+	}{
+		{
+			name:  "JSON array of strings becomes JSON array",
+			input: `{"type":"STRING_COMPARISON_TYPE","property":"org","operator":"isoneof","value":["org-a","org-b"]}`,
+			want: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "isoneof",
+				Value:    `["org-a","org-b"]`,
+			},
+		},
+		{
+			name:  "JSON array of numbers becomes JSON array",
+			input: `{"type":"NUMBER_COMPARISON_TYPE","property":"age","operator":"isoneof","value":[18,21]}`,
+			want: Constraint{
+				Type:     "NUMBER_COMPARISON_TYPE",
+				Property: "age",
+				Operator: "isoneof",
+				Value:    `[18,21]`,
+			},
+		},
+		{
+			name:  "plain string value preserved",
+			input: `{"type":"STRING_COMPARISON_TYPE","property":"env","operator":"eq","value":"production"}`,
+			want: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "env",
+				Operator: "eq",
+				Value:    "production",
+			},
+		},
+		{
+			name:  "old JSON string format still works",
+			input: `{"type":"STRING_COMPARISON_TYPE","property":"org","operator":"isoneof","value":"[\"org-a\",\"org-b\"]"}`,
+			want: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "isoneof",
+				Value:    `["org-a","org-b"]`,
+			},
+		},
+		{
+			name:  "missing value gives empty string",
+			input: `{"type":"STRING_COMPARISON_TYPE","property":"org","operator":"empty"}`,
+			want: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "empty",
+			},
+		},
+		{
+			name:  "numeric scalar value",
+			input: `{"type":"NUMBER_COMPARISON_TYPE","property":"count","operator":"eq","value":42}`,
+			want: Constraint{
+				Type:     "NUMBER_COMPARISON_TYPE",
+				Property: "count",
+				Operator: "eq",
+				Value:    "42",
+			},
+		},
+		{
+			name:  "boolean scalar value",
+			input: `{"type":"BOOLEAN_COMPARISON_TYPE","property":"active","operator":"true","value":true}`,
+			want: Constraint{
+				Type:     "BOOLEAN_COMPARISON_TYPE",
+				Property: "active",
+				Operator: "true",
+				Value:    "true",
+			},
+		},
+		{
+			name:  "null value gives empty string",
+			input: `{"type":"STRING_COMPARISON_TYPE","property":"tag","operator":"empty","value":null}`,
+			want: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "tag",
+				Operator: "empty",
+			},
+		},
+		{
+			name:  "JSON array of floats",
+			input: `{"type":"NUMBER_COMPARISON_TYPE","property":"score","operator":"isoneof","value":[1.5,2.5]}`,
+			want: Constraint{
+				Type:     "NUMBER_COMPARISON_TYPE",
+				Property: "score",
+				Operator: "isoneof",
+				Value:    `[1.5,2.5]`,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got Constraint
+			err := json.Unmarshal([]byte(tt.input), &got)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestConstraint_JSON_RoundTrip(t *testing.T) {
+	tests := []struct {
+		name       string
+		constraint Constraint
+	}{
+		{
+			name: "isoneof string array",
+			constraint: Constraint{
+				Type:     "STRING_COMPARISON_TYPE",
+				Property: "org",
+				Operator: "isoneof",
+				Value:    `["org-a","org-b","org-c"]`,
+			},
+		},
+		{
+			name: "isnotoneof string array",
+			constraint: Constraint{
+				Type:        "STRING_COMPARISON_TYPE",
+				Property:    "country",
+				Operator:    "isnotoneof",
+				Value:       `["CA","UK","US"]`,
+				Description: "excluded countries",
+			},
+		},
+		{
+			name: "isoneof number array",
+			constraint: Constraint{
+				Type:     "NUMBER_COMPARISON_TYPE",
+				Property: "age",
+				Operator: "isoneof",
+				Value:    `[18,21,65]`,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(&tt.constraint)
+			require.NoError(t, err)
+
+			var got Constraint
+			err = json.Unmarshal(data, &got)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.constraint, got)
 		})
 	}
 }

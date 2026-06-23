@@ -1,7 +1,6 @@
 package flipt
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -54,7 +53,7 @@ segments:
 )
 
 func TestSegmentStorage_GetResource(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewSegmentStorage(logger)
 
@@ -121,7 +120,7 @@ func TestSegmentStorage_GetResource(t *testing.T) {
 }
 
 func TestSegmentStorage_ListResources(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewSegmentStorage(logger)
 
@@ -182,7 +181,7 @@ func TestSegmentStorage_ListResources(t *testing.T) {
 }
 
 func TestSegmentStorage_PutResource(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewSegmentStorage(logger)
 
@@ -267,7 +266,7 @@ func TestSegmentStorage_PutResource(t *testing.T) {
 }
 
 func TestSegmentStorage_PutResource_IsOneOf(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewSegmentStorage(logger)
 
@@ -315,6 +314,11 @@ func TestSegmentStorage_PutResource_IsOneOf(t *testing.T) {
 				Operator: "eq",
 				Value:    "production",
 			},
+			{
+				Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+				Property: "tag",
+				Operator: "isoneof",
+			},
 		},
 	}
 
@@ -335,7 +339,7 @@ func TestSegmentStorage_PutResource_IsOneOf(t *testing.T) {
 	err = resource.Payload.UnmarshalTo(&got)
 	require.NoError(t, err)
 
-	require.Len(t, got.Constraints, 5)
+	require.Len(t, got.Constraints, 6)
 
 	assert.Equal(t, "isoneof", got.Constraints[0].Operator)
 	assert.Equal(t, `["org-a","org-b","org-c"]`, got.Constraints[0].Value)
@@ -352,10 +356,13 @@ func TestSegmentStorage_PutResource_IsOneOf(t *testing.T) {
 
 	assert.Equal(t, "eq", got.Constraints[4].Operator)
 	assert.Equal(t, "production", got.Constraints[4].Value)
+
+	assert.Equal(t, "isoneof", got.Constraints[5].Operator)
+	assert.Equal(t, `[]`, got.Constraints[5].Value)
 }
 
 func TestSegmentStorage_DeleteResource(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 	logger := zaptest.NewLogger(t)
 	storage := NewSegmentStorage(logger)
 

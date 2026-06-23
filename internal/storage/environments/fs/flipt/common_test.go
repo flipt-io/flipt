@@ -1,7 +1,6 @@
 package flipt
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -61,7 +60,7 @@ namespace:
 )
 
 func Test_getDocsAndNamespace(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	tests := []struct {
 		name         string
@@ -124,7 +123,7 @@ func Test_getDocsAndNamespace(t *testing.T) {
 }
 
 func Test_parseNamespace(t *testing.T) {
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	tests := []struct {
 		name         string
