@@ -63,11 +63,31 @@ git commit -s -m "chore: release v<version>"
 - Tell the user to review and merge the PR.
 - Stop here and wait until the user confirms the PR has been merged.
 
-### 6. Create the annotated tag
+### 6. Create the annotated tag on the merged commit
 
-- Switch back to `v2`.
-- Pull the latest changes.
-- Create the annotated tag:
+The release PR is **squash-merged**, so the commit on `origin/v2` is a brand new
+commit (e.g. `chore: release v<version> (#NNNN)`) — not the commit from your local
+`release/v<version>` branch. The tag MUST point at the squashed commit on
+`origin/v2`. Tagging the local release-branch commit instead leaves the tag
+orphaned (not an ancestor of `v2`), which breaks goreleaser's changelog on the
+*next* release.
+
+- Sync your local `v2` to exactly match the remote merged commit:
+
+```text
+git fetch origin
+git checkout v2
+git reset --hard origin/v2
+```
+
+- Confirm `HEAD` is the squashed release commit (its subject should be
+  `chore: release v<version> (#NNNN)`):
+
+```text
+git log -1 --oneline
+```
+
+- Create the annotated tag on this commit:
 
 ```text
 git tag -a v<version> -m "Release v<version>"
@@ -76,9 +96,19 @@ git tag -a v<version> -m "Release v<version>"
 - Show the tag details to the user.
 - Stop and confirm before pushing the tag.
 
-### 7. Push the tag
+### 7. Verify reachability, then push the tag
 
-- Push the tag to `origin`.
+- Before pushing, verify the tag is an ancestor of `origin/v2`. If this check
+  fails, STOP — the tag is on the wrong commit and must be recreated (delete it
+  with `git tag -d v<version>` and redo step 6). Do not push an unreachable tag.
+
+```text
+git merge-base --is-ancestor v<version> origin/v2 \
+  && echo "OK: tag is reachable from origin/v2" \
+  || echo "FAIL: tag is NOT on origin/v2 — do not push"
+```
+
+- Only after the check prints `OK`, push the tag to `origin`.
 - Confirm the push succeeded.
 - Tell the user that CI should now build and publish the release artifacts.
 
@@ -86,5 +116,7 @@ git tag -a v<version> -m "Release v<version>"
 
 - Do not skip confirmation checkpoints.
 - Do not continue after the PR is opened until the user confirms it was merged.
+- Never push a tag that is not an ancestor of `origin/v2` (step 7). An orphaned
+  tag silently corrupts the changelog of the following release.
 - If repository policy conflicts with any step, surface the conflict before
   proceeding.
