@@ -150,64 +150,204 @@
       }
     },
     "stringComparisonOperator": {
-      "if": {
-        "properties": {
-          "type": {
-            "const": "STRING_COMPARISON_TYPE"
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "STRING_COMPARISON_TYPE"
+              }
+            },
+            "required": [
+              "operator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "operator": {
+                "enum": [
+                  "eq",
+                  "neq",
+                  "empty",
+                  "notempty",
+                  "prefix",
+                  "suffix",
+                  "contains",
+                  "notcontains",
+                  "isoneof",
+                  "isnotoneof"
+                ]
+              }
+            }
           }
         },
-        "required": [
-          "operator"
-        ]
-      },
-      "then": {
-        "properties": {
-          "operator": {
-            "enum": [
-              "eq",
-              "neq",
-              "empty",
-              "notempty",
-              "prefix",
-              "suffix",
-              "isoneof",
-              "isnotoneof",
-              "contains",
-              "notcontains"
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "STRING_COMPARISON_TYPE"
+              },
+              "operator": {
+                "not": {
+                  "enum": [
+                    "isoneof",
+                    "isnotoneof"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "STRING_COMPARISON_TYPE"
+              },
+              "operator": {
+                "enum": [
+                  "isoneof",
+                  "isnotoneof"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "operator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "value"
             ]
           }
         }
-      }
+      ]
     },
     "numberComparisonOperator": {
-      "if": {
-        "properties": {
-          "type": {
-            "const": "NUMBER_COMPARISON_TYPE"
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "NUMBER_COMPARISON_TYPE"
+              }
+            },
+            "required": [
+              "operator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "operator": {
+                "enum": [
+                  "eq",
+                  "neq",
+                  "present",
+                  "notpresent",
+                  "le",
+                  "lte",
+                  "gt",
+                  "gte",
+                  "isoneof",
+                  "isnotoneof"
+                ]
+              }
+            }
           }
         },
-        "required": [
-          "operator"
-        ]
-      },
-      "then": {
-        "properties": {
-          "operator": {
-            "enum": [
-              "eq",
-              "neq",
-              "present",
-              "notpresent",
-              "le",
-              "lte",
-              "gt",
-              "gte",
-              "isoneof",
-              "isnotoneof"
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "NUMBER_COMPARISON_TYPE"
+              },
+              "operator": {
+                "not": {
+                  "enum": [
+                    "isoneof",
+                    "isnotoneof"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "NUMBER_COMPARISON_TYPE"
+              },
+              "operator": {
+                "enum": [
+                  "isoneof",
+                  "isnotoneof"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "operator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "value"
             ]
           }
         }
-      }
+      ]
     },
     "booleanComparisonOperator": {
       "if": {
@@ -229,6 +369,9 @@
               "present",
               "notpresent"
             ]
+          },
+          "value": {
+            "type": "string"
           }
         }
       }
@@ -257,39 +400,112 @@
               "gt",
               "gte"
             ]
+          },
+          "value": {
+            "type": "string"
           }
         }
       }
     },
     "entityIdComparisonOperator": {
-      "if": {
-        "properties": {
-          "type": {
-            "const": "ENTITY_ID_COMPARISON_TYPE"
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ENTITY_ID_COMPARISON_TYPE"
+              }
+            },
+            "required": [
+              "operator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "operator": {
+                "enum": [
+                  "eq",
+                  "neq",
+                  "empty",
+                  "notempty",
+                  "prefix",
+                  "suffix",
+                  "contains",
+                  "notcontains",
+                  "isoneof",
+                  "isnotoneof"
+                ]
+              }
+            }
           }
         },
-        "required": [
-          "operator"
-        ]
-      },
-      "then": {
-        "properties": {
-          "operator": {
-            "enum": [
-              "eq",
-              "neq",
-              "empty",
-              "notempty",
-              "prefix",
-              "suffix",
-              "isoneof",
-              "isnotoneof",
-              "contains",
-              "notcontains"
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ENTITY_ID_COMPARISON_TYPE"
+              },
+              "operator": {
+                "not": {
+                  "enum": [
+                    "isoneof",
+                    "isnotoneof"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ENTITY_ID_COMPARISON_TYPE"
+              },
+              "operator": {
+                "enum": [
+                  "isoneof",
+                  "isnotoneof"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "operator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "value"
             ]
           }
         }
-      }
+      ]
     },
     "constraint": {
       "required": [
@@ -311,7 +527,23 @@
           "type": "string"
         },
         "value": {
-          "type": "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          ]
         },
         "description": {
           "type": "string"
@@ -332,6 +564,69 @@
         },
         {
           "$ref": "#/$defs/entityIdComparisonOperator"
+        }
+      ]
+    },
+    "constraintValueV16": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "STRING_COMPARISON_TYPE" },
+              "operator": { "enum": ["isoneof", "isnotoneof"] }
+            },
+            "required": ["type", "operator"]
+          },
+          "then": {
+            "properties": {
+              "value": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "NUMBER_COMPARISON_TYPE" },
+              "operator": { "enum": ["isoneof", "isnotoneof"] }
+            },
+            "required": ["type", "operator"]
+          },
+          "then": {
+            "properties": {
+              "value": { "type": "array", "items": { "type": "number" } }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "ENTITY_ID_COMPARISON_TYPE" },
+              "operator": { "enum": ["isoneof", "isnotoneof"] }
+            },
+            "required": ["type", "operator"]
+          },
+          "then": {
+            "properties": {
+              "value": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      ]
+    },
+    "constraintValuePre16": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operator": { "enum": ["isoneof", "isnotoneof"] }
+            },
+            "required": ["operator"]
+          },
+          "then": {
+            "properties": {
+              "value": { "type": "string" }
+            }
+          }
         }
       ]
     }
@@ -503,5 +798,49 @@
     "namespace",
     "flags",
     "segments"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "version": { "not": { "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5"] } }
+        },
+        "required": ["version"]
+      },
+      "then": {
+        "properties": {
+          "segments": {
+            "items": {
+              "properties": {
+                "constraints": {
+                  "items": { "$ref": "#/$defs/constraintValueV16" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "version": { "enum": ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5"] }
+        },
+        "required": ["version"]
+      },
+      "then": {
+        "properties": {
+          "segments": {
+            "items": {
+              "properties": {
+                "constraints": {
+                  "items": { "$ref": "#/$defs/constraintValuePre16" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   ]
 }
