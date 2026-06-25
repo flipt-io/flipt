@@ -249,7 +249,7 @@ func NewGRPCServer(
 	var (
 		// legacy services
 		metasrv    = metadata.New(cfg, info)
-		evalsrv    = evaluation.New(logger, environmentStore, evaluation.WithTracing(cfg.Tracing.Enabled || cfg.Analytics.Storage.Clickhouse.Enabled))
+		evalsrv    = evaluation.New(logger, environmentStore, evaluation.WithTracing(cfg.Tracing.Enabled || cfg.Analytics.Storage.Clickhouse.Enabled), evaluation.WithMetrics(cfg.Metrics.Enabled))
 		fliptv1srv = serverfliptv1.New(logger, environmentStore, serverfliptv1.WithFlagMetadata(cfg.Evaluation.IncludeFlagMetadata))
 		ofrepsrv   = ofrep.New(logger, evalsrv, environmentStore)
 
