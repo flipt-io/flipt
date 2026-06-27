@@ -37,7 +37,8 @@ func (s *Server) addEvaluationEvent(ctx context.Context, env environments.Enviro
 	}
 
 	baseAttrs := make([]attribute.KeyValue, 0, capacity)
-	baseAttrs = append(baseAttrs,
+	baseAttrs = append(
+		baseAttrs,
 		tracing.AttributeEnvironment.String(env.Key()),
 		tracing.AttributeNamespace.String(namespaceKey),
 		tracing.AttributeFlag.String(flagKey),
@@ -86,7 +87,8 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	if s.tracingEnabled {
-		s.addEvaluationEvent(ctx, env, r.NamespaceKey, r.FlagKey, r.EntityId, r.RequestId,
+		s.addEvaluationEvent(
+			ctx, env, r.NamespaceKey, r.FlagKey, r.EntityId, r.RequestId,
 			tracing.AttributeMatch.Bool(resp.Match),
 			tracing.AttributeVariant.String(resp.VariantKey),
 			tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
@@ -106,47 +108,45 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 		}
 		err      error
 		lastRank int32
-
-		startTime       = time.Now().UTC()
-		environmentAttr = metrics.AttributeEnvironment.String(env.Key())
-		namespaceAttr   = metrics.AttributeNamespace.String(r.NamespaceKey)
-		flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
 	)
-
-	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(environmentAttr, namespaceAttr, flagAttr)))
-
-	defer func() {
-		if err == nil {
-			metrics.EvaluationResultsTotal.Add(ctx, 1,
-				metric.WithAttributeSet(
-					attribute.NewSet(
-						environmentAttr,
-						namespaceAttr,
-						flagAttr,
-						metrics.AttributeMatch.Bool(resp.Match),
-						metrics.AttributeSegments.StringSlice(resp.SegmentKeys),
-						metrics.AttributeReason.String(resp.Reason.String()),
-						metrics.AttributeValue.String(resp.VariantKey),
-						metrics.AttributeFlagType.String("variant"),
-					),
-				),
-			)
-		} else {
-			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(environmentAttr, namespaceAttr, flagAttr)))
-		}
-
-		metrics.EvaluationLatency.Record(
-			ctx,
-			float64(time.Since(startTime).Nanoseconds())/1e6,
-			metric.WithAttributeSet(
-				attribute.NewSet(
-					environmentAttr,
-					namespaceAttr,
-					flagAttr,
-				),
-			),
+	if s.metricsEnabled {
+		var (
+			startTime       = time.Now().UTC()
+			environmentAttr = metrics.AttributeEnvironment.String(env.Key())
+			namespaceAttr   = metrics.AttributeNamespace.String(r.NamespaceKey)
+			flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
+			baseMetricSet   = attribute.NewSet(environmentAttr, flagAttr, namespaceAttr)
 		)
-	}()
+		metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(baseMetricSet))
+
+		defer func() {
+			if err == nil {
+				metrics.EvaluationResultsTotal.Add(
+					ctx, 1,
+					metric.WithAttributeSet(
+						attribute.NewSet(
+							environmentAttr,
+							flagAttr,
+							metrics.AttributeFlagType.String("variant"),
+							metrics.AttributeMatch.Bool(resp.Match),
+							namespaceAttr,
+							metrics.AttributeReason.String(resp.Reason.String()),
+							metrics.AttributeSegments.StringSlice(resp.SegmentKeys),
+							metrics.AttributeValue.String(resp.VariantKey),
+						),
+					),
+				)
+			} else {
+				metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(baseMetricSet))
+			}
+
+			metrics.EvaluationLatency.Record(
+				ctx,
+				float64(time.Since(startTime).Nanoseconds())/1e6,
+				metric.WithAttributeSet(baseMetricSet),
+			)
+		}()
+	}
 
 	if flag.DefaultVariant != nil {
 		dv, ok := getVariant(flag.GetDefaultVariant(), flag.Variants...)
@@ -185,6 +185,11 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 		return resp, nil
 	}
 
+	var (
+		matched        bool
+		reason         string
+		segmentMatches int
+	)
 	// rule loop
 	for _, rule := range rules {
 		if rule.Rank < lastRank {
@@ -193,11 +198,11 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 
 		lastRank = rule.Rank
 
-		segmentKeys := make([]string, 0, len(rule.Segments))
-		segmentMatches := 0
+		var segmentKeys []string
+		segmentMatches = 0
 
 		for k, v := range rule.Segments {
-			matched, reason, err := s.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
+			matched, reason, err = s.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 			if err != nil {
 				return resp, err
 			}
@@ -226,7 +231,8 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 			resp.SegmentKeys = segmentKeys
 		}
 
-		distributions, err := store.GetEvaluationDistributions(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey), storage.NewID(rule.ID))
+		var distributions []*storage.EvaluationDistribution
+		distributions, err = store.GetEvaluationDistributions(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey), storage.NewID(rule.ID))
 		if err != nil {
 			return resp, err
 		}
@@ -326,7 +332,8 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	if s.tracingEnabled {
-		s.addEvaluationEvent(ctx, env, r.NamespaceKey, r.FlagKey, r.EntityId, r.RequestId,
+		s.addEvaluationEvent(
+			ctx, env, r.NamespaceKey, r.FlagKey, r.EntityId, r.RequestId,
 			tracing.AttributeVariant.Bool(resp.Enabled),
 			tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
@@ -350,46 +357,45 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 		lastRank int32
 	)
 
-	var (
-		startTime       = time.Now().UTC()
-		environmentAttr = metrics.AttributeEnvironment.String(env.Key())
-		namespaceAttr   = metrics.AttributeNamespace.String(r.NamespaceKey)
-		flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
-	)
-
-	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(environmentAttr, namespaceAttr, flagAttr)))
-
-	defer func() {
-		if err == nil {
-			metrics.EvaluationResultsTotal.Add(ctx, 1,
-				metric.WithAttributeSet(
-					attribute.NewSet(
-						environmentAttr,
-						namespaceAttr,
-						flagAttr,
-						metrics.AttributeValue.Bool(resp.Enabled),
-						metrics.AttributeReason.String(resp.Reason.String()),
-						metrics.AttributeFlagType.String("boolean"),
-						metrics.AttributeSegments.StringSlice(resp.SegmentKeys),
-					),
-				),
-			)
-		} else {
-			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(environmentAttr, namespaceAttr, flagAttr)))
-		}
-
-		metrics.EvaluationLatency.Record(
-			ctx,
-			float64(time.Since(startTime).Nanoseconds())/1e6,
-			metric.WithAttributeSet(
-				attribute.NewSet(
-					environmentAttr,
-					namespaceAttr,
-					flagAttr,
-				),
-			),
+	if s.metricsEnabled {
+		var (
+			startTime       = time.Now().UTC()
+			environmentAttr = metrics.AttributeEnvironment.String(env.Key())
+			namespaceAttr   = metrics.AttributeNamespace.String(r.NamespaceKey)
+			flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
 		)
-	}()
+
+		baseMetricSet := attribute.NewSet(environmentAttr, flagAttr, namespaceAttr)
+
+		metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(baseMetricSet))
+
+		defer func() {
+			if err == nil {
+				metrics.EvaluationResultsTotal.Add(
+					ctx, 1,
+					metric.WithAttributeSet(
+						attribute.NewSet(
+							environmentAttr,
+							flagAttr,
+							metrics.AttributeFlagType.String("boolean"),
+							namespaceAttr,
+							metrics.AttributeReason.String(resp.Reason.String()),
+							metrics.AttributeSegments.StringSlice(resp.SegmentKeys),
+							metrics.AttributeValue.Bool(resp.Enabled),
+						),
+					),
+				)
+			} else {
+				metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(baseMetricSet))
+			}
+
+			metrics.EvaluationLatency.Record(
+				ctx,
+				float64(time.Since(startTime).Nanoseconds())/1e6,
+				metric.WithAttributeSet(baseMetricSet),
+			)
+		}()
+	}
 
 	for _, rollout := range rollouts {
 		if rollout.Rank < lastRank {
@@ -415,12 +421,14 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 		} else if rollout.Segment != nil {
 
 			var (
+				matched        bool
+				reason         string
+				segmentKeys    []string
 				segmentMatches = 0
-				segmentKeys    = []string{}
 			)
 
 			for k, v := range rollout.Segment.Segments {
-				matched, reason, err := s.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
+				matched, reason, err = s.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 				if err != nil {
 					return nil, err
 				}
@@ -520,7 +528,8 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 			}
 
 			if s.tracingEnabled {
-				s.addEvaluationEvent(ctx, env, req.NamespaceKey, req.FlagKey, req.EntityId, req.RequestId,
+				s.addEvaluationEvent(
+					ctx, env, req.NamespaceKey, req.FlagKey, req.EntityId, req.RequestId,
 					tracing.AttributeVariant.Bool(res.Enabled),
 					tracing.AttributeReason.String(tracing.ReasonToValue(res.Reason)),
 					tracing.AttributeSegments.StringSlice(res.SegmentKeys),
@@ -543,7 +552,8 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 			}
 
 			if s.tracingEnabled {
-				s.addEvaluationEvent(ctx, env, req.NamespaceKey, req.FlagKey, req.EntityId, req.RequestId,
+				s.addEvaluationEvent(
+					ctx, env, req.NamespaceKey, req.FlagKey, req.EntityId, req.RequestId,
 					tracing.AttributeMatch.Bool(res.Match),
 					tracing.AttributeVariant.String(res.VariantKey),
 					tracing.AttributeReason.String(tracing.ReasonToValue(res.Reason)),
