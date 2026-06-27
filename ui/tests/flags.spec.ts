@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+const exactText = (value: string) =>
+  new RegExp(`^${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+
 test.describe('Flags', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -125,18 +128,30 @@ test.describe('Flags', () => {
   });
 
   test('can copy flag to new namespace', async ({ page }) => {
+    test.setTimeout(30_000);
+
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Namespaces' }).click();
     await page.getByRole('button', { name: 'New Namespace' }).click();
     await page.getByLabel('Name', { exact: true }).fill('copy flag');
     await page.getByLabel('Description').fill('Copy Namespace');
     await page.getByRole('button', { name: 'Create' }).click();
+    await expect(
+      page.getByText('Successfully created namespace')
+    ).toBeVisible();
     await page.getByRole('link', { name: 'Flags' }).click();
     await page.getByRole('link', { name: 'test-flag' }).click();
 
     // perform copy to new namespace
     await page.getByRole('button', { name: 'Actions' }).click();
-    await page.getByRole('menuitem', { name: 'Copy to Namespace' }).click();
+    const copyAction = page.getByRole('menuitem', {
+      name: 'Copy to Environment / Namespace'
+    });
+    await expect(copyAction).toBeEnabled({ timeout: 30000 });
+    await copyAction.click();
+    await expect(page.locator('#copyToNamespace-select-button')).toBeEnabled({
+      timeout: 30000
+    });
     await page.locator('#copyToNamespace-select-button').click();
     await page.getByRole('option', { name: 'copy flag', exact: true }).click();
     await page.getByRole('button', { name: 'Copy', exact: true }).click();
@@ -157,6 +172,80 @@ test.describe('Flags', () => {
     await page.getByRole('link', { name: 'test-flag' }).click();
 
     // verify variants were copied
+    await expect(page.getByText('chrome', { exact: true })).toBeVisible();
+    await expect(page.getByText('firefox', { exact: true })).toBeVisible();
+  });
+
+  test('can copy flag to another environment', async ({ page }) => {
+    test.setTimeout(30_000);
+
+    await page.getByRole('link', { name: 'test-flag' }).click();
+
+    await page.getByRole('button', { name: 'Actions' }).click();
+    const copyAction = page.getByRole('menuitem', {
+      name: 'Copy to Environment / Namespace'
+    });
+    await expect(copyAction).toBeEnabled({ timeout: 30000 });
+    await copyAction.click();
+    const environmentSelect = page.locator('#copyToEnvironment-select-button');
+    await expect(environmentSelect).toBeEnabled({ timeout: 30000 });
+    const currentEnvironmentName = (
+      (await environmentSelect.textContent()) || ''
+    )
+      .trim()
+      .toLowerCase();
+
+    await environmentSelect.click();
+    const environmentOptions = page.getByRole('option');
+    await expect(environmentOptions.first()).toBeVisible({ timeout: 30000 });
+
+    let targetEnvironmentName = '';
+    const environmentOptionCount = await environmentOptions.count();
+    for (let i = 0; i < environmentOptionCount; i++) {
+      const option = environmentOptions.nth(i);
+      const optionName = ((await option.textContent()) || '').trim();
+      if (optionName && optionName.toLowerCase() !== currentEnvironmentName) {
+        targetEnvironmentName = optionName;
+        await option.click();
+        break;
+      }
+    }
+
+    test.skip(
+      !targetEnvironmentName,
+      'requires an alternate writable environment'
+    );
+
+    await expect(page.locator('#copyToNamespace-select-button')).toBeEnabled({
+      timeout: 30000
+    });
+    await page.locator('#copyToNamespace-select-button').click();
+
+    const namespaceOptions = page.getByRole('option');
+    await expect(namespaceOptions.first()).toBeVisible({ timeout: 30000 });
+    const targetNamespaceName = (
+      (await namespaceOptions.first().textContent()) || ''
+    ).trim();
+    expect(targetNamespaceName).not.toBe('');
+    await namespaceOptions.first().click();
+
+    await page.getByRole('button', { name: 'Copy', exact: true }).click();
+    await expect(page.getByText('Successfully copied flag')).toBeVisible();
+
+    await page
+      .getByTestId('environment-namespace-switcher')
+      .getByRole('button')
+      .click();
+    await page
+      .getByTestId('environment-listbox')
+      .getByRole('button', { name: exactText(targetEnvironmentName) })
+      .click();
+    await page
+      .getByTestId('namespace-listbox')
+      .getByRole('button', { name: exactText(targetNamespaceName) })
+      .click();
+
+    await page.getByRole('link', { name: 'test-flag' }).click();
     await expect(page.getByText('chrome', { exact: true })).toBeVisible();
     await expect(page.getByText('firefox', { exact: true })).toBeVisible();
   });

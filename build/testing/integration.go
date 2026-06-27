@@ -980,15 +980,96 @@ func withAWSSecrets(fn testCaseFn) testCaseFn {
 
 func withAzureSecrets(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// Generate the signing key as a Lowkey Vault import file. Dagger services
+		// can restart from the base container, so seeding via a one-off request is
+		// not durable across subsequent service starts.
+		lowkeyImport := client.Container().
+			From("golang:1.26-alpine").
+			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
+			WithExec([]string{
+				"sh", "-c",
+				gpgKeyGenerationScript + `
+				gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
+
+				mkdir -p /tmp/setup && cat > /tmp/setup/main.go << 'GOEOF'
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
+
+func main() {
+	keyData, err := os.ReadFile("/tmp/private-key.asc")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "read key: %v\n", err)
+		os.Exit(1)
+	}
+
+	const vaultURI = "https://{{host}}:{{port}}"
+
+	backup := map[string]any{
+		"vaults": []map[string]any{{
+			"attributes": map[string]any{
+				"baseUri":         vaultURI,
+				"created":         1781906166,
+				"deleted":         nil,
+				"recoverableDays": 90,
+				"recoveryLevel":   "Recoverable",
+			},
+			"certificates": map[string]any{},
+			"keys":         map[string]any{},
+			"secrets": map[string]any{
+				"flipt-signing-key": map[string]any{
+					"versions": []map[string]any{{
+						"attributes": map[string]any{
+							"created":         1781906396,
+							"enabled":         true,
+							"recoverableDays": 90,
+							"recoveryLevel":   "Recoverable",
+							"updated":         1781906396,
+						},
+						"entityId":     "flipt-signing-key",
+						"entityVersion": "00000000000000000000000000000001",
+						"managed":       false,
+						"tags":          map[string]string{},
+						"value":         string(keyData),
+						"vaultBaseUri":  vaultURI,
+					}},
+				},
+			},
+		}},
+	}
+
+	contents, err := json.Marshal(backup)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "marshal import: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := os.WriteFile("/tmp/lowkey-import.json", contents, 0o600); err != nil {
+		fmt.Fprintf(os.Stderr, "write import: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Lowkey Vault import file generated")
+}
+GOEOF
+				cd /tmp/setup && go mod init setup && go run main.go
+			`,
+			}).
+			File("/tmp/lowkey-import.json")
+
 		// Lowkey Vault container for Azure Key Vault emulation.
 		// Uses assumed identity mode which accepts any bearer token.
 		lowkeyVault := client.Container().
 			From("nagyesta/lowkey-vault:7.2.18").
-			// Register the vault with an alias matching the service hostname used by Dagger.
-			// Lowkey Vault creates vaults at https://<name>.localhost:<port> by default,
-			// so we alias it to the hostname that Flipt and the setup container will use.
-			// Note: <port> is a Lowkey Vault placeholder that is replaced at runtime with the --server.port value (8443).
-			WithEnvVariable("LOWKEY_ARGS", "--LOWKEY_VAULT_NAMES=default --LOWKEY_VAULT_ALIASES=default.localhost=lowkey-vault:<port>").
+			WithFile("/import/backup.json", lowkeyImport).
+			WithEnvVariable("LOWKEY_ARGS", "--LOWKEY_VAULT_NAMES=default").
+			WithEnvVariable("LOWKEY_IMPORT_LOCATION", "/import/backup.json").
+			WithEnvVariable("LOWKEY_IMPORT_TEMPLATE_HOST", "lowkey-vault").
+			WithEnvVariable("LOWKEY_IMPORT_TEMPLATE_PORT", "8443").
 			WithExposedPort(8443).
 			AsService()
 
@@ -998,94 +1079,18 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 			WithServiceBinding("lowkey-vault", lowkeyVault).
 			WithExec([]string{
 				"sh", "-c",
-				"openssl s_client -connect lowkey-vault:8443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > /ca.crt",
+				`for i in $(seq 1 30); do
+					if timeout 5 openssl s_client -connect lowkey-vault:8443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > /ca.crt 2>/dev/null && [ -s /ca.crt ]; then
+						exit 0
+					fi
+					sleep 1
+				done
+				echo "ERROR: failed to extract Lowkey Vault certificate"
+				exit 1`,
 			}).
 			File("/ca.crt")
 
-		// Setup container to generate GPG key and store it in Lowkey Vault.
-		_, err := client.Container().
-			From("golang:1.26-alpine").
-			WithEnvVariable("UNIQUE", uuid.NewString()).
-			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
-			WithServiceBinding("lowkey-vault", lowkeyVault).
-			WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).
-			WithExec([]string{"update-ca-certificates"}).
-			WithExec([]string{
-				"sh", "-c",
-				gpgKeyGenerationScript + `
-				gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
-
-				# Wait for Lowkey Vault to be ready
-				for i in $(seq 1 30); do
-					wget -q --no-check-certificate -O /dev/null https://lowkey-vault:8443/ping 2>/dev/null && break
-					sleep 1
-				done
-
-				# Use a Go program to create the secret via the Azure SDK
-				mkdir -p /tmp/setup && cat > /tmp/setup/main.go << 'GOEOF'
-package main
-
-import (
-	"context"
-	"fmt"
-	"os"
-
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
-)
-
-// fakeCredential implements azcore.TokenCredential for testing.
-type fakeCredential struct{}
-
-func (f *fakeCredential) GetToken(_ context.Context, _ policy.TokenRequestOptions) (azcore.AccessToken, error) {
-	return azcore.AccessToken{Token: "fake-token"}, nil
-}
-
-func main() {
-	ctx := context.Background()
-
-	client, err := azsecrets.NewClient(
-		"https://lowkey-vault:8443",
-		&fakeCredential{},
-		&azsecrets.ClientOptions{
-			DisableChallengeResourceVerification: true,
-			ClientOptions: azcore.ClientOptions{
-				APIVersion: "7.6",
-			},
-		},
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "client: %v\n", err)
-		os.Exit(1)
-	}
-
-	keyData, err := os.ReadFile("/tmp/private-key.asc")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "read key: %v\n", err)
-		os.Exit(1)
-	}
-
-	value := string(keyData)
-	_, err = client.SetSecret(ctx, "flipt-signing-key", azsecrets.SetSecretParameters{
-		Value: &value,
-	}, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "set secret: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println("Secret stored successfully in Lowkey Vault")
-}
-GOEOF
-				cd /tmp/setup && go mod init setup && go mod tidy && go run main.go
-			`,
-			}).Sync(ctx)
-		if err != nil {
-			return func() error { return err }
-		}
-
-		flipt, err = flipt.WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).
+		flipt, err := flipt.WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).
 			WithUser("root").
 			WithExec([]string{
 				"sh", "-c",

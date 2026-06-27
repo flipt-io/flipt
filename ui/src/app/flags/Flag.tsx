@@ -13,17 +13,14 @@ import { useParams } from 'react-router';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
-import {
-  selectCurrentNamespace,
-  selectNamespaces
-} from '~/app/namespaces/namespacesApi';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
 import { Badge } from '~/components/Badge';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import { PageHeader } from '~/components/Page';
 import FlagForm from '~/components/flags/FlagForm';
-import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
+import CopyFlagPanel from '~/components/panels/CopyFlagPanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 
 import { FlagType, flagTypeToLabel } from '~/types/Flag';
@@ -51,7 +48,6 @@ export default function Flag() {
   const navigate = useNavigate();
 
   const environment = useSelector(selectCurrentEnvironment);
-  const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
 
   const revision = getRevision();
@@ -117,22 +113,28 @@ export default function Flag() {
       />
 
       {/* flag copy modal */}
-      <CopyToNamespacePanel
+      <CopyFlagPanel
         open={showCopyFlagModal}
         panelMessage={
           <>
             Copy the flag{' '}
             <span className="font-medium text-brand">{flag.key}</span> to the
-            namespace:
+            selected environment and namespace:
           </>
         }
-        panelType="Flag"
         setOpen={setShowCopyFlagModal}
-        handleCopy={(namespaceKey: string) =>
+        handleCopy={({ environmentKey, namespaceKey }) =>
           copyFlag({
-            environmentKey: environment.key,
-            from: { namespaceKey: namespace.key, flagKey: flag.key },
-            to: { namespaceKey: namespaceKey, flagKey: flag.key }
+            from: {
+              environmentKey: environment.key,
+              namespaceKey: namespace.key,
+              flagKey: flag.key
+            },
+            to: {
+              environmentKey,
+              namespaceKey,
+              flagKey: flag.key
+            }
           }).unwrap()
         }
         onSuccess={() => {
@@ -198,10 +200,9 @@ export default function Flag() {
             },
             {
               id: 'flag-copy',
-              label: 'Copy to Namespace',
-              disabled: namespaces.length < 2,
+              label: 'Copy to Environment / Namespace',
               onClick: () => {
-                setShowCopyFlagModal(true);
+                window.setTimeout(() => setShowCopyFlagModal(true), 0);
               },
               icon: FilesIcon
             },
