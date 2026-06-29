@@ -4,17 +4,17 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
 import {
   useCreateFlagMutation,
   useUpdateFlagMutation
 } from '~/app/flags/flagsApi';
 import Rollouts from '~/app/flags/rollouts/Rollouts';
 import Rules from '~/app/flags/rules/Rules';
-import {
-  selectCurrentNamespace,
-  selectRevision
-} from '~/app/namespaces/namespacesApi';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
 import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';

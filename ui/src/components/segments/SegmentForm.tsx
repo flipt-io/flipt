@@ -3,11 +3,11 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import {
-  selectCurrentNamespace,
+  selectCurrentEnvironment,
   selectRevision
-} from '~/app/namespaces/namespacesApi';
+} from '~/app/environments/environmentsApi';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import {
   useCreateSegmentMutation,
   useUpdateSegmentMutation
