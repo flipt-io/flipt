@@ -20,6 +20,7 @@ type Server struct {
 	logger         *zap.Logger
 	store          EnvironmentStore
 	tracingEnabled bool
+	metricsEnabled bool
 	evaluation.UnimplementedEvaluationServiceServer
 }
 
@@ -30,6 +31,13 @@ type Option func(*Server)
 func WithTracing(enabled bool) Option {
 	return func(s *Server) {
 		s.tracingEnabled = enabled
+	}
+}
+
+// WithMetrics enables metrics for the evaluation server.
+func WithMetrics(enabled bool) Option {
+	return func(s *Server) {
+		s.metricsEnabled = enabled
 	}
 }
 

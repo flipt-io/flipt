@@ -20,7 +20,7 @@ jobs:
           - os: macos-latest
             name: darwin
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: v2
@@ -42,6 +42,17 @@ jobs:
       - name: Prep Build
         run: mise run prep
 
+      # Nightly builds run from the v2 branch rather than a release tag, so use the
+      # latest v2 semver tag as the changelog baseline instead of letting goreleaser
+      # infer it from git ancestry. This matches the release workflow safety net for
+      # orphaned release tags.
+      - name: Determine previous release tag
+        id: prev_tag
+        run: |
+          prev=$(git tag -l 'v2.*' --sort=-v:refname | head -n 1)
+          echo "Previous tag: ${prev:-<none>}"
+          echo "previous_tag=${prev}" >> "$GITHUB_OUTPUT"
+
       - name: GoReleaser (Nightly) Build
         uses: goreleaser/goreleaser-action@v7
         with:
@@ -51,6 +62,7 @@ jobs:
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_PREVIOUS_TAG: ${{ steps.prev_tag.outputs.previous_tag }}
           ANALYTICS_WRITE_KEY: ${{ secrets.ANALYTICS_WRITE_KEY }}
           ANALYTICS_WRITE_ENDPOINT: ${{ secrets.ANALYTICS_WRITE_ENDPOINT }}
           QUILL_SIGN_P12: ${{ secrets.QUILL_SIGN_P12 }}
@@ -68,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: nightly-build
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -106,6 +118,17 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
+      # Nightly releases run from the v2 branch rather than a release tag, so use the
+      # latest v2 semver tag as the changelog baseline instead of letting goreleaser
+      # infer it from git ancestry. This matches the release workflow safety net for
+      # orphaned release tags.
+      - name: Determine previous release tag
+        id: prev_tag
+        run: |
+          prev=$(git tag -l 'v2.*' --sort=-v:refname | head -n 1)
+          echo "Previous tag: ${prev:-<none>}"
+          echo "previous_tag=${prev}" >> "$GITHUB_OUTPUT"
+
       - name: GoReleaser (Nightly) Release
         uses: goreleaser/goreleaser-action@v7
         with:
@@ -115,3 +138,4 @@ jobs:
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_PREVIOUS_TAG: ${{ steps.prev_tag.outputs.previous_tag }}

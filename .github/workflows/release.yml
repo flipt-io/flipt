@@ -20,7 +20,7 @@ jobs:
           - os: macos-latest
             name: darwin
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
@@ -122,6 +122,22 @@ jobs:
           private-key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
           owner: ${{ github.repository_owner }}
 
+      # Determine the previous release tag by semver order rather than letting
+      # goreleaser infer it from git ancestry. Release PRs are squash-merged into
+      # v2, which can leave annotated tags pointing at orphaned commits that are not
+      # ancestors of the current tag. When that happens goreleaser's `git describe`
+      # walk skips the orphaned tags and falls back to a much older tag, producing a
+      # changelog that spans several releases. Pinning GORELEASER_PREVIOUS_TAG to the
+      # immediate semver predecessor keeps the changelog scoped to a single release.
+      - name: Determine previous release tag
+        id: prev_tag
+        run: |
+          prev=$(git tag -l 'v2.*' --sort=-v:refname \
+            | awk -v c="${GITHUB_REF_NAME}" 'found { print; exit } $0 == c { found = 1 }')
+          echo "Current tag:  ${GITHUB_REF_NAME}"
+          echo "Previous tag: ${prev:-<none>}"
+          echo "previous_tag=${prev}" >> "$GITHUB_OUTPUT"
+
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v7
         with:
@@ -131,6 +147,7 @@ jobs:
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GORELEASER_PREVIOUS_TAG: ${{ steps.prev_tag.outputs.previous_tag }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

@@ -14,7 +14,7 @@ jobs:
     name: "Lint Go"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: golangci-lint
         run: golangci-lint run --timeout=10m
@@ -23,7 +23,7 @@ jobs:
     name: "Lint UI"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Lint
         run: |
@@ -35,7 +35,7 @@ jobs:
     name: "Shellcheck"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@master
@@ -49,7 +49,7 @@ jobs:
     name: "Go Mod Tidy"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Run go mod tidy.
         run: go mod tidy

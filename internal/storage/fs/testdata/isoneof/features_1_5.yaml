@@ -1,0 +1,37 @@
+version: "1.5"
+namespace: isoneof_1_5
+flags:
+  - key: flag1
+    name: Flag 1
+    type: VARIANT_FLAG_TYPE
+    enabled: true
+    variants:
+      - key: on
+      - key: off
+    rules:
+      - segment:
+          keys: ["org_segment"]
+        distributions:
+          - variant: on
+            rollout: 100
+segments:
+  - key: org_segment
+    name: Org Segment
+    match_type: "ALL_MATCH_TYPE"
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: org
+        operator: isoneof
+        value: '["org-a","org-b","org-c"]'
+      - type: NUMBER_COMPARISON_TYPE
+        property: age
+        operator: isoneof
+        value: '[18,21,65]'
+      - type: STRING_COMPARISON_TYPE
+        property: country
+        operator: isnotoneof
+        value: '["US","UK"]'
+      - type: STRING_COMPARISON_TYPE
+        property: env
+        operator: eq
+        value: production
