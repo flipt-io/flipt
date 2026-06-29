@@ -18,7 +18,8 @@ import { metaSlice } from '~/app/meta/metaSlice';
 import {
   namespaceApi,
   namespaceKey,
-  namespacesSlice
+  namespacesSlice,
+  revisionChanged
 } from '~/app/namespaces/namespacesApi';
 import {
   preferencesKey,
@@ -102,6 +103,21 @@ listenerMiddleware.startListening({
   }
 });
 
+listenerMiddleware.startListening({
+  predicate: (action) =>
+    namespaceApi.endpoints.listNamespaces.matchFulfilled(action) ||
+    flagsApi.endpoints.listFlags.matchFulfilled(action) ||
+    flagsApi.endpoints.getFlag.matchFulfilled(action) ||
+    segmentsApi.endpoints.listSegments.matchFulfilled(action) ||
+    segmentsApi.endpoints.getSegment.matchFulfilled(action),
+  effect: (action, api) => {
+    const { revision } = (action as { payload: { revision?: string } }).payload;
+    if (revision) {
+      api.dispatch(revisionChanged(revision));
+    }
+  }
+});
+
 /*
  * Invalidate flags and segments cache when streaming events are received.
  */
@@ -155,6 +171,7 @@ export const store = configureStore({
       namespaces: {},
       status: LoadingStatus.IDLE,
       currentNamespace,
+      revision: '',
       error: undefined
     },
     flagsTable: {

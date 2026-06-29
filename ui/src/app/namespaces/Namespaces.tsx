@@ -13,10 +13,11 @@ import DeletePanel from '~/components/panels/DeletePanel';
 
 import { INamespace } from '~/types/Namespace';
 
-import { getRevision } from '~/utils/helpers';
-
-import { selectNamespaces } from './namespacesApi';
-import { useDeleteNamespaceMutation } from './namespacesApi';
+import {
+  selectNamespaces,
+  selectRevision,
+  useDeleteNamespaceMutation
+} from './namespacesApi';
 
 export default function Namespaces() {
   const [showNamespaceForm, setShowNamespaceForm] = useState<boolean>(false);
@@ -33,7 +34,7 @@ export default function Namespaces() {
 
   const environment = useSelector(selectCurrentEnvironment);
   const namespaces = useSelector(selectNamespaces);
-  const revision = useSelector(getRevision);
+  const revision = useSelector(selectRevision);
 
   const [deleteNamespace] = useDeleteNamespaceMutation();
   const namespaceFormRef = useRef(null);
@@ -75,7 +76,7 @@ export default function Namespaces() {
           deleteNamespace({
             environmentKey: environment.key,
             namespaceKey: deletingNamespace?.key!,
-            revision: revision
+            revision
           }).unwrap()
         }
       />
