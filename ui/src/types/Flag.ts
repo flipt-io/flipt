@@ -39,10 +39,12 @@ export interface IFlag {
   variants?: IVariant[];
   rules?: IRule[];
   rollouts?: IRollout[];
+  revision?: string;
 }
 
 export interface IFlagList extends IPageable {
   flags: IFlag[];
+  revision?: string;
 }
 
 export type FilterableFlag = IFlag & ISelectable;

@@ -6,7 +6,8 @@ import { useNavigate, useParams } from 'react-router';
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import {
   selectCurrentNamespace,
-  selectNamespaces
+  selectNamespaces,
+  selectRevision
 } from '~/app/namespaces/namespacesApi';
 import {
   useCopySegmentMutation,
@@ -24,7 +25,6 @@ import SegmentForm from '~/components/segments/SegmentForm';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { getRevision } from '~/utils/helpers';
 
 export default function Segment() {
   let { segmentKey } = useParams();
@@ -43,8 +43,7 @@ export default function Segment() {
   const environment = useSelector(selectCurrentEnvironment);
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
-
-  const revision = getRevision();
+  const revision = useSelector(selectRevision);
 
   const {
     data: segment,
