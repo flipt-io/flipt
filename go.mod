@@ -52,7 +52,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/moby/api v1.55.0
 	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20260625093349-9785ed5eea36
-	github.com/open-policy-agent/opa v1.18.0
+	github.com/open-policy-agent/opa v1.18.1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
