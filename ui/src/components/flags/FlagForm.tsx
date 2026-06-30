@@ -11,7 +11,10 @@ import {
 } from '~/app/flags/flagsApi';
 import Rollouts from '~/app/flags/rollouts/Rollouts';
 import Rules from '~/app/flags/rules/Rules';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+import {
+  selectCurrentNamespace,
+  selectRevision
+} from '~/app/namespaces/namespacesApi';
 
 import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
@@ -26,7 +29,7 @@ import { FlagType, IFlag } from '~/types/Flag';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { cls, getRevision, stringAsKey } from '~/utils/helpers';
+import { cls, stringAsKey } from '~/utils/helpers';
 
 import { FlagFormProvider } from './FlagFormContext';
 import { MetadataForm } from './MetadataForm';
@@ -137,7 +140,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
 
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
-  const revision = getRevision();
+  const revision = useSelector(selectRevision);
 
   const [createFlag] = useCreateFlagMutation();
   const [updateFlag] = useUpdateFlagMutation();

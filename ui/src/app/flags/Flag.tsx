@@ -15,7 +15,8 @@ import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
-  selectNamespaces
+  selectNamespaces,
+  selectRevision
 } from '~/app/namespaces/namespacesApi';
 
 import { Badge } from '~/components/Badge';
@@ -30,7 +31,6 @@ import { FlagType, flagTypeToLabel } from '~/types/Flag';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { getRevision } from '~/utils/helpers';
 
 import {
   useCopyFlagMutation,
@@ -54,8 +54,7 @@ export default function Flag() {
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
 
-  const revision = getRevision();
-
+  const revision = useSelector(selectRevision);
   const info = useSelector(selectInfo);
 
   const {
