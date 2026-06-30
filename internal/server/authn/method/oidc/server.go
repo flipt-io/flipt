@@ -30,6 +30,9 @@ const (
 	storageMetadataOIDCPicture           = "io.flipt.auth.oidc.picture"
 	storageMetadataOIDCSub               = "io.flipt.auth.oidc.sub"
 	storageMetadataOIDCPreferredUsername = "io.flipt.auth.oidc.preferred_username"
+	storageMetadataOIDCIssuer            = "io.flipt.auth.oidc.issuer"
+	storageMetadataOIDCClientID          = "io.flipt.auth.oidc.client_id"
+	storageMetadataOIDCIDToken           = "io.flipt.auth.oidc.id_token"
 	oauthChallengeTTL                    = 2 * time.Minute
 	nonceStatic                          = "static"
 )
@@ -174,6 +177,9 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 
 	metadata := map[string]string{
 		storageMetadataOIDCProvider: req.Provider,
+		storageMetadataOIDCIssuer:   providerCfg.IssuerURL,
+		storageMetadataOIDCClientID: providerCfg.ClientID,
+		storageMetadataOIDCIDToken:  string(responseToken.IDToken()),
 	}
 
 	rawClaims := make(map[string]any)
