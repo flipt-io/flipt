@@ -19,13 +19,15 @@ interface IEnvironmentsState {
   status: LoadingStatus;
   currentEnvironment: string;
   error: string | undefined;
+  revision: string;
 }
 
 const initialState: IEnvironmentsState = {
   environments: {},
   status: LoadingStatus.IDLE,
   currentEnvironment: localStorage.getItem(environmentKey) || '',
-  error: undefined
+  error: undefined,
+  revision: 'unknown'
 };
 
 export const environmentsSlice = createSlice({
@@ -61,12 +63,22 @@ export const environmentsSlice = createSlice({
           state.currentEnvironment = action.payload.environments[0].name;
         }
       }
+    },
+    revisionChanged: (state, action) => {
+      if (state.currentEnvironment === action.payload.environmentKey) {
+        state.revision = action.payload.revision;
+      }
     }
   }
 });
 
-export const { currentEnvironmentChanged, environmentsChanged } =
-  environmentsSlice.actions;
+export const selectRevision = (state: RootState) => state.environments.revision;
+
+export const {
+  currentEnvironmentChanged,
+  environmentsChanged,
+  revisionChanged
+} = environmentsSlice.actions;
 
 // only base environments
 export const selectEnvironments = createSelector(

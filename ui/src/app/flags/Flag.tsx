@@ -11,12 +11,14 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { useParams } from 'react-router';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
-  selectNamespaces,
-  selectRevision
+  selectNamespaces
 } from '~/app/namespaces/namespacesApi';
 
 import { Badge } from '~/components/Badge';

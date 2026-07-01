@@ -5,9 +5,11 @@ import { forwardRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import {
-  selectRevision,
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
+import {
   useCreateNamespaceMutation,
   useUpdateNamespaceMutation
 } from '~/app/namespaces/namespacesApi';

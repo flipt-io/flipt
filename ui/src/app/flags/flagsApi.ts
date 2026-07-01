@@ -57,8 +57,7 @@ export const flagsApi = createApi({
         response: IResourceListResponse<IFlag>
       ): IFlagList => {
         return {
-          flags: response.resources.map(({ payload }) => payload),
-          revision: response.revision
+          flags: response.resources.map(({ payload }) => payload)
         } as IFlagList;
       }
     }),
@@ -83,7 +82,6 @@ export const flagsApi = createApi({
       transformResponse: (response: IResourceResponse<IFlag>): IFlag => {
         return {
           ...response.resource.payload,
-          revision: response.revision,
           rollouts: response.resource.payload.rollouts?.map(
             (r: IRollout, i: number) => ({
               ...r,
