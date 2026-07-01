@@ -52,7 +52,7 @@ require (
 	github.com/keygen-sh/keygen-go/v3 v3.3.0
 	github.com/keygen-sh/machineid v1.1.3
 	github.com/ktrysmt/go-bitbucket v0.9.100
-	github.com/kubescape/go-git-url v0.0.31
+	github.com/kubescape/go-git-url v0.0.32
 	github.com/mattn/go-isatty v0.0.22
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
 	github.com/mitchellh/mapstructure v1.5.0
