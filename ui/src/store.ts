@@ -14,6 +14,7 @@ import { eventKey, eventSlice } from '~/app/events/eventSlice';
 import { analyticsApi } from '~/app/flags/analyticsApi';
 import { flagsApi, flagsTableSlice } from '~/app/flags/flagsApi';
 import { eventReceived, streamingReducer } from '~/app/flags/streamingApi';
+import { shouldInvalidateFromStreamEvent } from '~/app/flags/streamingUtils';
 import { metaSlice } from '~/app/meta/metaSlice';
 import {
   namespaceApi,
@@ -130,8 +131,8 @@ listenerMiddleware.startListening({
       etag?: string;
     } | null;
 
-    if (eventData?.type !== 'refetchEvaluation') {
-      console.warn('unexpected sse event', eventData);
+    if (!shouldInvalidateFromStreamEvent(eventData)) {
+      console.warn('skipping cache invalidation for sse event', eventData);
       return;
     }
 
