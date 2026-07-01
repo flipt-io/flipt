@@ -450,6 +450,10 @@
                           "type": "boolean",
                           "default": false
                         },
+                        "use_end_session_endpoint": {
+                          "type": "boolean",
+                          "default": false
+                        },
                         "algorithms": {
                           "type": [
                             "array",

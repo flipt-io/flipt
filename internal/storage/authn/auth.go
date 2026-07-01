@@ -29,6 +29,9 @@ type Store interface {
 	// GetAuthenticationByID retrieves an instance of Authentication from the backing
 	// store using the provided id string.
 	GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error)
+	// GetAuthenticationIDBySID retrieves the authentication ID from the backing
+	// store using the provided OIDC session ID (sid) string.
+	GetAuthenticationIDBySID(ctx context.Context, sid string) (string, error)
 	// ListAuthenticationsRequest retrieves a set of Authentication instances based on the provided
 	// predicates with the supplied ListAuthenticationsRequest.
 	ListAuthentications(context.Context, *storage.ListRequest[ListAuthenticationsPredicate]) (storage.ResultSet[*auth.Authentication], error)
@@ -42,8 +45,20 @@ type Store interface {
 	PopOAuthChallenge(ctx context.Context, state string) (string, error)
 	// ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
 	ExpireAuthenticationByID(context.Context, string, *timestamppb.Timestamp) error
+	// GetIDToken retrieves IDOToken for an authentication.
+	// This IDToken is stored separately from public metadata
+	// because it is sensitive and should not be exposed via the public authentication API.
+	GetIDToken(ctx context.Context, authID string) (*IDTokenData, error)
 	Shutdown(context.Context) error
 	fmt.Stringer
+}
+
+// IDTokenData contains OIDC session data needed for
+// single logout (SLO). This is stored separately from metadata because
+// metadata is publicly exposed via the authentication API.
+type IDTokenData struct {
+	// IDToken is the raw ID token JWT.
+	IDToken string
 }
 
 // CreateAuthenticationRequest is the argument passed when creating instances
@@ -55,6 +70,15 @@ type CreateAuthenticationRequest struct {
 	// ClientToken is an (optional) explicit client token to be associated with the authentication.
 	// When it is not supplied a random token will be generated and returned instead.
 	ClientToken string
+	// IDToken is the raw ID token JWT.
+	// Needed as id_token_hint when Flipt later initiates RP-Initiated
+	// Logout on the user's behalf. Not required for back-channel logout.
+	IDToken string
+	// SessionID is the OIDC sid claim value used for back-channel logout correlation.
+	// It is stored in the format "<provider>:<sid>" to disambiguate across providers.
+	// Stored in a separate index (bySID) so it can be looked up by GetAuthenticationIDBySID
+	// during logout, without exposing it as the bearer credential.
+	SessionID string
 }
 
 // ListMethod can be passed to storage.NewListRequest.

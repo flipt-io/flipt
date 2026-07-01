@@ -2,10 +2,13 @@ package gateway
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
@@ -15,8 +18,8 @@ import (
 func TestEventSourceMarshalerTypes(t *testing.T) {
 	m := &eventSourceMarshaler{JSONPb: runtime.JSONPb{}}
 
-	require.Equal(t, eventStreamContentType, m.ContentType(nil))
-	require.Equal(t, eventStreamContentType, m.StreamContentType(nil))
+	require.Equal(t, MIMEEventStream, m.ContentType(nil))
+	require.Equal(t, MIMEEventStream, m.StreamContentType(nil))
 	require.Empty(t, m.Delimiter())
 }
 
@@ -116,6 +119,59 @@ func TestEventSourceMarshalerUnsupported(t *testing.T) {
 	buf, err := m.Marshal(map[string]any{"result": "nope"})
 	require.Error(t, err)
 	require.Nil(t, buf)
+}
+
+func TestFormURLEncodedMarshaler(t *testing.T) {
+	t.Run("ContentType", func(t *testing.T) {
+		m := &formURLEncodedMarshaler{runtime.JSONBuiltin{}}
+		assert.Equal(t, "application/json", m.ContentType(nil))
+	})
+
+	t.Run("Marshal", func(t *testing.T) {
+		m := &formURLEncodedMarshaler{runtime.JSONBuiltin{}}
+		req := &auth.RevokeOIDCRequest{
+			Provider:    "google",
+			LogoutToken: "logout-token-value",
+		}
+		buf, err := m.Marshal(req)
+		require.NoError(t, err)
+		assert.Contains(t, string(buf), `"provider":"google"`)
+		assert.Contains(t, string(buf), `"logout_token":"logout-token-value"`)
+	})
+
+	t.Run("Marshal nil", func(t *testing.T) {
+		m := &formURLEncodedMarshaler{runtime.JSONBuiltin{}}
+		buf, err := m.Marshal(nil)
+		require.NoError(t, err)
+		assert.Equal(t, "null", string(buf))
+	})
+
+	t.Run("NewDecoder parses RevokeOIDCRequest from form data", func(t *testing.T) {
+		m := &formURLEncodedMarshaler{runtime.JSONBuiltin{}}
+		formData := "provider=google&logout_token=my-logout-token"
+		decoder := m.NewDecoder(strings.NewReader(formData))
+
+		var req auth.RevokeOIDCRequest
+		err := decoder.Decode(&req)
+		require.NoError(t, err)
+		assert.Equal(t, "google", req.Provider)
+		assert.Equal(t, "my-logout-token", req.LogoutToken)
+	})
+
+	t.Run("NewDecoder rejects non-RevokeOIDCRequest", func(t *testing.T) {
+		m := &formURLEncodedMarshaler{runtime.JSONBuiltin{}}
+		decoder := m.NewDecoder(strings.NewReader(""))
+
+		var invalid auth.GetAuthenticationRequest
+		err := decoder.Decode(&invalid)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not proto message")
+	})
+
+	t.Run("NewFormURLEncodedMarshaler returns a ServeMuxOption", func(t *testing.T) {
+		opt := NewFormURLEncodedMarshaler()
+		assert.NotNil(t, opt)
+	})
 }
 
 func extractEventPayload(t *testing.T, buf []byte) ([]byte, bool) {

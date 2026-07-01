@@ -127,15 +127,6 @@ async function post<T>(
   return request('POST', base + uri, values, headers);
 }
 
-async function put<T>(
-  uri: string,
-  values: T,
-  base = apiURL,
-  headers?: Record<string, string>
-) {
-  return request('PUT', base + uri, values, headers);
-}
-
 //
 // auth
 export async function getAuthSelf() {
@@ -143,7 +134,7 @@ export async function getAuthSelf() {
 }
 
 export async function expireAuthSelf() {
-  return put('/self/expire', {}, authURL);
+  return request('DELETE', authURL + '/self/revoke');
 }
 
 //

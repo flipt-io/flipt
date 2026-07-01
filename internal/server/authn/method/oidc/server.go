@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	capoidc "github.com/hashicorp/cap/oidc"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
@@ -19,25 +20,29 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
-	storageMetadataOIDCProvider          = "io.flipt.auth.oidc.provider"
-	storageMetadataOIDCEmail             = "io.flipt.auth.oidc.email"
-	storageMetadataOIDCEmailVerified     = "io.flipt.auth.oidc.email_verified"
-	storageMetadataOIDCName              = "io.flipt.auth.oidc.name"
-	storageMetadataOIDCProfile           = "io.flipt.auth.oidc.profile"
-	storageMetadataOIDCPicture           = "io.flipt.auth.oidc.picture"
-	storageMetadataOIDCSub               = "io.flipt.auth.oidc.sub"
-	storageMetadataOIDCPreferredUsername = "io.flipt.auth.oidc.preferred_username"
-	oauthChallengeTTL                    = 2 * time.Minute
-	nonceStatic                          = "static"
+	storageMetadataOIDCProvider      = "io.flipt.auth.oidc.provider"
+	storageMetadataOIDCEmail         = "io.flipt.auth.oidc.email"
+	storageMetadataOIDCEmailVerified = "io.flipt.auth.oidc.email_verified"
+	storageMetadataOIDCName          = "io.flipt.auth.oidc.name"
+	storageMetadataOIDCProfile       = "io.flipt.auth.oidc.profile"
+	storageMetadataOIDCPicture       = "io.flipt.auth.oidc.picture"
+	storageMetadataOIDCSub           = "io.flipt.auth.oidc.sub"
+	oauthChallengeTTL                = 2 * time.Minute
+	nonceStatic                      = "static"
 )
 
 // errProviderNotFound is returned when a provider is requested which
 // was not configured
 var errProviderNotFound = errors.ErrNotFound("provider not found")
+
+// errProviderWithNoEndSessionEndpoint is returned when a provider has no end_session_endpoint.
+var errProviderWithNoEndSessionEndpoint = errors.New("provider doesn't have end_session_endpoint")
 
 // PCKEVerifier is a code verifier used for a PKCE flow during OIDC authentication.
 // This value is declared outside the scope of the function because of consistency throughout
@@ -93,7 +98,7 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 // The operation is configured to return a URL which ultimately redirects to the
 // callback operation below.
 func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	providerCfg, err := s.configFor(req.Provider)
+	providerCfg, err := configFor(s.config, req.Provider)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +161,7 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		return nil, err
 	}
 
-	providerCfg, err := s.configFor(req.Provider)
+	providerCfg, err := configFor(s.config, req.Provider)
 	if err != nil {
 		return nil, err
 	}
@@ -229,11 +234,20 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 
 	claims.addToMetadata(metadata)
 
-	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
+	authRequest := &storageauth.CreateAuthenticationRequest{
 		Method:    auth.Method_METHOD_OIDC,
 		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
 		Metadata:  metadata,
-	})
+	}
+
+	if providerCfg.UseEndSessionEndpoint {
+		authRequest.IDToken = string(responseToken.IDToken())
+		if claims.SID != "" {
+			authRequest.SessionID = fmt.Sprintf("%s:%s", req.Provider, claims.SID)
+		}
+	}
+
+	clientToken, a, err := s.store.CreateAuthentication(ctx, authRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -244,14 +258,65 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	}, nil
 }
 
+// Revoke handles back-channel logout from the OIDC provider.
+// It verifies the logout token, looks up the corresponding authentication record
+// via the session ID (sid), and expires it.
+func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth.RevokeOIDCResponse, error) {
+	providerCfg, err := configFor(s.config, req.Provider)
+	if err != nil {
+		return nil, err
+	}
+	logoutToken, err := verifyLogoutToken(ctx, providerCfg, req)
+	if err != nil {
+		s.logger.Error("failed to verify logout token", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, "invalid logout token")
+	}
+	if logoutToken.SessionID == "" {
+		s.logger.Debug("logout token has no session ID, skipping")
+		return &auth.RevokeOIDCResponse{}, nil
+	}
+	sid := fmt.Sprintf("%s:%s", req.Provider, logoutToken.SessionID)
+	authID, err := s.store.GetAuthenticationIDBySID(ctx, sid)
+	if err != nil {
+		s.logger.Debug("failed to find logout token", zap.String("sid", logoutToken.SessionID), zap.Error(err))
+		return &auth.RevokeOIDCResponse{}, nil
+	}
+
+	err = s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(authID)))
+	if err != nil {
+		s.logger.Error("failed to expire auth token", zap.String("sid", logoutToken.SessionID), zap.Error(err))
+		return nil, status.Error(codes.Unknown, "operation failed")
+	}
+	return &auth.RevokeOIDCResponse{}, nil
+}
+
+// verifyLogoutToken verifies the OIDC logout token from the provider
+// and returns the parsed logout token containing the session ID.
+func verifyLogoutToken(ctx context.Context, cfg config.AuthenticationMethodOIDCProvider, req *auth.RevokeOIDCRequest) (*oidc.LogoutToken, error) {
+	provider, err := oidc.NewProvider(ctx, cfg.IssuerURL)
+	if err != nil {
+		return nil, err
+	}
+	oidcConfig := &oidc.Config{
+		ClientID: cfg.ClientID,
+	}
+	verifier := provider.Verifier(oidcConfig)
+	logoutToken, err := verifier.VerifyLogout(ctx, req.LogoutToken)
+	if err != nil {
+		return nil, err
+	}
+	return logoutToken, nil
+}
+
 func callbackURL(host, provider string) string {
 	// strip trailing slash from host
 	host = strings.TrimSuffix(host, "/")
 	return host + "/auth/v1/method/oidc/" + provider + "/callback"
 }
 
-func (s *Server) configFor(provider string) (config.AuthenticationMethodOIDCProvider, error) {
-	providerCfg, ok := s.config.Methods.OIDC.Method.Providers[provider]
+// configFor returns the provider configuration for the given provider name.
+func configFor(authConfig config.AuthenticationConfig, provider string) (config.AuthenticationMethodOIDCProvider, error) {
+	providerCfg, ok := authConfig.Methods.OIDC.Method.Providers[provider]
 	if !ok {
 		return config.AuthenticationMethodOIDCProvider{}, fmt.Errorf("requested provider %q: %w", provider, errProviderNotFound)
 	}
@@ -265,7 +330,7 @@ func (s *Server) providerFor(provider string, state string, nonce string) (*capo
 		callback string
 	)
 
-	providerCfg, err := s.configFor(provider)
+	providerCfg, err := configFor(s.config, provider)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -325,6 +390,8 @@ type claims struct {
 	Profile  *string `json:"profile"`
 	Picture  *string `json:"picture"`
 	Sub      *string `json:"sub"`
+	// SID is the OIDC session ID claim used for back-channel logout correlation.
+	SID string `json:"sid"`
 }
 
 // fallbackFrom populates missing claims fields from extra (UserInfo) claims.
@@ -348,6 +415,47 @@ func (c *claims) fallbackFrom(extra map[string]any) {
 			}
 		}
 	}
+}
+
+// EndSessionURI builds the OP's end_session_endpoint URI with the id_token_hint
+// and post_logout_redirect_uri parameters for RP-initiated logout (front-channel SLO).
+// Returns empty string if the provider has no end_session_endpoint configured.
+func EndSessionURI(ctx context.Context, authConfig config.AuthenticationConfig, authentication *auth.Authentication, idToken string) (string, error) {
+	providerCfg, err := configFor(authConfig, authentication.Metadata[storageMetadataOIDCProvider])
+	if err != nil {
+		return "", err
+	}
+
+	if !providerCfg.UseEndSessionEndpoint {
+		return "", nil
+	}
+
+	provider, err := oidc.NewProvider(ctx, providerCfg.IssuerURL)
+	if err != nil {
+		return "", err
+	}
+	var providerMeta struct {
+		EndSessionEndpoint string `json:"end_session_endpoint"`
+	}
+	if err := provider.Claims(&providerMeta); err != nil {
+		return "", err
+	}
+
+	if providerMeta.EndSessionEndpoint == "" {
+		return "", errProviderWithNoEndSessionEndpoint
+	}
+
+	u, err := url.Parse(providerMeta.EndSessionEndpoint)
+	if err != nil {
+		return "", err
+	}
+
+	q := u.Query()
+	q.Set("id_token_hint", idToken)
+	q.Set("post_logout_redirect_uri", providerCfg.RedirectAddress)
+	u.RawQuery = q.Encode()
+
+	return u.String(), nil
 }
 
 func (c claims) addToMetadata(m map[string]string) {

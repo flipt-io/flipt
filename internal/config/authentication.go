@@ -524,18 +524,19 @@ func (a AuthenticationMethodOIDCConfig) validate() error {
 	return nil
 }
 
-// AuthenticationOIDCProvider configures provider credentials
+// AuthenticationMethodOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
-	IssuerURL           string            `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
-	ClientID            string            `json:"-" mapstructure:"client_id" yaml:"-"`
-	ClientSecret        string            `json:"-" mapstructure:"client_secret" yaml:"-"`
-	RedirectAddress     string            `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
-	Nonce               string            `json:"nonce,omitempty" mapstructure:"nonce" yaml:"nonce,omitempty"`
-	Scopes              []string          `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
-	UsePKCE             bool              `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
-	Algorithms          []string          `json:"algorithms,omitempty" mapstructure:"algorithms" yaml:"algorithms,omitempty"`
-	FetchExtraUserInfo  bool              `json:"fetchExtraUserInfo,omitempty" mapstructure:"fetch_extra_user_info" yaml:"fetch_extra_user_info,omitempty"`
-	AuthorizeParameters map[string]string `json:"authorizeParameters,omitempty" mapstructure:"authorize_parameters" yaml:"authorize_parameters,omitempty"`
+	IssuerURL             string            `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
+	ClientID              string            `json:"-" mapstructure:"client_id" yaml:"-"`
+	ClientSecret          string            `json:"-" mapstructure:"client_secret" yaml:"-"`
+	RedirectAddress       string            `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	Nonce                 string            `json:"nonce,omitempty" mapstructure:"nonce" yaml:"nonce,omitempty"`
+	Scopes                []string          `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	UsePKCE               bool              `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
+	Algorithms            []string          `json:"algorithms,omitempty" mapstructure:"algorithms" yaml:"algorithms,omitempty"`
+	FetchExtraUserInfo    bool              `json:"fetchExtraUserInfo,omitempty" mapstructure:"fetch_extra_user_info" yaml:"fetch_extra_user_info,omitempty"`
+	AuthorizeParameters   map[string]string `json:"authorizeParameters,omitempty" mapstructure:"authorize_parameters" yaml:"authorize_parameters,omitempty"`
+	UseEndSessionEndpoint bool              `json:"useEndSessionEndpoint,omitempty" mapstructure:"use_end_session_endpoint" yaml:"use_end_session_endpoint,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {

@@ -17,55 +17,73 @@ import (
 )
 
 func TestHandler(t *testing.T) {
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+	for _, tt := range []struct {
+		name, method string
+	}{
+		{"expire", http.MethodPut},
+		{"revoke", http.MethodDelete},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}
+
+			middleware := NewHTTPMiddleware(config.AuthenticationSessionConfig{
+				Domain: "localhost",
+			})
+
+			srv := middleware.Handler(http.HandlerFunc(handler))
+
+			req := httptest.NewRequestWithContext(t.Context(), tt.method, "http://www.your-domain.com/auth/v1/self/"+tt.name, nil)
+			w := httptest.NewRecorder()
+
+			srv.ServeHTTP(w, req)
+			assert.Equal(t, http.StatusOK, w.Code)
+
+			res := w.Result()
+			defer res.Body.Close()
+
+			cookies := res.Cookies()
+			assertCookiesCleared(t, cookies)
+		})
 	}
-
-	middleware := NewHTTPMiddleware(config.AuthenticationSessionConfig{
-		Domain: "localhost",
-	})
-
-	srv := middleware.Handler(http.HandlerFunc(handler))
-
-	req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "http://www.your-domain.com/auth/v1/self/expire", nil)
-	w := httptest.NewRecorder()
-
-	srv.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	res := w.Result()
-	defer res.Body.Close()
-
-	cookies := res.Cookies()
-	assertCookiesCleared(t, cookies)
 }
 
 func TestErrorHandler(t *testing.T) {
-	const defaultResponseBody = "default handler called"
-	middleware := NewHTTPMiddleware(config.AuthenticationSessionConfig{
-		Domain: "localhost",
-	})
+	for _, tt := range []struct {
+		name, method string
+	}{
+		{"expire", http.MethodPut},
+		{"revoke", http.MethodDelete},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			const defaultResponseBody = "default handler called"
+			middleware := NewHTTPMiddleware(config.AuthenticationSessionConfig{
+				Domain: "localhost",
+			})
 
-	middleware.defaultErrHandler = func(ctx context.Context, sm *runtime.ServeMux, m runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
-		_, _ = w.Write([]byte(defaultResponseBody))
+			middleware.defaultErrHandler = func(ctx context.Context, sm *runtime.ServeMux, m runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
+				_, _ = w.Write([]byte(defaultResponseBody))
+			}
+
+			req := httptest.NewRequestWithContext(t.Context(), tt.method, "http://www.your-domain.com/auth/v1/self/"+tt.name, nil)
+			req.Header.Add("Cookie", "flipt_client_token=expired")
+			w := httptest.NewRecorder()
+
+			err := status.Errorf(codes.Unauthenticated, "token expired")
+			middleware.ErrorHandler(context.TODO(), nil, nil, w, req, err)
+
+			res := w.Result()
+			defer res.Body.Close()
+
+			body, err := io.ReadAll(res.Body)
+			require.NoError(t, err)
+			assert.Equal(t, []byte(defaultResponseBody), body)
+
+			cookies := res.Cookies()
+			assertCookiesCleared(t, cookies)
+		})
 	}
-
-	req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "http://www.your-domain.com/auth/v1/self/expire", nil)
-	req.Header.Add("Cookie", "flipt_client_token=expired")
-	w := httptest.NewRecorder()
-
-	err := status.Errorf(codes.Unauthenticated, "token expired")
-	middleware.ErrorHandler(context.TODO(), nil, nil, w, req, err)
-
-	res := w.Result()
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	require.NoError(t, err)
-	assert.Equal(t, []byte(defaultResponseBody), body)
-
-	cookies := res.Cookies()
-	assertCookiesCleared(t, cookies)
 }
 
 func assertCookiesCleared(t *testing.T, cookies []*http.Cookie) {

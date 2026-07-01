@@ -38,6 +38,8 @@ type Store struct {
 	mu         sync.Mutex
 	byID       map[string]*rpcauth.Authentication
 	byToken    map[string]*rpcauth.Authentication
+	bySID      map[string]string
+	idTokens   map[string]*authn.IDTokenData
 	challenges sync.Map
 
 	now                func() *timestamppb.Timestamp
@@ -61,6 +63,8 @@ func NewStore(logger *zap.Logger, opts ...Option) *Store {
 
 			byID:          map[string]*rpcauth.Authentication{},
 			byToken:       map[string]*rpcauth.Authentication{},
+			bySID:         map[string]string{},
+			idTokens:      map[string]*authn.IDTokenData{},
 			challenges:    sync.Map{},
 			now:           rpcflipt.Now,
 			generateID:    uuid.NewString,
@@ -184,6 +188,15 @@ func (s *Store) CreateAuthentication(_ context.Context, r *authn.CreateAuthentic
 	s.mu.Lock()
 	s.byToken[hashedToken] = authentication
 	s.byID[authentication.Id] = authentication
+	if r.SessionID != "" {
+		s.bySID[r.SessionID] = authentication.Id
+	}
+	if r.IDToken != "" {
+		slo := &authn.IDTokenData{
+			IDToken: r.IDToken,
+		}
+		s.idTokens[authentication.Id] = slo
+	}
 	s.mu.Unlock()
 
 	return clientToken, authentication, nil
@@ -218,6 +231,19 @@ func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.
 	}
 
 	return authentication, nil
+}
+
+// GetAuthenticationIDBySID retrieves the authentication ID from the backing
+// store using the provided OIDC session ID (sid).
+func (s *Store) GetAuthenticationIDBySID(_ context.Context, sid string) (string, error) {
+	s.mu.Lock()
+	id, ok := s.bySID[sid]
+	s.mu.Unlock()
+	if !ok {
+		return "", errors.ErrNotFound("getting authentication by sid")
+	}
+
+	return id, nil
 }
 
 func (s *Store) PutOAuthChallenge(_ context.Context, state, value string, expiresAt *timestamppb.Timestamp) error {
@@ -314,17 +340,38 @@ func (s *Store) DeleteAuthentications(_ context.Context, req *authn.DeleteAuthen
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	deletedIDs := make(map[string]struct{})
 	for hashedToken, a := range s.byToken {
 		if (req.ID == nil || *req.ID == a.Id) &&
 			(req.Method == nil || *req.Method == a.Method) &&
 			(req.ExpiredBefore == nil ||
 				(a.ExpiresAt != nil && a.ExpiresAt.AsTime().Before(req.ExpiredBefore.AsTime()))) {
+			deletedIDs[a.Id] = struct{}{}
 			delete(s.byID, a.Id)
 			delete(s.byToken, hashedToken)
+			delete(s.idTokens, a.Id)
+		}
+	}
+	for sid, id := range s.bySID {
+		if _, deleted := deletedIDs[id]; deleted {
+			delete(s.bySID, sid)
 		}
 	}
 
 	return nil
+}
+
+// GetIDToken implements authn.Store.
+func (s *Store) GetIDToken(_ context.Context, id string) (*authn.IDTokenData, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	slo, ok := s.idTokens[id]
+	if !ok {
+		return nil, errors.ErrNotFoundf("getting authentication IDToken")
+	}
+
+	return slo, nil
 }
 
 // ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.

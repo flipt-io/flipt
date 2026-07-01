@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage/authn"
 	authtesting "go.flipt.io/flipt/internal/storage/authn/testing"
+	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -27,6 +29,74 @@ func cleanup(t *testing.T, authStore *Store) {
 	t.Helper()
 	t.Cleanup(func() {
 		require.NoError(t, authStore.Shutdown(context.Background())) // nolint: usetesting
+	})
+}
+
+func TestSIDAndIDTokenStorage(t *testing.T) {
+	store := NewStore(zap.NewNop())
+	cleanup(t, store)
+
+	ctx := t.Context()
+
+	t.Run("Create authentication with SID and IDToken", func(t *testing.T) {
+		token, created, err := store.CreateAuthentication(ctx, &authn.CreateAuthenticationRequest{
+			Method:    rpcauth.Method_METHOD_OIDC,
+			ExpiresAt: timestamppb.New(time.Now().Add(time.Hour)),
+			SessionID: "google:session-123",
+			IDToken:   "my-id-token-jwt",
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, token)
+		require.NotNil(t, created)
+
+		t.Run("GetAuthenticationIDBySID returns the auth ID", func(t *testing.T) {
+			id, err := store.GetAuthenticationIDBySID(ctx, "google:session-123")
+			require.NoError(t, err)
+			assert.Equal(t, created.Id, id)
+		})
+
+		t.Run("GetAuthenticationIDBySID returns not found for unknown SID", func(t *testing.T) {
+			_, err := store.GetAuthenticationIDBySID(ctx, "unknown-sid")
+			var notFound errors.ErrNotFound
+			require.ErrorAs(t, err, &notFound)
+		})
+
+		t.Run("GetIDToken returns the stored ID token", func(t *testing.T) {
+			data, err := store.GetIDToken(ctx, created.Id)
+			require.NoError(t, err)
+			require.NotNil(t, data)
+			assert.Equal(t, "my-id-token-jwt", data.IDToken)
+		})
+
+		t.Run("GetIDToken returns not found for auth without ID token", func(t *testing.T) {
+			_, otherAuth, err := store.CreateAuthentication(ctx, &authn.CreateAuthenticationRequest{
+				Method:    rpcauth.Method_METHOD_TOKEN,
+				ExpiresAt: timestamppb.New(time.Now().Add(time.Hour)),
+			})
+			require.NoError(t, err)
+
+			_, err = store.GetIDToken(ctx, otherAuth.Id)
+			var notFound errors.ErrNotFound
+			require.ErrorAs(t, err, &notFound)
+		})
+
+		t.Run("GetIDToken returns not found for unknown auth ID", func(t *testing.T) {
+			_, err := store.GetIDToken(ctx, "non-existent")
+			var notFound errors.ErrNotFound
+			require.ErrorAs(t, err, &notFound)
+		})
+
+		t.Run("Delete authentication cleans up SID and IDToken", func(t *testing.T) {
+			err := store.DeleteAuthentications(ctx, authn.Delete(authn.WithID(created.Id)))
+			require.NoError(t, err)
+
+			_, err = store.GetAuthenticationIDBySID(ctx, "google:session-123")
+			var notFound errors.ErrNotFound
+			require.ErrorAs(t, err, &notFound)
+
+			_, err = store.GetIDToken(ctx, created.Id)
+			require.ErrorAs(t, err, &notFound)
+		})
 	})
 }
 

@@ -524,6 +524,86 @@ func (x *ExpireAuthenticationSelfRequest) GetExpiresAt() *timestamppb.Timestamp 
 	return nil
 }
 
+type RevokeAuthenticationSelfRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeAuthenticationSelfRequest) Reset() {
+	*x = RevokeAuthenticationSelfRequest{}
+	mi := &file_auth_auth_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeAuthenticationSelfRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeAuthenticationSelfRequest) ProtoMessage() {}
+
+func (x *RevokeAuthenticationSelfRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_auth_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeAuthenticationSelfRequest.ProtoReflect.Descriptor instead.
+func (*RevokeAuthenticationSelfRequest) Descriptor() ([]byte, []int) {
+	return file_auth_auth_proto_rawDescGZIP(), []int{8}
+}
+
+type RevokeAuthenticationSelfResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	NextUri       *string                `protobuf:"bytes,1,opt,name=next_uri,json=nextUri,proto3,oneof" json:"next_uri,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeAuthenticationSelfResponse) Reset() {
+	*x = RevokeAuthenticationSelfResponse{}
+	mi := &file_auth_auth_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeAuthenticationSelfResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeAuthenticationSelfResponse) ProtoMessage() {}
+
+func (x *RevokeAuthenticationSelfResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_auth_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeAuthenticationSelfResponse.ProtoReflect.Descriptor instead.
+func (*RevokeAuthenticationSelfResponse) Descriptor() ([]byte, []int) {
+	return file_auth_auth_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *RevokeAuthenticationSelfResponse) GetNextUri() string {
+	if x != nil && x.NextUri != nil {
+		return *x.NextUri
+	}
+	return ""
+}
+
 type AuthorizeURLRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
@@ -534,7 +614,7 @@ type AuthorizeURLRequest struct {
 
 func (x *AuthorizeURLRequest) Reset() {
 	*x = AuthorizeURLRequest{}
-	mi := &file_auth_auth_proto_msgTypes[8]
+	mi := &file_auth_auth_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -546,7 +626,7 @@ func (x *AuthorizeURLRequest) String() string {
 func (*AuthorizeURLRequest) ProtoMessage() {}
 
 func (x *AuthorizeURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_auth_proto_msgTypes[8]
+	mi := &file_auth_auth_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -559,7 +639,7 @@ func (x *AuthorizeURLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeURLRequest.ProtoReflect.Descriptor instead.
 func (*AuthorizeURLRequest) Descriptor() ([]byte, []int) {
-	return file_auth_auth_proto_rawDescGZIP(), []int{8}
+	return file_auth_auth_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *AuthorizeURLRequest) GetProvider() string {
@@ -585,7 +665,7 @@ type AuthorizeURLResponse struct {
 
 func (x *AuthorizeURLResponse) Reset() {
 	*x = AuthorizeURLResponse{}
-	mi := &file_auth_auth_proto_msgTypes[9]
+	mi := &file_auth_auth_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -597,7 +677,7 @@ func (x *AuthorizeURLResponse) String() string {
 func (*AuthorizeURLResponse) ProtoMessage() {}
 
 func (x *AuthorizeURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_auth_proto_msgTypes[9]
+	mi := &file_auth_auth_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -610,7 +690,7 @@ func (x *AuthorizeURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeURLResponse.ProtoReflect.Descriptor instead.
 func (*AuthorizeURLResponse) Descriptor() ([]byte, []int) {
-	return file_auth_auth_proto_rawDescGZIP(), []int{9}
+	return file_auth_auth_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AuthorizeURLResponse) GetAuthorizeUrl() string {
@@ -631,7 +711,7 @@ type CallbackRequest struct {
 
 func (x *CallbackRequest) Reset() {
 	*x = CallbackRequest{}
-	mi := &file_auth_auth_proto_msgTypes[10]
+	mi := &file_auth_auth_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -643,7 +723,7 @@ func (x *CallbackRequest) String() string {
 func (*CallbackRequest) ProtoMessage() {}
 
 func (x *CallbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_auth_proto_msgTypes[10]
+	mi := &file_auth_auth_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -656,7 +736,7 @@ func (x *CallbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CallbackRequest.ProtoReflect.Descriptor instead.
 func (*CallbackRequest) Descriptor() ([]byte, []int) {
-	return file_auth_auth_proto_rawDescGZIP(), []int{10}
+	return file_auth_auth_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CallbackRequest) GetProvider() string {
@@ -690,7 +770,7 @@ type CallbackResponse struct {
 
 func (x *CallbackResponse) Reset() {
 	*x = CallbackResponse{}
-	mi := &file_auth_auth_proto_msgTypes[11]
+	mi := &file_auth_auth_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -702,7 +782,7 @@ func (x *CallbackResponse) String() string {
 func (*CallbackResponse) ProtoMessage() {}
 
 func (x *CallbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_auth_proto_msgTypes[11]
+	mi := &file_auth_auth_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -715,7 +795,7 @@ func (x *CallbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CallbackResponse.ProtoReflect.Descriptor instead.
 func (*CallbackResponse) Descriptor() ([]byte, []int) {
-	return file_auth_auth_proto_rawDescGZIP(), []int{11}
+	return file_auth_auth_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CallbackResponse) GetClientToken() string {
@@ -732,6 +812,94 @@ func (x *CallbackResponse) GetAuthentication() *Authentication {
 	return nil
 }
 
+type RevokeOIDCRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	LogoutToken   string                 `protobuf:"bytes,2,opt,name=logout_token,json=logoutToken,proto3" json:"logout_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeOIDCRequest) Reset() {
+	*x = RevokeOIDCRequest{}
+	mi := &file_auth_auth_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeOIDCRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeOIDCRequest) ProtoMessage() {}
+
+func (x *RevokeOIDCRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_auth_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeOIDCRequest.ProtoReflect.Descriptor instead.
+func (*RevokeOIDCRequest) Descriptor() ([]byte, []int) {
+	return file_auth_auth_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *RevokeOIDCRequest) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *RevokeOIDCRequest) GetLogoutToken() string {
+	if x != nil {
+		return x.LogoutToken
+	}
+	return ""
+}
+
+type RevokeOIDCResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeOIDCResponse) Reset() {
+	*x = RevokeOIDCResponse{}
+	mi := &file_auth_auth_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeOIDCResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeOIDCResponse) ProtoMessage() {}
+
+func (x *RevokeOIDCResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_auth_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeOIDCResponse.ProtoReflect.Descriptor instead.
+func (*RevokeOIDCResponse) Descriptor() ([]byte, []int) {
+	return file_auth_auth_proto_rawDescGZIP(), []int{15}
+}
+
 type VerifyServiceAccountRequest struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	ServiceAccountToken string                 `protobuf:"bytes,1,opt,name=service_account_token,json=serviceAccountToken,proto3" json:"service_account_token,omitempty"`
@@ -741,7 +909,7 @@ type VerifyServiceAccountRequest struct {
 
 func (x *VerifyServiceAccountRequest) Reset() {
 	*x = VerifyServiceAccountRequest{}
-	mi := &file_auth_auth_proto_msgTypes[12]
+	mi := &file_auth_auth_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -753,7 +921,7 @@ func (x *VerifyServiceAccountRequest) String() string {
 func (*VerifyServiceAccountRequest) ProtoMessage() {}
 
 func (x *VerifyServiceAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_auth_proto_msgTypes[12]
+	mi := &file_auth_auth_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -766,7 +934,7 @@ func (x *VerifyServiceAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyServiceAccountRequest.ProtoReflect.Descriptor instead.
 func (*VerifyServiceAccountRequest) Descriptor() ([]byte, []int) {
-	return file_auth_auth_proto_rawDescGZIP(), []int{12}
+	return file_auth_auth_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *VerifyServiceAccountRequest) GetServiceAccountToken() string {
@@ -786,7 +954,7 @@ type VerifyServiceAccountResponse struct {
 
 func (x *VerifyServiceAccountResponse) Reset() {
 	*x = VerifyServiceAccountResponse{}
-	mi := &file_auth_auth_proto_msgTypes[13]
+	mi := &file_auth_auth_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -798,7 +966,7 @@ func (x *VerifyServiceAccountResponse) String() string {
 func (*VerifyServiceAccountResponse) ProtoMessage() {}
 
 func (x *VerifyServiceAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_auth_proto_msgTypes[13]
+	mi := &file_auth_auth_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -811,7 +979,7 @@ func (x *VerifyServiceAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyServiceAccountResponse.ProtoReflect.Descriptor instead.
 func (*VerifyServiceAccountResponse) Descriptor() ([]byte, []int) {
-	return file_auth_auth_proto_rawDescGZIP(), []int{13}
+	return file_auth_auth_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *VerifyServiceAccountResponse) GetClientToken() string {
@@ -870,7 +1038,11 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\x1fExpireAuthenticationSelfRequest\x12>\n" +
 	"\n" +
 	"expires_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\texpiresAt\x88\x01\x01B\r\n" +
-	"\v_expires_at\"G\n" +
+	"\v_expires_at\"!\n" +
+	"\x1fRevokeAuthenticationSelfRequest\"O\n" +
+	" RevokeAuthenticationSelfResponse\x12\x1e\n" +
+	"\bnext_uri\x18\x01 \x01(\tH\x00R\anextUri\x88\x01\x01B\v\n" +
+	"\t_next_uri\"G\n" +
 	"\x13AuthorizeURLRequest\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x14\n" +
 	"\x05state\x18\x02 \x01(\tR\x05state\";\n" +
@@ -882,7 +1054,11 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\x05state\x18\x03 \x01(\tR\x05state\"y\n" +
 	"\x10CallbackResponse\x12!\n" +
 	"\fclient_token\x18\x01 \x01(\tR\vclientToken\x12B\n" +
-	"\x0eauthentication\x18\x02 \x01(\v2\x1a.flipt.auth.AuthenticationR\x0eauthentication\"Q\n" +
+	"\x0eauthentication\x18\x02 \x01(\v2\x1a.flipt.auth.AuthenticationR\x0eauthentication\"R\n" +
+	"\x11RevokeOIDCRequest\x12\x1a\n" +
+	"\bprovider\x18\x01 \x01(\tR\bprovider\x12!\n" +
+	"\flogout_token\x18\x02 \x01(\tR\vlogoutToken\"\x14\n" +
+	"\x12RevokeOIDCResponse\"Q\n" +
 	"\x1bVerifyServiceAccountRequest\x122\n" +
 	"\x15service_account_token\x18\x01 \x01(\tR\x13serviceAccountToken\"\x85\x01\n" +
 	"\x1cVerifyServiceAccountResponse\x12!\n" +
@@ -897,16 +1073,19 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\n" +
 	"METHOD_JWT\x10\x05\"\x04\b\x06\x10\x062\x83\x01\n" +
 	"\x1bPublicAuthenticationService\x12d\n" +
-	"\x19ListAuthenticationMethods\x12\x16.google.protobuf.Empty\x1a-.flipt.auth.ListAuthenticationMethodsResponse\"\x002\xc6\x05\n" +
+	"\x19ListAuthenticationMethods\x12\x16.google.protobuf.Empty\x1a-.flipt.auth.ListAuthenticationMethodsResponse\"\x002\xf2\x06\n" +
 	"\x15AuthenticationService\x12r\n" +
 	"\x15GetAuthenticationSelf\x12\x16.google.protobuf.Empty\x1a\x1a.flipt.auth.Authentication\"%\xbaG\r*\vgetAuthSelf\x82\xd3\xe4\x93\x02\x0f\x12\r/auth/v1/self\x12\x84\x01\n" +
 	"\x11GetAuthentication\x12$.flipt.auth.GetAuthenticationRequest\x1a\x1a.flipt.auth.Authentication\"-\xbaG\x0e*\fgetAuthToken\x82\xd3\xe4\x93\x02\x16\x12\x14/auth/v1/tokens/{id}\x12\x92\x01\n" +
 	"\x13ListAuthentications\x12&.flipt.auth.ListAuthenticationsRequest\x1a'.flipt.auth.ListAuthenticationsResponse\"*\xbaG\x10*\x0elistAuthTokens\x82\xd3\xe4\x93\x02\x11\x12\x0f/auth/v1/tokens\x12\x89\x01\n" +
-	"\x14DeleteAuthentication\x12'.flipt.auth.DeleteAuthenticationRequest\x1a\x16.google.protobuf.Empty\"0\xbaG\x11*\x0fdeleteAuthToken\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/tokens/{id}\x12\x90\x01\n" +
-	"\x18ExpireAuthenticationSelf\x12+.flipt.auth.ExpireAuthenticationSelfRequest\x1a\x16.google.protobuf.Empty\"/\xbaG\x10*\x0eexpireAuthSelf\x82\xd3\xe4\x93\x02\x16\x1a\x14/auth/v1/self/expire2\xc8\x02\n" +
+	"\x14DeleteAuthentication\x12'.flipt.auth.DeleteAuthenticationRequest\x1a\x16.google.protobuf.Empty\"0\xbaG\x11*\x0fdeleteAuthToken\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/tokens/{id}\x12\x93\x01\n" +
+	"\x18ExpireAuthenticationSelf\x12+.flipt.auth.ExpireAuthenticationSelfRequest\x1a\x16.google.protobuf.Empty\"2\xbaG\x10*\x0eexpireAuthSelf\x82\xd3\xe4\x93\x02\x16\x1a\x14/auth/v1/self/expire\x88\x02\x01\x12\xa6\x01\n" +
+	"\x18RevokeAuthenticationSelf\x12+.flipt.auth.RevokeAuthenticationSelfRequest\x1a,.flipt.auth.RevokeAuthenticationSelfResponse\"/\xbaG\x10*\x0erevokeAuthSelf\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/self/revoke2\xd4\x03\n" +
 	"\x1fAuthenticationMethodOIDCService\x12\x99\x01\n" +
 	"\fAuthorizeURL\x12\x1f.flipt.auth.AuthorizeURLRequest\x1a .flipt.auth.AuthorizeURLResponse\"F\xbaG\x12*\x10oidcAuthorizeURL\x82\xd3\xe4\x93\x02+\x12)/auth/v1/method/oidc/{provider}/authorize\x12\x88\x01\n" +
-	"\bCallback\x12\x1b.flipt.auth.CallbackRequest\x1a\x1c.flipt.auth.CallbackResponse\"A\xbaG\x0e*\foidcCallback\x82\xd3\xe4\x93\x02*\x12(/auth/v1/method/oidc/{provider}/callback2\xec\x01\n" +
+	"\bCallback\x12\x1b.flipt.auth.CallbackRequest\x1a\x1c.flipt.auth.CallbackResponse\"A\xbaG\x0e*\foidcCallback\x82\xd3\xe4\x93\x02*\x12(/auth/v1/method/oidc/{provider}/callback\x12\x89\x01\n" +
+	"\x06Revoke\x12\x1d.flipt.auth.RevokeOIDCRequest\x1a\x1e.flipt.auth.RevokeOIDCResponse\"@\xbaG\f*\n" +
+	"oidcRevoke\x82\xd3\xe4\x93\x02+:\x01*\"&/auth/v1/method/oidc/{provider}/revoke2\xec\x01\n" +
 	"%AuthenticationMethodKubernetesService\x12\xc2\x01\n" +
 	"\x14VerifyServiceAccount\x12'.flipt.auth.VerifyServiceAccountRequest\x1a(.flipt.auth.VerifyServiceAccountResponse\"W\xbaG *\x1ekubernetesVerifyServiceAccount\x82\xd3\xe4\x93\x02.:\x01*\")/auth/v1/method/kubernetes/serviceaccount2\xc1\x01\n" +
 	"!AuthenticationMethodGithubService\x12S\n" +
@@ -939,7 +1118,7 @@ func file_auth_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_auth_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_auth_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_auth_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_auth_auth_proto_goTypes = []any{
 	(Method)(0),        // 0: flipt.auth.Method
 	(*MethodInfo)(nil), // 1: flipt.auth.MethodInfo
@@ -950,55 +1129,63 @@ var file_auth_auth_proto_goTypes = []any{
 	(*ListAuthenticationsResponse)(nil),       // 6: flipt.auth.ListAuthenticationsResponse
 	(*DeleteAuthenticationRequest)(nil),       // 7: flipt.auth.DeleteAuthenticationRequest
 	(*ExpireAuthenticationSelfRequest)(nil),   // 8: flipt.auth.ExpireAuthenticationSelfRequest
-	(*AuthorizeURLRequest)(nil),               // 9: flipt.auth.AuthorizeURLRequest
-	(*AuthorizeURLResponse)(nil),              // 10: flipt.auth.AuthorizeURLResponse
-	(*CallbackRequest)(nil),                   // 11: flipt.auth.CallbackRequest
-	(*CallbackResponse)(nil),                  // 12: flipt.auth.CallbackResponse
-	(*VerifyServiceAccountRequest)(nil),       // 13: flipt.auth.VerifyServiceAccountRequest
-	(*VerifyServiceAccountResponse)(nil),      // 14: flipt.auth.VerifyServiceAccountResponse
-	nil,                                       // 15: flipt.auth.Authentication.MetadataEntry
-	(*structpb.Struct)(nil),                   // 16: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil),             // 17: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),                     // 18: google.protobuf.Empty
+	(*RevokeAuthenticationSelfRequest)(nil),   // 9: flipt.auth.RevokeAuthenticationSelfRequest
+	(*RevokeAuthenticationSelfResponse)(nil),  // 10: flipt.auth.RevokeAuthenticationSelfResponse
+	(*AuthorizeURLRequest)(nil),               // 11: flipt.auth.AuthorizeURLRequest
+	(*AuthorizeURLResponse)(nil),              // 12: flipt.auth.AuthorizeURLResponse
+	(*CallbackRequest)(nil),                   // 13: flipt.auth.CallbackRequest
+	(*CallbackResponse)(nil),                  // 14: flipt.auth.CallbackResponse
+	(*RevokeOIDCRequest)(nil),                 // 15: flipt.auth.RevokeOIDCRequest
+	(*RevokeOIDCResponse)(nil),                // 16: flipt.auth.RevokeOIDCResponse
+	(*VerifyServiceAccountRequest)(nil),       // 17: flipt.auth.VerifyServiceAccountRequest
+	(*VerifyServiceAccountResponse)(nil),      // 18: flipt.auth.VerifyServiceAccountResponse
+	nil,                                       // 19: flipt.auth.Authentication.MetadataEntry
+	(*structpb.Struct)(nil),                   // 20: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),             // 21: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                     // 22: google.protobuf.Empty
 }
 var file_auth_auth_proto_depIdxs = []int32{
 	0,  // 0: flipt.auth.MethodInfo.method:type_name -> flipt.auth.Method
-	16, // 1: flipt.auth.MethodInfo.metadata:type_name -> google.protobuf.Struct
+	20, // 1: flipt.auth.MethodInfo.metadata:type_name -> google.protobuf.Struct
 	1,  // 2: flipt.auth.ListAuthenticationMethodsResponse.methods:type_name -> flipt.auth.MethodInfo
 	0,  // 3: flipt.auth.Authentication.method:type_name -> flipt.auth.Method
-	17, // 4: flipt.auth.Authentication.expires_at:type_name -> google.protobuf.Timestamp
-	17, // 5: flipt.auth.Authentication.created_at:type_name -> google.protobuf.Timestamp
-	17, // 6: flipt.auth.Authentication.updated_at:type_name -> google.protobuf.Timestamp
-	15, // 7: flipt.auth.Authentication.metadata:type_name -> flipt.auth.Authentication.MetadataEntry
+	21, // 4: flipt.auth.Authentication.expires_at:type_name -> google.protobuf.Timestamp
+	21, // 5: flipt.auth.Authentication.created_at:type_name -> google.protobuf.Timestamp
+	21, // 6: flipt.auth.Authentication.updated_at:type_name -> google.protobuf.Timestamp
+	19, // 7: flipt.auth.Authentication.metadata:type_name -> flipt.auth.Authentication.MetadataEntry
 	0,  // 8: flipt.auth.ListAuthenticationsRequest.method:type_name -> flipt.auth.Method
 	3,  // 9: flipt.auth.ListAuthenticationsResponse.authentications:type_name -> flipt.auth.Authentication
-	17, // 10: flipt.auth.ExpireAuthenticationSelfRequest.expires_at:type_name -> google.protobuf.Timestamp
+	21, // 10: flipt.auth.ExpireAuthenticationSelfRequest.expires_at:type_name -> google.protobuf.Timestamp
 	3,  // 11: flipt.auth.CallbackResponse.authentication:type_name -> flipt.auth.Authentication
 	3,  // 12: flipt.auth.VerifyServiceAccountResponse.authentication:type_name -> flipt.auth.Authentication
-	18, // 13: flipt.auth.PublicAuthenticationService.ListAuthenticationMethods:input_type -> google.protobuf.Empty
-	18, // 14: flipt.auth.AuthenticationService.GetAuthenticationSelf:input_type -> google.protobuf.Empty
+	22, // 13: flipt.auth.PublicAuthenticationService.ListAuthenticationMethods:input_type -> google.protobuf.Empty
+	22, // 14: flipt.auth.AuthenticationService.GetAuthenticationSelf:input_type -> google.protobuf.Empty
 	4,  // 15: flipt.auth.AuthenticationService.GetAuthentication:input_type -> flipt.auth.GetAuthenticationRequest
 	5,  // 16: flipt.auth.AuthenticationService.ListAuthentications:input_type -> flipt.auth.ListAuthenticationsRequest
 	7,  // 17: flipt.auth.AuthenticationService.DeleteAuthentication:input_type -> flipt.auth.DeleteAuthenticationRequest
 	8,  // 18: flipt.auth.AuthenticationService.ExpireAuthenticationSelf:input_type -> flipt.auth.ExpireAuthenticationSelfRequest
-	9,  // 19: flipt.auth.AuthenticationMethodOIDCService.AuthorizeURL:input_type -> flipt.auth.AuthorizeURLRequest
-	11, // 20: flipt.auth.AuthenticationMethodOIDCService.Callback:input_type -> flipt.auth.CallbackRequest
-	13, // 21: flipt.auth.AuthenticationMethodKubernetesService.VerifyServiceAccount:input_type -> flipt.auth.VerifyServiceAccountRequest
-	9,  // 22: flipt.auth.AuthenticationMethodGithubService.AuthorizeURL:input_type -> flipt.auth.AuthorizeURLRequest
-	11, // 23: flipt.auth.AuthenticationMethodGithubService.Callback:input_type -> flipt.auth.CallbackRequest
-	2,  // 24: flipt.auth.PublicAuthenticationService.ListAuthenticationMethods:output_type -> flipt.auth.ListAuthenticationMethodsResponse
-	3,  // 25: flipt.auth.AuthenticationService.GetAuthenticationSelf:output_type -> flipt.auth.Authentication
-	3,  // 26: flipt.auth.AuthenticationService.GetAuthentication:output_type -> flipt.auth.Authentication
-	6,  // 27: flipt.auth.AuthenticationService.ListAuthentications:output_type -> flipt.auth.ListAuthenticationsResponse
-	18, // 28: flipt.auth.AuthenticationService.DeleteAuthentication:output_type -> google.protobuf.Empty
-	18, // 29: flipt.auth.AuthenticationService.ExpireAuthenticationSelf:output_type -> google.protobuf.Empty
-	10, // 30: flipt.auth.AuthenticationMethodOIDCService.AuthorizeURL:output_type -> flipt.auth.AuthorizeURLResponse
-	12, // 31: flipt.auth.AuthenticationMethodOIDCService.Callback:output_type -> flipt.auth.CallbackResponse
-	14, // 32: flipt.auth.AuthenticationMethodKubernetesService.VerifyServiceAccount:output_type -> flipt.auth.VerifyServiceAccountResponse
-	10, // 33: flipt.auth.AuthenticationMethodGithubService.AuthorizeURL:output_type -> flipt.auth.AuthorizeURLResponse
-	12, // 34: flipt.auth.AuthenticationMethodGithubService.Callback:output_type -> flipt.auth.CallbackResponse
-	24, // [24:35] is the sub-list for method output_type
-	13, // [13:24] is the sub-list for method input_type
+	9,  // 19: flipt.auth.AuthenticationService.RevokeAuthenticationSelf:input_type -> flipt.auth.RevokeAuthenticationSelfRequest
+	11, // 20: flipt.auth.AuthenticationMethodOIDCService.AuthorizeURL:input_type -> flipt.auth.AuthorizeURLRequest
+	13, // 21: flipt.auth.AuthenticationMethodOIDCService.Callback:input_type -> flipt.auth.CallbackRequest
+	15, // 22: flipt.auth.AuthenticationMethodOIDCService.Revoke:input_type -> flipt.auth.RevokeOIDCRequest
+	17, // 23: flipt.auth.AuthenticationMethodKubernetesService.VerifyServiceAccount:input_type -> flipt.auth.VerifyServiceAccountRequest
+	11, // 24: flipt.auth.AuthenticationMethodGithubService.AuthorizeURL:input_type -> flipt.auth.AuthorizeURLRequest
+	13, // 25: flipt.auth.AuthenticationMethodGithubService.Callback:input_type -> flipt.auth.CallbackRequest
+	2,  // 26: flipt.auth.PublicAuthenticationService.ListAuthenticationMethods:output_type -> flipt.auth.ListAuthenticationMethodsResponse
+	3,  // 27: flipt.auth.AuthenticationService.GetAuthenticationSelf:output_type -> flipt.auth.Authentication
+	3,  // 28: flipt.auth.AuthenticationService.GetAuthentication:output_type -> flipt.auth.Authentication
+	6,  // 29: flipt.auth.AuthenticationService.ListAuthentications:output_type -> flipt.auth.ListAuthenticationsResponse
+	22, // 30: flipt.auth.AuthenticationService.DeleteAuthentication:output_type -> google.protobuf.Empty
+	22, // 31: flipt.auth.AuthenticationService.ExpireAuthenticationSelf:output_type -> google.protobuf.Empty
+	10, // 32: flipt.auth.AuthenticationService.RevokeAuthenticationSelf:output_type -> flipt.auth.RevokeAuthenticationSelfResponse
+	12, // 33: flipt.auth.AuthenticationMethodOIDCService.AuthorizeURL:output_type -> flipt.auth.AuthorizeURLResponse
+	14, // 34: flipt.auth.AuthenticationMethodOIDCService.Callback:output_type -> flipt.auth.CallbackResponse
+	16, // 35: flipt.auth.AuthenticationMethodOIDCService.Revoke:output_type -> flipt.auth.RevokeOIDCResponse
+	18, // 36: flipt.auth.AuthenticationMethodKubernetesService.VerifyServiceAccount:output_type -> flipt.auth.VerifyServiceAccountResponse
+	12, // 37: flipt.auth.AuthenticationMethodGithubService.AuthorizeURL:output_type -> flipt.auth.AuthorizeURLResponse
+	14, // 38: flipt.auth.AuthenticationMethodGithubService.Callback:output_type -> flipt.auth.CallbackResponse
+	26, // [26:39] is the sub-list for method output_type
+	13, // [13:26] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name
 	13, // [13:13] is the sub-list for extension extendee
 	0,  // [0:13] is the sub-list for field type_name
@@ -1010,13 +1197,14 @@ func file_auth_auth_proto_init() {
 		return
 	}
 	file_auth_auth_proto_msgTypes[7].OneofWrappers = []any{}
+	file_auth_auth_proto_msgTypes[9].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_auth_proto_rawDesc), len(file_auth_auth_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   15,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   5,
 		},

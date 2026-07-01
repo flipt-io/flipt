@@ -91,7 +91,7 @@ func authenticationGRPC(
 	}
 
 	rpcauth.RegisterPublicAuthenticationServiceServer(handlers, public.NewServer(logger, authCfg))
-	rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, store))
+	rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, store, authCfg))
 
 	shutdown = store.Shutdown
 
@@ -268,7 +268,11 @@ func authenticationHTTPMount(
 		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
 
 		if cfg.Methods.OIDC.Enabled {
-			muxOpts = append(muxOpts, register(ctx, rpcauth.NewAuthenticationMethodOIDCServiceClient(conn), rpcauth.RegisterAuthenticationMethodOIDCServiceHandlerClient))
+			muxOpts = append(
+				muxOpts,
+				register(ctx, rpcauth.NewAuthenticationMethodOIDCServiceClient(conn), rpcauth.RegisterAuthenticationMethodOIDCServiceHandlerClient),
+				gateway.NewFormURLEncodedMarshaler(),
+			)
 		}
 
 		if cfg.Methods.Github.Enabled {

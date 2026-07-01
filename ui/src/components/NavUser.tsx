@@ -31,9 +31,12 @@ export function NavUser({ user }: { user: User }) {
 
   const logout = async () => {
     try {
-      await expireAuthSelf();
+      const response = await expireAuthSelf();
       clearSession();
-      if (user?.issuer) {
+      const nextUri = response?.nextUri;
+      if (nextUri && typeof nextUri === 'string') {
+        window.location.href = nextUri;
+      } else if (user?.issuer) {
         window.location.href = `//${user.issuer}`;
       } else {
         navigate('/login');

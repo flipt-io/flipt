@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
@@ -23,6 +24,10 @@ func (a *authStoreMock) CreateAuthentication(ctx context.Context, r *storageauth
 
 func (a *authStoreMock) GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error) {
 	return nil, nil
+}
+
+func (a *authStoreMock) GetAuthenticationIDBySID(ctx context.Context, sid string) (string, error) {
+	return "", errors.ErrNotFound("getting authentication by sid")
 }
 
 func (a *authStoreMock) GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error) {
@@ -50,6 +55,10 @@ func (a *authStoreMock) PopOAuthChallenge(ctx context.Context, state string) (st
 
 func (a *authStoreMock) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
 	return nil
+}
+
+func (a *authStoreMock) GetIDToken(ctx context.Context, id string) (*storageauth.IDTokenData, error) {
+	return nil, errors.ErrNotFound("getting authentication IDToken data")
 }
 
 func (a *authStoreMock) Shutdown(ctx context.Context) error {
