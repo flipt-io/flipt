@@ -49,6 +49,12 @@ func WithConfig(cfg *config.Config) Option {
 		f.Authentication = &Authentication{Required: cfg.Authentication.Required}
 		f.Analytics = &Analytics{Enabled: cfg.Analytics.Enabled()}
 		f.UI = &UI{Theme: cfg.UI.DefaultTheme, TopbarColor: cfg.UI.Topbar.Color}
+		if cfg.Templates.ProposalTitle != "" || cfg.Templates.ProposalBody != "" {
+			f.Templates = &Templates{
+				ProposalTitle: cfg.Templates.ProposalTitle,
+				ProposalBody:  cfg.Templates.ProposalBody,
+			}
+		}
 	}
 }
 
@@ -84,12 +90,18 @@ type UI struct {
 	TopbarColor string         `json:"topbarColor,omitempty"`
 }
 
+type Templates struct {
+	ProposalTitle string `json:"proposalTitle,omitempty"`
+	ProposalBody  string `json:"proposalBody,omitempty"`
+}
+
 type Flipt struct {
 	licenseManager license.Manager
 	Build          *Build          `json:"build,omitempty"`
 	Authentication *Authentication `json:"authentication,omitempty"`
 	Analytics      *Analytics      `json:"analytics,omitempty"`
 	UI             *UI             `json:"ui,omitempty"`
+	Templates      *Templates      `json:"templates,omitempty"`
 }
 
 func (f Flipt) IsDevelopment() bool {
