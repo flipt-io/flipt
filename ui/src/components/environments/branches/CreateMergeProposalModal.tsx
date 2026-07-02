@@ -31,6 +31,10 @@ interface CreateMergeProposalModalProps {
 }
 
 const validationSchema = Yup.object().shape({
+  title: Yup.string()
+    .optional()
+    .max(200, 'Title must be at most 200 characters')
+    .trim(),
   description: Yup.string()
     .optional()
     .max(500, 'Description must be at most 500 characters')
@@ -58,7 +62,14 @@ export function CreateMergeProposalModal({
 
   const [proposeEnvironment] = useProposeEnvironmentMutation();
 
+  const defaultTitle = `Flipt: Update features ${
+    environment.configuration?.directory
+      ? `in ${environment.configuration.directory} `
+      : ''
+  }on ${environment.configuration?.base ?? ''}`.trim();
+
   const handleProposeEnvironment = async (values: {
+    title: string;
     description: string;
     draft: boolean;
   }) => {
@@ -66,6 +77,7 @@ export function CreateMergeProposalModal({
       await proposeEnvironment({
         environmentKey: environment.configuration?.base ?? '',
         key: environment.key,
+        title: values.title || undefined,
         body: values.description,
         draft: values.draft
       }).unwrap();
@@ -155,11 +167,16 @@ export function CreateMergeProposalModal({
           </div>
         )}
         <Formik
-          initialValues={{ description: '', draft: false }}
+          initialValues={{ title: defaultTitle, description: '', draft: false }}
           validationSchema={validationSchema}
           onSubmit={async (values, actions) => {
+            const trimmedTitle = values.title.trim().slice(0, 200);
             const trimmed = values.description.trim().slice(0, 500);
-            const submitValues = { ...values, description: trimmed };
+            const submitValues = {
+              ...values,
+              title: trimmedTitle,
+              description: trimmed
+            };
             await handleProposeEnvironment(submitValues);
             actions.setSubmitting(false);
           }}
@@ -171,6 +188,34 @@ export function CreateMergeProposalModal({
               data?.changes?.length == 0;
             return (
               <Form>
+                <div className="mb-3">
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    htmlFor="proposal-title"
+                  >
+                    Proposal Title{' '}
+                    <span className="text-muted-foreground">(optional)</span>
+                  </label>
+                  <Field
+                    type="text"
+                    id="proposal-title"
+                    name="title"
+                    className="w-full rounded-md border-input bg-secondary/20 dark:bg-input/20 px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-brand transition disabled:opacity-80 disabled:cursor-not-allowed"
+                    placeholder="Enter a title for this merge proposal..."
+                    maxLength={200}
+                    onChange={formik.handleChange}
+                    value={formik.values.title}
+                    disabled={isError}
+                  />
+                  <div className="text-xs text-muted-foreground text-right mt-1">
+                    {formik.values.title.trim().length}/200
+                  </div>
+                  {formik.errors.title && formik.touched.title && (
+                    <div className="text-xs text-destructive mt-1">
+                      {formik.errors.title}
+                    </div>
+                  )}
+                </div>
                 <div>
                   <label
                     className="block text-sm font-medium mb-1"
