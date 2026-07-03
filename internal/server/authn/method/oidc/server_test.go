@@ -332,6 +332,117 @@ func Test_Server_Nonce(t *testing.T) {
 	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 }
 
+func Test_Server_AuthorizeParameters(t *testing.T) {
+	var (
+		id, secret = "client_id", "client_secret"
+		nonce      = "static"
+
+		logger = zaptest.NewLogger(t)
+		ctx    = t.Context()
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(t, err)
+
+	type testCase struct {
+		name   string
+		params map[string]string
+		checks func(t *testing.T, q url.Values)
+	}
+
+	tests := []testCase{
+		{
+			name:   "custom authorize parameters",
+			params: map[string]string{"audience": "my-api", "prompt": "login"},
+			checks: func(t *testing.T, q url.Values) {
+				assert.Equal(t, "my-api", q.Get("audience"))
+				assert.Equal(t, "login", q.Get("prompt"))
+			},
+		},
+		{
+			name:   "no authorize parameters",
+			params: nil,
+			checks: func(t *testing.T, q url.Values) {
+				assert.NotEmpty(t, q.Get("response_type"))
+				assert.NotEmpty(t, q.Get("client_id"))
+				assert.Empty(t, q.Get("audience"))
+				assert.Empty(t, q.Get("prompt"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			router := chi.NewRouter()
+			httpServer := httptest.NewServer(router)
+			clientAddress := strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
+			t.Cleanup(httpServer.Close)
+
+			tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+				CustomClaims: map[string]any{},
+				SubjectInfo: map[string]*oidc.TestSubject{
+					"mark": {
+						Password: "phelps",
+					},
+				},
+				SigningKey: &oidc.TestSigningKey{
+					PrivKey: priv,
+					PubKey:  priv.Public(),
+					Alg:     oidc.RS256,
+				},
+				AllowedRedirectURIs: []string{
+					fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
+				},
+				ClientID:      &id,
+				ClientSecret:  &secret,
+				ExpectedNonce: &nonce,
+			}))
+			t.Cleanup(tp.Stop)
+
+			authConfig := config.AuthenticationConfig{
+				Session: config.AuthenticationSessionConfig{
+					Domain:        "localhost",
+					Secure:        false,
+					TokenLifetime: 1 * time.Hour,
+					StateLifetime: 10 * time.Minute,
+				},
+				Methods: config.AuthenticationMethodsConfig{
+					OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+						Enabled: true,
+						Method: config.AuthenticationMethodOIDCConfig{
+							Providers: map[string]config.AuthenticationMethodOIDCProvider{
+								"google": {
+									IssuerURL:           tp.Addr(),
+									ClientID:            id,
+									ClientSecret:        secret,
+									RedirectAddress:     clientAddress,
+									Nonce:               nonce,
+									AuthorizeParameters: tt.params,
+								},
+							},
+						},
+					},
+				},
+			}
+
+			grpcServer := oidctesting.StartGRPCServer(t, ctx, logger, authConfig)
+			t.Cleanup(func() { _ = grpcServer.Stop() })
+
+			resp, err := grpcServer.Client().AuthorizeURL(ctx, &auth.AuthorizeURLRequest{
+				Provider: "google",
+				State:    "random-state",
+			})
+			require.NoError(t, err)
+			require.NotEmpty(t, resp.AuthorizeUrl)
+
+			u, err := url.Parse(resp.AuthorizeUrl)
+			require.NoError(t, err)
+
+			tt.checks(t, u.Query())
+		})
+	}
+}
+
 func Test_Server_FetchExtraUserInfoClaims(t *testing.T) {
 	var (
 		id, secret = "client_id", "client_secret"
