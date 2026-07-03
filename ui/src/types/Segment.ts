@@ -8,7 +8,6 @@ export interface ISegment {
   description: string;
   matchType: SegmentMatchType;
   constraints?: IConstraint[];
-  revision?: string;
 }
 
 export enum SegmentMatchType {
@@ -47,7 +46,6 @@ export function segmentMatchTypeToLabel(matchType: SegmentMatchType): string {
 
 export interface ISegmentList extends IPageable {
   segments: ISegment[];
-  revision?: string;
 }
 
 export type FilterableSegment = ISegment & ISelectable;

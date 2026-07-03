@@ -56,8 +56,7 @@ export const segmentsApi = createApi({
         response: IResourceListResponse<ISegment>
       ): ISegmentList => {
         return {
-          segments: response.resources.map(({ payload }) => payload),
-          revision: response.revision
+          segments: response.resources.map(({ payload }) => payload)
         } as ISegmentList;
       }
     }),
@@ -82,7 +81,6 @@ export const segmentsApi = createApi({
       transformResponse: (response: IResourceResponse<ISegment>): ISegment => {
         return {
           ...response.resource.payload,
-          revision: response.revision,
           constraints: response.resource.payload.constraints?.map(
             (c: IConstraint) => ({
               ...c,

@@ -1,4 +1,5 @@
 import {
+  UnknownAction,
   configureStore,
   createListenerMiddleware,
   isAnyOf
@@ -8,7 +9,8 @@ import { authProvidersApi } from '~/app/auth/authApi';
 import {
   environmentKey,
   environmentsApi,
-  environmentsSlice
+  environmentsSlice,
+  revisionChanged
 } from '~/app/environments/environmentsApi';
 import { eventKey, eventSlice } from '~/app/events/eventSlice';
 import { analyticsApi } from '~/app/flags/analyticsApi';
@@ -18,8 +20,7 @@ import { metaSlice } from '~/app/meta/metaSlice';
 import {
   namespaceApi,
   namespaceKey,
-  namespacesSlice,
-  revisionChanged
+  namespacesSlice
 } from '~/app/namespaces/namespacesApi';
 import {
   preferencesKey,
@@ -104,16 +105,24 @@ listenerMiddleware.startListening({
 });
 
 listenerMiddleware.startListening({
-  predicate: (action) =>
+  predicate: (
+    action
+  ): action is UnknownAction & {
+    meta: {
+      arg: { originalArgs: { environmentKey?: string } };
+      baseQueryMeta?: { revision?: string };
+    };
+  } =>
     namespaceApi.endpoints.listNamespaces.matchFulfilled(action) ||
     flagsApi.endpoints.listFlags.matchFulfilled(action) ||
     flagsApi.endpoints.getFlag.matchFulfilled(action) ||
     segmentsApi.endpoints.listSegments.matchFulfilled(action) ||
     segmentsApi.endpoints.getSegment.matchFulfilled(action),
   effect: (action, api) => {
-    const { revision } = (action as { payload: { revision?: string } }).payload;
-    if (revision) {
-      api.dispatch(revisionChanged(revision));
+    const environmentKey = action.meta?.arg.originalArgs.environmentKey;
+    const revision = action.meta?.baseQueryMeta?.revision;
+    if (environmentKey && revision) {
+      api.dispatch(revisionChanged({ environmentKey, revision }));
     }
   }
 });
@@ -165,13 +174,13 @@ export const store = configureStore({
       environments: {},
       status: LoadingStatus.IDLE,
       currentEnvironment,
+      revision: 'unknown',
       error: undefined
     },
     namespaces: {
       namespaces: {},
       status: LoadingStatus.IDLE,
       currentNamespace,
-      revision: '',
       error: undefined
     },
     flagsTable: {

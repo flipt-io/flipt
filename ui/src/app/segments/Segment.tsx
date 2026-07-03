@@ -3,11 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
 import {
   selectCurrentNamespace,
-  selectNamespaces,
-  selectRevision
+  selectNamespaces
 } from '~/app/namespaces/namespacesApi';
 import {
   useCopySegmentMutation,
