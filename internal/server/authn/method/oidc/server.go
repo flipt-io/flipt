@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/url"
 	"strings"
 	"time"
 
@@ -117,6 +118,19 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 	authURL, err := provider.AuthURL(context.Background(), oidcRequest)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(providerCfg.AuthorizeParameters) != 0 {
+		at, err := url.Parse(authURL)
+		if err != nil {
+			return nil, err
+		}
+		query := at.Query()
+		for k, v := range providerCfg.AuthorizeParameters {
+			query.Add(k, v)
+		}
+		at.RawQuery = query.Encode()
+		authURL = at.String()
 	}
 
 	return &auth.AuthorizeURLResponse{AuthorizeUrl: authURL}, nil
@@ -292,7 +306,8 @@ func (s *Server) providerFor(provider string, state string, nonce string) (*capo
 		oidcOpts = append(oidcOpts, capoidc.WithPKCE(PKCEVerifier))
 	}
 
-	req, err := capoidc.NewRequest(oauthChallengeTTL, callback,
+	req, err := capoidc.NewRequest(
+		oauthChallengeTTL, callback,
 		oidcOpts...,
 	)
 	if err != nil {
