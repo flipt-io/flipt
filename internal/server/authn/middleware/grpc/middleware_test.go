@@ -7,13 +7,14 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"net/http/httptest"
 	"regexp"
 	"testing"
 	"time"
 
+	"github.com/coreos/go-oidc/v3/oidc/oidctest"
 	jjwt "github.com/go-jose/go-jose/v4/jwt"
 	"github.com/hashicorp/cap/jwt"
-	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/containers"
@@ -328,7 +329,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 					"exp": futureUnix,
 				}
 
-				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				token := signJWT(t, priv, claims)
 				return metadata.MD{
 					"Authorization": []string{"JWT " + token},
 				}
@@ -355,7 +356,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 					},
 				}
 
-				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				token := signJWT(t, priv, claims)
 				return metadata.MD{
 					"Authorization": []string{"JWT " + token},
 				}
@@ -389,7 +390,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 					"io.flipt.auth.role": "admin",
 				}
 
-				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				token := signJWT(t, priv, claims)
 				return metadata.MD{
 					"Authorization": []string{"JWT " + token},
 				}
@@ -416,7 +417,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 					"exp": futureUnix,
 				}
 
-				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				token := signJWT(t, priv, claims)
 				return metadata.MD{
 					"Authorization": []string{"JWT " + token},
 				}
@@ -436,7 +437,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 					"sub": "bar",
 				}
 
-				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				token := signJWT(t, priv, claims)
 				return metadata.MD{
 					"Authorization": []string{"JWT " + token},
 				}
@@ -457,7 +458,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 					"aud": "bar",
 				}
 
-				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				token := signJWT(t, priv, claims)
 				return metadata.MD{
 					"Authorization": []string{"JWT " + token},
 				}
@@ -540,10 +541,16 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("%s/remote", tt.name), func(t *testing.T) {
-			tp := oidc.StartTestProvider(t, oidc.WithNoTLS())
-			tp.SetSigningKeys(priv, priv.Public(), oidc.RS256, "test-key")
+			oidcSrv := &oidctest.Server{
+				PublicKeys: []oidctest.PublicKey{
+					{PublicKey: priv.Public(), KeyID: "test-key", Algorithm: "RS256"},
+				},
+			}
+			hsrv := httptest.NewServer(oidcSrv)
+			t.Cleanup(hsrv.Close)
+			oidcSrv.SetIssuer(hsrv.URL)
 
-			ks, err := jwt.NewJSONWebKeySet(t.Context(), tp.Addr()+"/.well-known/jwks.json", "")
+			ks, err := jwt.NewJSONWebKeySet(t.Context(), hsrv.URL+"/keys", "")
 			require.NoError(t, err)
 
 			validator, err := jwt.NewValidator(ks)
@@ -613,7 +620,7 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 					"iat": nowUnix,
 					"exp": futureUnix,
 				}
-				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				token := signJWT(t, priv, claims)
 				return metadata.MD{
 					"Authorization": []string{"JWT " + token},
 				}
@@ -632,7 +639,7 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 					"iat": nowUnix,
 					"exp": futureUnix,
 				}
-				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				token := signJWT(t, priv, claims)
 				return metadata.MD{
 					"Authorization": []string{"JWT " + token},
 				}
@@ -721,7 +728,7 @@ func TestJWTAuthenticationUnaryInterceptorWithSkippedOption(t *testing.T) {
 		"iat": nowUnix,
 		"exp": futureUnix,
 	}
-	validToken := oidc.TestSignJWT(t, priv, string(jwt.RS256), validClaims, []byte("test-key"))
+	validToken := signJWT(t, priv, validClaims)
 
 	// Create an invalid JWT token (wrong issuer)
 	invalidClaims := map[string]any{
@@ -731,7 +738,7 @@ func TestJWTAuthenticationUnaryInterceptorWithSkippedOption(t *testing.T) {
 		"iat": nowUnix,
 		"exp": futureUnix,
 	}
-	invalidToken := oidc.TestSignJWT(t, priv, string(jwt.RS256), invalidClaims, []byte("test-key"))
+	invalidToken := signJWT(t, priv, invalidClaims)
 
 	tests := []struct {
 		name          string
@@ -850,7 +857,7 @@ func TestJWTAuthenticationStreamInterceptorWithSkippedOption(t *testing.T) {
 		"iat": nowUnix,
 		"exp": futureUnix,
 	}
-	validToken := oidc.TestSignJWT(t, priv, string(jwt.RS256), validClaims, []byte("test-key"))
+	validToken := signJWT(t, priv, validClaims)
 
 	// Create an invalid JWT token (wrong issuer)
 	invalidClaims := map[string]any{
@@ -860,7 +867,7 @@ func TestJWTAuthenticationStreamInterceptorWithSkippedOption(t *testing.T) {
 		"iat": nowUnix,
 		"exp": futureUnix,
 	}
-	invalidToken := oidc.TestSignJWT(t, priv, string(jwt.RS256), invalidClaims, []byte("test-key"))
+	invalidToken := signJWT(t, priv, invalidClaims)
 
 	tests := []struct {
 		name          string
@@ -1670,6 +1677,13 @@ func TestEmailMatchingUnaryInterceptorWithSkippedServers(t *testing.T) {
 			}
 		})
 	}
+}
+
+func signJWT(t *testing.T, priv *rsa.PrivateKey, claims map[string]any) string {
+	t.Helper()
+	claimsJSON, err := json.Marshal(claims)
+	require.NoError(t, err)
+	return oidctest.SignIDToken(priv, "test-key", "RS256", string(claimsJSON))
 }
 
 func TestJwtClaimsToMetadata(t *testing.T) {

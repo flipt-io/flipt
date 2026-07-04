@@ -69,8 +69,8 @@ func TestEndSessionURI(t *testing.T) {
 				storageMetadataOIDCProvider: "nonexistent",
 			},
 		}
-		_, err := EndSessionURI(ctx, authConfig, auth, "id-token")
-		require.ErrorContains(t, err, "provider not found")
+		_, err := EndSessionURI(ctx, NewRegistry(authConfig), auth, "id-token")
+		require.ErrorContains(t, err, "no oidc provider")
 	})
 
 	t.Run("UseEndSessionEndpoint disabled", func(t *testing.T) {
@@ -97,7 +97,7 @@ func TestEndSessionURI(t *testing.T) {
 				storageMetadataOIDCProvider: "google",
 			},
 		}
-		uri, err := EndSessionURI(ctx, authConfig, auth, "id-token")
+		uri, err := EndSessionURI(ctx, NewRegistry(authConfig), auth, "id-token")
 		require.NoError(t, err)
 		assert.Empty(t, uri)
 	})
@@ -140,7 +140,7 @@ func TestEndSessionURI(t *testing.T) {
 				storageMetadataOIDCProvider: "google",
 			},
 		}
-		_, err := EndSessionURI(ctx, authConfig, auth, "id-token")
+		_, err := EndSessionURI(ctx, NewRegistry(authConfig), auth, "id-token")
 		require.ErrorIs(t, err, errProviderWithNoEndSessionEndpoint)
 	})
 
@@ -182,7 +182,7 @@ func TestEndSessionURI(t *testing.T) {
 				storageMetadataOIDCProvider: "google",
 			},
 		}
-		uri, err := EndSessionURI(ctx, authConfig, auth, "my-id-token")
+		uri, err := EndSessionURI(ctx, NewRegistry(authConfig), auth, "my-id-token")
 		require.NoError(t, err)
 		require.NotEmpty(t, uri)
 
@@ -190,6 +190,110 @@ func TestEndSessionURI(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "my-id-token", parsed.Query().Get("id_token_hint"))
 		assert.Equal(t, "http://localhost", parsed.Query().Get("post_logout_redirect_uri"))
+	})
+}
+
+func TestEncodeOAuthChallenge(t *testing.T) {
+	tests := []struct {
+		name      string
+		challenge string
+		nonce     string
+		want      string
+		wantErr   string
+	}{
+		{
+			name:      "encodes challenge and nonce separated by dot",
+			challenge: "challenge-val",
+			nonce:     "nonce-val",
+			want:      "challenge-val.nonce-val",
+		},
+		{
+			name:      "error on empty challenge",
+			challenge: "",
+			nonce:     "nonce-val",
+			wantErr:   "encodeOAuthChallenge: challenge and nonce must not be empty",
+		},
+		{
+			name:      "error on empty nonce",
+			challenge: "challenge-val",
+			nonce:     "",
+			wantErr:   "encodeOAuthChallenge: challenge and nonce must not be empty",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := encodeOAuthChallenge(tt.challenge, tt.nonce)
+			if tt.wantErr != "" {
+				require.EqualError(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestDecodeOAuthChallenge(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         string
+		wantChallenge string
+		wantNonce     string
+		wantErr       string
+	}{
+		{
+			name:          "new format: challenge and nonce",
+			input:         "abc123.def456",
+			wantChallenge: "abc123",
+			wantNonce:     "def456",
+		},
+		{
+			name:    "single value without separator returns error",
+			input:   "singlevalue",
+			wantErr: `decodeOAuthChallenge: invalid challenge data: "singlevalue"`,
+		},
+		{
+			name:          "challenge with dots inside is split correctly",
+			input:         "abc.def.ghi",
+			wantChallenge: "abc",
+			wantNonce:     "def.ghi",
+		},
+		{
+			name:    "empty string returns error",
+			input:   "",
+			wantErr: `decodeOAuthChallenge: invalid challenge data: ""`,
+		},
+		{
+			name:    "challenge only with trailing dot returns error",
+			input:   "abc.",
+			wantErr: `decodeOAuthChallenge: invalid challenge data: "abc."`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			challenge, nonce, err := decodeOAuthChallenge(tt.input)
+			if tt.wantErr != "" {
+				require.EqualError(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantChallenge, challenge)
+			assert.Equal(t, tt.wantNonce, nonce)
+		})
+	}
+}
+
+func TestEncodeDecodeRoundTrip(t *testing.T) {
+	t.Run("encode then decode yields original values", func(t *testing.T) {
+		challenge, nonce := "my-challenge", "my-nonce"
+		encoded, err := encodeOAuthChallenge(challenge, nonce)
+		require.NoError(t, err)
+		gotChallenge, gotNonce, err := decodeOAuthChallenge(encoded)
+		require.NoError(t, err)
+		assert.Equal(t, challenge, gotChallenge)
+		assert.Equal(t, nonce, gotNonce)
 	})
 }
 

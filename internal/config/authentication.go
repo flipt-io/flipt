@@ -470,6 +470,7 @@ type AuthenticationMethodStaticToken struct {
 type AuthenticationMethodOIDCConfig struct {
 	EmailMatches []string                                    `json:"emailMatches,omitempty" mapstructure:"email_matches" yaml:"email_matches,omitempty"`
 	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers" yaml:"providers,omitempty"`
+	CacheTTL     time.Duration                               `json:"cacheTtl,omitempty" mapstructure:"cache_ttl" yaml:"cache_ttl,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCConfig) setDefaults(defaults map[string]any) {
@@ -526,10 +527,11 @@ func (a AuthenticationMethodOIDCConfig) validate() error {
 
 // AuthenticationMethodOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
-	IssuerURL             string            `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
-	ClientID              string            `json:"-" mapstructure:"client_id" yaml:"-"`
-	ClientSecret          string            `json:"-" mapstructure:"client_secret" yaml:"-"`
-	RedirectAddress       string            `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	IssuerURL       string `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
+	ClientID        string `json:"-" mapstructure:"client_id" yaml:"-"`
+	ClientSecret    string `json:"-" mapstructure:"client_secret" yaml:"-"`
+	RedirectAddress string `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	// Deprecated: Nonce is no longer used. A random nonce is always generated per auth flow.
 	Nonce                 string            `json:"nonce,omitempty" mapstructure:"nonce" yaml:"nonce,omitempty"`
 	Scopes                []string          `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
 	UsePKCE               bool              `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
@@ -540,7 +542,6 @@ type AuthenticationMethodOIDCProvider struct {
 }
 
 func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {
-	defaults["nonce"] = "static"
 	defaults["algorithms"] = []string{"RS256"}
 }
 

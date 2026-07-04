@@ -90,8 +90,9 @@ func authenticationGRPC(
 		return nil, nil, nil, err
 	}
 
+	oidcRegister := authoidc.NewRegistry(authCfg)
 	rpcauth.RegisterPublicAuthenticationServiceServer(handlers, public.NewServer(logger, authCfg))
-	rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, store, authCfg))
+	rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, store, authCfg, oidcRegister))
 
 	shutdown = store.Shutdown
 
@@ -102,7 +103,7 @@ func authenticationGRPC(
 
 	// register auth method oidc service
 	if authCfg.Methods.OIDC.Enabled {
-		rpcauth.RegisterAuthenticationMethodOIDCServiceServer(handlers, authoidc.NewServer(logger, store, authCfg))
+		rpcauth.RegisterAuthenticationMethodOIDCServiceServer(handlers, authoidc.NewServer(logger, store, oidcRegister, authCfg))
 
 		logger.Debug("authentication method \"oidc\" server registered")
 	}

@@ -16,6 +16,7 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn"
+	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
@@ -69,7 +70,7 @@ func TestServer(t *testing.T) {
 
 	defer shutdown(t)
 
-	rpcauth.RegisterAuthenticationServiceServer(server, authn.NewServer(logger, store, config.AuthenticationConfig{}))
+	rpcauth.RegisterAuthenticationServiceServer(server, authn.NewServer(logger, store, config.AuthenticationConfig{}, nil))
 
 	go func() {
 		errC <- server.Serve(listener)
@@ -243,7 +244,7 @@ func TestServer(t *testing.T) {
 				},
 			}
 
-			rpcauth.RegisterAuthenticationServiceServer(oidcServer, authn.NewServer(logger, oidcStore, oidcAuthConfig))
+			rpcauth.RegisterAuthenticationServiceServer(oidcServer, authn.NewServer(logger, oidcStore, oidcAuthConfig, authoidc.NewRegistry(oidcAuthConfig)))
 
 			oidcErrC := make(chan error)
 			go func() {

@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
 	"io"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,8 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/coreos/go-oidc/v3/oidc/oidctest"
 	"github.com/go-chi/chi/v5"
-	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
@@ -41,39 +45,50 @@ func Test_Server(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := oidc.StartTestProvider(
-		t,
-		oidc.WithTestDefaults(&oidc.TestProviderDefaults{
-			SigningKey: &oidc.TestSigningKey{
-				PrivKey: priv,
-				PubKey:  priv.Public(),
-				Alg:     oidc.RS256,
-			},
-		}),
-	)
-	defer tp.Stop()
+	s := &oidctest.Server{
+		PublicKeys: []oidctest.PublicKey{
+			{PublicKey: priv.Public(), KeyID: "test-key", Algorithm: "RS256"},
+		},
+	}
+	srv := httptest.NewServer(s)
+	t.Cleanup(srv.Close)
+	s.SetIssuer(srv.URL)
 
-	// write CA certification to temporary file
-	caPath := writeStringToTemp(t, "ca-*.cert", tp.CACert())
+	// Generate a self-signed CA cert for the kubernetes validator
+	caPriv, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	caTemplate := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(365 * 24 * time.Hour),
+		IsCA:                  true,
+		BasicConstraintsValid: true,
+	}
+	caDER, err := x509.CreateCertificate(rand.Reader, caTemplate, caTemplate, &caPriv.PublicKey, caPriv)
+	require.NoError(t, err)
+	caPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caDER})
+	caPath := writeStringToTemp(t, "ca-*.cert", string(caPEM))
 
 	t.Log("CA Path", caPath)
 
-	fliptServiceAccountToken := oidc.TestSignJWT(t, priv, string(oidc.RS256),
-		map[string]any{
-			"exp": time.Now().Add(24 * time.Hour).Unix(),
-			"iss": tp.Addr(),
-			"kubernetes.io": map[string]any{
-				"namespace": "flipt",
-				"pod": map[string]any{
-					"name": "flipt-7d26f049-kdurb",
-					"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
-				},
-				"serviceaccount": map[string]any{
-					"name": "flipt",
-					"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
-				},
+	saClaims := map[string]any{
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"iss": srv.URL,
+		"kubernetes.io": map[string]any{
+			"namespace": "flipt",
+			"pod": map[string]any{
+				"name": "flipt-7d26f049-kdurb",
+				"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
 			},
-		}, nil)
+			"serviceaccount": map[string]any{
+				"name": "flipt",
+				"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+			},
+		},
+	}
+	saClaimsJSON, err := json.Marshal(saClaims)
+	require.NoError(t, err)
+	fliptServiceAccountToken := oidctest.SignIDToken(priv, "test-key", "RS256", string(saClaimsJSON))
 	fliptServiceAccountTokenPath := writeStringToTemp(t, "token-*", fliptServiceAccountToken)
 
 	t.Log("SA Path", fliptServiceAccountTokenPath)
@@ -84,7 +99,7 @@ func Test_Server(t *testing.T) {
 				Kubernetes: config.AuthenticationMethod[config.AuthenticationMethodKubernetesConfig]{
 					Enabled: true,
 					Method: config.AuthenticationMethodKubernetesConfig{
-						DiscoveryURL:            tp.Addr(),
+						DiscoveryURL:            srv.URL,
 						CAPath:                  caPath,
 						ServiceAccountTokenPath: fliptServiceAccountTokenPath,
 					},
@@ -101,31 +116,29 @@ func Test_Server(t *testing.T) {
 	t.Run("Valid service account token", func(t *testing.T) {
 		var (
 			verifyURL = clientAddress + "/auth/v1/method/kubernetes/serviceaccount"
-			// generate service account JWT using the configured private key
-			payload = auth.VerifyServiceAccountRequest{
-				ServiceAccountToken: oidc.TestSignJWT(
-					t,
-					priv,
-					string(oidc.RS256),
-					map[string]any{
-						"exp": time.Now().Add(24 * time.Hour).Unix(),
-						"iss": tp.Addr(),
-						"kubernetes.io": map[string]any{
-							"namespace": "applications",
-							"pod": map[string]any{
-								"name": "booking-7d26f049-kdurb",
-								"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
-							},
-							"serviceaccount": map[string]any{
-								"name": "booking",
-								"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
-							},
-						},
-					},
-					nil,
-				),
-			}
+			payload   auth.VerifyServiceAccountRequest
 		)
+
+		saClaims := map[string]any{
+			"exp": time.Now().Add(24 * time.Hour).Unix(),
+			"iss": srv.URL,
+			"kubernetes.io": map[string]any{
+				"namespace": "applications",
+				"pod": map[string]any{
+					"name": "booking-7d26f049-kdurb",
+					"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
+				},
+				"serviceaccount": map[string]any{
+					"name": "booking",
+					"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+				},
+			},
+		}
+		saClaimsJSON, err := json.Marshal(saClaims)
+		require.NoError(t, err)
+		payload = auth.VerifyServiceAccountRequest{
+			ServiceAccountToken: oidctest.SignIDToken(priv, "test-key", "RS256", string(saClaimsJSON)),
+		}
 
 		data, err := protojson.Marshal(&payload)
 		require.NoError(t, err)
@@ -156,7 +169,6 @@ func Test_Server(t *testing.T) {
 			"io.flipt.auth.k8s.serviceaccount.uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
 		}, response.Authentication.Metadata)
 
-		// ensure expiry is set
 		assert.NotNil(t, response.Authentication.ExpiresAt)
 	})
 }

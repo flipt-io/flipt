@@ -411,6 +411,11 @@
                     }
                   ]
                 },
+                "cache_ttl": {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+                  "default": "15m"
+                },
                 "providers": {
                   "type": [
                     "object",

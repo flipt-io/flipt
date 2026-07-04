@@ -95,6 +95,7 @@ JsonPath: string
 					{[=~"^.*$" & !~"^()$"]: #authentication.#authentication_oidc_provider}
 				}
 				email_matches?: [...] | string
+				cache_ttl?: =~#duration | *"15m"
 			}
 
 			kubernetes?: {

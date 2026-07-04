@@ -45,7 +45,7 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 		}
 	)
 
-	auth.RegisterAuthenticationMethodOIDCServiceServer(server, oidc.NewServer(logger, store, conf))
+	auth.RegisterAuthenticationMethodOIDCServiceServer(server, oidc.NewServer(logger, store, oidc.NewRegistry(conf), conf))
 
 	go func() {
 		defer close(grpcServer.errc)

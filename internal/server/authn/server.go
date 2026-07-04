@@ -8,7 +8,7 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn/method"
-	oidcmethod "go.flipt.io/flipt/internal/server/authn/method/oidc"
+	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
@@ -89,8 +89,10 @@ func ActorFromContext(ctx context.Context) *audit.Actor {
 //
 // It is the service which presents all Authentications created in the backing auth store.
 type Server struct {
-	logger     *zap.Logger
-	store      storageauth.Store
+	logger       *zap.Logger
+	store        storageauth.Store
+	oidcRegistry *authoidc.Registry
+
 	authConfig config.AuthenticationConfig
 
 	auth.UnimplementedAuthenticationServiceServer
@@ -101,11 +103,12 @@ func (s *Server) SkipsAuthorization(ctx context.Context) bool {
 }
 
 // NewServer creates a new AuthenticationServiceServer with the provided logger, store, and auth config.
-func NewServer(logger *zap.Logger, store storageauth.Store, authConfig config.AuthenticationConfig) *Server {
+func NewServer(logger *zap.Logger, store storageauth.Store, authConfig config.AuthenticationConfig, oidcRegistry *authoidc.Registry) *Server {
 	return &Server{
-		logger:     logger,
-		store:      store,
-		authConfig: authConfig,
+		logger:       logger,
+		store:        store,
+		authConfig:   authConfig,
+		oidcRegistry: oidcRegistry,
 	}
 }
 
@@ -179,9 +182,9 @@ func (s *Server) RevokeAuthenticationSelf(ctx context.Context, req *auth.RevokeA
 		if authentication.Method == auth.Method_METHOD_OIDC {
 			idTokenData, err := s.store.GetIDToken(ctx, authentication.Id)
 			if err == nil && idTokenData != nil {
-				next, err := oidcmethod.EndSessionURI(
+				next, err := authoidc.EndSessionURI(
 					ctx,
-					s.authConfig,
+					s.oidcRegistry,
 					authentication,
 					idTokenData.IDToken,
 				)
