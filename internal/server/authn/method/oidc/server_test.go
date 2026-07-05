@@ -17,11 +17,13 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/go-cmp/cmp"
+	capoidc "github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/server/authn/method/oidc"
 	oidctesting "go.flipt.io/flipt/internal/server/authn/method/oidc/testing"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
@@ -34,8 +36,13 @@ import (
 
 func Test_Server_ImplicitFlow(t *testing.T) {
 	var (
-		router        = chi.NewRouter()
-		httpServer    = httptest.NewServer(router)
+		router = chi.NewRouter()
+		// httpServer is the test server used for hosting
+		// Flipts oidc authorize and callback handles
+		httpServer = httptest.NewServer(router)
+		// rewriting http server to use localhost as it is a domain and
+		// the <=go1.18 implementation will propagate cookies on it.
+		// From go1.19+ cookiejar support IP addresses as cookie domains.
 		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
 
 		id, secret = "client_id", "client_secret"
@@ -51,9 +58,9 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 		return
 	}
 
-	tp := oidctesting.StartTestProvider(t, oidctesting.WithNoTLS(), oidctesting.WithTestDefaults(&oidctesting.TestProviderDefaults{
+	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*oidctesting.TestSubject{
+		SubjectInfo: map[string]*capoidc.TestSubject{
 			"mark": {
 				Password: "phelps",
 				CustomClaims: map[string]any{
@@ -71,10 +78,10 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &oidctesting.TestSigningKey{
+		SigningKey: &capoidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     "RS256",
+			Alg:     capoidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -104,7 +111,6 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 								ClientID:        id,
 								ClientSecret:    secret,
 								RedirectAddress: clientAddress,
-								Nonce:           nonce,
 							},
 						},
 					},
@@ -120,13 +126,15 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 	require.NoError(t, err)
 
 	client := &http.Client{
+		// skip redirects
 		CheckRedirect: func(*http.Request, []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+		// establish a cookie jar
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, "mark", "phelps", nil)
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 }
 
 func Test_Server_PKCE(t *testing.T) {
@@ -136,6 +144,7 @@ func Test_Server_PKCE(t *testing.T) {
 		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
 
 		id, secret = "client_id", "client_secret"
+		nonce      = "ljS3QGtxta4HGU6Zjv8qXwEP7eQNGqewc32SUPKhf3A"
 
 		logger = zaptest.NewLogger(t)
 		ctx    = t.Context()
@@ -146,10 +155,11 @@ func Test_Server_PKCE(t *testing.T) {
 		fmt.Fprintf(os.Stderr, "%s\n\n", err)
 		return
 	}
+	PKCEVerifier, _ := capoidc.NewCodeVerifier(capoidc.WithVerifier(nonce))
 
-	tp := oidctesting.StartTestProvider(t, oidctesting.WithNoTLS(), oidctesting.WithTestDefaults(&oidctesting.TestProviderDefaults{
+	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*oidctesting.TestSubject{
+		SubjectInfo: map[string]*capoidc.TestSubject{
 			"mark": {
 				Password: "phelps",
 				CustomClaims: map[string]any{
@@ -167,16 +177,18 @@ func Test_Server_PKCE(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &oidctesting.TestSigningKey{
+		SigningKey: &capoidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     "RS256",
+			Alg:     capoidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
 		},
-		ClientID:     &id,
-		ClientSecret: &secret,
+		ClientID:      &id,
+		ClientSecret:  &secret,
+		ExpectedNonce: &nonce,
+		PKCEVerifier:  PKCEVerifier,
 	}))
 
 	defer tp.Stop()
@@ -206,7 +218,7 @@ func Test_Server_PKCE(t *testing.T) {
 				},
 			},
 		}
-		server = oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router)
+		server = oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, oidc.WithNonceGenerator(func() string { return nonce }))
 	)
 
 	t.Cleanup(func() { _ = server.Stop() })
@@ -215,13 +227,15 @@ func Test_Server_PKCE(t *testing.T) {
 	require.NoError(t, err)
 
 	client := &http.Client{
+		// skip redirects
 		CheckRedirect: func(*http.Request, []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+		// establish a cookie jar
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, "mark", "phelps", nil)
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 }
 
 func Test_Server_Nonce(t *testing.T) {
@@ -240,9 +254,9 @@ func Test_Server_Nonce(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := oidctesting.StartTestProvider(t, oidctesting.WithNoTLS(), oidctesting.WithTestDefaults(&oidctesting.TestProviderDefaults{
+	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*oidctesting.TestSubject{
+		SubjectInfo: map[string]*capoidc.TestSubject{
 			"mark": {
 				Password: "phelps",
 				CustomClaims: map[string]any{
@@ -260,10 +274,10 @@ func Test_Server_Nonce(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &oidctesting.TestSigningKey{
+		SigningKey: &capoidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     "RS256",
+			Alg:     capoidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -293,7 +307,6 @@ func Test_Server_Nonce(t *testing.T) {
 								ClientID:        id,
 								ClientSecret:    secret,
 								RedirectAddress: clientAddress,
-								Nonce:           nonce,
 							},
 						},
 					},
@@ -309,13 +322,15 @@ func Test_Server_Nonce(t *testing.T) {
 	require.NoError(t, err)
 
 	client := &http.Client{
+		// skip redirects
 		CheckRedirect: func(*http.Request, []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+		// establish a cookie jar
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, "mark", "phelps", nil)
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 }
 
 func Test_Server_AuthorizeParameters(t *testing.T) {
@@ -364,17 +379,17 @@ func Test_Server_AuthorizeParameters(t *testing.T) {
 			clientAddress := strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
 			t.Cleanup(httpServer.Close)
 
-			tp := oidctesting.StartTestProvider(t, oidctesting.WithNoTLS(), oidctesting.WithTestDefaults(&oidctesting.TestProviderDefaults{
+			tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
 				CustomClaims: map[string]any{},
-				SubjectInfo: map[string]*oidctesting.TestSubject{
+				SubjectInfo: map[string]*capoidc.TestSubject{
 					"mark": {
 						Password: "phelps",
 					},
 				},
-				SigningKey: &oidctesting.TestSigningKey{
+				SigningKey: &capoidc.TestSigningKey{
 					PrivKey: priv,
 					PubKey:  priv.Public(),
-					Alg:     "RS256",
+					Alg:     capoidc.RS256,
 				},
 				AllowedRedirectURIs: []string{
 					fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -461,9 +476,9 @@ func Test_Server_FetchExtraUserInfoClaims(t *testing.T) {
 		priv, err := rsa.GenerateKey(rand.Reader, 4096)
 		require.NoError(t, err)
 
-		tp := oidctesting.StartTestProvider(t, oidctesting.WithNoTLS(), oidctesting.WithTestDefaults(&oidctesting.TestProviderDefaults{
+		tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
 			CustomClaims: map[string]any{},
-			SubjectInfo: map[string]*oidctesting.TestSubject{
+			SubjectInfo: map[string]*capoidc.TestSubject{
 				"mark": {
 					Password: "phelps",
 					UserInfo: map[string]any{
@@ -478,10 +493,10 @@ func Test_Server_FetchExtraUserInfoClaims(t *testing.T) {
 					},
 				},
 			},
-			SigningKey: &oidctesting.TestSigningKey{
+			SigningKey: &capoidc.TestSigningKey{
 				PrivKey: priv,
 				PubKey:  priv.Public(),
-				Alg:     "RS256",
+				Alg:     capoidc.RS256,
 			},
 			AllowedRedirectURIs: []string{
 				fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -525,13 +540,14 @@ func Test_Server_FetchExtraUserInfoClaims(t *testing.T) {
 		require.NoError(t, err)
 
 		client := &http.Client{
+			// skip redirects
 			CheckRedirect: func(*http.Request, []*http.Request) error {
 				return http.ErrUseLastResponse
 			},
 			Jar: jar,
 		}
 
-		testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, "mark", "phelps", claimGroups(expectedGroups))
+		testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, claimGroups(expectedGroups))
 	}
 
 	t.Run("FetchExtraUserInfo enabled", func(t *testing.T) {
@@ -540,6 +556,212 @@ func Test_Server_FetchExtraUserInfoClaims(t *testing.T) {
 	t.Run("FetchExtraUserInfo disabled", func(t *testing.T) {
 		run(t, false, groupsFromToken)
 	})
+}
+
+func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress string, client *http.Client, server *oidctesting.HTTPServer, expectedUserInfoClaims map[string]any) {
+	var authURL *url.URL
+
+	t.Run("AuthorizeURL", func(t *testing.T) {
+		authorizeURL := clientAddress + "/auth/v1/method/oidc/google/authorize"
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, authorizeURL, nil)
+		require.NoError(t, err)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		var authorize auth.AuthorizeURLResponse
+		err = protojson.Unmarshal(body, &authorize)
+		require.NoError(t, err)
+
+		authURL, err = url.Parse(authorize.AuthorizeUrl)
+		require.NoError(t, err)
+	})
+
+	t.Log("Navigating to authorize URL:", authURL.String())
+
+	var location string
+	t.Run("Login as Mark", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, authURL.String(), nil)
+		require.NoError(t, err)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		values, err := parseLoginFormHiddenValues(resp.Body)
+		require.NoError(t, err)
+
+		// add login credentials
+		values.Set("uname", "mark")
+		values.Set("psw", "phelps")
+
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tpAddr+"/login", strings.NewReader(values.Encode()))
+		require.NoError(t, err)
+
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		resp, err = client.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusFound, resp.StatusCode)
+
+		location = resp.Header.Get("Location")
+	})
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, nil)
+	require.NoError(t, err)
+
+	t.Run("Callback (missing state)", func(t *testing.T) {
+		// using the default client which has no state cookie
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("Callback (invalid state)", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, nil)
+		require.NoError(t, err)
+
+		req.Header.Set("Cookie", "flipt_client_state=abcdef")
+		// using the default client which has no state cookie
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("Callback", func(t *testing.T) {
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		data, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		var response auth.CallbackResponse
+		if !assert.NoError(t, protojson.Unmarshal(data, &response)) {
+			t.Log("Unexpected response", string(data))
+			t.FailNow()
+		}
+
+		assert.Empty(t, response.ClientToken) // middleware moves it to cookie
+		assert.Equal(t, auth.Method_METHOD_OIDC, response.Authentication.Method)
+
+		claims := response.Authentication.Metadata["io.flipt.auth.claims"]
+		delete(response.Authentication.Metadata, "io.flipt.auth.claims")
+
+		assert.Equal(t, map[string]string{
+			"io.flipt.auth.oidc.provider": "google",
+			"io.flipt.auth.oidc.email":    "mark@flipt.io",
+			"io.flipt.auth.email":         "mark@flipt.io",
+			"io.flipt.auth.oidc.name":     "Mark Phelps",
+			"io.flipt.auth.name":          "Mark Phelps",
+			"io.flipt.auth.oidc.sub":      "mark",
+		}, response.Authentication.Metadata)
+
+		assert.NotEmpty(t, claims)
+		if expectedUserInfoClaims != nil {
+			var claimSet map[string]any
+			require.NoError(t, json.Unmarshal([]byte(claims), &claimSet))
+			for key, expected := range expectedUserInfoClaims {
+				assert.Equal(t, expected, claimSet[key])
+			}
+		}
+
+		// ensure expiry is set
+		assert.NotNil(t, response.Authentication.ExpiresAt)
+
+		// obtain returned cookie
+		cookie, err := (&http.Request{
+			Header: http.Header{"Cookie": resp.Header["Set-Cookie"]},
+		}).Cookie("flipt_client_token")
+		require.NoError(t, err)
+
+		// check authentication in store matches
+		storedAuth, err := server.GRPCServer.Store.GetAuthenticationByClientToken(ctx, cookie.Value)
+		require.NoError(t, err)
+
+		// ensure stored auth can be retrieved by cookie abd matches response body auth
+		if diff := cmp.Diff(storedAuth, response.Authentication, protocmp.Transform()); err != nil {
+			t.Errorf("-exp/+got:\n%s", diff)
+		}
+	})
+}
+
+// parseLoginFormHiddenValues parses the contents of the supplied reader as HTML.
+// It descends into the document looking for the hidden values associated
+// with the login form.
+// It collecs the hidden values into a url.Values so that we can post the form
+// using our Go client.
+func parseLoginFormHiddenValues(r io.Reader) (url.Values, error) {
+	values := url.Values{}
+
+	doc, err := html.Parse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	findNode := func(visit func(*html.Node), name string, attrs ...html.Attribute) func(*html.Node) {
+		var f func(*html.Node)
+		f = func(n *html.Node) {
+			var hasAttrs bool
+			if n.Type == html.ElementNode && n.Data == name {
+				hasAttrs = true
+				for _, want := range attrs {
+					for _, has := range n.Attr {
+						if has.Key == want.Key {
+							hasAttrs = hasAttrs && (want.Val == has.Val)
+						}
+					}
+				}
+			}
+
+			if hasAttrs {
+				visit(n)
+				return
+			}
+
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				f(c)
+			}
+		}
+
+		return f
+	}
+
+	findNode(func(n *html.Node) {
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			findNode(func(n *html.Node) {
+				var (
+					name  string
+					value string
+				)
+				for _, a := range n.Attr {
+					switch a.Key {
+					case "name":
+						name = a.Val
+					case "value":
+						value = a.Val
+					}
+				}
+
+				values.Set(name, value)
+			}, "input", html.Attribute{Key: "type", Val: "hidden"})(c)
+		}
+	}, "form", html.Attribute{Key: "action", Val: "/login"})(doc)
+
+	return values, nil
 }
 
 func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
@@ -558,24 +780,24 @@ func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := oidctesting.StartTestProvider(t, oidctesting.WithNoTLS(), oidctesting.WithTestDefaults(&oidctesting.TestProviderDefaults{
+	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
 		CustomClaims: map[string]any{
 			"sid": "test-session-456",
 		},
-		SubjectInfo: map[string]*oidctesting.TestSubject{
-			"jane": {
-				Password: "doe",
+		SubjectInfo: map[string]*capoidc.TestSubject{
+			"mark": {
+				Password: "phelps",
 				CustomClaims: map[string]any{
-					"email": "jane@example.com",
-					"name":  "Jane Doe",
-					"sid":   "test-session-456",
+					"email": "mark@flipt.io",
+					"name":  "Mark Phelps",
+					"roles": []string{"admin"},
 				},
 			},
 		},
-		SigningKey: &oidctesting.TestSigningKey{
+		SigningKey: &capoidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     "RS256",
+			Alg:     capoidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -603,7 +825,6 @@ func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
 							ClientID:              id,
 							ClientSecret:          secret,
 							RedirectAddress:       clientAddress,
-							Nonce:                 nonce,
 							UseEndSessionEndpoint: true,
 						},
 					},
@@ -612,7 +833,7 @@ func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
 		},
 	}
 
-	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router)
+	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, oidc.WithNonceGenerator(func() string { return nonce }))
 	t.Cleanup(func() { _ = server.Stop() })
 
 	jar, err := cookiejar.New(&cookiejar.Options{})
@@ -625,14 +846,7 @@ func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, "jane", "doe", nil, map[string]string{
-		"io.flipt.auth.oidc.provider": "google",
-		"io.flipt.auth.oidc.email":    "jane@example.com",
-		"io.flipt.auth.email":         "jane@example.com",
-		"io.flipt.auth.oidc.name":     "Jane Doe",
-		"io.flipt.auth.name":          "Jane Doe",
-		"io.flipt.auth.oidc.sub":      "jane",
-	})
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 
 	storedAuth, err := server.GRPCServer.Store.GetAuthenticationIDBySID(ctx, "google:test-session-456")
 	require.NoError(t, err)
@@ -655,21 +869,22 @@ func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := oidctesting.StartTestProvider(t, oidctesting.WithNoTLS(), oidctesting.WithTestDefaults(&oidctesting.TestProviderDefaults{
+	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*oidctesting.TestSubject{
-			"bob": {
-				Password: "marley",
+		SubjectInfo: map[string]*capoidc.TestSubject{
+			"mark": {
+				Password: "phelps",
 				CustomClaims: map[string]any{
-					"email": "bob@example.com",
-					"name":  "Bob Marley",
+					"email": "mark@flipt.io",
+					"name":  "Mark Phelps",
+					"roles": []string{"admin"},
 				},
 			},
 		},
-		SigningKey: &oidctesting.TestSigningKey{
+		SigningKey: &capoidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     "RS256",
+			Alg:     capoidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -697,7 +912,6 @@ func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
 							ClientID:              id,
 							ClientSecret:          secret,
 							RedirectAddress:       clientAddress,
-							Nonce:                 nonce,
 							UseEndSessionEndpoint: true,
 						},
 					},
@@ -706,7 +920,7 @@ func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
 		},
 	}
 
-	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router)
+	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, oidc.WithNonceGenerator(func() string { return nonce }))
 	t.Cleanup(func() { _ = server.Stop() })
 
 	jar, err := cookiejar.New(&cookiejar.Options{})
@@ -719,14 +933,7 @@ func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, "bob", "marley", nil, map[string]string{
-		"io.flipt.auth.oidc.provider": "google",
-		"io.flipt.auth.oidc.email":    "bob@example.com",
-		"io.flipt.auth.email":         "bob@example.com",
-		"io.flipt.auth.oidc.name":     "Bob Marley",
-		"io.flipt.auth.name":          "Bob Marley",
-		"io.flipt.auth.oidc.sub":      "bob",
-	})
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 
 	_, err = server.GRPCServer.Store.GetAuthenticationIDBySID(ctx, "google:")
 	require.Error(t, err)
@@ -744,9 +951,9 @@ func Test_Server_Revoke(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := oidctesting.StartTestProvider(t, oidctesting.WithNoTLS(), oidctesting.WithTestDefaults(&oidctesting.TestProviderDefaults{
+	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*oidctesting.TestSubject{
+		SubjectInfo: map[string]*capoidc.TestSubject{
 			"alice": {
 				Password: "wonder",
 				CustomClaims: map[string]any{
@@ -755,10 +962,10 @@ func Test_Server_Revoke(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &oidctesting.TestSigningKey{
+		SigningKey: &capoidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     "RS256",
+			Alg:     capoidc.RS256,
 		},
 		ClientID:      &id,
 		ClientSecret:  &secret,
@@ -868,202 +1075,4 @@ func Test_Server_Revoke(t *testing.T) {
 			tt.verify(t, created)
 		})
 	}
-}
-
-func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress string, client *http.Client, server *oidctesting.HTTPServer, username, password string, expectedUserInfoClaims map[string]any, expectedMetadata ...map[string]string) {
-	var authURL *url.URL
-
-	t.Run("AuthorizeURL", func(t *testing.T) {
-		authorizeURL := clientAddress + "/auth/v1/method/oidc/google/authorize"
-
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, authorizeURL, nil)
-		require.NoError(t, err)
-
-		resp, err := client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-
-		body, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-
-		var authorize auth.AuthorizeURLResponse
-		err = protojson.Unmarshal(body, &authorize)
-		require.NoError(t, err)
-
-		authURL, err = url.Parse(authorize.AuthorizeUrl)
-		require.NoError(t, err)
-	})
-
-	t.Log("Navigating to authorize URL:", authURL.String())
-
-	var location string
-	t.Run("Login as Mark", func(t *testing.T) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, authURL.String(), nil)
-		require.NoError(t, err)
-
-		resp, err := client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		values, err := parseLoginFormHiddenValues(resp.Body)
-		require.NoError(t, err)
-
-		values.Set("uname", username)
-		values.Set("psw", password)
-
-		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tpAddr+"/login", strings.NewReader(values.Encode()))
-		require.NoError(t, err)
-
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-		resp, err = client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		require.Equal(t, http.StatusFound, resp.StatusCode)
-
-		location = resp.Header.Get("Location")
-	})
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, nil)
-	require.NoError(t, err)
-
-	t.Run("Callback (missing state)", func(t *testing.T) {
-		resp, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-	})
-
-	t.Run("Callback (invalid state)", func(t *testing.T) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, nil)
-		require.NoError(t, err)
-
-		req.Header.Set("Cookie", "flipt_client_state=abcdef")
-		resp, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-	})
-
-	t.Run("Callback", func(t *testing.T) {
-		resp, err := client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		data, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-
-		var response auth.CallbackResponse
-		if !assert.NoError(t, protojson.Unmarshal(data, &response)) {
-			t.Log("Unexpected response", string(data))
-			t.FailNow()
-		}
-
-		assert.Empty(t, response.ClientToken)
-		assert.Equal(t, auth.Method_METHOD_OIDC, response.Authentication.Method)
-
-		claims := response.Authentication.Metadata["io.flipt.auth.claims"]
-		delete(response.Authentication.Metadata, "io.flipt.auth.claims")
-
-		meta := map[string]string{
-			"io.flipt.auth.oidc.provider": "google",
-			"io.flipt.auth.oidc.email":    "mark@flipt.io",
-			"io.flipt.auth.email":         "mark@flipt.io",
-			"io.flipt.auth.oidc.name":     "Mark Phelps",
-			"io.flipt.auth.name":          "Mark Phelps",
-			"io.flipt.auth.oidc.sub":      "mark",
-		}
-		if len(expectedMetadata) > 0 && expectedMetadata[0] != nil {
-			meta = expectedMetadata[0]
-		}
-		assert.Equal(t, meta, response.Authentication.Metadata)
-
-		assert.NotEmpty(t, claims)
-		if expectedUserInfoClaims != nil {
-			var claimSet map[string]any
-			require.NoError(t, json.Unmarshal([]byte(claims), &claimSet))
-			for key, expected := range expectedUserInfoClaims {
-				assert.Equal(t, expected, claimSet[key])
-			}
-		}
-
-		assert.NotNil(t, response.Authentication.ExpiresAt)
-
-		cookie, err := (&http.Request{
-			Header: http.Header{"Cookie": resp.Header["Set-Cookie"]},
-		}).Cookie("flipt_client_token")
-		require.NoError(t, err)
-
-		storedAuth, err := server.GRPCServer.Store.GetAuthenticationByClientToken(ctx, cookie.Value)
-		require.NoError(t, err)
-
-		if diff := cmp.Diff(storedAuth, response.Authentication, protocmp.Transform()); err != nil {
-			t.Errorf("-exp/+got:\n%s", diff)
-		}
-	})
-}
-
-func parseLoginFormHiddenValues(r io.Reader) (url.Values, error) {
-	values := url.Values{}
-
-	doc, err := html.Parse(r)
-	if err != nil {
-		return nil, err
-	}
-
-	findNode := func(visit func(*html.Node), name string, attrs ...html.Attribute) func(*html.Node) {
-		var f func(*html.Node)
-		f = func(n *html.Node) {
-			var hasAttrs bool
-			if n.Type == html.ElementNode && n.Data == name {
-				hasAttrs = true
-				for _, want := range attrs {
-					for _, has := range n.Attr {
-						if has.Key == want.Key {
-							hasAttrs = hasAttrs && (want.Val == has.Val)
-						}
-					}
-				}
-			}
-
-			if hasAttrs {
-				visit(n)
-				return
-			}
-
-			for c := n.FirstChild; c != nil; c = c.NextSibling {
-				f(c)
-			}
-		}
-
-		return f
-	}
-
-	findNode(func(n *html.Node) {
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			findNode(func(n *html.Node) {
-				var (
-					name  string
-					value string
-				)
-				for _, a := range n.Attr {
-					switch a.Key {
-					case "name":
-						name = a.Val
-					case "value":
-						value = a.Val
-					}
-				}
-
-				values.Set(name, value)
-			}, "input", html.Attribute{Key: "type", Val: "hidden"})(c)
-		}
-	}, "form", html.Attribute{Key: "action", Val: "/login"})(doc)
-
-	return values, nil
 }

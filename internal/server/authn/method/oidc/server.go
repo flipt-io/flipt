@@ -36,6 +36,26 @@ const (
 // errProviderWithNoEndSessionEndpoint is returned when a provider has no end_session_endpoint.
 var errProviderWithNoEndSessionEndpoint = errors.New("provider doesn't have end_session_endpoint")
 
+type (
+	optionFunc func(*options)
+	options    struct {
+		nonceGenerator func() string
+	}
+)
+
+func (f optionFunc) apply(o *options) { f(o) }
+
+// Option configures the OIDC Server.
+type Option interface {
+	apply(*options)
+}
+
+// WithNonceGenerator sets the function used to generate nonce and PKCE challenge values.
+// By default oauth2.GenerateVerifier is used. Intended for tests that need predictable values.
+func WithNonceGenerator(f func() string) Option {
+	return optionFunc(func(o *options) { o.nonceGenerator = f })
+}
+
 // Server is the core OIDC server implementation for Flipt.
 // It supports two primary operations:
 //   - AuthorizeURL
@@ -53,10 +73,11 @@ var errProviderWithNoEndSessionEndpoint = errors.New("provider doesn't have end_
 // This client token can be used to access the rest of the Flipt API.
 // Given the user-agent is requestin using HTTP the token is instead established as an HTTP cookie.
 type Server struct {
-	logger        *zap.Logger
-	store         storageauth.Store
-	TokenLifetime time.Duration
-	registry      *Registry
+	logger         *zap.Logger
+	store          storageauth.Store
+	TokenLifetime  time.Duration
+	registry       *Registry
+	nonceGenerator func() string
 
 	auth.UnimplementedAuthenticationMethodOIDCServiceServer
 }
@@ -66,12 +87,21 @@ func NewServer(
 	store storageauth.Store,
 	registry *Registry,
 	config config.AuthenticationConfig,
+	opts ...Option,
 ) *Server {
+	o := options{
+		nonceGenerator: oauth2.GenerateVerifier,
+	}
+	for _, opt := range opts {
+		opt.apply(&o)
+	}
+
 	return &Server{
-		logger:        logger,
-		store:         store,
-		TokenLifetime: config.Session.TokenLifetime,
-		registry:      registry,
+		logger:         logger,
+		store:          store,
+		TokenLifetime:  config.Session.TokenLifetime,
+		registry:       registry,
+		nonceGenerator: o.nonceGenerator,
 	}
 }
 
@@ -93,8 +123,9 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 	if err != nil {
 		return nil, fmt.Errorf("authorize: failed to get provider: %w", err)
 	}
-	challenge := oauth2.GenerateVerifier()
-	nonce := oauth2.GenerateVerifier()
+	challenge := s.nonceGenerator()
+	nonce := s.nonceGenerator()
+
 	encoded, err := encodeOAuthChallenge(challenge, nonce)
 	if err != nil {
 		return nil, err

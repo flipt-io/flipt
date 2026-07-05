@@ -386,6 +386,21 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expires
 
 	authentication.ExpiresAt = expiresAt
 	authentication.UpdatedAt = s.now()
+
+	// If the new expiry is in the past, clean up auxiliary indexes immediately
+	// to avoid stale sensitive data and lookups.
+	if expiresAt != nil && expiresAt.AsTime().Before(s.now().AsTime()) {
+		// Remove from bySID if present
+		for sid, aid := range s.bySID {
+			if aid == id {
+				delete(s.bySID, sid)
+				break
+			}
+		}
+		// Remove from idTokens if present
+		delete(s.idTokens, id)
+	}
+
 	return nil
 }
 

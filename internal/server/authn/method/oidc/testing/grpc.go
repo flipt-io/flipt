@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 )
 
+// GRPCServer wraps a gRPC server with an in-memory store for OIDC testing.
 type GRPCServer struct {
 	*grpc.Server
 
@@ -25,11 +26,13 @@ type GRPCServer struct {
 	errc chan error
 }
 
+// Client returns an OIDC service client connected to this test server.
 func (s *GRPCServer) Client() auth.AuthenticationMethodOIDCServiceClient {
 	return auth.NewAuthenticationMethodOIDCServiceClient(s.ClientConn)
 }
 
-func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf config.AuthenticationConfig) *GRPCServer {
+// StartGRPCServer starts an in-memory gRPC test server with the given config and options.
+func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf config.AuthenticationConfig, opts ...oidc.Option) *GRPCServer {
 	t.Helper()
 
 	var (
@@ -45,7 +48,8 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 		}
 	)
 
-	auth.RegisterAuthenticationMethodOIDCServiceServer(server, oidc.NewServer(logger, store, oidc.NewRegistry(conf), conf))
+	oidcServer := oidc.NewServer(logger, store, oidc.NewRegistry(conf), conf, opts...)
+	auth.RegisterAuthenticationMethodOIDCServiceServer(server, oidcServer)
 
 	go func() {
 		defer close(grpcServer.errc)
@@ -65,6 +69,7 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 	return grpcServer
 }
 
+// Stop shuts down the gRPC test server and returns any serve error.
 func (s *GRPCServer) Stop() error {
 	if err := s.ClientConn.Close(); err != nil {
 		return err

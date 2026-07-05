@@ -172,6 +172,19 @@ func TestFormURLEncodedMarshaler(t *testing.T) {
 		opt := NewFormURLEncodedMarshaler()
 		assert.NotNil(t, opt)
 	})
+
+	t.Run("NewDecoder rejects body larger than limit", func(t *testing.T) {
+		m := &formURLEncodedMarshaler{runtime.JSONBuiltin{}}
+		largeValue := strings.Repeat("a", maxFormURLEncodedBodySize)
+		prefix := "provider=google&logout_token="
+		formData := prefix + largeValue
+		decoder := m.NewDecoder(strings.NewReader(formData))
+
+		var req auth.RevokeOIDCRequest
+		err := decoder.Decode(&req)
+		require.NoError(t, err)
+		require.Len(t, req.LogoutToken, maxFormURLEncodedBodySize-len(prefix))
+	})
 }
 
 func extractEventPayload(t *testing.T, buf []byte) ([]byte, bool) {

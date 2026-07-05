@@ -39,6 +39,9 @@ const (
 	MIMEEventStream = "text/event-stream"
 	// MIMEFormURLEncoded is the content type for URL-encoded form data.
 	MIMEFormURLEncoded = "application/x-www-form-urlencoded"
+	// maxFormURLEncodedBodySize is the maximum size of a form-urlencoded request body.
+	// 4 KiB is sufficient for OIDC back-channel logout requests and prevents memory exhaustion.
+	maxFormURLEncodedBodySize = 4 * 1024
 )
 
 // NewGatewayServeMux builds a new gateway serve mux with common options.
@@ -199,7 +202,8 @@ func (u formURLEncodedMarshaler) NewDecoder(r io.Reader) runtime.Decoder {
 			return fmt.Errorf("not proto message")
 		}
 
-		formData, err := io.ReadAll(r)
+		limitedReader := io.LimitReader(r, maxFormURLEncodedBodySize)
+		formData, err := io.ReadAll(limitedReader)
 		if err != nil {
 			return err
 		}

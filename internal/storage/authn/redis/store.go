@@ -35,6 +35,8 @@ const (
 	authenticationKey = "authentication"
 	tokenHashKey      = "token_hash"
 	expiresAtKey      = "expires_at"
+	sessionIDKey      = "session_id"
+	idTokenKey        = "id_token"
 
 	batchSize = 1000
 )
@@ -205,12 +207,12 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 
 	// Store OIDC SLO data if present (sensitive, not in public metadata)
 	if r.IDToken != "" {
-		pipe.HSet(ctx, idKey, "id_token", r.IDToken)
+		pipe.HSet(ctx, idKey, idTokenKey, r.IDToken)
 	}
 
 	// Store session ID for back-channel logout lookup
 	if r.SessionID != "" {
-		pipe.HSet(ctx, idKey, "session_id", r.SessionID)
+		pipe.HSet(ctx, idKey, sessionIDKey, r.SessionID)
 		sessionKey := authSessionKey(s.prefix, r.SessionID)
 		pipe.Set(ctx, sessionKey, authentication.Id, 0)
 		if authentication.ExpiresAt != nil {
@@ -400,7 +402,7 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 
 	for i, id := range ids {
 		tokenCmds[i] = pipe.HGet(ctx, authIDKey(s.prefix, id), tokenHashKey)
-		sessionCmds[i] = pipe.HGet(ctx, authIDKey(s.prefix, id), "session_id")
+		sessionCmds[i] = pipe.HGet(ctx, authIDKey(s.prefix, id), sessionIDKey)
 		if method != nil {
 			pipe.SRem(ctx, authMethodKey(s.prefix, *method), id)
 		}
@@ -431,9 +433,20 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 
 // ExpireAuthenticationByID implements authn.Store.
 func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
-	// Get the token hash first
+	// Get the token hash and session ID first
 	idKey := authIDKey(s.prefix, id)
-	tokenHash, err := s.client.HGet(ctx, idKey, tokenHashKey).Result()
+	pipe := s.client.Pipeline()
+	tokenHashCmd := pipe.HGet(ctx, idKey, tokenHashKey)
+	authJSONCmd := pipe.HGet(ctx, idKey, authenticationKey)
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		if errs.Is(err, goredis.Nil) {
+			return errors.ErrNotFoundf("getting authentication by id")
+		}
+		return fmt.Errorf("getting authentication by id: %w", err)
+	}
+
+	tokenHash, err := tokenHashCmd.Result()
 	if err != nil {
 		if errs.Is(err, goredis.Nil) {
 			return errors.ErrNotFoundf("getting authentication by id")
@@ -441,8 +454,7 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 		return fmt.Errorf("getting authentication by id: %w", err)
 	}
 
-	// Then get the authentication record
-	authJSON, err := s.client.HGet(ctx, idKey, authenticationKey).Result()
+	authJSON, err := authJSONCmd.Result()
 	if err != nil {
 		if errs.Is(err, goredis.Nil) {
 			return errors.ErrNotFoundf("getting authentication record")
@@ -467,8 +479,11 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 		return fmt.Errorf("marshalling authentication: %w", err)
 	}
 
+	// Get session ID for updating the session key TTL (optional, can be nil)
+	sid, _ := s.client.HGet(ctx, idKey, sessionIDKey).Result()
+
 	// Update expiry in a pipeline
-	pipe := s.client.Pipeline()
+	pipe = s.client.Pipeline()
 
 	// Update the authentication record with new ExpiresAt
 	pipe.HSet(ctx, idKey, authenticationKey, updatedAuthJSON)
@@ -479,6 +494,11 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 	// Set TTL on both ID and token hash keys, adding the grace period
 	pipe.ExpireAt(ctx, idKey, expireAt.AsTime().Add(s.cleanupGracePeriod))
 	pipe.ExpireAt(ctx, authTokenKey(s.prefix, tokenHash), expireAt.AsTime().Add(s.cleanupGracePeriod))
+
+	// If there's a session ID, also update the TTL on the session key
+	if sid != "" {
+		pipe.ExpireAt(ctx, authSessionKey(s.prefix, sid), expireAt.AsTime().Add(s.cleanupGracePeriod))
+	}
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		return fmt.Errorf("updating authentication expiry: %w", err)
