@@ -26,9 +26,12 @@ import (
 	"go.flipt.io/flipt/internal/server/authn/method/oidc"
 	oidctesting "go.flipt.io/flipt/internal/server/authn/method/oidc/testing"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
+	"go.flipt.io/flipt/internal/storage/authn/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/net/html"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -1005,6 +1008,7 @@ func Test_Server_Revoke(t *testing.T) {
 		sid       string
 		setupAuth func(t *testing.T) *auth.Authentication
 		verify    func(t *testing.T, created *auth.Authentication)
+		expectErr bool
 	}
 
 	tests := []testCase{
@@ -1013,6 +1017,7 @@ func Test_Server_Revoke(t *testing.T) {
 			sid:  "",
 			verify: func(t *testing.T, _ *auth.Authentication) {
 			},
+			expectErr: true,
 		},
 		{
 			name: "sid found and auth deleted",
@@ -1069,10 +1074,88 @@ func Test_Server_Revoke(t *testing.T) {
 				Provider:    "google",
 				LogoutToken: logoutTokenString,
 			})
+			if tt.expectErr {
+				require.Error(t, err)
+				return
+			}
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
 			tt.verify(t, created)
 		})
 	}
+}
+
+type errorStore struct {
+	storageauth.Store
+}
+
+func (s *errorStore) GetAuthenticationIDBySID(_ context.Context, _ string) (string, error) {
+	return "", fmt.Errorf("storage connection failed")
+}
+
+func Test_Server_Revoke_StorageError(t *testing.T) {
+	var (
+		id, secret = "client_id", "client_secret"
+		logger     = zaptest.NewLogger(t)
+		ctx        = t.Context()
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(t, err)
+
+	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+		SigningKey: &capoidc.TestSigningKey{
+			PrivKey: priv,
+			PubKey:  priv.Public(),
+			Alg:     capoidc.RS256,
+		},
+		ClientID:     &id,
+		ClientSecret: &secret,
+	}))
+	t.Cleanup(func() { tp.Stop() })
+
+	authConfig := config.AuthenticationConfig{
+		Methods: config.AuthenticationMethodsConfig{
+			OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+				Enabled: true,
+				Method: config.AuthenticationMethodOIDCConfig{
+					Providers: map[string]config.AuthenticationMethodOIDCProvider{
+						"google": {
+							IssuerURL:       tp.Addr(),
+							ClientID:        id,
+							ClientSecret:    secret,
+							RedirectAddress: "http://localhost:8080",
+							Scopes:          []string{"openid"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	store := &errorStore{Store: memory.NewStore(logger)}
+	oidcServer := oidc.NewServer(logger, store, oidc.NewRegistry(authConfig), authConfig)
+
+	now := time.Now()
+	logoutToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss": tp.Addr(),
+		"aud": id,
+		"exp": now.Add(time.Hour).Unix(),
+		"iat": now.Unix(),
+		"jti": "logout-token-storage-error",
+		"sid": "any-session",
+		"sub": "alice",
+		"events": map[string]any{
+			"http://schemas.openid.net/event/backchannel-logout": struct{}{},
+		},
+	}).SignedString(priv)
+	require.NoError(t, err)
+
+	_, err = oidcServer.Revoke(ctx, &auth.RevokeOIDCRequest{Provider: "google", LogoutToken: logoutToken})
+	require.Error(t, err)
+
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.Equal(t, codes.Internal, st.Code())
 }

@@ -238,34 +238,41 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 
 // Revoke handles back-channel logout from the OIDC provider.
 // It verifies the logout token, looks up the corresponding authentication record
-// via the session ID (sid), and expires it.
+// via the session ID (sid), and deletes it.
 func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth.RevokeOIDCResponse, error) {
 	provider, err := s.registry.getProvider(ctx, req.Provider)
 	if err != nil {
-		return nil, fmt.Errorf("revoke: failed to get provider: %w", err)
+		if errors.AsMatch[errors.ErrNotFound](err) {
+			return nil, status.Error(codes.InvalidArgument, "unknown provider")
+		}
+		s.logger.Error("failed to get provider", zap.String("provider", req.Provider), zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed get provider")
 	}
 	logoutToken, err := provider.VerifyLogout(ctx, req.LogoutToken)
 	if err != nil {
-		s.logger.Error("failed to verify logout token", zap.Error(err))
+		s.logger.Debug("failed to verify logout token", zap.Error(err))
 		return nil, status.Error(codes.InvalidArgument, "invalid logout token")
 	}
 
 	if logoutToken.SessionID == "" {
-		s.logger.Debug("logout token has no session ID, skipping")
-		return &auth.RevokeOIDCResponse{}, nil
+		return nil, status.Error(codes.InvalidArgument, "logout token missing sid claim")
 	}
 
 	sid := fmt.Sprintf("%s:%s", req.Provider, logoutToken.SessionID)
 	authID, err := s.store.GetAuthenticationIDBySID(ctx, sid)
 	if err != nil {
-		s.logger.Debug("failed to find logout token", zap.String("sid", logoutToken.SessionID), zap.Error(err))
-		return &auth.RevokeOIDCResponse{}, nil
+		if errors.AsMatch[errors.ErrNotFound](err) {
+			s.logger.Debug("authentication not found", zap.String("sid", sid), zap.Error(err))
+			return &auth.RevokeOIDCResponse{}, nil
+		}
+		s.logger.Error("failed to lookup authentication", zap.String("sid", sid), zap.Error(err))
+		return nil, status.Error(codes.Internal, "lookup failed")
 	}
 
 	err = s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(authID)))
 	if err != nil {
-		s.logger.Error("failed to expire auth token", zap.String("sid", logoutToken.SessionID), zap.Error(err))
-		return nil, status.Error(codes.Unknown, "operation failed")
+		s.logger.Error("failed to delete auth token", zap.String("sid", sid), zap.Error(err))
+		return nil, status.Error(codes.Internal, "operation failed")
 	}
 	return &auth.RevokeOIDCResponse{}, nil
 }

@@ -181,7 +181,9 @@ func (s *Server) RevokeAuthenticationSelf(ctx context.Context, req *auth.RevokeA
 		resp := auth.RevokeAuthenticationSelfResponse{}
 		if authentication.Method == auth.Method_METHOD_OIDC {
 			idTokenData, err := s.store.GetIDToken(ctx, authentication.Id)
-			if err == nil && idTokenData != nil {
+			if err != nil {
+				s.logger.Warn("failed to get ID token for OIDC logout", zap.Error(err))
+			} else if idTokenData != nil {
 				next, err := authoidc.EndSessionURI(
 					ctx,
 					s.oidcRegistry,

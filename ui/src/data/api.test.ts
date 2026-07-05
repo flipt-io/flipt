@@ -27,7 +27,7 @@ describe('expireAuthSelf', () => {
     const mock = mockFetch(200, { nextUri: 'https://provider/logout' });
     global.fetch = mock;
 
-    const result = await api.expireAuthSelf();
+    const result = await api.revokeAuthSelf();
 
     expect(mock).toHaveBeenCalledWith(
       'auth/v1/self/revoke',
@@ -41,7 +41,7 @@ describe('expireAuthSelf', () => {
   it('should succeed without nextUri', async () => {
     global.fetch = mockFetch(200, {});
 
-    const result = await api.expireAuthSelf();
+    const result = await api.revokeAuthSelf();
 
     expect(result).toEqual({});
   });

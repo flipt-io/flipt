@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"golang.org/x/oauth2"
 )
@@ -43,7 +44,7 @@ func NewRegistry(config config.AuthenticationConfig) *Registry {
 func (r *Registry) getProvider(ctx context.Context, key string) (*client, error) {
 	p, ok := r.providers[key]
 	if !ok {
-		return nil, fmt.Errorf("no oidc provider %q", key)
+		return nil, errors.ErrNotFoundf("no oidc provider %q", key)
 	}
 
 	if xp := p.cur.Load(); xp != nil && time.Since(xp.createdAt) < r.cacheTTL {

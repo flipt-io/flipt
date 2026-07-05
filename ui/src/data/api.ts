@@ -133,7 +133,8 @@ export async function getAuthSelf() {
   return get('/self', authURL);
 }
 
-export async function expireAuthSelf() {
+// Revoke the current user's authentication session.
+export async function revokeAuthSelf() {
   return request('DELETE', authURL + '/self/revoke');
 }
 
