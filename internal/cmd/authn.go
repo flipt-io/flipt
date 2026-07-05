@@ -50,6 +50,7 @@ func getAuthStore(
 			return nil, fmt.Errorf("failed to create redis client: %w", err)
 		}
 
+		storageauthredis.SetGlobalRedisLogger(logger)
 		store = storageauthredis.NewStore(rdb, logger, storageauthredis.WithCleanupGracePeriod(cleanupGracePeriod), storageauthredis.WithPrefix(prefix))
 	}
 
