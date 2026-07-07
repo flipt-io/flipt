@@ -30,51 +30,6 @@ func TestNew(t *testing.T) {
 	assert.False(t, f.Analytics.Enabled)
 }
 
-func TestWithConfig_Templates(t *testing.T) {
-	t.Run("no templates configured", func(t *testing.T) {
-		f := New(WithConfig(config.Default()))
-		assert.Nil(t, f.Templates)
-	})
-
-	t.Run("proposal title configured", func(t *testing.T) {
-		cfg := config.Default()
-		cfg.Templates.ProposalTitle = "Flipt: {{.Base.Ref}} from {{.Branch.Ref}}"
-		f := New(WithConfig(cfg))
-		assert.NotNil(t, f.Templates)
-		assert.Equal(t, "Flipt: {{.Base.Ref}} from {{.Branch.Ref}}", f.Templates.ProposalTitle)
-		assert.Empty(t, f.Templates.ProposalBody)
-	})
-
-	t.Run("both templates configured", func(t *testing.T) {
-		cfg := config.Default()
-		cfg.Templates.ProposalTitle = "title template"
-		cfg.Templates.ProposalBody = "body template"
-		f := New(WithConfig(cfg))
-		assert.NotNil(t, f.Templates)
-		assert.Equal(t, "title template", f.Templates.ProposalTitle)
-		assert.Equal(t, "body template", f.Templates.ProposalBody)
-	})
-
-	t.Run("templates marshaled to JSON", func(t *testing.T) {
-		cfg := config.Default()
-		cfg.Templates.ProposalTitle = "custom title"
-
-		mockLicenseManager := license.NewMockManager(t)
-		mockLicenseManager.EXPECT().Product().Return(product.OSS)
-
-		f := New(WithConfig(cfg), WithLicenseManager(mockLicenseManager))
-		data, err := json.Marshal(f)
-		assert.NoError(t, err)
-
-		var out map[string]any
-		assert.NoError(t, json.Unmarshal(data, &out))
-
-		templates, ok := out["templates"].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "custom title", templates["proposalTitle"])
-	})
-}
-
 func TestFlipt_ProductField_Marshaling(t *testing.T) {
 	tests := []struct {
 		name    string

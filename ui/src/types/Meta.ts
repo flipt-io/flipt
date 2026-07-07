@@ -1,16 +1,10 @@
 import { Theme } from './Preferences';
 
-export interface ITemplates {
-  proposalTitle?: string;
-  proposalBody?: string;
-}
-
 export interface IInfo {
   build: IBuild;
   analytics?: IAnalytics;
   ui?: IUI;
   product?: Product;
-  templates?: ITemplates;
 }
 
 export interface IBuild {

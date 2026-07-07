@@ -168,7 +168,7 @@ export const environmentsApi = createApi({
       ]
     }),
     listBranchEnvironmentChanges: builder.query<
-      { changes: IChange[] },
+      { changes: IChange[]; proposalTitle?: string; proposalBody?: string },
       { environmentKey: string; key: string }
     >({
       query: ({ environmentKey, key }) =>
