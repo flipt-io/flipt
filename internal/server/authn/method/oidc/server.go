@@ -121,22 +121,30 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
 	provider, err := s.registry.getProvider(ctx, req.Provider)
 	if err != nil {
-		return nil, fmt.Errorf("authorize: failed to get provider: %w", err)
+		if errors.AsMatch[errors.ErrNotFound](err) {
+			return nil, status.Error(codes.InvalidArgument, "authorize: unknown provider")
+		}
+		s.logger.Error("failed to get provider", zap.String("provider", req.Provider), zap.Error(err))
+		return nil, status.Error(codes.Internal, "authorize: failed get provider")
 	}
 	challenge := s.nonceGenerator()
 	nonce := s.nonceGenerator()
 
 	encoded, err := encodeOAuthChallenge(challenge, nonce)
 	if err != nil {
-		return nil, err
+		s.logger.Error("failed to generate challenge", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, "authorize: failed to generate challenge")
 	}
+
 	if err := s.store.PutOAuthChallenge(ctx, req.State, encoded, timestamppb.New(time.Now().UTC().Add(oauthChallengeTTL))); err != nil {
-		return nil, err
+		s.logger.Error("failed to persist challenge", zap.Error(err))
+		return nil, status.Error(codes.Internal, "authorize: failed to persist challenge")
 	}
 
 	authURL, err := provider.AuthURL(req.State, challenge, nonce)
 	if err != nil {
-		return nil, fmt.Errorf("authorize: failed to build auth url: %w", err)
+		s.logger.Error("failed to build auth url", zap.Error(err))
+		return nil, status.Error(codes.Internal, "authorize: failed to create auth url")
 	}
 	return &auth.AuthorizeURLResponse{AuthorizeUrl: authURL}, nil
 }
@@ -152,65 +160,44 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 // the backing authentication store with the identity information retrieved as metadata.
 func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *auth.CallbackResponse, err error) {
 	if err := method.CallbackValidateState(ctx, req.State); err != nil {
-		return nil, fmt.Errorf("callback: failed to get state %w", err)
+		s.logger.Error("callback: failed to get state", zap.Error(err))
+		return nil, status.Error(codes.Unauthenticated, "callback: failed to get state")
 	}
 
 	provider, err := s.registry.getProvider(ctx, req.Provider)
 	if err != nil {
-		return nil, fmt.Errorf("callback: failed to get provider: %w", err)
+		if errors.AsMatch[errors.ErrNotFound](err) {
+			return nil, status.Error(codes.InvalidArgument, "callback: unknown provider")
+		}
+		s.logger.Error("failed to get provider", zap.String("provider", req.Provider), zap.Error(err))
+		return nil, status.Error(codes.Internal, "callback: failed get provider")
 	}
 
 	authChallenge, err := s.store.PopOAuthChallenge(ctx, req.State)
 	if err != nil {
 		if _, ok := errors.As[errors.ErrNotFound](err); ok {
-			return nil, errors.ErrUnauthenticatedf("missing or expired oauth challenge")
+			return nil, status.Error(codes.InvalidArgument, "callback: missing challenge")
 		}
-		return nil, fmt.Errorf("callback: getting oauth challenge: %w", err)
+		s.logger.Error("getting challenge", zap.Error(err))
+		return nil, status.Error(codes.Unknown, "callback: getting challenge")
 	}
+
 	challenge, nonce, err := decodeOAuthChallenge(authChallenge)
 	if err != nil {
-		return nil, err
+		s.logger.Error("failed to decode challenge", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, "callback: invalid challenge")
 	}
 	idToken, err := provider.Exchange(ctx, req.Code, challenge, nonce)
 	if err != nil {
-		return nil, err
+		s.logger.Error("failed to exchange code", zap.Error(err))
+		return nil, status.Error(codes.Unknown, "callback: code exchange failed")
 	}
 
-	metadata := map[string]string{
-		storageMetadataOIDCProvider: req.Provider,
-	}
-
-	rawClaims := make(map[string]any)
-	if err := idToken.Claims(&rawClaims); err != nil {
-		return nil, err
-	}
-
-	if provider.cfg.FetchExtraUserInfo {
-		infoClaims := make(map[string]any)
-		err := provider.UserInfo(ctx, oauth2.StaticTokenSource(idToken.oauth2Token), idToken.idToken.Subject, &infoClaims)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get extra user info: %w", err)
-		}
-		maps.Copy(rawClaims, infoClaims)
-	}
-
-	rawClaimsJSON, err := json.Marshal(rawClaims)
+	metadata, claims, err := s.extractMetadata(ctx, provider, idToken)
 	if err != nil {
-		return nil, err
+		s.logger.Error("failed to extract claims metadata", zap.Error(err))
+		return nil, status.Error(codes.Unknown, "callback: claim extraction failed")
 	}
-
-	if rawClaimsJSON != nil {
-		metadata[method.StorageMetadataClaims] = string(rawClaimsJSON)
-	}
-
-	var claims claims
-	if err := idToken.Claims(&claims); err != nil {
-		return nil, err
-	}
-
-	claims.fallbackFrom(rawClaims)
-
-	claims.addToMetadata(metadata)
 
 	authRequest := &storageauth.CreateAuthenticationRequest{
 		Method:    auth.Method_METHOD_OIDC,
@@ -227,13 +214,53 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, authRequest)
 	if err != nil {
-		return nil, err
+		s.logger.Error("failed to create authentication", zap.Error(err))
+		return nil, status.Error(codes.Internal, "callback: failed to create authentication")
 	}
 
 	return &auth.CallbackResponse{
 		ClientToken:    clientToken,
 		Authentication: a,
 	}, nil
+}
+
+func (*Server) extractMetadata(ctx context.Context, provider *client, idToken *Tk) (map[string]string, claims, error) {
+	metadata := map[string]string{
+		storageMetadataOIDCProvider: provider.key,
+	}
+
+	rawClaims := make(map[string]any)
+	if err := idToken.Claims(&rawClaims); err != nil {
+		return nil, claims{}, err
+	}
+
+	if provider.cfg.FetchExtraUserInfo {
+		infoClaims := make(map[string]any)
+		err := provider.UserInfo(ctx, oauth2.StaticTokenSource(idToken.oauth2Token), idToken.idToken.Subject, &infoClaims)
+		if err != nil {
+			return nil, claims{}, fmt.Errorf("failed to get extra user info: %w", err)
+		}
+		maps.Copy(rawClaims, infoClaims)
+	}
+
+	rawClaimsJSON, err := json.Marshal(rawClaims)
+	if err != nil {
+		return nil, claims{}, err
+	}
+
+	if rawClaimsJSON != nil {
+		metadata[method.StorageMetadataClaims] = string(rawClaimsJSON)
+	}
+
+	var claimsData claims
+	if err := idToken.Claims(&claimsData); err != nil {
+		return nil, claimsData, err
+	}
+
+	claimsData.fallbackFrom(rawClaims)
+
+	claimsData.addToMetadata(metadata)
+	return metadata, claimsData, nil
 }
 
 // Revoke handles back-channel logout from the OIDC provider.
@@ -243,19 +270,19 @@ func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth
 	provider, err := s.registry.getProvider(ctx, req.Provider)
 	if err != nil {
 		if errors.AsMatch[errors.ErrNotFound](err) {
-			return nil, status.Error(codes.InvalidArgument, "unknown provider")
+			return nil, status.Error(codes.InvalidArgument, "revoke: unknown provider")
 		}
 		s.logger.Error("failed to get provider", zap.String("provider", req.Provider), zap.Error(err))
-		return nil, status.Error(codes.Internal, "failed get provider")
+		return nil, status.Error(codes.Internal, "revoke: failed get provider")
 	}
 	logoutToken, err := provider.VerifyLogout(ctx, req.LogoutToken)
 	if err != nil {
 		s.logger.Debug("failed to verify logout token", zap.Error(err))
-		return nil, status.Error(codes.InvalidArgument, "invalid logout token")
+		return nil, status.Error(codes.InvalidArgument, "revoke: invalid logout token")
 	}
 
 	if logoutToken.SessionID == "" {
-		return nil, status.Error(codes.InvalidArgument, "logout token missing sid claim")
+		return nil, status.Error(codes.InvalidArgument, "revoke: logout token missing sid claim")
 	}
 
 	sid := fmt.Sprintf("%s:%s", req.Provider, logoutToken.SessionID)
@@ -266,13 +293,13 @@ func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth
 			return &auth.RevokeOIDCResponse{}, nil
 		}
 		s.logger.Error("failed to lookup authentication", zap.String("sid", sid), zap.Error(err))
-		return nil, status.Error(codes.Internal, "lookup failed")
+		return nil, status.Error(codes.Internal, "revoke: lookup failed")
 	}
 
 	err = s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(authID)))
 	if err != nil {
 		s.logger.Error("failed to delete auth token", zap.String("sid", sid), zap.Error(err))
-		return nil, status.Error(codes.Internal, "operation failed")
+		return nil, status.Error(codes.Internal, "revoke: operation failed")
 	}
 	return &auth.RevokeOIDCResponse{}, nil
 }

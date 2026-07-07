@@ -103,6 +103,7 @@ func (i *Tk) Claims(v any) error {
 
 // client wraps an OIDC provider with its OAuth2 config and verifier.
 type client struct {
+	key                string
 	cfg                config.AuthenticationMethodOIDCProvider
 	provider           *oidc.Provider
 	oauth2Cfg          *oauth2.Config
@@ -143,6 +144,7 @@ func newOIDCClient(ctx context.Context, cfg config.AuthenticationMethodOIDCProvi
 	}
 
 	return &client{
+		key:       provider,
 		cfg:       cfg,
 		provider:  p,
 		oauth2Cfg: oauth2Config,
