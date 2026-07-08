@@ -25,7 +25,7 @@ jobs:
 
       - uses: bufbuild/buf-action@v1
         with:
-          version: 1.70.0
+          version: 1.71.0
           lint: true
 
   proto-check:
@@ -37,7 +37,7 @@ jobs:
 
       - uses: bufbuild/buf-action@v1
         with:
-          version: 1.70.0
+          version: 1.71.0
           setup_only: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
