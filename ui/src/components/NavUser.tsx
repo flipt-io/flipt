@@ -19,9 +19,10 @@ import {
 
 import { User } from '~/types/auth/User';
 
-import { expireAuthSelf } from '~/data/api';
+import { revokeAuthSelf } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
+import { redirectAfterLogout } from '~/utils/navigation';
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
@@ -31,13 +32,19 @@ export function NavUser({ user }: { user: User }) {
 
   const logout = async () => {
     try {
-      await expireAuthSelf();
+      const response = await revokeAuthSelf();
       clearSession();
-      if (user?.issuer) {
-        window.location.href = `//${user.issuer}`;
-      } else {
-        navigate('/login');
-      }
+      redirectAfterLogout(
+        (next: string, hard: boolean) => {
+          if (hard) {
+            window.location.href = next;
+          } else {
+            navigate(next);
+          }
+        },
+        response,
+        user?.issuer
+      );
     } catch (err) {
       setError(err);
     }

@@ -128,6 +128,7 @@ const (
 	AuthenticationService_ListAuthentications_FullMethodName      = "/flipt.auth.AuthenticationService/ListAuthentications"
 	AuthenticationService_DeleteAuthentication_FullMethodName     = "/flipt.auth.AuthenticationService/DeleteAuthentication"
 	AuthenticationService_ExpireAuthenticationSelf_FullMethodName = "/flipt.auth.AuthenticationService/ExpireAuthenticationSelf"
+	AuthenticationService_RevokeAuthenticationSelf_FullMethodName = "/flipt.auth.AuthenticationService/RevokeAuthenticationSelf"
 )
 
 // AuthenticationServiceClient is the client API for AuthenticationService service.
@@ -138,7 +139,10 @@ type AuthenticationServiceClient interface {
 	GetAuthentication(ctx context.Context, in *GetAuthenticationRequest, opts ...grpc.CallOption) (*Authentication, error)
 	ListAuthentications(ctx context.Context, in *ListAuthenticationsRequest, opts ...grpc.CallOption) (*ListAuthenticationsResponse, error)
 	DeleteAuthentication(ctx context.Context, in *DeleteAuthenticationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Deprecated: Do not use.
+	// Deprecated: use RevokeAuthenticationSelf instead.
 	ExpireAuthenticationSelf(ctx context.Context, in *ExpireAuthenticationSelfRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RevokeAuthenticationSelf(ctx context.Context, in *RevokeAuthenticationSelfRequest, opts ...grpc.CallOption) (*RevokeAuthenticationSelfResponse, error)
 }
 
 type authenticationServiceClient struct {
@@ -189,10 +193,21 @@ func (c *authenticationServiceClient) DeleteAuthentication(ctx context.Context, 
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *authenticationServiceClient) ExpireAuthenticationSelf(ctx context.Context, in *ExpireAuthenticationSelfRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, AuthenticationService_ExpireAuthenticationSelf_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authenticationServiceClient) RevokeAuthenticationSelf(ctx context.Context, in *RevokeAuthenticationSelfRequest, opts ...grpc.CallOption) (*RevokeAuthenticationSelfResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeAuthenticationSelfResponse)
+	err := c.cc.Invoke(ctx, AuthenticationService_RevokeAuthenticationSelf_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +222,10 @@ type AuthenticationServiceServer interface {
 	GetAuthentication(context.Context, *GetAuthenticationRequest) (*Authentication, error)
 	ListAuthentications(context.Context, *ListAuthenticationsRequest) (*ListAuthenticationsResponse, error)
 	DeleteAuthentication(context.Context, *DeleteAuthenticationRequest) (*emptypb.Empty, error)
+	// Deprecated: Do not use.
+	// Deprecated: use RevokeAuthenticationSelf instead.
 	ExpireAuthenticationSelf(context.Context, *ExpireAuthenticationSelfRequest) (*emptypb.Empty, error)
+	RevokeAuthenticationSelf(context.Context, *RevokeAuthenticationSelfRequest) (*RevokeAuthenticationSelfResponse, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -232,6 +250,9 @@ func (UnimplementedAuthenticationServiceServer) DeleteAuthentication(context.Con
 }
 func (UnimplementedAuthenticationServiceServer) ExpireAuthenticationSelf(context.Context, *ExpireAuthenticationSelfRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExpireAuthenticationSelf not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) RevokeAuthenticationSelf(context.Context, *RevokeAuthenticationSelfRequest) (*RevokeAuthenticationSelfResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokeAuthenticationSelf not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
 func (UnimplementedAuthenticationServiceServer) testEmbeddedByValue()                               {}
@@ -344,6 +365,24 @@ func _AuthenticationService_ExpireAuthenticationSelf_Handler(srv interface{}, ct
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_RevokeAuthenticationSelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeAuthenticationSelfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).RevokeAuthenticationSelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthenticationService_RevokeAuthenticationSelf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).RevokeAuthenticationSelf(ctx, req.(*RevokeAuthenticationSelfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthenticationService_ServiceDesc is the grpc.ServiceDesc for AuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -371,6 +410,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ExpireAuthenticationSelf",
 			Handler:    _AuthenticationService_ExpireAuthenticationSelf_Handler,
 		},
+		{
+			MethodName: "RevokeAuthenticationSelf",
+			Handler:    _AuthenticationService_RevokeAuthenticationSelf_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "auth/auth.proto",
@@ -379,6 +422,7 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 const (
 	AuthenticationMethodOIDCService_AuthorizeURL_FullMethodName = "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL"
 	AuthenticationMethodOIDCService_Callback_FullMethodName     = "/flipt.auth.AuthenticationMethodOIDCService/Callback"
+	AuthenticationMethodOIDCService_Revoke_FullMethodName       = "/flipt.auth.AuthenticationMethodOIDCService/Revoke"
 )
 
 // AuthenticationMethodOIDCServiceClient is the client API for AuthenticationMethodOIDCService service.
@@ -387,6 +431,7 @@ const (
 type AuthenticationMethodOIDCServiceClient interface {
 	AuthorizeURL(ctx context.Context, in *AuthorizeURLRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error)
 	Callback(ctx context.Context, in *CallbackRequest, opts ...grpc.CallOption) (*CallbackResponse, error)
+	Revoke(ctx context.Context, in *RevokeOIDCRequest, opts ...grpc.CallOption) (*RevokeOIDCResponse, error)
 }
 
 type authenticationMethodOIDCServiceClient struct {
@@ -417,12 +462,23 @@ func (c *authenticationMethodOIDCServiceClient) Callback(ctx context.Context, in
 	return out, nil
 }
 
+func (c *authenticationMethodOIDCServiceClient) Revoke(ctx context.Context, in *RevokeOIDCRequest, opts ...grpc.CallOption) (*RevokeOIDCResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeOIDCResponse)
+	err := c.cc.Invoke(ctx, AuthenticationMethodOIDCService_Revoke_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthenticationMethodOIDCServiceServer is the server API for AuthenticationMethodOIDCService service.
 // All implementations must embed UnimplementedAuthenticationMethodOIDCServiceServer
 // for forward compatibility.
 type AuthenticationMethodOIDCServiceServer interface {
 	AuthorizeURL(context.Context, *AuthorizeURLRequest) (*AuthorizeURLResponse, error)
 	Callback(context.Context, *CallbackRequest) (*CallbackResponse, error)
+	Revoke(context.Context, *RevokeOIDCRequest) (*RevokeOIDCResponse, error)
 	mustEmbedUnimplementedAuthenticationMethodOIDCServiceServer()
 }
 
@@ -438,6 +494,9 @@ func (UnimplementedAuthenticationMethodOIDCServiceServer) AuthorizeURL(context.C
 }
 func (UnimplementedAuthenticationMethodOIDCServiceServer) Callback(context.Context, *CallbackRequest) (*CallbackResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Callback not implemented")
+}
+func (UnimplementedAuthenticationMethodOIDCServiceServer) Revoke(context.Context, *RevokeOIDCRequest) (*RevokeOIDCResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Revoke not implemented")
 }
 func (UnimplementedAuthenticationMethodOIDCServiceServer) mustEmbedUnimplementedAuthenticationMethodOIDCServiceServer() {
 }
@@ -497,6 +556,24 @@ func _AuthenticationMethodOIDCService_Callback_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationMethodOIDCService_Revoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeOIDCRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationMethodOIDCServiceServer).Revoke(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthenticationMethodOIDCService_Revoke_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationMethodOIDCServiceServer).Revoke(ctx, req.(*RevokeOIDCRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthenticationMethodOIDCService_ServiceDesc is the grpc.ServiceDesc for AuthenticationMethodOIDCService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -511,6 +588,10 @@ var AuthenticationMethodOIDCService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Callback",
 			Handler:    _AuthenticationMethodOIDCService_Callback_Handler,
+		},
+		{
+			MethodName: "Revoke",
+			Handler:    _AuthenticationMethodOIDCService_Revoke_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

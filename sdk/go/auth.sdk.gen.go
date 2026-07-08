@@ -93,6 +93,14 @@ func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, v 
 	return err
 }
 
+func (x *AuthenticationService) RevokeAuthenticationSelf(ctx context.Context, v *auth.RevokeAuthenticationSelfRequest) (*auth.RevokeAuthenticationSelfResponse, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.RevokeAuthenticationSelf(ctx, v)
+}
+
 type AuthenticationMethodOIDCService struct {
 	transport              auth.AuthenticationMethodOIDCServiceClient
 	authenticationProvider ClientAuthenticationProvider
@@ -118,6 +126,14 @@ func (x *AuthenticationMethodOIDCService) Callback(ctx context.Context, v *auth.
 		return nil, err
 	}
 	return x.transport.Callback(ctx, v)
+}
+
+func (x *AuthenticationMethodOIDCService) Revoke(ctx context.Context, v *auth.RevokeOIDCRequest) (*auth.RevokeOIDCResponse, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.Revoke(ctx, v)
 }
 
 type AuthenticationMethodKubernetesService struct {

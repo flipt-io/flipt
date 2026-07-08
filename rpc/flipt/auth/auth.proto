@@ -39,9 +39,7 @@ option (gnostic.openapi.v3.document) = {
     additional_properties: [
       {
         name: "bearerAuth"
-        value: {
-          value: []
-        }
+        value: {value: []}
       }
     ]
   }
@@ -104,6 +102,12 @@ message ExpireAuthenticationSelfRequest {
   optional google.protobuf.Timestamp expires_at = 1;
 }
 
+message RevokeAuthenticationSelfRequest {}
+
+message RevokeAuthenticationSelfResponse {
+  optional string next_uri = 1;
+}
+
 service AuthenticationService {
   rpc GetAuthenticationSelf(google.protobuf.Empty) returns (Authentication) {
     option (google.api.http) = {get: "/auth/v1/self"};
@@ -121,9 +125,15 @@ service AuthenticationService {
     option (google.api.http) = {delete: "/auth/v1/tokens/{id}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteAuthToken"};
   }
+  // Deprecated: use RevokeAuthenticationSelf instead.
   rpc ExpireAuthenticationSelf(ExpireAuthenticationSelfRequest) returns (google.protobuf.Empty) {
+    option deprecated = true;
     option (google.api.http) = {put: "/auth/v1/self/expire"};
     option (gnostic.openapi.v3.operation) = {operation_id: "expireAuthSelf"};
+  }
+  rpc RevokeAuthenticationSelf(RevokeAuthenticationSelfRequest) returns (RevokeAuthenticationSelfResponse) {
+    option (google.api.http) = {delete: "/auth/v1/self/revoke"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "revokeAuthSelf"};
   }
 }
 
@@ -147,6 +157,13 @@ message CallbackResponse {
   Authentication authentication = 2;
 }
 
+message RevokeOIDCRequest {
+  string provider = 1;
+  string logout_token = 2;
+}
+
+message RevokeOIDCResponse {}
+
 service AuthenticationMethodOIDCService {
   rpc AuthorizeURL(AuthorizeURLRequest) returns (AuthorizeURLResponse) {
     option (google.api.http) = {get: "/auth/v1/method/oidc/{provider}/authorize"};
@@ -155,6 +172,42 @@ service AuthenticationMethodOIDCService {
   rpc Callback(CallbackRequest) returns (CallbackResponse) {
     option (google.api.http) = {get: "/auth/v1/method/oidc/{provider}/callback"};
     option (gnostic.openapi.v3.operation) = {operation_id: "oidcCallback"};
+  }
+  rpc Revoke(RevokeOIDCRequest) returns (RevokeOIDCResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/method/oidc/{provider}/revoke"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "oidcRevoke"
+      request_body: {
+        request_body: {
+          content: {
+            additional_properties: [
+              {
+                name: "application/x-www-form-urlencoded"
+                value: {
+                  schema: {
+                    schema: {
+                      type: "object"
+                      required: "logout_token"
+                      properties: {
+                        additional_properties: [
+                          {
+                            name: "logout_token"
+                            value: {schema: {type: "string"}}
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    };
   }
 }
 

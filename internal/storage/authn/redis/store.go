@@ -34,6 +34,10 @@ const (
 	authenticationKey = "authentication"
 	tokenHashKey      = "token_hash"
 	expiresAtKey      = "expires_at"
+	sessionIDKey      = "session_id"
+	providerKey       = "provider"
+	subKey            = "sub"
+	idTokenKey        = "id_token"
 
 	batchSize = 1000
 )
@@ -193,6 +197,20 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 	// Store authentication data in Redis hash
 	pipe.HSet(ctx, idKey, authenticationKey, v)
 	pipe.HSet(ctx, idKey, tokenHashKey, hashedToken)
+
+	// Store OIDC SLO data if present (sensitive, not in public metadata)
+	if r.IDToken != "" {
+		pipe.HSet(ctx, idKey, idTokenKey, r.IDToken)
+	}
+
+	// Store provider and sub for filtering in ListAuthentications
+	pipe.HSet(ctx, idKey, providerKey, r.Provider)
+	pipe.HSet(ctx, idKey, subKey, r.Sub)
+
+	// Store session ID for back-channel logout lookup
+	if r.Sid != "" {
+		pipe.HSet(ctx, idKey, sessionIDKey, r.Sid)
+	}
 
 	// If expiry is set, add expiry time and set TTL
 	if authentication.ExpiresAt != nil {
@@ -402,9 +420,20 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 
 // ExpireAuthenticationByID implements authn.Store.
 func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
-	// Get the token hash first
+	// Get the token hash and session ID first
 	idKey := authIDKey(s.prefix, id)
-	tokenHash, err := s.client.HGet(ctx, idKey, tokenHashKey).Result()
+	pipe := s.client.Pipeline()
+	tokenHashCmd := pipe.HGet(ctx, idKey, tokenHashKey)
+	authJSONCmd := pipe.HGet(ctx, idKey, authenticationKey)
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		if errs.Is(err, goredis.Nil) {
+			return errors.ErrNotFoundf("getting authentication by id")
+		}
+		return fmt.Errorf("getting authentication by id: %w", err)
+	}
+
+	tokenHash, err := tokenHashCmd.Result()
 	if err != nil {
 		if errs.Is(err, goredis.Nil) {
 			return errors.ErrNotFoundf("getting authentication by id")
@@ -412,8 +441,7 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 		return fmt.Errorf("getting authentication by id: %w", err)
 	}
 
-	// Then get the authentication record
-	authJSON, err := s.client.HGet(ctx, idKey, authenticationKey).Result()
+	authJSON, err := authJSONCmd.Result()
 	if err != nil {
 		if errs.Is(err, goredis.Nil) {
 			return errors.ErrNotFoundf("getting authentication record")
@@ -439,13 +467,13 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 	}
 
 	// Update expiry in a pipeline
-	pipe := s.client.Pipeline()
+	pipe = s.client.Pipeline()
 
 	// Update the authentication record with new ExpiresAt
 	pipe.HSet(ctx, idKey, authenticationKey, updatedAuthJSON)
 
 	// Update expiry in hash
-	pipe.HSet(ctx, idKey, expiresAtKey, expireAt.AsTime().UnixNano())
+	pipe.HSet(ctx, idKey, expiresAtKey, expireAt.AsTime().Unix())
 
 	// Set TTL on both ID and token hash keys, adding the grace period
 	pipe.ExpireAt(ctx, idKey, expireAt.AsTime().Add(s.cleanupGracePeriod))
@@ -495,6 +523,27 @@ func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*auth.Aut
 	}
 
 	return auth, nil
+}
+
+// GetIDToken implements authn.Store.
+func (s *Store) GetIDToken(ctx context.Context, id string) (*authn.IDTokenData, error) {
+	idKey := authIDKey(s.prefix, id)
+	result, err := s.client.HGetAll(ctx, idKey).Result()
+	if err != nil {
+		return nil, fmt.Errorf("getting authentication SLO data: %w", err)
+	}
+	if len(result) == 0 {
+		return nil, errors.ErrNotFoundf("getting authentication SLO data")
+	}
+
+	// Only return data if at least one SLO field exists (i.e. OIDC auth)
+	if _, ok := result["id_token"]; !ok {
+		return nil, errors.ErrNotFoundf("getting authentication SLO data")
+	}
+
+	return &authn.IDTokenData{
+		IDToken: result["id_token"],
+	}, nil
 }
 
 // ListAuthentications implements authn.Store.
@@ -551,6 +600,16 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 		result := cmds[id].Val()
 		if len(result) == 0 {
 			continue // Skip if authentication was deleted
+		}
+
+		if req.Predicate.Provider != nil && *req.Predicate.Provider != result[providerKey] {
+			continue
+		}
+		if req.Predicate.Sid != nil && *req.Predicate.Sid != result[sessionIDKey] {
+			continue
+		}
+		if req.Predicate.Sub != nil && *req.Predicate.Sub != result[subKey] {
+			continue
 		}
 
 		auth := &auth.Authentication{}
