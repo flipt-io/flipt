@@ -139,24 +139,13 @@ func TestSIDAndIDTokenStorage(t *testing.T) {
 		token, created, err := store.CreateAuthentication(ctx, &authn.CreateAuthenticationRequest{
 			Method:    auth.Method_METHOD_OIDC,
 			ExpiresAt: timestamppb.New(time.Now().Add(time.Hour)),
-			SessionID: "google:session-123",
+			Sid:       "session-123",
+			Provider:  "google",
 			IDToken:   "my-id-token-jwt",
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, token)
 		require.NotNil(t, created)
-
-		t.Run("GetAuthenticationIDBySID returns the auth ID", func(t *testing.T) {
-			id, err := store.GetAuthenticationIDBySID(ctx, "google:session-123")
-			require.NoError(t, err)
-			assert.Equal(t, created.Id, id)
-		})
-
-		t.Run("GetAuthenticationIDBySID returns not found for unknown SID", func(t *testing.T) {
-			_, err := store.GetAuthenticationIDBySID(ctx, "unknown-sid")
-			var notFound errors.ErrNotFound
-			require.ErrorAs(t, err, &notFound)
-		})
 
 		t.Run("GetIDToken returns the stored ID token", func(t *testing.T) {
 			data, err := store.GetIDToken(ctx, created.Id)
@@ -187,11 +176,8 @@ func TestSIDAndIDTokenStorage(t *testing.T) {
 			err := store.DeleteAuthentications(ctx, authn.Delete(authn.WithID(created.Id)))
 			require.NoError(t, err)
 
-			_, err = store.GetAuthenticationIDBySID(ctx, "google:session-123")
-			var notFound errors.ErrNotFound
-			require.ErrorAs(t, err, &notFound)
-
 			_, err = store.GetIDToken(ctx, created.Id)
+			var notFound errors.ErrNotFound
 			require.ErrorAs(t, err, &notFound)
 		})
 	})
@@ -217,9 +203,5 @@ func TestPrefixKeys(t *testing.T) {
 	t.Run("oauthChallengeKey", func(t *testing.T) {
 		require.Equal(t, "flipt:auth:oauth_challenge:123", oauthChallengeKey("flipt", "123"))
 		require.Equal(t, "auth:oauth_challenge:123", oauthChallengeKey("", "123"))
-	})
-	t.Run("authSessionKey", func(t *testing.T) {
-		require.Equal(t, "flipt:auth:session:google:sid-123", authSessionKey("flipt", "google:sid-123"))
-		require.Equal(t, "auth:session:google:sid-123", authSessionKey("", "google:sid-123"))
 	})
 }

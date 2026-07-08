@@ -17,14 +17,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
-	capoidc "github.com/hashicorp/cap/oidc"
+	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/server/authn/method/oidc"
+	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	oidctesting "go.flipt.io/flipt/internal/server/authn/method/oidc/testing"
+	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/internal/storage/authn/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
@@ -61,9 +62,9 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 		return
 	}
 
-	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*capoidc.TestSubject{
+		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
 				CustomClaims: map[string]any{
@@ -81,10 +82,10 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &capoidc.TestSigningKey{
+		SigningKey: &oidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     capoidc.RS256,
+			Alg:     oidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -158,11 +159,11 @@ func Test_Server_PKCE(t *testing.T) {
 		fmt.Fprintf(os.Stderr, "%s\n\n", err)
 		return
 	}
-	PKCEVerifier, _ := capoidc.NewCodeVerifier(capoidc.WithVerifier(nonce))
+	PKCEVerifier, _ := oidc.NewCodeVerifier(oidc.WithVerifier(nonce))
 
-	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*capoidc.TestSubject{
+		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
 				CustomClaims: map[string]any{
@@ -180,10 +181,10 @@ func Test_Server_PKCE(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &capoidc.TestSigningKey{
+		SigningKey: &oidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     capoidc.RS256,
+			Alg:     oidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -221,7 +222,7 @@ func Test_Server_PKCE(t *testing.T) {
 				},
 			},
 		}
-		server = oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, oidc.WithNonceGenerator(func() string { return nonce }))
+		server = oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, authoidc.WithNonceGenerator(func() string { return nonce }))
 	)
 
 	t.Cleanup(func() { _ = server.Stop() })
@@ -257,9 +258,9 @@ func Test_Server_Nonce(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*capoidc.TestSubject{
+		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
 				CustomClaims: map[string]any{
@@ -277,10 +278,10 @@ func Test_Server_Nonce(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &capoidc.TestSigningKey{
+		SigningKey: &oidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     capoidc.RS256,
+			Alg:     oidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -382,17 +383,17 @@ func Test_Server_AuthorizeParameters(t *testing.T) {
 			clientAddress := strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
 			t.Cleanup(httpServer.Close)
 
-			tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+			tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 				CustomClaims: map[string]any{},
-				SubjectInfo: map[string]*capoidc.TestSubject{
+				SubjectInfo: map[string]*oidc.TestSubject{
 					"mark": {
 						Password: "phelps",
 					},
 				},
-				SigningKey: &capoidc.TestSigningKey{
+				SigningKey: &oidc.TestSigningKey{
 					PrivKey: priv,
 					PubKey:  priv.Public(),
-					Alg:     capoidc.RS256,
+					Alg:     oidc.RS256,
 				},
 				AllowedRedirectURIs: []string{
 					fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -479,9 +480,9 @@ func Test_Server_FetchExtraUserInfoClaims(t *testing.T) {
 		priv, err := rsa.GenerateKey(rand.Reader, 4096)
 		require.NoError(t, err)
 
-		tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+		tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 			CustomClaims: map[string]any{},
-			SubjectInfo: map[string]*capoidc.TestSubject{
+			SubjectInfo: map[string]*oidc.TestSubject{
 				"mark": {
 					Password: "phelps",
 					UserInfo: map[string]any{
@@ -496,10 +497,10 @@ func Test_Server_FetchExtraUserInfoClaims(t *testing.T) {
 					},
 				},
 			},
-			SigningKey: &capoidc.TestSigningKey{
+			SigningKey: &oidc.TestSigningKey{
 				PrivKey: priv,
 				PubKey:  priv.Public(),
-				Alg:     capoidc.RS256,
+				Alg:     oidc.RS256,
 			},
 			AllowedRedirectURIs: []string{
 				fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -783,11 +784,11 @@ func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 		CustomClaims: map[string]any{
 			"sid": "test-session-456",
 		},
-		SubjectInfo: map[string]*capoidc.TestSubject{
+		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
 				CustomClaims: map[string]any{
@@ -797,10 +798,10 @@ func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &capoidc.TestSigningKey{
+		SigningKey: &oidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     capoidc.RS256,
+			Alg:     oidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -836,7 +837,7 @@ func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
 		},
 	}
 
-	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, oidc.WithNonceGenerator(func() string { return nonce }))
+	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, authoidc.WithNonceGenerator(func() string { return nonce }))
 	t.Cleanup(func() { _ = server.Stop() })
 
 	jar, err := cookiejar.New(&cookiejar.Options{})
@@ -851,12 +852,18 @@ func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
 
 	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 
-	storedAuth, err := server.GRPCServer.Store.GetAuthenticationIDBySID(ctx, "google:test-session-456")
+	storedAuth, err := server.GRPCServer.Store.ListAuthentications(ctx, &storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+		Predicate: storageauth.ListAuthenticationsPredicate{
+			Method:   new(auth.Method_METHOD_OIDC),
+			Provider: new("google"),
+			Sid:      new("test-session-456"),
+		},
+	})
 	require.NoError(t, err)
-	assert.NotEmpty(t, storedAuth)
+	require.Len(t, storedAuth.Results, 1)
 }
 
-func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
+func Test_Server_Callback_DoesStoreSIDWhenEmpty(t *testing.T) {
 	var (
 		router        = chi.NewRouter()
 		httpServer    = httptest.NewServer(router)
@@ -872,9 +879,9 @@ func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*capoidc.TestSubject{
+		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
 				CustomClaims: map[string]any{
@@ -884,10 +891,10 @@ func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &capoidc.TestSigningKey{
+		SigningKey: &oidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     capoidc.RS256,
+			Alg:     oidc.RS256,
 		},
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
@@ -923,7 +930,7 @@ func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
 		},
 	}
 
-	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, oidc.WithNonceGenerator(func() string { return nonce }))
+	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, authoidc.WithNonceGenerator(func() string { return nonce }))
 	t.Cleanup(func() { _ = server.Stop() })
 
 	jar, err := cookiejar.New(&cookiejar.Options{})
@@ -938,8 +945,15 @@ func Test_Server_Callback_DoesNotStoreSIDWhenEmpty(t *testing.T) {
 
 	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
 
-	_, err = server.GRPCServer.Store.GetAuthenticationIDBySID(ctx, "google:")
-	require.Error(t, err)
+	storedAuth, err := server.GRPCServer.Store.ListAuthentications(ctx, &storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+		Predicate: storageauth.ListAuthenticationsPredicate{
+			Method:   new(auth.Method_METHOD_OIDC),
+			Provider: new("google"),
+			Sid:      new(""),
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, storedAuth.Results, 1)
 }
 
 func Test_Server_Revoke(t *testing.T) {
@@ -954,9 +968,9 @@ func Test_Server_Revoke(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
-		SubjectInfo: map[string]*capoidc.TestSubject{
+		SubjectInfo: map[string]*oidc.TestSubject{
 			"alice": {
 				Password: "wonder",
 				CustomClaims: map[string]any{
@@ -965,10 +979,10 @@ func Test_Server_Revoke(t *testing.T) {
 				},
 			},
 		},
-		SigningKey: &capoidc.TestSigningKey{
+		SigningKey: &oidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     capoidc.RS256,
+			Alg:     oidc.RS256,
 		},
 		ClientID:      &id,
 		ClientSecret:  &secret,
@@ -1006,6 +1020,7 @@ func Test_Server_Revoke(t *testing.T) {
 	type testCase struct {
 		name      string
 		sid       string
+		sub       *string
 		setupAuth func(t *testing.T) *auth.Authentication
 		verify    func(t *testing.T, created *auth.Authentication)
 		expectErr bool
@@ -1013,7 +1028,7 @@ func Test_Server_Revoke(t *testing.T) {
 
 	tests := []testCase{
 		{
-			name: "empty sid",
+			name: "empty sid and sub",
 			sid:  "",
 			verify: func(t *testing.T, _ *auth.Authentication) {
 			},
@@ -1022,11 +1037,14 @@ func Test_Server_Revoke(t *testing.T) {
 		{
 			name: "sid found and auth deleted",
 			sid:  "known-session",
+			sub:  new("alice"),
 			setupAuth: func(t *testing.T) *auth.Authentication {
 				_, created, err := grpcServer.Store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 					Method:    auth.Method_METHOD_OIDC,
 					ExpiresAt: timestamppb.New(time.Now().Add(time.Hour)),
-					SessionID: "google:known-session",
+					Provider:  "google",
+					Sid:       "known-session",
+					Sub:       "alice",
 					IDToken:   "id-token-jwt",
 				})
 				require.NoError(t, err)
@@ -1035,13 +1053,22 @@ func Test_Server_Revoke(t *testing.T) {
 			verify: func(t *testing.T, created *auth.Authentication) {
 				_, err := grpcServer.Store.GetAuthenticationByID(ctx, created.Id)
 				require.Error(t, err)
-				_, err = grpcServer.Store.GetAuthenticationIDBySID(ctx, "google:known-session")
-				require.Error(t, err)
+				storedAuth, err := grpcServer.Store.ListAuthentications(ctx, &storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+					Predicate: storageauth.ListAuthenticationsPredicate{
+						Method:   new(auth.Method_METHOD_OIDC),
+						Provider: new("google"),
+						Sid:      new("known-session"),
+						Sub:      new("alice"),
+					},
+				})
+				require.NoError(t, err)
+				require.Empty(t, storedAuth.Results)
 			},
 		},
 		{
-			name: "sid not found in store",
+			name: "no matching authentications",
 			sid:  "unknown-session",
+			sub:  new("alice"),
 			verify: func(t *testing.T, _ *auth.Authentication) {
 			},
 		},
@@ -1055,18 +1082,21 @@ func Test_Server_Revoke(t *testing.T) {
 			}
 
 			now := time.Now()
-			logoutToken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+			claims := jwt.MapClaims{
 				"iss": tp.Addr(),
 				"aud": id,
 				"exp": now.Add(time.Hour).Unix(),
 				"iat": now.Unix(),
 				"jti": "logout-token-" + tt.name,
 				"sid": tt.sid,
-				"sub": "alice",
 				"events": map[string]any{
 					"http://schemas.openid.net/event/backchannel-logout": struct{}{},
 				},
-			})
+			}
+			if tt.sub != nil {
+				claims["sub"] = *tt.sub
+			}
+			logoutToken := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 			logoutTokenString, err := logoutToken.SignedString(priv)
 			require.NoError(t, err)
 
@@ -1090,8 +1120,8 @@ type errorStore struct {
 	storageauth.Store
 }
 
-func (s *errorStore) GetAuthenticationIDBySID(_ context.Context, _ string) (string, error) {
-	return "", fmt.Errorf("storage connection failed")
+func (s *errorStore) ListAuthentications(_ context.Context, _ *storage.ListRequest[storageauth.ListAuthenticationsPredicate]) (storage.ResultSet[*auth.Authentication], error) {
+	return storage.ResultSet[*auth.Authentication]{}, fmt.Errorf("storage connection failed")
 }
 
 func Test_Server_Revoke_StorageError(t *testing.T) {
@@ -1104,11 +1134,11 @@ func Test_Server_Revoke_StorageError(t *testing.T) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	require.NoError(t, err)
 
-	tp := capoidc.StartTestProvider(t, capoidc.WithNoTLS(), capoidc.WithTestDefaults(&capoidc.TestProviderDefaults{
-		SigningKey: &capoidc.TestSigningKey{
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+		SigningKey: &oidc.TestSigningKey{
 			PrivKey: priv,
 			PubKey:  priv.Public(),
-			Alg:     capoidc.RS256,
+			Alg:     oidc.RS256,
 		},
 		ClientID:     &id,
 		ClientSecret: &secret,
@@ -1135,7 +1165,7 @@ func Test_Server_Revoke_StorageError(t *testing.T) {
 	}
 
 	store := &errorStore{Store: memory.NewStore(logger)}
-	oidcServer := oidc.NewServer(logger, store, oidc.NewRegistry(authConfig), authConfig)
+	oidcServer := authoidc.NewServer(logger, store, authoidc.NewRegistry(authConfig), authConfig)
 
 	now := time.Now()
 	logoutToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{

@@ -26,10 +26,6 @@ func (a *authStoreMock) GetAuthenticationByClientToken(ctx context.Context, clie
 	return nil, nil
 }
 
-func (a *authStoreMock) GetAuthenticationIDBySID(ctx context.Context, sid string) (string, error) {
-	return "", errors.ErrNotFound("getting authentication by sid")
-}
-
 func (a *authStoreMock) GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error) {
 	return nil, nil
 }

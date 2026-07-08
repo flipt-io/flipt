@@ -131,6 +131,14 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/RevokeOIDCRequest'
+                    application/x-www-form-urlencoded:
+                        schema:
+                            required:
+                                - logout_token
+                            type: object
+                            properties:
+                                logout_token:
+                                    type: string
                 required: true
             responses:
                 "200":

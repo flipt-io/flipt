@@ -1080,12 +1080,20 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\x13ListAuthentications\x12&.flipt.auth.ListAuthenticationsRequest\x1a'.flipt.auth.ListAuthenticationsResponse\"*\xbaG\x10*\x0elistAuthTokens\x82\xd3\xe4\x93\x02\x11\x12\x0f/auth/v1/tokens\x12\x89\x01\n" +
 	"\x14DeleteAuthentication\x12'.flipt.auth.DeleteAuthenticationRequest\x1a\x16.google.protobuf.Empty\"0\xbaG\x11*\x0fdeleteAuthToken\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/tokens/{id}\x12\x93\x01\n" +
 	"\x18ExpireAuthenticationSelf\x12+.flipt.auth.ExpireAuthenticationSelfRequest\x1a\x16.google.protobuf.Empty\"2\xbaG\x10*\x0eexpireAuthSelf\x82\xd3\xe4\x93\x02\x16\x1a\x14/auth/v1/self/expire\x88\x02\x01\x12\xa6\x01\n" +
-	"\x18RevokeAuthenticationSelf\x12+.flipt.auth.RevokeAuthenticationSelfRequest\x1a,.flipt.auth.RevokeAuthenticationSelfResponse\"/\xbaG\x10*\x0erevokeAuthSelf\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/self/revoke2\xd4\x03\n" +
+	"\x18RevokeAuthenticationSelf\x12+.flipt.auth.RevokeAuthenticationSelfRequest\x1a,.flipt.auth.RevokeAuthenticationSelfResponse\"/\xbaG\x10*\x0erevokeAuthSelf\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/self/revoke2\xbe\x04\n" +
 	"\x1fAuthenticationMethodOIDCService\x12\x99\x01\n" +
 	"\fAuthorizeURL\x12\x1f.flipt.auth.AuthorizeURLRequest\x1a .flipt.auth.AuthorizeURLResponse\"F\xbaG\x12*\x10oidcAuthorizeURL\x82\xd3\xe4\x93\x02+\x12)/auth/v1/method/oidc/{provider}/authorize\x12\x88\x01\n" +
-	"\bCallback\x12\x1b.flipt.auth.CallbackRequest\x1a\x1c.flipt.auth.CallbackResponse\"A\xbaG\x0e*\foidcCallback\x82\xd3\xe4\x93\x02*\x12(/auth/v1/method/oidc/{provider}/callback\x12\x89\x01\n" +
-	"\x06Revoke\x12\x1d.flipt.auth.RevokeOIDCRequest\x1a\x1e.flipt.auth.RevokeOIDCResponse\"@\xbaG\f*\n" +
-	"oidcRevoke\x82\xd3\xe4\x93\x02+:\x01*\"&/auth/v1/method/oidc/{provider}/revoke2\xec\x01\n" +
+	"\bCallback\x12\x1b.flipt.auth.CallbackRequest\x1a\x1c.flipt.auth.CallbackResponse\"A\xbaG\x0e*\foidcCallback\x82\xd3\xe4\x93\x02*\x12(/auth/v1/method/oidc/{provider}/callback\x12\xf3\x01\n" +
+	"\x06Revoke\x12\x1d.flipt.auth.RevokeOIDCRequest\x1a\x1e.flipt.auth.RevokeOIDCResponse\"\xa9\x01\xbaGu*\n" +
+	"oidcRevoke:g\n" +
+	"e\x12c\n" +
+	"a\n" +
+	"!application/x-www-form-urlencoded\x12<\n" +
+	":\n" +
+	"8\xba\x01\flogout_token\xca\x01\x06object\xfa\x01\x1d\n" +
+	"\x1b\n" +
+	"\flogout_token\x12\v\n" +
+	"\t\xca\x01\x06string\x82\xd3\xe4\x93\x02+:\x01*\"&/auth/v1/method/oidc/{provider}/revoke2\xec\x01\n" +
 	"%AuthenticationMethodKubernetesService\x12\xc2\x01\n" +
 	"\x14VerifyServiceAccount\x12'.flipt.auth.VerifyServiceAccountRequest\x1a(.flipt.auth.VerifyServiceAccountResponse\"W\xbaG *\x1ekubernetesVerifyServiceAccount\x82\xd3\xe4\x93\x02.:\x01*\")/auth/v1/method/kubernetes/serviceaccount2\xc1\x01\n" +
 	"!AuthenticationMethodGithubService\x12S\n" +

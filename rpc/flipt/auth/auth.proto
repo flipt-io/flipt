@@ -178,7 +178,36 @@ service AuthenticationMethodOIDCService {
       post: "/auth/v1/method/oidc/{provider}/revoke"
       body: "*"
     };
-    option (gnostic.openapi.v3.operation) = {operation_id: "oidcRevoke"};
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "oidcRevoke"
+      request_body: {
+        request_body: {
+          content: {
+            additional_properties: [
+              {
+                name: "application/x-www-form-urlencoded"
+                value: {
+                  schema: {
+                    schema: {
+                      type: "object"
+                      required: "logout_token"
+                      properties: {
+                        additional_properties: [
+                          {
+                            name: "logout_token"
+                            value: {schema: {type: "string"}}
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    };
   }
 }
 

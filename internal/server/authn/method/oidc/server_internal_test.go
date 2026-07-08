@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/go-jose/go-jose/v4"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
@@ -611,13 +611,12 @@ func TestServer_Revoke(t *testing.T) {
 
 	now := time.Now()
 
-	noSIDToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+	noSubNoSIDToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"iss": srv.URL,
 		"aud": "test-client",
 		"exp": now.Add(time.Hour).Unix(),
 		"iat": now.Unix(),
 		"jti": "logout-test-no-sid",
-		"sub": "test-user",
 		"events": map[string]any{
 			"http://schemas.openid.net/event/backchannel-logout": struct{}{},
 		},
@@ -692,20 +691,20 @@ func TestServer_Revoke(t *testing.T) {
 			},
 		},
 		{
-			name: "logout token missing sid",
+			name: "logout token missing sid and sub",
 			server: NewServer(logger, memory.NewStore(logger),
 				NewRegistry(makeCfg()),
 				makeCfg()),
 			req: &auth.RevokeOIDCRequest{
 				Provider:    "test",
-				LogoutToken: noSIDToken,
+				LogoutToken: noSubNoSIDToken,
 			},
 			check: func(t *testing.T, _ *auth.RevokeOIDCResponse, err error) {
 				require.Error(t, err)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
 				assert.Equal(t, codes.InvalidArgument, st.Code())
-				assert.Equal(t, "revoke: logout token missing sid claim", st.Message())
+				assert.Equal(t, "revoke: invalid logout token", st.Message())
 			},
 		},
 	}

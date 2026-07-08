@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/authn"
 	authtesting "go.flipt.io/flipt/internal/storage/authn/testing"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
@@ -42,24 +43,13 @@ func TestSIDAndIDTokenStorage(t *testing.T) {
 		token, created, err := store.CreateAuthentication(ctx, &authn.CreateAuthenticationRequest{
 			Method:    rpcauth.Method_METHOD_OIDC,
 			ExpiresAt: timestamppb.New(time.Now().Add(time.Hour)),
-			SessionID: "google:session-123",
+			Sid:       "session-123",
+			Provider:  "google",
 			IDToken:   "my-id-token-jwt",
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, token)
 		require.NotNil(t, created)
-
-		t.Run("GetAuthenticationIDBySID returns the auth ID", func(t *testing.T) {
-			id, err := store.GetAuthenticationIDBySID(ctx, "google:session-123")
-			require.NoError(t, err)
-			assert.Equal(t, created.Id, id)
-		})
-
-		t.Run("GetAuthenticationIDBySID returns not found for unknown SID", func(t *testing.T) {
-			_, err := store.GetAuthenticationIDBySID(ctx, "unknown-sid")
-			var notFound errors.ErrNotFound
-			require.ErrorAs(t, err, &notFound)
-		})
 
 		t.Run("GetIDToken returns the stored ID token", func(t *testing.T) {
 			data, err := store.GetIDToken(ctx, created.Id)
@@ -90,14 +80,178 @@ func TestSIDAndIDTokenStorage(t *testing.T) {
 			err := store.DeleteAuthentications(ctx, authn.Delete(authn.WithID(created.Id)))
 			require.NoError(t, err)
 
-			_, err = store.GetAuthenticationIDBySID(ctx, "google:session-123")
-			var notFound errors.ErrNotFound
-			require.ErrorAs(t, err, &notFound)
+			authStored, err := store.ListAuthentications(ctx, &storage.ListRequest[authn.ListAuthenticationsPredicate]{
+				Predicate: authn.ListAuthenticationsPredicate{
+					Method:   new(rpcauth.Method_METHOD_OIDC),
+					Provider: new("google"),
+					Sid:      new("session-123"),
+				},
+			})
+			require.NoError(t, err)
+			require.Empty(t, authStored.Results)
 
 			_, err = store.GetIDToken(ctx, created.Id)
+			var notFound errors.ErrNotFound
 			require.ErrorAs(t, err, &notFound)
 		})
 	})
+}
+
+func TestListAuthentications(t *testing.T) {
+	store := NewStore(zap.NewNop())
+	cleanup(t, store)
+
+	ctx := t.Context()
+	now := time.Now().UTC()
+
+	// seed various authentications with different predicate values
+	seeded := make([]*rpcauth.Authentication, 0, 5)
+
+	for _, s := range []struct {
+		method   rpcauth.Method
+		provider string
+		sid      string
+		sub      string
+		expires  time.Duration
+	}{
+		{rpcauth.Method_METHOD_OIDC, "google", "sid-a", "sub-1", time.Hour},
+		{rpcauth.Method_METHOD_OIDC, "google", "sid-b", "sub-2", 2 * time.Hour},
+		{rpcauth.Method_METHOD_OIDC, "github", "sid-c", "sub-1", 3 * time.Hour},
+		{rpcauth.Method_METHOD_TOKEN, "", "", "", time.Hour},
+		{rpcauth.Method_METHOD_KUBERNETES, "", "", "", time.Hour},
+	} {
+		_, auth, err := store.CreateAuthentication(ctx, &authn.CreateAuthenticationRequest{
+			Method:    s.method,
+			ExpiresAt: timestamppb.New(now.Add(s.expires)),
+			Provider:  s.provider,
+			Sid:       s.sid,
+			Sub:       s.sub,
+		})
+		require.NoError(t, err)
+		seeded = append(seeded, auth)
+	}
+
+	tests := []struct {
+		name      string
+		predicate authn.ListAuthenticationsPredicate
+		expected  []int // indices into seeded that should match
+	}{
+		{
+			name:      "no predicate returns all",
+			predicate: authn.ListAuthenticationsPredicate{},
+			expected:  []int{0, 1, 2, 3, 4},
+		},
+		{
+			name: "filter by method OIDC",
+			predicate: authn.ListAuthenticationsPredicate{
+				Method: new(rpcauth.Method_METHOD_OIDC),
+			},
+			expected: []int{0, 1, 2},
+		},
+		{
+			name: "filter by method TOKEN",
+			predicate: authn.ListAuthenticationsPredicate{
+				Method: new(rpcauth.Method_METHOD_TOKEN),
+			},
+			expected: []int{3},
+		},
+		{
+			name: "filter by unknown method returns none",
+			predicate: authn.ListAuthenticationsPredicate{
+				Method: new(rpcauth.Method_METHOD_NONE),
+			},
+			expected: nil,
+		},
+		{
+			name: "filter by provider",
+			predicate: authn.ListAuthenticationsPredicate{
+				Provider: new("google"),
+			},
+			expected: []int{0, 1},
+		},
+		{
+			name: "filter by provider no matches",
+			predicate: authn.ListAuthenticationsPredicate{
+				Provider: new("gitlab"),
+			},
+			expected: nil,
+		},
+		{
+			name: "filter by sid",
+			predicate: authn.ListAuthenticationsPredicate{
+				Sid: new("sid-a"),
+			},
+			expected: []int{0},
+		},
+		{
+			name: "filter by sid empty string",
+			predicate: authn.ListAuthenticationsPredicate{
+				Sid: new(""),
+			},
+			expected: []int{3, 4},
+		},
+		{
+			name: "filter by sub",
+			predicate: authn.ListAuthenticationsPredicate{
+				Sub: new("sub-1"),
+			},
+			expected: []int{0, 2},
+		},
+		{
+			name: "filter by sub empty string",
+			predicate: authn.ListAuthenticationsPredicate{
+				Sub: new(""),
+			},
+			expected: []int{3, 4},
+		},
+		{
+			name: "filter by method + provider",
+			predicate: authn.ListAuthenticationsPredicate{
+				Method:   new(rpcauth.Method_METHOD_OIDC),
+				Provider: new("google"),
+			},
+			expected: []int{0, 1},
+		},
+		{
+			name: "filter by method + provider + sid",
+			predicate: authn.ListAuthenticationsPredicate{
+				Method:   new(rpcauth.Method_METHOD_OIDC),
+				Provider: new("google"),
+				Sid:      new("sid-a"),
+			},
+			expected: []int{0},
+		},
+		{
+			name: "filter by provider + sub",
+			predicate: authn.ListAuthenticationsPredicate{
+				Provider: new("google"),
+				Sub:      new("sub-1"),
+			},
+			expected: []int{0},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := store.ListAuthentications(ctx, &storage.ListRequest[authn.ListAuthenticationsPredicate]{
+				Predicate: tt.predicate,
+				QueryParams: storage.QueryParams{
+					Limit: 100,
+				},
+			})
+			require.NoError(t, err)
+
+			if tt.expected == nil {
+				require.Empty(t, got.Results)
+				return
+			}
+
+			require.Len(t, got.Results, len(tt.expected))
+			for i, idx := range tt.expected {
+				assert.Equal(t, seeded[idx].Id, got.Results[i].Id, "result %d", i)
+			}
+		})
+	}
 }
 
 func TestOAuthChallengePopUsesInjectedClock(t *testing.T) {

@@ -25,7 +25,6 @@ var _ authn.Store = (*Store)(nil)
 const (
 	authIDKeyPrefix      = "auth:id"
 	authTokenKeyPrefix   = "auth:token" //nolint:gosec
-	authSessionKeyPrefix = "auth:session"
 	authMethodPrefix     = "auth:method"
 	authAllPrefix        = "auth:all"
 	oauthChallengePrefix = "auth:oauth_challenge"
@@ -36,6 +35,8 @@ const (
 	tokenHashKey      = "token_hash"
 	expiresAtKey      = "expires_at"
 	sessionIDKey      = "session_id"
+	providerKey       = "provider"
+	subKey            = "sub"
 	idTokenKey        = "id_token"
 
 	batchSize = 1000
@@ -57,14 +58,6 @@ func authIDKey(prefix, id string) string {
 		return strings.Join([]string{authIDKeyPrefix, id}, ":")
 	}
 	return strings.Join([]string{prefix, authIDKeyPrefix, id}, ":")
-}
-
-// authSessionKey builds the Redis key for the session ID to authentication ID mapping.
-func authSessionKey(prefix, sid string) string {
-	if prefix == "" {
-		return strings.Join([]string{authSessionKeyPrefix, sid}, ":")
-	}
-	return strings.Join([]string{prefix, authSessionKeyPrefix, sid}, ":")
 }
 
 func authTokenKey(prefix, token string) string {
@@ -210,14 +203,13 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 		pipe.HSet(ctx, idKey, idTokenKey, r.IDToken)
 	}
 
+	// Store provider and sub for filtering in ListAuthentications
+	pipe.HSet(ctx, idKey, providerKey, r.Provider)
+	pipe.HSet(ctx, idKey, subKey, r.Sub)
+
 	// Store session ID for back-channel logout lookup
-	if r.SessionID != "" {
-		pipe.HSet(ctx, idKey, sessionIDKey, r.SessionID)
-		sessionKey := authSessionKey(s.prefix, r.SessionID)
-		pipe.Set(ctx, sessionKey, authentication.Id, 0)
-		if authentication.ExpiresAt != nil {
-			pipe.ExpireAt(ctx, sessionKey, authentication.ExpiresAt.AsTime().Add(s.cleanupGracePeriod))
-		}
+	if r.Sid != "" {
+		pipe.HSet(ctx, idKey, sessionIDKey, r.Sid)
 	}
 
 	// If expiry is set, add expiry time and set TTL
@@ -395,14 +387,12 @@ func (s *Store) deleteAuthenticationBatches(ctx context.Context, allIDs []string
 
 func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, method *auth.Method) error {
 	var (
-		pipe        = s.client.Pipeline()
-		tokenCmds   = make([]*goredis.StringCmd, len(ids))
-		sessionCmds = make([]*goredis.StringCmd, len(ids))
+		pipe      = s.client.Pipeline()
+		tokenCmds = make([]*goredis.StringCmd, len(ids))
 	)
 
 	for i, id := range ids {
 		tokenCmds[i] = pipe.HGet(ctx, authIDKey(s.prefix, id), tokenHashKey)
-		sessionCmds[i] = pipe.HGet(ctx, authIDKey(s.prefix, id), sessionIDKey)
 		if method != nil {
 			pipe.SRem(ctx, authMethodKey(s.prefix, *method), id)
 		}
@@ -418,9 +408,6 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 	for i := range ids {
 		if tokenHash, err := tokenCmds[i].Result(); err == nil {
 			pipe.Del(ctx, authTokenKey(s.prefix, tokenHash))
-		}
-		if sid, err := sessionCmds[i].Result(); err == nil {
-			pipe.Del(ctx, authSessionKey(s.prefix, sid))
 		}
 	}
 
@@ -479,9 +466,6 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 		return fmt.Errorf("marshalling authentication: %w", err)
 	}
 
-	// Get session ID for updating the session key TTL (optional, can be nil)
-	sid, _ := s.client.HGet(ctx, idKey, sessionIDKey).Result()
-
 	// Update expiry in a pipeline
 	pipe = s.client.Pipeline()
 
@@ -494,11 +478,6 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 	// Set TTL on both ID and token hash keys, adding the grace period
 	pipe.ExpireAt(ctx, idKey, expireAt.AsTime().Add(s.cleanupGracePeriod))
 	pipe.ExpireAt(ctx, authTokenKey(s.prefix, tokenHash), expireAt.AsTime().Add(s.cleanupGracePeriod))
-
-	// If there's a session ID, also update the TTL on the session key
-	if sid != "" {
-		pipe.ExpireAt(ctx, authSessionKey(s.prefix, sid), expireAt.AsTime().Add(s.cleanupGracePeriod))
-	}
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		return fmt.Errorf("updating authentication expiry: %w", err)
@@ -525,20 +504,6 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	}
 
 	return s.GetAuthenticationByID(ctx, id)
-}
-
-// GetAuthenticationIDBySID implements authn.Store.
-func (s *Store) GetAuthenticationIDBySID(ctx context.Context, sid string) (string, error) {
-	sessionKey := authSessionKey(s.prefix, sid)
-	id, err := s.client.Get(ctx, sessionKey).Result()
-	if err != nil {
-		if errs.Is(err, goredis.Nil) {
-			return "", errors.ErrNotFoundf("getting authentication by sid")
-		}
-		return "", fmt.Errorf("getting authentication by sid: %w", err)
-	}
-
-	return id, nil
 }
 
 // GetAuthenticationByID implements authn.Store.
@@ -635,6 +600,16 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 		result := cmds[id].Val()
 		if len(result) == 0 {
 			continue // Skip if authentication was deleted
+		}
+
+		if req.Predicate.Provider != nil && *req.Predicate.Provider != result[providerKey] {
+			continue
+		}
+		if req.Predicate.Sid != nil && *req.Predicate.Sid != result[sessionIDKey] {
+			continue
+		}
+		if req.Predicate.Sub != nil && *req.Predicate.Sub != result[subKey] {
+			continue
 		}
 
 		auth := &auth.Authentication{}

@@ -134,7 +134,7 @@ export async function getAuthSelf() {
 }
 
 // Revoke the current user's authentication session.
-export async function revokeAuthSelf() {
+export async function revokeAuthSelf(): Promise<{ nextUri?: string }> {
   return request('DELETE', authURL + '/self/revoke');
 }
 

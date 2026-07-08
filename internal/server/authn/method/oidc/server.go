@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn/method"
+	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -203,13 +204,19 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		Method:    auth.Method_METHOD_OIDC,
 		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.TokenLifetime)),
 		Metadata:  metadata,
+		Provider:  req.Provider,
+	}
+
+	if claims.SID != "" {
+		authRequest.Sid = claims.SID
+	}
+
+	if claims.Sub != nil {
+		authRequest.Sub = *claims.Sub
 	}
 
 	if provider.cfg.UseEndSessionEndpoint {
 		authRequest.IDToken = idToken.rawIDToken
-		if claims.SID != "" {
-			authRequest.SessionID = fmt.Sprintf("%s:%s", req.Provider, claims.SID)
-		}
 	}
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, authRequest)
@@ -280,26 +287,57 @@ func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth
 		s.logger.Debug("failed to verify logout token", zap.Error(err))
 		return nil, status.Error(codes.InvalidArgument, "revoke: invalid logout token")
 	}
-
-	if logoutToken.SessionID == "" {
-		return nil, status.Error(codes.InvalidArgument, "revoke: logout token missing sid claim")
+	listQuery := storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+		Predicate: storageauth.ListAuthenticationsPredicate{
+			Method:   new(auth.Method_METHOD_OIDC),
+			Provider: &req.Provider,
+		},
+		QueryParams: storage.QueryParams{Limit: storage.MaxListLimit},
 	}
 
-	sid := fmt.Sprintf("%s:%s", req.Provider, logoutToken.SessionID)
-	authID, err := s.store.GetAuthenticationIDBySID(ctx, sid)
-	if err != nil {
-		if errors.AsMatch[errors.ErrNotFound](err) {
-			s.logger.Debug("authentication not found", zap.String("sid", sid), zap.Error(err))
-			return &auth.RevokeOIDCResponse{}, nil
+	switch {
+	case logoutToken.SessionID != "" && logoutToken.Subject != "":
+		listQuery.Predicate.Sid = &logoutToken.SessionID
+		listQuery.Predicate.Sub = &logoutToken.Subject
+
+	case logoutToken.SessionID != "":
+		listQuery.Predicate.Sid = &logoutToken.SessionID
+
+	case logoutToken.Subject != "":
+		listQuery.Predicate.Sub = &logoutToken.Subject
+
+	default:
+		s.logger.Error("logout token is verified as valid but missing both sid and sub")
+		return nil, status.Error(codes.Internal, "revoke: operation requires sid or sub")
+	}
+
+	var ids []string
+
+	for {
+		authentications, err := s.store.ListAuthentications(ctx, &listQuery)
+		if err != nil {
+			s.logger.Error("failed to lookup authentication", zap.Error(err))
+			return nil, status.Error(codes.Internal, "revoke: lookup failed")
 		}
-		s.logger.Error("failed to lookup authentication", zap.String("sid", sid), zap.Error(err))
-		return nil, status.Error(codes.Internal, "revoke: lookup failed")
+
+		for _, authentication := range authentications.Results {
+			ids = append(ids, authentication.Id)
+		}
+
+		if authentications.NextPageToken == "" {
+			break
+		}
+
+		listQuery.QueryParams.PageToken = authentications.NextPageToken
 	}
 
-	err = s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(authID)))
-	if err != nil {
-		s.logger.Error("failed to delete auth token", zap.String("sid", sid), zap.Error(err))
-		return nil, status.Error(codes.Internal, "revoke: operation failed")
+	s.logger.Debug("attempting to delete authentications", zap.Int("size", len(ids)))
+
+	for _, id := range ids {
+		if err := s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(id))); err != nil {
+			s.logger.Error("failed to delete authentication", zap.String("id", id), zap.Error(err))
+			return nil, status.Error(codes.Internal, "revoke: operation failed")
+		}
 	}
 	return &auth.RevokeOIDCResponse{}, nil
 }
@@ -380,6 +418,7 @@ func (c claims) addToMetadata(m map[string]string) {
 	set(storageMetadataOIDCProfile, c.Profile)
 	set(storageMetadataOIDCPicture, c.Picture)
 	set(storageMetadataOIDCSub, c.Sub)
+	// consolidate common fields
 	set(method.StorageMetadataEmail, c.Email)
 	set(method.StorageMetadataName, c.Name)
 	set(method.StorageMetadataPicture, c.Picture)

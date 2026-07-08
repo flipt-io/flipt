@@ -29,9 +29,6 @@ type Store interface {
 	// GetAuthenticationByID retrieves an instance of Authentication from the backing
 	// store using the provided id string.
 	GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error)
-	// GetAuthenticationIDBySID retrieves the authentication ID from the backing
-	// store using the provided OIDC session ID (sid) string.
-	GetAuthenticationIDBySID(ctx context.Context, sid string) (string, error)
 	// ListAuthenticationsRequest retrieves a set of Authentication instances based on the provided
 	// predicates with the supplied ListAuthenticationsRequest.
 	ListAuthentications(context.Context, *storage.ListRequest[ListAuthenticationsPredicate]) (storage.ResultSet[*auth.Authentication], error)
@@ -48,7 +45,7 @@ type Store interface {
 	// GetIDToken retrieves IDOToken for an authentication.
 	// This IDToken is stored separately from public metadata
 	// because it is sensitive and should not be exposed via the public authentication API.
-	GetIDToken(ctx context.Context, authID string) (*IDTokenData, error)
+	GetIDToken(ctx context.Context, authenticationID string) (*IDTokenData, error)
 	Shutdown(context.Context) error
 	fmt.Stringer
 }
@@ -74,11 +71,12 @@ type CreateAuthenticationRequest struct {
 	// Needed as id_token_hint when Flipt later initiates RP-Initiated
 	// Logout on the user's behalf. Not required for back-channel logout.
 	IDToken string
-	// SessionID is the OIDC sid claim value used for back-channel logout correlation.
-	// It is stored in the format "<provider>:<sid>" to disambiguate across providers.
-	// Stored in a separate index (bySID) so it can be looked up by GetAuthenticationIDBySID
-	// during logout, without exposing it as the bearer credential.
-	SessionID string
+	// Sid is the OIDC sid claim value used for back-channel logout correlation.
+	Sid string
+	// Sub is the OIDC sub claim value used for back-channel logout correlation.
+	Sub string
+	// Provider is the OIDC provider name used for back-channel logout correlation.
+	Provider string
 }
 
 // ListMethod can be passed to storage.NewListRequest.
@@ -90,7 +88,10 @@ func ListMethod(method auth.Method) ListAuthenticationsPredicate {
 // ListAuthenticationsPredicate contains the fields necessary to predicate a list operation
 // on a authentications storage backend.
 type ListAuthenticationsPredicate struct {
-	Method *auth.Method
+	Method   *auth.Method
+	Provider *string
+	Sid      *string
+	Sub      *string
 }
 
 // DeleteAuthenticationsRequest is a request to delete one or more Authentication instances
