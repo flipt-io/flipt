@@ -411,6 +411,11 @@
                     }
                   ]
                 },
+                "cache_ttl": {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+                  "default": "15m"
+                },
                 "providers": {
                   "type": [
                     "object",
@@ -447,6 +452,10 @@
                           }
                         },
                         "use_pkce": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "use_end_session_endpoint": {
                           "type": "boolean",
                           "default": false
                         },

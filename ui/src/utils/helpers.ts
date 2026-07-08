@@ -184,3 +184,23 @@ export function extractRepoName(remote: string): string {
 export function canFetchUpdates(session?: Session | null): boolean {
   return session?.authenticated || session?.required === false;
 }
+
+/**
+ * Checks whether a candidate URL is safe to use for a browser redirect.
+ *
+ * Returns true only for absolute URLs with the `http:` or `https:` scheme.
+ * Relative and protocol-relative URLs are rejected.
+ * This guards against scheme-injection XSS
+ * (e.g. `javascript:`, `data:`, `vbscript:`) when the URL originates
+ * from a server response — such as an OIDC provider's
+ * `end_session_endpoint` — that could be tampered with via a compromised
+ * provider configuration or discovery document.
+ */
+export function isSafeRedirectUrl(candidate: string): boolean {
+  try {
+    const parsed = new URL(candidate);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}

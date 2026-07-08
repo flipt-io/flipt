@@ -33,13 +33,11 @@ func NewHTTPMiddleware(config config.AuthenticationSessionConfig) *Middleware {
 // This is used to clear the appropriate cookies on logout.
 func (m Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPut || r.URL.Path != "/auth/v1/self/expire" {
-			next.ServeHTTP(w, r)
-			return
+		if r.Method == http.MethodPut && r.URL.Path == "/auth/v1/self/expire" {
+			m.clearAllCookies(w)
+		} else if r.Method == http.MethodDelete && r.URL.Path == "/auth/v1/self/revoke" {
+			m.clearAllCookies(w)
 		}
-
-		m.clearAllCookies(w)
-
 		next.ServeHTTP(w, r)
 	})
 }

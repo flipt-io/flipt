@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
@@ -24,11 +25,17 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	oidctesting "go.flipt.io/flipt/internal/server/authn/method/oidc/testing"
+	"go.flipt.io/flipt/internal/storage"
+	storageauth "go.flipt.io/flipt/internal/storage/authn"
+	"go.flipt.io/flipt/internal/storage/authn/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/net/html"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func Test_Server_ImplicitFlow(t *testing.T) {
@@ -108,7 +115,6 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 								ClientID:        id,
 								ClientSecret:    secret,
 								RedirectAddress: clientAddress,
-								Nonce:           nonce,
 							},
 						},
 					},
@@ -142,7 +148,7 @@ func Test_Server_PKCE(t *testing.T) {
 		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
 
 		id, secret = "client_id", "client_secret"
-		nonce      = "static"
+		nonce      = "ljS3QGtxta4HGU6Zjv8qXwEP7eQNGqewc32SUPKhf3A"
 
 		logger = zaptest.NewLogger(t)
 		ctx    = t.Context()
@@ -153,6 +159,7 @@ func Test_Server_PKCE(t *testing.T) {
 		fmt.Fprintf(os.Stderr, "%s\n\n", err)
 		return
 	}
+	PKCEVerifier, _ := oidc.NewCodeVerifier(oidc.WithVerifier(nonce))
 
 	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 		CustomClaims: map[string]any{},
@@ -185,7 +192,7 @@ func Test_Server_PKCE(t *testing.T) {
 		ClientID:      &id,
 		ClientSecret:  &secret,
 		ExpectedNonce: &nonce,
-		PKCEVerifier:  authoidc.PKCEVerifier,
+		PKCEVerifier:  PKCEVerifier,
 	}))
 
 	defer tp.Stop()
@@ -208,7 +215,6 @@ func Test_Server_PKCE(t *testing.T) {
 								ClientID:        id,
 								ClientSecret:    secret,
 								RedirectAddress: clientAddress,
-								Nonce:           nonce,
 								UsePKCE:         true,
 							},
 						},
@@ -216,7 +222,7 @@ func Test_Server_PKCE(t *testing.T) {
 				},
 			},
 		}
-		server = oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router)
+		server = oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, authoidc.WithNonceGenerator(func() string { return nonce }))
 	)
 
 	t.Cleanup(func() { _ = server.Stop() })
@@ -305,7 +311,6 @@ func Test_Server_Nonce(t *testing.T) {
 								ClientID:        id,
 								ClientSecret:    secret,
 								RedirectAddress: clientAddress,
-								Nonce:           nonce,
 							},
 						},
 					},
@@ -761,4 +766,426 @@ func parseLoginFormHiddenValues(r io.Reader) (url.Values, error) {
 	}, "form", html.Attribute{Key: "action", Val: "/login"})(doc)
 
 	return values, nil
+}
+
+func Test_Server_Callback_StoresSIDWhenPresent(t *testing.T) {
+	var (
+		router        = chi.NewRouter()
+		httpServer    = httptest.NewServer(router)
+		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
+
+		id, secret = "client_id", "client_secret"
+		nonce      = "static"
+
+		logger = zaptest.NewLogger(t)
+		ctx    = t.Context()
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(t, err)
+
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+		CustomClaims: map[string]any{
+			"sid": "test-session-456",
+		},
+		SubjectInfo: map[string]*oidc.TestSubject{
+			"mark": {
+				Password: "phelps",
+				CustomClaims: map[string]any{
+					"email": "mark@flipt.io",
+					"name":  "Mark Phelps",
+					"roles": []string{"admin"},
+				},
+			},
+		},
+		SigningKey: &oidc.TestSigningKey{
+			PrivKey: priv,
+			PubKey:  priv.Public(),
+			Alg:     oidc.RS256,
+		},
+		AllowedRedirectURIs: []string{
+			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
+		},
+		ClientID:      &id,
+		ClientSecret:  &secret,
+		ExpectedNonce: &nonce,
+	}))
+	t.Cleanup(func() { tp.Stop() })
+
+	authConfig := config.AuthenticationConfig{
+		Session: config.AuthenticationSessionConfig{
+			Domain:        "localhost",
+			Secure:        false,
+			TokenLifetime: 1 * time.Hour,
+			StateLifetime: 10 * time.Minute,
+		},
+		Methods: config.AuthenticationMethodsConfig{
+			OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+				Enabled: true,
+				Method: config.AuthenticationMethodOIDCConfig{
+					Providers: map[string]config.AuthenticationMethodOIDCProvider{
+						"google": {
+							IssuerURL:             tp.Addr(),
+							ClientID:              id,
+							ClientSecret:          secret,
+							RedirectAddress:       clientAddress,
+							UseEndSessionEndpoint: true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, authoidc.WithNonceGenerator(func() string { return nonce }))
+	t.Cleanup(func() { _ = server.Stop() })
+
+	jar, err := cookiejar.New(&cookiejar.Options{})
+	require.NoError(t, err)
+
+	client := &http.Client{
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Jar: jar,
+	}
+
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
+
+	storedAuth, err := server.GRPCServer.Store.ListAuthentications(ctx, &storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+		Predicate: storageauth.ListAuthenticationsPredicate{
+			Method:   new(auth.Method_METHOD_OIDC),
+			Provider: new("google"),
+			Sid:      new("test-session-456"),
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, storedAuth.Results, 1)
+}
+
+func Test_Server_Callback_DoesStoreSIDWhenEmpty(t *testing.T) {
+	var (
+		router        = chi.NewRouter()
+		httpServer    = httptest.NewServer(router)
+		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
+
+		id, secret = "client_id", "client_secret"
+		nonce      = "static"
+
+		logger = zaptest.NewLogger(t)
+		ctx    = t.Context()
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(t, err)
+
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+		CustomClaims: map[string]any{},
+		SubjectInfo: map[string]*oidc.TestSubject{
+			"mark": {
+				Password: "phelps",
+				CustomClaims: map[string]any{
+					"email": "mark@flipt.io",
+					"name":  "Mark Phelps",
+					"roles": []string{"admin"},
+				},
+			},
+		},
+		SigningKey: &oidc.TestSigningKey{
+			PrivKey: priv,
+			PubKey:  priv.Public(),
+			Alg:     oidc.RS256,
+		},
+		AllowedRedirectURIs: []string{
+			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
+		},
+		ClientID:      &id,
+		ClientSecret:  &secret,
+		ExpectedNonce: &nonce,
+	}))
+	t.Cleanup(func() { tp.Stop() })
+
+	authConfig := config.AuthenticationConfig{
+		Session: config.AuthenticationSessionConfig{
+			Domain:        "localhost",
+			Secure:        false,
+			TokenLifetime: 1 * time.Hour,
+			StateLifetime: 10 * time.Minute,
+		},
+		Methods: config.AuthenticationMethodsConfig{
+			OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+				Enabled: true,
+				Method: config.AuthenticationMethodOIDCConfig{
+					Providers: map[string]config.AuthenticationMethodOIDCProvider{
+						"google": {
+							IssuerURL:             tp.Addr(),
+							ClientID:              id,
+							ClientSecret:          secret,
+							RedirectAddress:       clientAddress,
+							UseEndSessionEndpoint: true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	server := oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router, authoidc.WithNonceGenerator(func() string { return nonce }))
+	t.Cleanup(func() { _ = server.Stop() })
+
+	jar, err := cookiejar.New(&cookiejar.Options{})
+	require.NoError(t, err)
+
+	client := &http.Client{
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Jar: jar,
+	}
+
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server, nil)
+
+	storedAuth, err := server.GRPCServer.Store.ListAuthentications(ctx, &storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+		Predicate: storageauth.ListAuthenticationsPredicate{
+			Method:   new(auth.Method_METHOD_OIDC),
+			Provider: new("google"),
+			Sid:      new(""),
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, storedAuth.Results, 1)
+}
+
+func Test_Server_Revoke(t *testing.T) {
+	var (
+		id, secret = "client_id", "client_secret"
+		nonce      = "static"
+
+		logger = zaptest.NewLogger(t)
+		ctx    = t.Context()
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(t, err)
+
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+		CustomClaims: map[string]any{},
+		SubjectInfo: map[string]*oidc.TestSubject{
+			"alice": {
+				Password: "wonder",
+				CustomClaims: map[string]any{
+					"email": "alice@example.com",
+					"name":  "Alice Wonder",
+				},
+			},
+		},
+		SigningKey: &oidc.TestSigningKey{
+			PrivKey: priv,
+			PubKey:  priv.Public(),
+			Alg:     oidc.RS256,
+		},
+		ClientID:      &id,
+		ClientSecret:  &secret,
+		ExpectedNonce: &nonce,
+	}))
+	t.Cleanup(func() { tp.Stop() })
+
+	authConfig := config.AuthenticationConfig{
+		Session: config.AuthenticationSessionConfig{
+			TokenLifetime: 1 * time.Hour,
+			StateLifetime: 10 * time.Minute,
+		},
+		Methods: config.AuthenticationMethodsConfig{
+			OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+				Enabled: true,
+				Method: config.AuthenticationMethodOIDCConfig{
+					Providers: map[string]config.AuthenticationMethodOIDCProvider{
+						"google": {
+							IssuerURL:       tp.Addr(),
+							ClientID:        id,
+							ClientSecret:    secret,
+							RedirectAddress: "http://localhost:8080",
+							Nonce:           nonce,
+							Scopes:          []string{"openid"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	grpcServer := oidctesting.StartGRPCServer(t, ctx, logger, authConfig)
+	t.Cleanup(func() { _ = grpcServer.Stop() })
+
+	type testCase struct {
+		name      string
+		sid       string
+		sub       *string
+		setupAuth func(t *testing.T) *auth.Authentication
+		verify    func(t *testing.T, created *auth.Authentication)
+		expectErr bool
+	}
+
+	tests := []testCase{
+		{
+			name: "empty sid and sub",
+			sid:  "",
+			verify: func(t *testing.T, _ *auth.Authentication) {
+			},
+			expectErr: true,
+		},
+		{
+			name: "sid found and auth deleted",
+			sid:  "known-session",
+			sub:  new("alice"),
+			setupAuth: func(t *testing.T) *auth.Authentication {
+				_, created, err := grpcServer.Store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
+					Method:    auth.Method_METHOD_OIDC,
+					ExpiresAt: timestamppb.New(time.Now().Add(time.Hour)),
+					Provider:  "google",
+					Sid:       "known-session",
+					Sub:       "alice",
+					IDToken:   "id-token-jwt",
+				})
+				require.NoError(t, err)
+				return created
+			},
+			verify: func(t *testing.T, created *auth.Authentication) {
+				_, err := grpcServer.Store.GetAuthenticationByID(ctx, created.Id)
+				require.Error(t, err)
+				storedAuth, err := grpcServer.Store.ListAuthentications(ctx, &storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+					Predicate: storageauth.ListAuthenticationsPredicate{
+						Method:   new(auth.Method_METHOD_OIDC),
+						Provider: new("google"),
+						Sid:      new("known-session"),
+						Sub:      new("alice"),
+					},
+				})
+				require.NoError(t, err)
+				require.Empty(t, storedAuth.Results)
+			},
+		},
+		{
+			name: "no matching authentications",
+			sid:  "unknown-session",
+			sub:  new("alice"),
+			verify: func(t *testing.T, _ *auth.Authentication) {
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var created *auth.Authentication
+			if tt.setupAuth != nil {
+				created = tt.setupAuth(t)
+			}
+
+			now := time.Now()
+			claims := jwt.MapClaims{
+				"iss": tp.Addr(),
+				"aud": id,
+				"exp": now.Add(time.Hour).Unix(),
+				"iat": now.Unix(),
+				"jti": "logout-token-" + tt.name,
+				"sid": tt.sid,
+				"events": map[string]any{
+					"http://schemas.openid.net/event/backchannel-logout": struct{}{},
+				},
+			}
+			if tt.sub != nil {
+				claims["sub"] = *tt.sub
+			}
+			logoutToken := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+			logoutTokenString, err := logoutToken.SignedString(priv)
+			require.NoError(t, err)
+
+			resp, err := grpcServer.Client().Revoke(ctx, &auth.RevokeOIDCRequest{
+				Provider:    "google",
+				LogoutToken: logoutTokenString,
+			})
+			if tt.expectErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+
+			tt.verify(t, created)
+		})
+	}
+}
+
+type errorStore struct {
+	storageauth.Store
+}
+
+func (s *errorStore) ListAuthentications(_ context.Context, _ *storage.ListRequest[storageauth.ListAuthenticationsPredicate]) (storage.ResultSet[*auth.Authentication], error) {
+	return storage.ResultSet[*auth.Authentication]{}, fmt.Errorf("storage connection failed")
+}
+
+func Test_Server_Revoke_StorageError(t *testing.T) {
+	var (
+		id, secret = "client_id", "client_secret"
+		logger     = zaptest.NewLogger(t)
+		ctx        = t.Context()
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(t, err)
+
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+		SigningKey: &oidc.TestSigningKey{
+			PrivKey: priv,
+			PubKey:  priv.Public(),
+			Alg:     oidc.RS256,
+		},
+		ClientID:     &id,
+		ClientSecret: &secret,
+	}))
+	t.Cleanup(func() { tp.Stop() })
+
+	authConfig := config.AuthenticationConfig{
+		Methods: config.AuthenticationMethodsConfig{
+			OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+				Enabled: true,
+				Method: config.AuthenticationMethodOIDCConfig{
+					Providers: map[string]config.AuthenticationMethodOIDCProvider{
+						"google": {
+							IssuerURL:       tp.Addr(),
+							ClientID:        id,
+							ClientSecret:    secret,
+							RedirectAddress: "http://localhost:8080",
+							Scopes:          []string{"openid"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	store := &errorStore{Store: memory.NewStore(logger)}
+	oidcServer := authoidc.NewServer(logger, store, authoidc.NewRegistry(authConfig), authConfig)
+
+	now := time.Now()
+	logoutToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss": tp.Addr(),
+		"aud": id,
+		"exp": now.Add(time.Hour).Unix(),
+		"iat": now.Unix(),
+		"jti": "logout-token-storage-error",
+		"sid": "any-session",
+		"sub": "alice",
+		"events": map[string]any{
+			"http://schemas.openid.net/event/backchannel-logout": struct{}{},
+		},
+	}).SignedString(priv)
+	require.NoError(t, err)
+
+	_, err = oidcServer.Revoke(ctx, &auth.RevokeOIDCRequest{Provider: "google", LogoutToken: logoutToken})
+	require.Error(t, err)
+
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.Equal(t, codes.Internal, st.Code())
 }

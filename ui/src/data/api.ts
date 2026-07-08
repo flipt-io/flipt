@@ -127,23 +127,15 @@ async function post<T>(
   return request('POST', base + uri, values, headers);
 }
 
-async function put<T>(
-  uri: string,
-  values: T,
-  base = apiURL,
-  headers?: Record<string, string>
-) {
-  return request('PUT', base + uri, values, headers);
-}
-
 //
 // auth
 export async function getAuthSelf() {
   return get('/self', authURL);
 }
 
-export async function expireAuthSelf() {
-  return put('/self/expire', {}, authURL);
+// Revoke the current user's authentication session.
+export async function revokeAuthSelf(): Promise<{ nextUri?: string }> {
+  return request('DELETE', authURL + '/self/revoke');
 }
 
 //

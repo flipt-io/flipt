@@ -411,7 +411,8 @@ func authenticateClientToken(ctx context.Context, logger *zap.Logger, authentica
 	}
 
 	if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
-		logger.Error("unauthenticated",
+		logger.Error(
+			"unauthenticated",
 			zap.String("reason", "authorization expired"),
 			zap.String("authentication_id", auth.Id),
 		)

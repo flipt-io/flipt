@@ -42,8 +42,27 @@ type Store interface {
 	PopOAuthChallenge(ctx context.Context, state string) (string, error)
 	// ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
 	ExpireAuthenticationByID(context.Context, string, *timestamppb.Timestamp) error
+	// GetIDToken retrieves IDOToken for an authentication.
+	// This IDToken is stored separately from public metadata
+	// because it is sensitive and should not be exposed via the public authentication API.
+	GetIDToken(ctx context.Context, authenticationID string) (*IDTokenData, error)
 	Shutdown(context.Context) error
 	fmt.Stringer
+}
+
+// IDTokenData contains OIDC session data needed for
+// single logout (SLO). This is stored separately from metadata because
+// metadata is publicly exposed via the authentication API.
+type IDTokenData struct {
+	// IDToken is the raw ID token JWT.
+	IDToken string
+}
+
+func (i *IDTokenData) String() string {
+	if i == nil {
+		return "IDTokenData{nil}"
+	}
+	return "IDTokenData{IDToken: [REDACTED]}"
 }
 
 // CreateAuthenticationRequest is the argument passed when creating instances
@@ -55,6 +74,16 @@ type CreateAuthenticationRequest struct {
 	// ClientToken is an (optional) explicit client token to be associated with the authentication.
 	// When it is not supplied a random token will be generated and returned instead.
 	ClientToken string
+	// IDToken is the raw ID token JWT.
+	// Needed as id_token_hint when Flipt later initiates RP-Initiated
+	// Logout on the user's behalf. Not required for back-channel logout.
+	IDToken string
+	// Sid is the OIDC sid claim value used for back-channel logout correlation.
+	Sid string
+	// Sub is the OIDC sub claim value used for back-channel logout correlation.
+	Sub string
+	// Provider is the OIDC provider name used for back-channel logout correlation.
+	Provider string
 }
 
 // ListMethod can be passed to storage.NewListRequest.
@@ -66,7 +95,10 @@ func ListMethod(method auth.Method) ListAuthenticationsPredicate {
 // ListAuthenticationsPredicate contains the fields necessary to predicate a list operation
 // on a authentications storage backend.
 type ListAuthenticationsPredicate struct {
-	Method *auth.Method
+	Method   *auth.Method
+	Provider *string
+	Sid      *string
+	Sub      *string
 }
 
 // DeleteAuthenticationsRequest is a request to delete one or more Authentication instances

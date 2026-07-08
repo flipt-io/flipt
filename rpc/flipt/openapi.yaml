@@ -115,6 +115,38 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CallbackResponse'
+    /auth/v1/method/oidc/{provider}/revoke:
+        post:
+            tags:
+                - AuthenticationMethodOIDCService
+            operationId: oidcRevoke
+            parameters:
+                - name: provider
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RevokeOIDCRequest'
+                    application/x-www-form-urlencoded:
+                        schema:
+                            required:
+                                - logout_token
+                            type: object
+                            properties:
+                                logout_token:
+                                    type: string
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RevokeOIDCResponse'
     /auth/v1/self:
         get:
             tags:
@@ -131,6 +163,7 @@ paths:
         put:
             tags:
                 - AuthenticationService
+            description: 'Deprecated: use RevokeAuthenticationSelf instead.'
             operationId: expireAuthSelf
             parameters:
                 - name: expiresAt
@@ -142,6 +175,18 @@ paths:
                 "200":
                     description: OK
                     content: {}
+    /auth/v1/self/revoke:
+        delete:
+            tags:
+                - AuthenticationService
+            operationId: revokeAuthSelf
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RevokeAuthenticationSelfResponse'
     /auth/v1/tokens:
         get:
             tags:
@@ -572,6 +617,21 @@ components:
                         $ref: '#/components/schemas/Authentication'
                 nextPageToken:
                     type: string
+        RevokeAuthenticationSelfResponse:
+            type: object
+            properties:
+                nextUri:
+                    type: string
+        RevokeOIDCRequest:
+            type: object
+            properties:
+                provider:
+                    type: string
+                logoutToken:
+                    type: string
+        RevokeOIDCResponse:
+            type: object
+            properties: {}
         Rollout:
             type: object
             properties:
