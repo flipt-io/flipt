@@ -30,10 +30,17 @@ interface CreateMergeProposalModalProps {
   environment: IEnvironment;
 }
 
+const MAX_TITLE = 256;
+const MAX_BODY = 10000;
+
 const validationSchema = Yup.object().shape({
+  title: Yup.string()
+    .optional()
+    .max(MAX_TITLE, `Title must be at most ${MAX_TITLE} characters`)
+    .trim(),
   description: Yup.string()
     .optional()
-    .max(500, 'Description must be at most 500 characters')
+    .max(MAX_BODY, `Description must be at most ${MAX_BODY} characters`)
     .trim(),
   draft: Yup.boolean()
 });
@@ -58,7 +65,13 @@ export function CreateMergeProposalModal({
 
   const [proposeEnvironment] = useProposeEnvironmentMutation();
 
+  // Hydrated defaults rendered by the server from the applicable proposal
+  // templates for this branch. Used to pre-fill the form; the user may override.
+  const defaultTitle = data?.proposalTitle ?? '';
+  const defaultDescription = data?.proposalBody ?? '';
+
   const handleProposeEnvironment = async (values: {
+    title: string;
     description: string;
     draft: boolean;
   }) => {
@@ -66,6 +79,7 @@ export function CreateMergeProposalModal({
       await proposeEnvironment({
         environmentKey: environment.configuration?.base ?? '',
         key: environment.key,
+        title: values.title || undefined,
         body: values.description,
         draft: values.draft
       }).unwrap();
@@ -155,11 +169,19 @@ export function CreateMergeProposalModal({
           </div>
         )}
         <Formik
-          initialValues={{ description: '', draft: false }}
+          enableReinitialize
+          initialValues={{
+            title: defaultTitle,
+            description: defaultDescription,
+            draft: false
+          }}
           validationSchema={validationSchema}
           onSubmit={async (values, actions) => {
-            const trimmed = values.description.trim().slice(0, 500);
-            const submitValues = { ...values, description: trimmed };
+            const submitValues = {
+              ...values,
+              title: values.title.trim().slice(0, MAX_TITLE),
+              description: values.description.trim().slice(0, MAX_BODY)
+            };
             await handleProposeEnvironment(submitValues);
             actions.setSubmitting(false);
           }}
@@ -171,6 +193,34 @@ export function CreateMergeProposalModal({
               data?.changes?.length == 0;
             return (
               <Form>
+                <div className="mb-3">
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    htmlFor="proposal-title"
+                  >
+                    Proposal Title{' '}
+                    <span className="text-muted-foreground">(optional)</span>
+                  </label>
+                  <Field
+                    type="text"
+                    id="proposal-title"
+                    name="title"
+                    className="w-full rounded-md border-input bg-secondary/20 dark:bg-input/20 px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-brand transition disabled:opacity-80 disabled:cursor-not-allowed"
+                    placeholder="Enter a title for this merge proposal..."
+                    maxLength={MAX_TITLE}
+                    onChange={formik.handleChange}
+                    value={formik.values.title}
+                    disabled={isError}
+                  />
+                  <div className="text-xs text-muted-foreground text-right mt-1">
+                    {formik.values.title.trim().length}/{MAX_TITLE}
+                  </div>
+                  {formik.errors.title && formik.touched.title && (
+                    <div className="text-xs text-destructive mt-1">
+                      {formik.errors.title}
+                    </div>
+                  )}
+                </div>
                 <div>
                   <label
                     className="block text-sm font-medium mb-1"
@@ -186,13 +236,13 @@ export function CreateMergeProposalModal({
                     className="w-full rounded-md border-input bg-secondary/20 dark:bg-input/20 px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-brand transition disabled:opacity-80 disabled:cursor-not-allowed"
                     rows={3}
                     placeholder="Add context or reasoning for this merge proposal..."
-                    maxLength={500}
+                    maxLength={MAX_BODY}
                     onChange={formik.handleChange}
                     value={formik.values.description}
                     disabled={isError}
                   />
                   <div className="text-xs text-muted-foreground text-right mt-1">
-                    {formik.values.description.trim().length}/500
+                    {formik.values.description.trim().length}/{MAX_BODY}
                   </div>
                   {formik.errors.description && formik.touched.description && (
                     <div className="text-xs text-destructive mt-1">

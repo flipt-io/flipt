@@ -967,7 +967,14 @@ func (x *ListBranchedEnvironmentChangesRequest) GetLimit() int32 {
 type ListBranchedEnvironmentChangesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The list of changes.
-	Changes       []*Change `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
+	Changes []*Change `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
+	// The hydrated default proposal title for this branch, rendered from the
+	// applicable (built-in, server, or repository-level) template. The UI uses
+	// this as an editable default when opening a merge proposal.
+	ProposalTitle string `protobuf:"bytes,2,opt,name=proposal_title,json=proposalTitle,proto3" json:"proposal_title,omitempty"`
+	// The hydrated default proposal body for this branch, rendered from the
+	// applicable template.
+	ProposalBody  string `protobuf:"bytes,3,opt,name=proposal_body,json=proposalBody,proto3" json:"proposal_body,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1007,6 +1014,20 @@ func (x *ListBranchedEnvironmentChangesResponse) GetChanges() []*Change {
 		return x.Changes
 	}
 	return nil
+}
+
+func (x *ListBranchedEnvironmentChangesResponse) GetProposalTitle() string {
+	if x != nil {
+		return x.ProposalTitle
+	}
+	return ""
+}
+
+func (x *ListBranchedEnvironmentChangesResponse) GetProposalBody() string {
+	if x != nil {
+		return x.ProposalBody
+	}
+	return ""
 }
 
 // Namespace represents a grouping of related flags and segments.
@@ -2089,9 +2110,11 @@ const file_environments_environments_proto_rawDesc = "" +
 	"\x04from\x18\x03 \x01(\tH\x00R\x04from\x88\x01\x01\x12\x19\n" +
 	"\x05limit\x18\x04 \x01(\x05H\x01R\x05limit\x88\x01\x01B\a\n" +
 	"\x05_fromB\b\n" +
-	"\x06_limit\"X\n" +
+	"\x06_limit\"\xa4\x01\n" +
 	"&ListBranchedEnvironmentChangesResponse\x12.\n" +
-	"\achanges\x18\x01 \x03(\v2\x14.environments.ChangeR\achanges\"\x99\x01\n" +
+	"\achanges\x18\x01 \x03(\v2\x14.environments.ChangeR\achanges\x12%\n" +
+	"\x0eproposal_title\x18\x02 \x01(\tR\rproposalTitle\x12#\n" +
+	"\rproposal_body\x18\x03 \x01(\tR\fproposalBody\"\x99\x01\n" +
 	"\tNamespace\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12%\n" +
