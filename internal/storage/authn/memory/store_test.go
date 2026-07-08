@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	stdErrors "errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -17,6 +18,46 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func TestOAuthEntityString(t *testing.T) {
+	tests := []struct {
+		name   string
+		entity func() *oauthEntity
+		check  func(t *testing.T, s string)
+	}{
+		{
+			name: "does not leak idToken",
+			entity: func() *oauthEntity {
+				return &oauthEntity{
+					Authentication: &rpcauth.Authentication{Id: "test-id"},
+					idToken:        &authn.IDTokenData{IDToken: "secret-jwt"},
+				}
+			},
+			check: func(t *testing.T, s string) {
+				assert.Contains(t, s, "test-id")
+				assert.NotContains(t, s, "secret-jwt")
+			},
+		},
+		{
+			name: "nil embedded proto",
+			entity: func() *oauthEntity {
+				return &oauthEntity{
+					idToken: &authn.IDTokenData{IDToken: "secret-jwt"},
+				}
+			},
+			check: func(t *testing.T, s string) {
+				assert.NotContains(t, s, "secret-jwt")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := fmt.Sprint(tt.entity())
+			tt.check(t, s)
+		})
+	}
+}
 
 func TestAuthenticationStoreHarness(t *testing.T) {
 	store := NewStore(zap.NewNop())

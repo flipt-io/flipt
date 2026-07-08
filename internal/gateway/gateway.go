@@ -202,7 +202,7 @@ func (u formURLEncodedMarshaler) NewDecoder(r io.Reader) runtime.Decoder {
 			return fmt.Errorf("not proto message")
 		}
 
-		limitedReader := io.LimitReader(r, maxFormURLEncodedBodySize)
+		limitedReader := http.MaxBytesReader(nil, io.NopCloser(r), maxFormURLEncodedBodySize)
 		formData, err := io.ReadAll(limitedReader)
 		if err != nil {
 			return err

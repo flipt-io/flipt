@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"encoding/json"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -182,8 +183,10 @@ func TestFormURLEncodedMarshaler(t *testing.T) {
 
 		var req auth.RevokeOIDCRequest
 		err := decoder.Decode(&req)
-		require.NoError(t, err)
-		require.Len(t, req.LogoutToken, maxFormURLEncodedBodySize-len(prefix))
+		require.Error(t, err)
+		var maxBytesErr *http.MaxBytesError
+		require.ErrorAs(t, err, &maxBytesErr)
+		require.Equal(t, int64(maxFormURLEncodedBodySize), maxBytesErr.Limit)
 	})
 }
 

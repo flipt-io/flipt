@@ -58,6 +58,13 @@ type IDTokenData struct {
 	IDToken string
 }
 
+func (i *IDTokenData) String() string {
+	if i == nil {
+		return "IDTokenData{nil}"
+	}
+	return "IDTokenData{IDToken: [REDACTED]}"
+}
+
 // CreateAuthenticationRequest is the argument passed when creating instances
 // of an Authentication on a target AuthenticationStore.
 type CreateAuthenticationRequest struct {
