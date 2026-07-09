@@ -11,13 +11,13 @@ import (
 	"sync/atomic"
 	"text/template"
 
-	"go.flipt.io/flipt/errors"
-
-	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/storer"
+
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/names"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
 	evaluation "go.flipt.io/flipt/internal/storage/environments/evaluation"
@@ -169,7 +169,7 @@ func (e *Environment) Branch(ctx context.Context, branch string) (serverenvs.Env
 
 	if name == "" {
 		// generate a name for the branched environment if no name is provided
-		name = strings.ReplaceAll(namesgenerator.GetRandomName(0), "_", "")
+		name = names.Random()
 	}
 
 	var (
