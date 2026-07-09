@@ -185,7 +185,6 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		if _, err := runtime.Sync(ctx); err != nil {
 			// Build fresh runtime base and cache it
 			runtime = client.Container().From("alpine:3.24.1").
-				WithExec([]string{"apk", "upgrade", "--no-cache", "libcrypto3", "libssl3"}).
 				WithExec([]string{"apk", "add", "--no-cache", "openssl", "ca-certificates"}).
 				WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
 				WithExec([]string{"addgroup", "flipt"}).
@@ -198,7 +197,6 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 	} else {
 		// No cache - use regular build
 		runtime = client.Container().From("alpine:3.24.1").
-			WithExec([]string{"apk", "upgrade", "--no-cache", "libcrypto3", "libssl3"}).
 			WithExec([]string{"apk", "add", "--no-cache", "openssl", "ca-certificates"}).
 			WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
 			WithExec([]string{"addgroup", "flipt"}).
@@ -248,7 +246,6 @@ func PackageWithUIBuild(ctx context.Context, client *dagger.Client, base *dagger
 		if _, err := runtime.Sync(ctx); err != nil {
 			// Build fresh runtime base and cache it
 			runtime = client.Container().From("alpine:3.24.1").
-				WithExec([]string{"apk", "upgrade", "--no-cache", "libcrypto3", "libssl3"}).
 				WithExec([]string{"apk", "add", "--no-cache", "openssl", "ca-certificates"}).
 				WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
 				WithExec([]string{"addgroup", "flipt"}).
@@ -261,7 +258,6 @@ func PackageWithUIBuild(ctx context.Context, client *dagger.Client, base *dagger
 	} else {
 		// No cache - use regular build
 		runtime = client.Container().From("alpine:3.24.1").
-			WithExec([]string{"apk", "upgrade", "--no-cache", "libcrypto3", "libssl3"}).
 			WithExec([]string{"apk", "add", "--no-cache", "openssl", "ca-certificates"}).
 			WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
 			WithExec([]string{"addgroup", "flipt"}).

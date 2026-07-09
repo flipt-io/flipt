@@ -9,8 +9,6 @@ LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
 
-RUN apk upgrade --no-cache libcrypto3 libssl3
-
 RUN mkdir -p /etc/flipt && \
   mkdir -p /var/opt/flipt
 
