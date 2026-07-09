@@ -431,6 +431,7 @@ const (
 type AuthenticationMethodOIDCServiceClient interface {
 	AuthorizeURL(ctx context.Context, in *AuthorizeURLRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error)
 	Callback(ctx context.Context, in *CallbackRequest, opts ...grpc.CallOption) (*CallbackResponse, error)
+	// Handles OpenID Connect Back-Channel Logout requests initiated by the identity provider.
 	Revoke(ctx context.Context, in *RevokeOIDCRequest, opts ...grpc.CallOption) (*RevokeOIDCResponse, error)
 }
 
@@ -478,6 +479,7 @@ func (c *authenticationMethodOIDCServiceClient) Revoke(ctx context.Context, in *
 type AuthenticationMethodOIDCServiceServer interface {
 	AuthorizeURL(context.Context, *AuthorizeURLRequest) (*AuthorizeURLResponse, error)
 	Callback(context.Context, *CallbackRequest) (*CallbackResponse, error)
+	// Handles OpenID Connect Back-Channel Logout requests initiated by the identity provider.
 	Revoke(context.Context, *RevokeOIDCRequest) (*RevokeOIDCResponse, error)
 	mustEmbedUnimplementedAuthenticationMethodOIDCServiceServer()
 }

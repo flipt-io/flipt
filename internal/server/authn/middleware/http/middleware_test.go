@@ -12,8 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	middlewarecommon "go.flipt.io/flipt/internal/server/authn/middleware/common"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestHandler(t *testing.T) {
@@ -105,4 +108,58 @@ func assertCookiesCleared(t *testing.T, cookies []*http.Cookie) {
 		assert.True(t, cookiesMap[cookieName].HttpOnly)
 		assert.False(t, cookiesMap[cookieName].Secure)
 	}
+}
+
+func TestForwardRevokeOIDCResponseOption(t *testing.T) {
+	middleware := NewHTTPMiddleware(config.AuthenticationSessionConfig{
+		Domain: "localhost",
+	})
+
+	t.Run("revoke OIDC success via GET clears cookies", func(t *testing.T) {
+		ctx := metadata.NewOutgoingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodGet))
+		w := httptest.NewRecorder()
+
+		err := middleware.ForwardRevokeOIDCResponseOption(ctx, w, &auth.RevokeOIDCResponse{})
+		require.NoError(t, err)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assertCookiesCleared(t, res.Cookies())
+	})
+
+	t.Run("revoke OIDC success via POST does not clear cookies", func(t *testing.T) {
+		ctx := metadata.NewOutgoingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodPost))
+		w := httptest.NewRecorder()
+
+		err := middleware.ForwardRevokeOIDCResponseOption(ctx, w, &auth.RevokeOIDCResponse{})
+		require.NoError(t, err)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Empty(t, res.Cookies())
+	})
+
+	t.Run("non-revoke response does not clear cookies", func(t *testing.T) {
+		ctx := metadata.NewOutgoingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodGet))
+		w := httptest.NewRecorder()
+
+		err := middleware.ForwardRevokeOIDCResponseOption(ctx, w, &struct{ proto.Message }{})
+		require.NoError(t, err)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Empty(t, res.Cookies())
+	})
+
+	t.Run("no x-http-method metadata does not clear cookies", func(t *testing.T) {
+		ctx := t.Context()
+		w := httptest.NewRecorder()
+
+		err := middleware.ForwardRevokeOIDCResponseOption(ctx, w, &auth.RevokeOIDCResponse{})
+		require.NoError(t, err)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assert.Empty(t, res.Cookies())
+	})
 }

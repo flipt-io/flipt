@@ -32,6 +32,32 @@ func Test_Server_SkipsAuthentication(t *testing.T) {
 	assert.True(t, server.SkipsAuthentication(t.Context()))
 }
 
+func TestGetHTTPMethod(t *testing.T) {
+	t.Run("no metadata", func(t *testing.T) {
+		assert.Empty(t, getHTTPMethod(t.Context()))
+	})
+
+	t.Run("no x-http-method in metadata", func(t *testing.T) {
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.Pairs("some-key", "some-val"))
+		assert.Empty(t, getHTTPMethod(ctx))
+	})
+
+	t.Run("GET method", func(t *testing.T) {
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.Pairs("x-http-method", "GET"))
+		assert.Equal(t, "GET", getHTTPMethod(ctx))
+	})
+
+	t.Run("POST method", func(t *testing.T) {
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.Pairs("x-http-method", "POST"))
+		assert.Equal(t, "POST", getHTTPMethod(ctx))
+	})
+
+	t.Run("empty method value", func(t *testing.T) {
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.Pairs("x-http-method", ""))
+		assert.Empty(t, getHTTPMethod(ctx))
+	})
+}
+
 func TestEndSessionURI(t *testing.T) {
 	ctx := t.Context()
 
@@ -625,6 +651,7 @@ func TestServer_Revoke(t *testing.T) {
 
 	tests := []struct {
 		name   string
+		ctx    context.Context
 		server *Server
 		req    *auth.RevokeOIDCRequest
 		check  func(t *testing.T, resp *auth.RevokeOIDCResponse, err error)
@@ -675,6 +702,7 @@ func TestServer_Revoke(t *testing.T) {
 		},
 		{
 			name: "invalid logout token",
+			ctx:  metadata.NewIncomingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodPost)),
 			server: NewServer(logger, memory.NewStore(logger),
 				NewRegistry(makeCfg()),
 				makeCfg()),
@@ -692,6 +720,7 @@ func TestServer_Revoke(t *testing.T) {
 		},
 		{
 			name: "logout token missing sid and sub",
+			ctx:  metadata.NewIncomingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodPost)),
 			server: NewServer(logger, memory.NewStore(logger),
 				NewRegistry(makeCfg()),
 				makeCfg()),
@@ -711,7 +740,11 @@ func TestServer_Revoke(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := tt.server.Revoke(ctx, tt.req)
+			c := tt.ctx
+			if c == nil {
+				c = ctx
+			}
+			resp, err := tt.server.Revoke(c, tt.req)
 			tt.check(t, resp, err)
 		})
 	}

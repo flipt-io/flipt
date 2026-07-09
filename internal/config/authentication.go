@@ -532,13 +532,14 @@ type AuthenticationMethodOIDCProvider struct {
 	ClientSecret    string `json:"-" mapstructure:"client_secret" yaml:"-"`
 	RedirectAddress string `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
 	// Deprecated: Nonce is no longer used. A random nonce is always generated per auth flow.
-	Nonce                 string            `json:"nonce,omitempty" mapstructure:"nonce" yaml:"nonce,omitempty"`
-	Scopes                []string          `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
-	UsePKCE               bool              `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
-	Algorithms            []string          `json:"algorithms,omitempty" mapstructure:"algorithms" yaml:"algorithms,omitempty"`
-	FetchExtraUserInfo    bool              `json:"fetchExtraUserInfo,omitempty" mapstructure:"fetch_extra_user_info" yaml:"fetch_extra_user_info,omitempty"`
-	AuthorizeParameters   map[string]string `json:"authorizeParameters,omitempty" mapstructure:"authorize_parameters" yaml:"authorize_parameters,omitempty"`
-	UseEndSessionEndpoint bool              `json:"useEndSessionEndpoint,omitempty" mapstructure:"use_end_session_endpoint" yaml:"use_end_session_endpoint,omitempty"`
+	Nonce                   string            `json:"nonce,omitempty" mapstructure:"nonce" yaml:"nonce,omitempty"`
+	Scopes                  []string          `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	UsePKCE                 bool              `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
+	Algorithms              []string          `json:"algorithms,omitempty" mapstructure:"algorithms" yaml:"algorithms,omitempty"`
+	FetchExtraUserInfo      bool              `json:"fetchExtraUserInfo,omitempty" mapstructure:"fetch_extra_user_info" yaml:"fetch_extra_user_info,omitempty"`
+	AuthorizeParameters     map[string]string `json:"authorizeParameters,omitempty" mapstructure:"authorize_parameters" yaml:"authorize_parameters,omitempty"`
+	UseEndSessionEndpoint   bool              `json:"useEndSessionEndpoint,omitempty" mapstructure:"use_end_session_endpoint" yaml:"use_end_session_endpoint,omitempty"`
+	AllowFrontChannelLogout bool              `json:"allowFrontChannelLogout,omitempty" mapstructure:"allow_front_channel_logout" yaml:"allow_front_channel_logout,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {

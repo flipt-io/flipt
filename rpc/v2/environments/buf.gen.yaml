@@ -10,3 +10,4 @@ plugins:
       - enum_type=string
       - description=Flipt Management REST API
       - version=2.9.0
+      - title=Management API

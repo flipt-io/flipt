@@ -268,12 +268,13 @@ func authenticationHTTPMount(
 
 		methodMiddleware := method.NewHTTPMiddleware(cfg.Session)
 		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
-
 		if cfg.Methods.OIDC.Enabled {
 			muxOpts = append(
 				muxOpts,
 				register(ctx, rpcauth.NewAuthenticationMethodOIDCServiceClient(conn), rpcauth.RegisterAuthenticationMethodOIDCServiceHandlerClient),
 				gateway.NewFormURLEncodedMarshaler(),
+				gateway.NewHTTPMethodForwarder(),
+				runtime.WithForwardResponseOption(authmiddleware.ForwardRevokeOIDCResponseOption),
 			)
 		}
 

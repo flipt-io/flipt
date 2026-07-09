@@ -2,7 +2,7 @@
 
 openapi: 3.0.3
 info:
-    title: EnvironmentsService API
+    title: Management API
     description: Flipt Management REST API
     version: 2.9.0
 paths:

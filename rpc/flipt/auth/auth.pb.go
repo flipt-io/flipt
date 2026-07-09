@@ -816,6 +816,8 @@ type RevokeOIDCRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
 	LogoutToken   string                 `protobuf:"bytes,2,opt,name=logout_token,json=logoutToken,proto3" json:"logout_token,omitempty"`
+	Iss           *string                `protobuf:"bytes,3,opt,name=iss,proto3,oneof" json:"iss,omitempty"`
+	Sid           *string                `protobuf:"bytes,4,opt,name=sid,proto3,oneof" json:"sid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -860,6 +862,20 @@ func (x *RevokeOIDCRequest) GetProvider() string {
 func (x *RevokeOIDCRequest) GetLogoutToken() string {
 	if x != nil {
 		return x.LogoutToken
+	}
+	return ""
+}
+
+func (x *RevokeOIDCRequest) GetIss() string {
+	if x != nil && x.Iss != nil {
+		return *x.Iss
+	}
+	return ""
+}
+
+func (x *RevokeOIDCRequest) GetSid() string {
+	if x != nil && x.Sid != nil {
+		return *x.Sid
 	}
 	return ""
 }
@@ -1054,10 +1070,14 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\x05state\x18\x03 \x01(\tR\x05state\"y\n" +
 	"\x10CallbackResponse\x12!\n" +
 	"\fclient_token\x18\x01 \x01(\tR\vclientToken\x12B\n" +
-	"\x0eauthentication\x18\x02 \x01(\v2\x1a.flipt.auth.AuthenticationR\x0eauthentication\"R\n" +
+	"\x0eauthentication\x18\x02 \x01(\v2\x1a.flipt.auth.AuthenticationR\x0eauthentication\"\x90\x01\n" +
 	"\x11RevokeOIDCRequest\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12!\n" +
-	"\flogout_token\x18\x02 \x01(\tR\vlogoutToken\"\x14\n" +
+	"\flogout_token\x18\x02 \x01(\tR\vlogoutToken\x12\x15\n" +
+	"\x03iss\x18\x03 \x01(\tH\x00R\x03iss\x88\x01\x01\x12\x15\n" +
+	"\x03sid\x18\x04 \x01(\tH\x01R\x03sid\x88\x01\x01B\x06\n" +
+	"\x04_issB\x06\n" +
+	"\x04_sid\"\x14\n" +
 	"\x12RevokeOIDCResponse\"Q\n" +
 	"\x1bVerifyServiceAccountRequest\x122\n" +
 	"\x15service_account_token\x18\x01 \x01(\tR\x13serviceAccountToken\"\x85\x01\n" +
@@ -1080,11 +1100,11 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\x13ListAuthentications\x12&.flipt.auth.ListAuthenticationsRequest\x1a'.flipt.auth.ListAuthenticationsResponse\"*\xbaG\x10*\x0elistAuthTokens\x82\xd3\xe4\x93\x02\x11\x12\x0f/auth/v1/tokens\x12\x89\x01\n" +
 	"\x14DeleteAuthentication\x12'.flipt.auth.DeleteAuthenticationRequest\x1a\x16.google.protobuf.Empty\"0\xbaG\x11*\x0fdeleteAuthToken\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/tokens/{id}\x12\x93\x01\n" +
 	"\x18ExpireAuthenticationSelf\x12+.flipt.auth.ExpireAuthenticationSelfRequest\x1a\x16.google.protobuf.Empty\"2\xbaG\x10*\x0eexpireAuthSelf\x82\xd3\xe4\x93\x02\x16\x1a\x14/auth/v1/self/expire\x88\x02\x01\x12\xa6\x01\n" +
-	"\x18RevokeAuthenticationSelf\x12+.flipt.auth.RevokeAuthenticationSelfRequest\x1a,.flipt.auth.RevokeAuthenticationSelfResponse\"/\xbaG\x10*\x0erevokeAuthSelf\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/self/revoke2\xbe\x04\n" +
+	"\x18RevokeAuthenticationSelf\x12+.flipt.auth.RevokeAuthenticationSelfRequest\x1a,.flipt.auth.RevokeAuthenticationSelfResponse\"/\xbaG\x10*\x0erevokeAuthSelf\x82\xd3\xe4\x93\x02\x16*\x14/auth/v1/self/revoke2\xe8\x04\n" +
 	"\x1fAuthenticationMethodOIDCService\x12\x99\x01\n" +
 	"\fAuthorizeURL\x12\x1f.flipt.auth.AuthorizeURLRequest\x1a .flipt.auth.AuthorizeURLResponse\"F\xbaG\x12*\x10oidcAuthorizeURL\x82\xd3\xe4\x93\x02+\x12)/auth/v1/method/oidc/{provider}/authorize\x12\x88\x01\n" +
-	"\bCallback\x12\x1b.flipt.auth.CallbackRequest\x1a\x1c.flipt.auth.CallbackResponse\"A\xbaG\x0e*\foidcCallback\x82\xd3\xe4\x93\x02*\x12(/auth/v1/method/oidc/{provider}/callback\x12\xf3\x01\n" +
-	"\x06Revoke\x12\x1d.flipt.auth.RevokeOIDCRequest\x1a\x1e.flipt.auth.RevokeOIDCResponse\"\xa9\x01\xbaGu*\n" +
+	"\bCallback\x12\x1b.flipt.auth.CallbackRequest\x1a\x1c.flipt.auth.CallbackResponse\"A\xbaG\x0e*\foidcCallback\x82\xd3\xe4\x93\x02*\x12(/auth/v1/method/oidc/{provider}/callback\x12\x9d\x02\n" +
+	"\x06Revoke\x12\x1d.flipt.auth.RevokeOIDCRequest\x1a\x1e.flipt.auth.RevokeOIDCResponse\"\xd3\x01\xbaGu*\n" +
 	"oidcRevoke:g\n" +
 	"e\x12c\n" +
 	"a\n" +
@@ -1093,7 +1113,7 @@ const file_auth_auth_proto_rawDesc = "" +
 	"8\xba\x01\flogout_token\xca\x01\x06object\xfa\x01\x1d\n" +
 	"\x1b\n" +
 	"\flogout_token\x12\v\n" +
-	"\t\xca\x01\x06string\x82\xd3\xe4\x93\x02+:\x01*\"&/auth/v1/method/oidc/{provider}/revoke2\xec\x01\n" +
+	"\t\xca\x01\x06string\x82\xd3\xe4\x93\x02U:\x01*Z(\x12&/auth/v1/method/oidc/{provider}/revoke\"&/auth/v1/method/oidc/{provider}/revoke2\xec\x01\n" +
 	"%AuthenticationMethodKubernetesService\x12\xc2\x01\n" +
 	"\x14VerifyServiceAccount\x12'.flipt.auth.VerifyServiceAccountRequest\x1a(.flipt.auth.VerifyServiceAccountResponse\"W\xbaG *\x1ekubernetesVerifyServiceAccount\x82\xd3\xe4\x93\x02.:\x01*\")/auth/v1/method/kubernetes/serviceaccount2\xc1\x01\n" +
 	"!AuthenticationMethodGithubService\x12S\n" +
@@ -1206,6 +1226,7 @@ func file_auth_auth_proto_init() {
 	}
 	file_auth_auth_proto_msgTypes[7].OneofWrappers = []any{}
 	file_auth_auth_proto_msgTypes[9].OneofWrappers = []any{}
+	file_auth_auth_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -486,6 +486,10 @@
                           "type": "boolean",
                           "default": false
                         },
+                        "allow_front_channel_logout": {
+                          "type": "boolean",
+                          "default": false
+                        },
                         "authorize_parameters": {
                           "type": "object",
                           "additionalProperties": {

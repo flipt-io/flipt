@@ -398,6 +398,59 @@ func local_request_AuthenticationMethodOIDCService_Revoke_0(ctx context.Context,
 	return msg, metadata, err
 }
 
+var filter_AuthenticationMethodOIDCService_Revoke_1 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
+func request_AuthenticationMethodOIDCService_Revoke_1(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodOIDCServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq RevokeOIDCRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["provider"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
+	}
+	protoReq.Provider, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodOIDCService_Revoke_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := client.Revoke(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_AuthenticationMethodOIDCService_Revoke_1(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationMethodOIDCServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq RevokeOIDCRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["provider"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
+	}
+	protoReq.Provider, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodOIDCService_Revoke_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.Revoke(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 func request_AuthenticationMethodKubernetesService_VerifyServiceAccount_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodKubernetesServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq VerifyServiceAccountRequest
@@ -720,6 +773,26 @@ func RegisterAuthenticationMethodOIDCServiceHandlerServer(ctx context.Context, m
 			return
 		}
 		forward_AuthenticationMethodOIDCService_Revoke_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodOIDCService_Revoke_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/Revoke", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/revoke"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AuthenticationMethodOIDCService_Revoke_1(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AuthenticationMethodOIDCService_Revoke_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -1115,6 +1188,23 @@ func RegisterAuthenticationMethodOIDCServiceHandlerClient(ctx context.Context, m
 		}
 		forward_AuthenticationMethodOIDCService_Revoke_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodOIDCService_Revoke_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/Revoke", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/revoke"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_AuthenticationMethodOIDCService_Revoke_1(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AuthenticationMethodOIDCService_Revoke_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
@@ -1122,12 +1212,14 @@ var (
 	pattern_AuthenticationMethodOIDCService_AuthorizeURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "method", "oidc", "provider", "authorize"}, ""))
 	pattern_AuthenticationMethodOIDCService_Callback_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "method", "oidc", "provider", "callback"}, ""))
 	pattern_AuthenticationMethodOIDCService_Revoke_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "method", "oidc", "provider", "revoke"}, ""))
+	pattern_AuthenticationMethodOIDCService_Revoke_1       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "method", "oidc", "provider", "revoke"}, ""))
 )
 
 var (
 	forward_AuthenticationMethodOIDCService_AuthorizeURL_0 = runtime.ForwardResponseMessage
 	forward_AuthenticationMethodOIDCService_Callback_0     = runtime.ForwardResponseMessage
 	forward_AuthenticationMethodOIDCService_Revoke_0       = runtime.ForwardResponseMessage
+	forward_AuthenticationMethodOIDCService_Revoke_1       = runtime.ForwardResponseMessage
 )
 
 // RegisterAuthenticationMethodKubernetesServiceHandlerFromEndpoint is same as RegisterAuthenticationMethodKubernetesServiceHandler but

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"unsafe"
 
@@ -12,6 +13,13 @@ import (
 	v3 "github.com/google/gnostic/openapiv3"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
+)
+
+type apiKind string
+
+const (
+	commonAPI     apiKind = "Common API"
+	managementAPI apiKind = "Management API"
 )
 
 var flags flag.FlagSet
@@ -37,6 +45,10 @@ func main() {
 	}
 
 	opts.Run(func(plugin *protogen.Plugin) error {
+		if conf.Title == nil {
+			return fmt.Errorf("title option is required")
+		}
+		kind := apiKind(*conf.Title)
 		// Enable "optional" keyword in front of type (e.g. optional string label = 1;)
 		plugin.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 		if *conf.OutputMode == "source_relative" {
@@ -47,8 +59,10 @@ func main() {
 				outfileName := strings.TrimSuffix(file.Desc.Path(), filepath.Ext(file.Desc.Path())) + ".openapi.gen.out"
 				outputFile := plugin.NewGeneratedFile(outfileName, "")
 				gen := generator.NewOpenAPIv3Generator(plugin, conf, []*protogen.File{file})
-				// force injecting extra well-known types so they will be included in the openapi.yaml
-				appendRequiredSchemaWithReflectDangerous(gen, "Flag", "Segment")
+				if kind == managementAPI {
+					// force injecting extra well-known types so they will be included in the openapi.yaml
+					appendRequiredSchemaWithReflectDangerous(gen, "Flag", "Segment")
+				}
 				if err := gen.Run(outputFile); err != nil {
 					return err
 				}
@@ -60,15 +74,17 @@ func main() {
 				outputFile.Skip() // don't store temporary output
 				outfileName = strings.TrimSuffix(file.Desc.Path(), filepath.Ext(file.Desc.Path())) + ".openapi.yaml"
 				outputFile = plugin.NewGeneratedFile(outfileName, "")
-				return run(data, outputFile)
+				return run(kind, data, outputFile)
 				// end of changes
 			}
 		} else {
 			outputFile := plugin.NewGeneratedFile("openapi.gen.out", "")
 
 			gen := generator.NewOpenAPIv3Generator(plugin, conf, plugin.Files)
-			// force injecting extra well-known types so they will be included in the openapi.yaml
-			appendRequiredSchemaWithReflectDangerous(gen, "Flag", "Segment")
+			if kind == managementAPI {
+				// force injecting extra well-known types so they will be included in the openapi.yaml
+				appendRequiredSchemaWithReflectDangerous(gen, "Flag", "Segment")
+			}
 			err := gen.Run(outputFile)
 			if err != nil {
 				return err
@@ -80,50 +96,74 @@ func main() {
 			}
 			outputFile.Skip() // don't store temporary output
 			outputFile = plugin.NewGeneratedFile("openapi.yaml", "")
-			return run(data, outputFile)
+			return run(kind, data, outputFile)
 			// end of changes
 		}
 		return nil
 	})
 }
 
-func run(data []byte, outputFile *protogen.GeneratedFile) error {
+func run(kind apiKind, data []byte, outputFile *protogen.GeneratedFile) error {
 	doc, err := v3.ParseDocument(data)
 	if err != nil {
 		return err
 	}
 
-	// Add Resource-specific OpenAPI schemas.
-	doc.Components.Schemas.AdditionalProperties = append(
-		doc.Components.Schemas.AdditionalProperties,
-		&v3.NamedSchemaOrReference{Name: "AtType", Value: buildPayloadType()},
-		&v3.NamedSchemaOrReference{Name: "FlagResourcePayload", Value: buildAnyVariant("flipt.core.Flag", "Flag")},
-		&v3.NamedSchemaOrReference{Name: "SegmentResourcePayload", Value: buildAnyVariant("flipt.core.Segment", "Segment")},
-		&v3.NamedSchemaOrReference{
-			Name: "ResourcePayload", Value: &v3.SchemaOrReference{
-				Oneof: &v3.SchemaOrReference_Schema{
-					Schema: &v3.Schema{
-						Type: "object",
-						OneOf: []*v3.SchemaOrReference{
-							{Oneof: &v3.SchemaOrReference_Reference{Reference: &v3.Reference{XRef: "#/components/schemas/FlagResourcePayload"}}},
-							{Oneof: &v3.SchemaOrReference_Reference{Reference: &v3.Reference{XRef: "#/components/schemas/SegmentResourcePayload"}}},
+	if kind == managementAPI {
+		// Add Resource-specific OpenAPI schemas.
+		doc.Components.Schemas.AdditionalProperties = append(
+			doc.Components.Schemas.AdditionalProperties,
+			&v3.NamedSchemaOrReference{Name: "AtType", Value: buildPayloadType()},
+			&v3.NamedSchemaOrReference{Name: "FlagResourcePayload", Value: buildAnyVariant("flipt.core.Flag", "Flag")},
+			&v3.NamedSchemaOrReference{Name: "SegmentResourcePayload", Value: buildAnyVariant("flipt.core.Segment", "Segment")},
+			&v3.NamedSchemaOrReference{
+				Name: "ResourcePayload", Value: &v3.SchemaOrReference{
+					Oneof: &v3.SchemaOrReference_Schema{
+						Schema: &v3.Schema{
+							Type: "object",
+							OneOf: []*v3.SchemaOrReference{
+								{Oneof: &v3.SchemaOrReference_Reference{Reference: &v3.Reference{XRef: "#/components/schemas/FlagResourcePayload"}}},
+								{Oneof: &v3.SchemaOrReference_Reference{Reference: &v3.Reference{XRef: "#/components/schemas/SegmentResourcePayload"}}},
+							},
+							Description: "Contains a Flag or Segment serialized message along with an @type that describes the type of the serialized message.",
 						},
-						Description: "Contains a Flag or Segment serialized message along with an @type that describes the type of the serialized message.",
 					},
 				},
 			},
-		},
-	)
+		)
+	}
 
 	// Point Resource payload fields at the Flipt-specific ResourcePayload schema
 	// instead of GoogleProtobufAny.
 	for _, s := range doc.Components.Schemas.AdditionalProperties {
-		if s.Name == "Resource" || s.Name == "UpdateResourceRequest" {
-			schema := s.Value.GetSchema()
-			for _, item := range schema.Properties.AdditionalProperties {
-				if item.Name == "payload" {
-					item.Value.GetSchema().AllOf[0].GetReference().XRef = "#/components/schemas/ResourcePayload"
+		switch {
+		case kind == managementAPI && slices.Contains([]string{"Resource", "UpdateResourceRequest"}, s.Name):
+			{
+				schema := s.Value.GetSchema()
+				for _, item := range schema.Properties.AdditionalProperties {
+					if item.Name == "payload" {
+						item.Value.GetSchema().AllOf[0].GetReference().XRef = "#/components/schemas/ResourcePayload"
+					}
 				}
+			}
+		case kind == commonAPI && s.Name == "RevokeOIDCRequest":
+			schema := s.Value.GetSchema()
+			schema.Properties.AdditionalProperties = slices.DeleteFunc(schema.Properties.AdditionalProperties, func(e *v3.NamedSchemaOrReference) bool {
+				return e.Name == "iss" || e.Name == "sid"
+			})
+
+		}
+	}
+
+	if kind == commonAPI {
+		for _, s := range doc.Paths.Path {
+			if s.Name == "/auth/v1/method/oidc/{provider}/revoke" {
+				s.Value.Get.Parameters = slices.DeleteFunc(s.Value.Get.Parameters, func(p *v3.ParameterOrReference) bool {
+					return p.GetParameter().Name == "logoutToken"
+				})
+				s.Value.Get.RequestBody = nil
+				s.Value.Get.OperationId = "oidcFrontChannelLogout"
+				s.Value.Get.Description = "Handles OpenID Connect Front-Channel Logout requests initiated by the identity provider. The optional `iss` and `sid` query parameters are used to identify the user session to be terminated."
 			}
 		}
 	}

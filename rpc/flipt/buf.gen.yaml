@@ -21,7 +21,7 @@ plugins:
       - paths=source_relative
       - grpc_api_configuration=flipt.yaml
     strategy: all
-  - remote: buf.build/community/google-gnostic-openapi:v0.7.0
+  - local: protoc-gen-flipt-openapi
     out: .
     opt:
       - paths=source_relative
@@ -29,3 +29,5 @@ plugins:
       - default_response=false
       - enum_type=string
       - description=
+      - title=Common API
+    strategy: all
