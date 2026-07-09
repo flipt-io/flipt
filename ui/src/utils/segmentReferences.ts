@@ -4,13 +4,10 @@ export function flagReferencesSegment(
   flag: IFlag,
   segmentKey: string
 ): boolean {
-  return (
-    flag.rules?.some((rule) => rule.segments?.includes(segmentKey)) ||
+  return (flag.rules?.some((rule) => rule.segments?.includes(segmentKey)) ||
     flag.rollouts?.some((rollout) =>
       rollout.segment?.segments?.includes(segmentKey)
-    ) ||
-    false
-  );
+    )) as boolean;
 }
 
 export function flagsReferencingSegment(

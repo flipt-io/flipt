@@ -26,26 +26,34 @@ import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import SegmentForm from '~/components/segments/SegmentForm';
 
-import { IFlag } from '~/types/Flag';
-
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { flagsReferencingSegment } from '~/utils/segmentReferences';
 
 function ReferencedFlags({
-  flags,
-  isLoading,
+  environmentKey,
   namespaceKey,
   segmentKey
 }: {
-  flags: IFlag[];
-  isLoading: boolean;
+  environmentKey: string;
   namespaceKey: string;
   segmentKey: string;
 }) {
+  const { data, isLoading, isError, error } = useListFlagsQuery({
+    environmentKey: environmentKey,
+    namespaceKey: namespaceKey
+  });
+
+  const { setError } = useError();
+  useEffect(() => {
+    if (error) {
+      setError(error);
+    }
+  }, [error, setError]);
+
   const referencingFlags = useMemo(
-    () => flagsReferencingSegment(flags, segmentKey),
-    [flags, segmentKey]
+    () => flagsReferencingSegment(data?.flags || [], segmentKey),
+    [data?.flags, segmentKey]
   );
 
   return (
@@ -71,9 +79,14 @@ function ReferencedFlags({
           <div className="text-sm text-muted-foreground">Loading flags</div>
         )}
 
-        {!isLoading && referencingFlags.length === 0 && (
+        {!isLoading && referencingFlags.length === 0 && !isError && (
           <div className="text-sm text-muted-foreground p-3 border rounded-lg">
             No flags reference this segment
+          </div>
+        )}
+        {!isLoading && isError && (
+          <div className="text-sm text-muted-foreground p-3 border rounded-lg">
+            Unable to load flag references
           </div>
         )}
 
@@ -135,15 +148,6 @@ export default function Segment() {
     { skip: skipRefetch.current }
   );
 
-  const {
-    data: flagsData,
-    error: flagsError,
-    isLoading: isLoadingFlags
-  } = useListFlagsQuery({
-    environmentKey: environment.key,
-    namespaceKey: namespace.key
-  });
-
   const [deleteSegment] = useDeleteSegmentMutation();
   const [copySegment] = useCopySegmentMutation();
 
@@ -152,12 +156,6 @@ export default function Segment() {
       setError(error);
     }
   }, [error, isError, setError]);
-
-  useEffect(() => {
-    if (flagsError) {
-      setError(flagsError);
-    }
-  }, [flagsError, setError]);
 
   if (isLoading || !segment) {
     return <Loading />;
@@ -269,8 +267,7 @@ export default function Segment() {
       </div>
 
       <ReferencedFlags
-        flags={flagsData?.flags || []}
-        isLoading={isLoadingFlags}
+        environmentKey={environment.key}
         namespaceKey={namespace.key}
         segmentKey={segment.key}
       />
