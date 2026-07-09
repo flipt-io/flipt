@@ -17,5 +17,7 @@ export function flagsReferencingSegment(
   flags: IFlag[],
   segmentKey: string
 ): IFlag[] {
-  return flags.filter((flag) => flagReferencesSegment(flag, segmentKey));
+  return flags
+    .filter((flag) => flagReferencesSegment(flag, segmentKey))
+    .sort((a, b) => a.key.localeCompare(b.key));
 }

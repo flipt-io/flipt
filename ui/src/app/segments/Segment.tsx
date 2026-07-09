@@ -26,7 +26,7 @@ import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import SegmentForm from '~/components/segments/SegmentForm';
 
-import { IFlag, flagTypeToLabel } from '~/types/Flag';
+import { IFlag } from '~/types/Flag';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -49,49 +49,51 @@ function ReferencedFlags({
   );
 
   return (
-    <section className="mt-8 space-y-3">
+    <section className="mt-8 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Referenced Flags</h2>
+        <div className="sm:flex-auto">
+          <h3 className="font-medium leading-6 text-gray-900 dark:text-gray-100">
+            Referenced Flags
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Flags that reference this segment (in rules or rollouts). Changing
+            constraints may affect how these flags evaluate.
+          </p>
+        </div>
+
         <Badge variant="outlinemuted">
           {isLoading ? 'Loading' : referencingFlags.length}
         </Badge>
       </div>
 
-      <div className="overflow-hidden rounded-lg border dark:border-gray-700">
+      <div className="overflow-hidden">
         {isLoading && (
-          <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
-            <FlagIcon className="h-4 w-4" />
-            Loading flags
-          </div>
+          <div className="text-sm text-muted-foreground">Loading flags</div>
         )}
 
         {!isLoading && referencingFlags.length === 0 && (
-          <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
-            <FlagIcon className="h-4 w-4" />
+          <div className="text-sm text-muted-foreground p-3 border rounded-lg">
             No flags reference this segment
           </div>
         )}
 
         {!isLoading && referencingFlags.length > 0 && (
-          <div className="divide-y dark:divide-gray-700">
+          <div className="flex flex-wrap gap-2">
             {referencingFlags.map((flag) => (
-              <Link
+              <Badge
+                variant="secondary"
+                className="font-normal"
+                title={flag.name + ' | ' + flag.key}
                 key={flag.key}
-                to={`/namespaces/${namespaceKey}/flags/${flag.key}`}
-                className="flex items-center justify-between gap-4 p-4 text-sm transition-colors hover:bg-accent"
               >
-                <span className="min-w-0">
-                  <span className="block truncate font-medium">
-                    {flag.name}
-                  </span>
-                  <span className="block truncate text-muted-foreground">
-                    {flag.key}
-                  </span>
-                </span>
-                <Badge variant="outlinemuted">
-                  {flagTypeToLabel(flag.type)}
-                </Badge>
-              </Link>
+                <Link
+                  to={`/namespaces/${namespaceKey}/flags/${flag.key}`}
+                  className="flex items-center justify-between gap-2 text-sm transition-colors hover:bg-accent"
+                >
+                  <FlagIcon className="h-4 w-4" />{' '}
+                  <span className="max-w-24 truncate">{flag.name}</span>
+                </Link>
+              </Badge>
             ))}
           </div>
         )}
