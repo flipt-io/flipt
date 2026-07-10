@@ -80,3 +80,127 @@ func TestAuthenticationMethodJWTConfig_validate_ClaimsMapping(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthenticationConfig_validate_FrontChannelLogoutRequiresSecureSession(t *testing.T) {
+	tests := []struct {
+		name          string
+		config        AuthenticationConfig
+		expectError   bool
+		errorContains string
+	}{
+		{
+			name: "allow_front_channel_logout with secure false should fail",
+			config: AuthenticationConfig{
+				Session: AuthenticationSessionConfig{
+					Domain: "localhost",
+					Secure: false,
+				},
+				Methods: AuthenticationMethodsConfig{
+					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
+						Enabled: true,
+						Method: AuthenticationMethodOIDCConfig{
+							Providers: map[string]AuthenticationMethodOIDCProvider{
+								"google": {
+									ClientID:                "client-id",
+									ClientSecret:            "client-secret",
+									RedirectAddress:         "http://localhost:8080",
+									AllowFrontChannelLogout: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			expectError:   true,
+			errorContains: "session secure must be true",
+		},
+		{
+			name: "allow_front_channel_logout with secure true should pass",
+			config: AuthenticationConfig{
+				Session: AuthenticationSessionConfig{
+					Domain: "localhost",
+					Secure: true,
+				},
+				Methods: AuthenticationMethodsConfig{
+					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
+						Enabled: true,
+						Method: AuthenticationMethodOIDCConfig{
+							Providers: map[string]AuthenticationMethodOIDCProvider{
+								"google": {
+									ClientID:                "client-id",
+									ClientSecret:            "client-secret",
+									RedirectAddress:         "http://localhost:8080",
+									AllowFrontChannelLogout: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "allow_front_channel_logout false with secure false should pass",
+			config: AuthenticationConfig{
+				Session: AuthenticationSessionConfig{
+					Domain: "localhost",
+					Secure: false,
+				},
+				Methods: AuthenticationMethodsConfig{
+					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
+						Enabled: true,
+						Method: AuthenticationMethodOIDCConfig{
+							Providers: map[string]AuthenticationMethodOIDCProvider{
+								"google": {
+									ClientID:                "client-id",
+									ClientSecret:            "client-secret",
+									RedirectAddress:         "http://localhost:8080",
+									AllowFrontChannelLogout: false,
+								},
+							},
+						},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "oidc disabled should skip validation",
+			config: AuthenticationConfig{
+				Session: AuthenticationSessionConfig{
+					Domain: "localhost",
+					Secure: false,
+				},
+				Methods: AuthenticationMethodsConfig{
+					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
+						Enabled: false,
+						Method: AuthenticationMethodOIDCConfig{
+							Providers: map[string]AuthenticationMethodOIDCProvider{
+								"google": {
+									ClientID:                "client-id",
+									ClientSecret:            "client-secret",
+									RedirectAddress:         "http://localhost:8080",
+									AllowFrontChannelLogout: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.validate()
+
+			if tt.expectError {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorContains)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

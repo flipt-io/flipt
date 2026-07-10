@@ -47,7 +47,7 @@ func TestHandler(t *testing.T) {
 			defer res.Body.Close()
 
 			cookies := res.Cookies()
-			assertCookiesCleared(t, cookies)
+			assertCookiesCleared(t, cookies, http.SameSiteStrictMode)
 		})
 	}
 }
@@ -84,12 +84,12 @@ func TestErrorHandler(t *testing.T) {
 			assert.Equal(t, []byte(defaultResponseBody), body)
 
 			cookies := res.Cookies()
-			assertCookiesCleared(t, cookies)
+			assertCookiesCleared(t, cookies, http.SameSiteStrictMode)
 		})
 	}
 }
 
-func assertCookiesCleared(t *testing.T, cookies []*http.Cookie) {
+func assertCookiesCleared(t *testing.T, cookies []*http.Cookie, sameSite http.SameSite) {
 	t.Helper()
 
 	assert.Len(t, cookies, 2)
@@ -106,13 +106,18 @@ func assertCookiesCleared(t *testing.T, cookies []*http.Cookie) {
 		assert.Equal(t, "/", cookiesMap[cookieName].Path)
 		assert.Equal(t, -1, cookiesMap[cookieName].MaxAge)
 		assert.True(t, cookiesMap[cookieName].HttpOnly)
-		assert.False(t, cookiesMap[cookieName].Secure)
+		assert.Equal(t, sameSite, cookiesMap[cookieName].SameSite)
+
+		if sameSite == http.SameSiteNoneMode {
+			assert.True(t, cookiesMap[cookieName].Secure)
+		}
 	}
 }
 
 func TestForwardRevokeOIDCResponseOption(t *testing.T) {
 	middleware := NewHTTPMiddleware(config.AuthenticationSessionConfig{
 		Domain: "localhost",
+		Secure: true,
 	})
 
 	t.Run("revoke OIDC success via GET clears cookies", func(t *testing.T) {
@@ -124,7 +129,7 @@ func TestForwardRevokeOIDCResponseOption(t *testing.T) {
 
 		res := w.Result()
 		defer res.Body.Close()
-		assertCookiesCleared(t, res.Cookies())
+		assertCookiesCleared(t, res.Cookies(), http.SameSiteNoneMode)
 	})
 
 	t.Run("revoke OIDC success via POST does not clear cookies", func(t *testing.T) {
@@ -161,5 +166,17 @@ func TestForwardRevokeOIDCResponseOption(t *testing.T) {
 		res := w.Result()
 		defer res.Body.Close()
 		assert.Empty(t, res.Cookies())
+	})
+
+	t.Run("revoke OIDC success via GET clears cookies using incoming context", func(t *testing.T) {
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodGet))
+		w := httptest.NewRecorder()
+
+		err := middleware.ForwardRevokeOIDCResponseOption(ctx, w, &auth.RevokeOIDCResponse{})
+		require.NoError(t, err)
+
+		res := w.Result()
+		defer res.Body.Close()
+		assertCookiesCleared(t, res.Cookies(), http.SameSiteNoneMode)
 	})
 }

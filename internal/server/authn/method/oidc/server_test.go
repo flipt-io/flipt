@@ -1200,10 +1200,29 @@ func Test_Server_RevokeFrontChannel(t *testing.T) {
 			provider: "google",
 		},
 		{
-			name:     "mismatched issuer",
-			provider: "google",
-			sid:      new("some-session"),
-			iss:      new("http://evil.example.com"),
+			name:      "nil sid with wrong iss errors",
+			provider:  "google",
+			iss:       new("http://evil.example.com"),
+			expectErr: true,
+			checkErr: func(t *testing.T, err error) {
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				assert.Equal(t, codes.InvalidArgument, st.Code())
+				assert.Equal(t, "revoke: issuer mismatch", st.Message())
+			},
+		},
+		{
+			name:      "mismatched issuer",
+			provider:  "google",
+			sid:       new("some-session"),
+			iss:       new("http://evil.example.com"),
+			expectErr: true,
+			checkErr: func(t *testing.T, err error) {
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				assert.Equal(t, codes.InvalidArgument, st.Code())
+				assert.Equal(t, "revoke: issuer mismatch", st.Message())
+			},
 		},
 		{
 			name:     "sid found and auth deleted",

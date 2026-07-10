@@ -56,6 +56,9 @@ func (m Middleware) ForwardRevokeOIDCResponseOption(ctx context.Context, w http.
 
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if !ok {
+		md, ok = metadata.FromIncomingContext(ctx)
+	}
+	if !ok {
 		return nil
 	}
 

@@ -149,6 +149,17 @@ func (c *AuthenticationConfig) validate() error {
 		return errFieldWrap("authentication", "methods", fmt.Errorf("kubernetes and jwt methods cannot currently both be enabled at the same time"))
 	}
 
+	if c.SessionEnabled() && !c.Session.Secure && c.Methods.OIDC.Enabled {
+		for name, provider := range c.Methods.OIDC.Method.Providers {
+			if provider.AllowFrontChannelLogout {
+				return errFieldWrap("authentication", "session.secure", fmt.Errorf(
+					"session secure must be true for provider %q: front-channel logout requires SameSite=None cookies which are rejected by browsers unless the Secure flag is set",
+					name,
+				))
+			}
+		}
+	}
+
 	return nil
 }
 

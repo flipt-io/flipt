@@ -322,7 +322,16 @@ func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth
 			return nil, status.Error(codes.InvalidArgument, "revoke: operation disabled")
 		}
 
-		if req.Sid == nil || req.Iss == nil || strings.TrimRight(*req.Iss, "/") != strings.TrimRight(provider.cfg.IssuerURL, "/") {
+		// Per spec, a present iss MUST match the provider's issuer exactly;
+		// mismatch indicates a misconfigured or spoofed request, so error
+		// rather than silently ignoring it.
+		if req.Iss != nil && *req.Iss != provider.cfg.IssuerURL {
+			return nil, status.Error(codes.InvalidArgument, "revoke: issuer mismatch")
+		}
+
+		// Without sid or iss the session cannot be identified, so treat it as a no-op
+		// success per spec rather than erroring.
+		if req.Sid == nil || req.Iss == nil {
 			return &auth.RevokeOIDCResponse{}, nil
 		}
 
