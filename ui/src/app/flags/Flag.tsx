@@ -11,7 +11,10 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { useParams } from 'react-router';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
@@ -27,7 +30,6 @@ import { FlagType, flagTypeToLabel } from '~/types/Flag';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { getRevision } from '~/utils/helpers';
 
 import {
   useCopyFlagMutation,
@@ -50,8 +52,7 @@ export default function Flag() {
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
 
-  const revision = getRevision();
-
+  const revision = useSelector(selectRevision);
   const info = useSelector(selectInfo);
 
   const {

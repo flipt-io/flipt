@@ -33,7 +33,7 @@ export const baseQuery: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  return fetchBaseQuery({
+  const result = await fetchBaseQuery({
     baseUrl: apiURL,
     fetchFn: async (url, options) => {
       const state = api.getState();
@@ -64,4 +64,12 @@ export const baseQuery: BaseQueryFn<
       return customFetchFn(url, options);
     }
   })(args, api, extraOptions);
+
+  return {
+    ...result,
+    meta: {
+      ...(result.meta || {}),
+      revision: (result.data as { revision?: string })?.revision
+    }
+  };
 };

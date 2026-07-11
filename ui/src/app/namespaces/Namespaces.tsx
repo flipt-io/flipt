@@ -2,7 +2,10 @@ import { FolderIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
 import Slideover from '~/components/Slideover';
@@ -13,10 +16,7 @@ import DeletePanel from '~/components/panels/DeletePanel';
 
 import { INamespace } from '~/types/Namespace';
 
-import { getRevision } from '~/utils/helpers';
-
-import { selectNamespaces } from './namespacesApi';
-import { useDeleteNamespaceMutation } from './namespacesApi';
+import { selectNamespaces, useDeleteNamespaceMutation } from './namespacesApi';
 
 export default function Namespaces() {
   const [showNamespaceForm, setShowNamespaceForm] = useState<boolean>(false);
@@ -33,7 +33,7 @@ export default function Namespaces() {
 
   const environment = useSelector(selectCurrentEnvironment);
   const namespaces = useSelector(selectNamespaces);
-  const revision = useSelector(getRevision);
+  const revision = useSelector(selectRevision);
 
   const [deleteNamespace] = useDeleteNamespaceMutation();
   const namespaceFormRef = useRef(null);
@@ -75,7 +75,7 @@ export default function Namespaces() {
           deleteNamespace({
             environmentKey: environment.key,
             namespaceKey: deletingNamespace?.key!,
-            revision: revision
+            revision
           }).unwrap()
         }
       />

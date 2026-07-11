@@ -220,6 +220,33 @@ func (x *authenticationServiceClient) ExpireAuthenticationSelf(ctx context.Conte
 	return &output, nil
 }
 
+func (x *authenticationServiceClient) RevokeAuthenticationSelf(ctx context.Context, v *auth.RevokeAuthenticationSelfRequest, _ ...grpc.CallOption) (*auth.RevokeAuthenticationSelfResponse, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+"/auth/v1/self/revoke", body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output auth.RevokeAuthenticationSelfResponse
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (t authClient) AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient {
 	return &authenticationMethodOIDCServiceClient{client: t.client, addr: t.addr}
 }
@@ -273,6 +300,39 @@ func (x *authenticationMethodOIDCServiceClient) Callback(ctx context.Context, v 
 	}
 	defer resp.Body.Close()
 	var output auth.CallbackResponse
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *authenticationMethodOIDCServiceClient) Revoke(ctx context.Context, v *auth.RevokeOIDCRequest, _ ...grpc.CallOption) (*auth.RevokeOIDCResponse, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/auth/v1/method/oidc/%v/revoke", v.Provider), body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output auth.RevokeOIDCResponse
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

@@ -1,9 +1,13 @@
-import { FilesIcon, Trash2Icon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { FilesIcon, FlagIcon, Trash2Icon } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
+import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import {
   selectCurrentNamespace,
   selectNamespaces
@@ -24,7 +28,92 @@ import SegmentForm from '~/components/segments/SegmentForm';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { getRevision } from '~/utils/helpers';
+import { flagsReferencingSegment } from '~/utils/segmentReferences';
+
+function ReferencedFlags({
+  environmentKey,
+  namespaceKey,
+  segmentKey
+}: {
+  environmentKey: string;
+  namespaceKey: string;
+  segmentKey: string;
+}) {
+  const { data, isLoading, isError, error } = useListFlagsQuery({
+    environmentKey: environmentKey,
+    namespaceKey: namespaceKey
+  });
+
+  const { setError } = useError();
+  useEffect(() => {
+    if (error) {
+      setError(error);
+    }
+  }, [error, setError]);
+
+  const referencingFlags = useMemo(
+    () => flagsReferencingSegment(data?.flags || [], segmentKey),
+    [data?.flags, segmentKey]
+  );
+
+  return (
+    <section className="mt-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="sm:flex-auto">
+          <h3 className="font-medium leading-6 text-gray-900 dark:text-gray-100">
+            Referenced Flags
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Flags that reference this segment (in rules or rollouts). Changing
+            constraints may affect how these flags evaluate.
+          </p>
+        </div>
+
+        <Badge variant="outlinemuted">
+          {isLoading ? 'Loading' : referencingFlags.length}
+        </Badge>
+      </div>
+
+      <div className="overflow-hidden">
+        {isLoading && (
+          <div className="text-sm text-muted-foreground">Loading flags</div>
+        )}
+
+        {!isLoading && referencingFlags.length === 0 && !isError && (
+          <div className="text-sm text-muted-foreground p-3 border rounded-lg">
+            No flags reference this segment
+          </div>
+        )}
+        {!isLoading && isError && (
+          <div className="text-sm text-muted-foreground p-3 border rounded-lg">
+            Unable to load flag references
+          </div>
+        )}
+
+        {!isLoading && referencingFlags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {referencingFlags.map((flag) => (
+              <Badge
+                variant="secondary"
+                className="font-normal"
+                title={flag.name + ' | ' + flag.key}
+                key={flag.key}
+              >
+                <Link
+                  to={`/namespaces/${namespaceKey}/flags/${flag.key}`}
+                  className="flex items-center justify-between gap-2 text-sm transition-colors hover:bg-accent"
+                >
+                  <FlagIcon className="h-4 w-4" />{' '}
+                  <span className="max-w-24 truncate">{flag.name}</span>
+                </Link>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function Segment() {
   let { segmentKey } = useParams();
@@ -43,8 +132,7 @@ export default function Segment() {
   const environment = useSelector(selectCurrentEnvironment);
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
-
-  const revision = getRevision();
+  const revision = useSelector(selectRevision);
 
   const {
     data: segment,
@@ -177,6 +265,12 @@ export default function Segment() {
       <div className="mt-5">
         <SegmentForm segment={segment} />
       </div>
+
+      <ReferencedFlags
+        environmentKey={environment.key}
+        namespaceKey={namespace.key}
+        segmentKey={segment.key}
+      />
     </>
   );
 }

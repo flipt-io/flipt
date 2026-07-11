@@ -4,13 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"go.flipt.io/flipt/internal/server/common"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -30,14 +34,22 @@ var (
 	once             sync.Once
 )
 
-const eventStreamContentType = "text/event-stream"
+const (
+	// MIMEEventStream is the content type for server-sent events.
+	MIMEEventStream = "text/event-stream"
+	// MIMEFormURLEncoded is the content type for URL-encoded form data.
+	MIMEFormURLEncoded = "application/x-www-form-urlencoded"
+	// maxFormURLEncodedBodySize is the maximum size of a form-urlencoded request body.
+	// 4 KiB is sufficient for OIDC back-channel logout requests and prevents memory exhaustion.
+	maxFormURLEncodedBodySize = 4 * 1024
+)
 
 // NewGatewayServeMux builds a new gateway serve mux with common options.
 func NewGatewayServeMux(logger *zap.Logger, opts ...runtime.ServeMuxOption) *runtime.ServeMux {
 	once.Do(func() {
 		commonMuxOptions = []runtime.ServeMuxOption{
 			runtime.WithMarshalerOption(runtime.MIMEWildcard, NewV1toV2MarshallerAdapter(logger)),
-			runtime.WithMarshalerOption(eventStreamContentType, &eventSourceMarshaler{JSONPb: runtime.JSONPb{}}),
+			runtime.WithMarshalerOption(MIMEEventStream, &eventSourceMarshaler{JSONPb: runtime.JSONPb{}}),
 			runtime.WithStreamErrorHandler(func(_ context.Context, err error) *grpcstatus.Status {
 				if errors.Is(err, context.Canceled) || grpcstatus.Code(err) == codes.Canceled {
 					return grpcstatus.New(codes.Canceled, "client disconnected")
@@ -78,11 +90,11 @@ type eventSourceMarshaler struct {
 }
 
 func (m *eventSourceMarshaler) ContentType(_ any) string {
-	return eventStreamContentType
+	return MIMEEventStream
 }
 
 func (m *eventSourceMarshaler) StreamContentType(_ any) string {
-	return eventStreamContentType
+	return MIMEEventStream
 }
 
 func (m *eventSourceMarshaler) Marshal(v any) ([]byte, error) {
@@ -161,4 +173,53 @@ func (m *eventSourceMarshaler) marshalStatus(errStatus *status.Status) ([]byte, 
 		return nil, err
 	}
 	return fmt.Appendf(nil, "data: %s\n\n", b), nil
+}
+
+// formURLEncodedMarshaler is a custom marshaler for application/x-www-form-urlencoded requests.
+// It reuses JSONBuiltin for marshalling responses but custom-decodes form-encoded bodies
+// into protobuf messages (specifically RevokeOIDCRequest).
+type formURLEncodedMarshaler struct {
+	runtime.JSONBuiltin
+}
+
+// ContentType returns the content type of the response.
+func (u formURLEncodedMarshaler) ContentType(v any) string {
+	return u.JSONBuiltin.ContentType(v)
+}
+
+// Marshal encodes the response as JSON (delegates to JSONBuiltin).
+func (u formURLEncodedMarshaler) Marshal(v any) ([]byte, error) {
+	// can marshal the response in proto message format
+	return u.JSONBuiltin.Marshal(v)
+}
+
+// NewDecoder returns a decoder that parses URL-encoded form data into a RevokeOIDCRequest.
+func (u formURLEncodedMarshaler) NewDecoder(r io.Reader) runtime.Decoder {
+	filter := &utilities.DoubleArray{}
+	return runtime.DecoderFunc(func(p any) error {
+		msg, ok := p.(*auth.RevokeOIDCRequest)
+		if !ok {
+			return fmt.Errorf("not proto message")
+		}
+
+		limitedReader := http.MaxBytesReader(nil, io.NopCloser(r), maxFormURLEncodedBodySize)
+		formData, err := io.ReadAll(limitedReader)
+		if err != nil {
+			return err
+		}
+
+		values, err := url.ParseQuery(string(formData))
+		if err != nil {
+			return err
+		}
+
+		return runtime.PopulateQueryParameters(msg, values, filter)
+	})
+}
+
+// NewFormURLEncodedMarshaler returns a ServeMuxOption that registers a custom marshaler
+// for application/x-www-form-urlencoded content type, enabling form-encoded POST requests
+// (such as OIDC back-channel logout from providers that send form-encoded bodies).
+func NewFormURLEncodedMarshaler() runtime.ServeMuxOption {
+	return runtime.WithMarshalerOption(MIMEFormURLEncoded, &formURLEncodedMarshaler{runtime.JSONBuiltin{}})
 }

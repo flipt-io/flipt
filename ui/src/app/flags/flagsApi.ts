@@ -56,9 +56,6 @@ export const flagsApi = createApi({
       transformResponse: (
         response: IResourceListResponse<IFlag>
       ): IFlagList => {
-        if (response.revision) {
-          localStorage.setItem('revision', response.revision);
-        }
         return {
           flags: response.resources.map(({ payload }) => payload)
         } as IFlagList;
@@ -83,9 +80,6 @@ export const flagsApi = createApi({
         { type: 'Flag', id: environmentKey + '/' + namespaceKey }
       ],
       transformResponse: (response: IResourceResponse<IFlag>): IFlag => {
-        if (response.revision) {
-          localStorage.setItem('revision', response.revision);
-        }
         return {
           ...response.resource.payload,
           rollouts: response.resource.payload.rollouts?.map(

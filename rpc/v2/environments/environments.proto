@@ -291,6 +291,13 @@ message ListBranchedEnvironmentChangesRequest {
 message ListBranchedEnvironmentChangesResponse {
   // The list of changes.
   repeated Change changes = 1;
+  // The hydrated default proposal title for this branch, rendered from the
+  // applicable (built-in, server, or repository-level) template. The UI uses
+  // this as an editable default when opening a merge proposal.
+  string proposal_title = 2;
+  // The hydrated default proposal body for this branch, rendered from the
+  // applicable template.
+  string proposal_body = 3;
 }
 
 /* Namespace */

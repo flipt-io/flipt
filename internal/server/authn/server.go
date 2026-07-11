@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn/method"
+	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
@@ -87,8 +89,11 @@ func ActorFromContext(ctx context.Context) *audit.Actor {
 //
 // It is the service which presents all Authentications created in the backing auth store.
 type Server struct {
-	logger *zap.Logger
-	store  storageauth.Store
+	logger       *zap.Logger
+	store        storageauth.Store
+	oidcRegistry *authoidc.Registry
+
+	authConfig config.AuthenticationConfig
 
 	auth.UnimplementedAuthenticationServiceServer
 }
@@ -97,10 +102,13 @@ func (s *Server) SkipsAuthorization(ctx context.Context) bool {
 	return true
 }
 
-func NewServer(logger *zap.Logger, store storageauth.Store) *Server {
+// NewServer creates a new AuthenticationServiceServer with the provided logger, store, and auth config.
+func NewServer(logger *zap.Logger, store storageauth.Store, authConfig config.AuthenticationConfig, oidcRegistry *authoidc.Registry) *Server {
 	return &Server{
-		logger: logger,
-		store:  store,
+		logger:       logger,
+		store:        store,
+		authConfig:   authConfig,
+		oidcRegistry: oidcRegistry,
 	}
 }
 
@@ -162,8 +170,35 @@ func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireA
 		if req.ExpiresAt == nil || !req.ExpiresAt.IsValid() {
 			req.ExpiresAt = flipt.Now()
 		}
-
 		return &emptypb.Empty{}, s.store.ExpireAuthenticationByID(ctx, auth.Id, req.ExpiresAt)
+	}
+	return nil, errors.ErrUnauthenticatedf("request was not authenticated")
+}
+
+// RevokeAuthenticationSelf revokes the Authentication which was derived from the request context.
+func (s *Server) RevokeAuthenticationSelf(ctx context.Context, req *auth.RevokeAuthenticationSelfRequest) (*auth.RevokeAuthenticationSelfResponse, error) {
+	if authentication := authmiddlewaregrpc.GetAuthenticationFrom(ctx); authentication != nil {
+		resp := auth.RevokeAuthenticationSelfResponse{}
+		if authentication.Method == auth.Method_METHOD_OIDC {
+			idTokenData, err := s.store.GetIDToken(ctx, authentication.Id)
+			if err != nil {
+				s.logger.Warn("failed to get ID token for OIDC logout", zap.Error(err))
+			} else if idTokenData != nil {
+				next, err := authoidc.EndSessionURI(
+					ctx,
+					s.oidcRegistry,
+					authentication,
+					idTokenData.IDToken,
+				)
+				if err != nil {
+					s.logger.Warn("failed to build oidc logout url", zap.Error(err))
+				}
+				if next != "" {
+					resp.NextUri = new(next)
+				}
+			}
+		}
+		return &resp, s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(authentication.Id)))
 	}
 
 	return nil, errors.ErrUnauthenticatedf("request was not authenticated")

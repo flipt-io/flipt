@@ -109,7 +109,7 @@ export function MetadataForm({
   disabled = false,
   onErrorChange
 }: MetadataFormProps): JSX.Element {
-  const [entries, setEntries] = useState<IFlagMetadata[]>(
+  const [entries, setEntries] = useState<IFlagMetadata[]>(() =>
     objectToMetadataArray(metadata)
   );
   const [errors, setErrors] = useState<Record<number, Record<string, string>>>(

@@ -95,6 +95,7 @@ JsonPath: string
 					{[=~"^.*$" & !~"^()$"]: #authentication.#authentication_oidc_provider}
 				}
 				email_matches?: [...] | string
+				cache_ttl?: =~#duration | *"15m"
 			}
 
 			kubernetes?: {
@@ -145,8 +146,10 @@ JsonPath: string
 			nonce?:            string
 			scopes?: [...string]
 			use_pkce?: bool
+			use_end_session_endpoint?: bool
 			algorithms?: [...("RS256" | "RS384" | "RS512" | "ES256" | "ES384" | "ES512" | "PS256" | "PS384" | "PS512")] | *["RS256"]
 			fetch_extra_user_info?: bool
+			authorize_parameters?: [string]: string
 		}
 
 	}

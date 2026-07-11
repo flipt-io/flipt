@@ -55,9 +55,6 @@ export const segmentsApi = createApi({
       transformResponse: (
         response: IResourceListResponse<ISegment>
       ): ISegmentList => {
-        if (response.revision) {
-          localStorage.setItem('revision', response.revision);
-        }
         return {
           segments: response.resources.map(({ payload }) => payload)
         } as ISegmentList;
@@ -82,9 +79,6 @@ export const segmentsApi = createApi({
         { type: 'Segment', id: environmentKey + '/' + namespaceKey }
       ],
       transformResponse: (response: IResourceResponse<ISegment>): ISegment => {
-        if (response.revision) {
-          localStorage.setItem('revision', response.revision);
-        }
         return {
           ...response.resource.payload,
           constraints: response.resource.payload.constraints?.map(

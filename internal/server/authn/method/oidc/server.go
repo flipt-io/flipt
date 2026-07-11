@@ -1,52 +1,67 @@
 package oidc
 
 import (
-	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/url"
 	"strings"
 	"time"
 
-	capoidc "github.com/hashicorp/cap/oidc"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn/method"
+	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
-	storageMetadataOIDCProvider          = "io.flipt.auth.oidc.provider"
-	storageMetadataOIDCEmail             = "io.flipt.auth.oidc.email"
-	storageMetadataOIDCEmailVerified     = "io.flipt.auth.oidc.email_verified"
-	storageMetadataOIDCName              = "io.flipt.auth.oidc.name"
-	storageMetadataOIDCProfile           = "io.flipt.auth.oidc.profile"
-	storageMetadataOIDCPicture           = "io.flipt.auth.oidc.picture"
-	storageMetadataOIDCSub               = "io.flipt.auth.oidc.sub"
-	storageMetadataOIDCPreferredUsername = "io.flipt.auth.oidc.preferred_username"
-	oauthChallengeTTL                    = 2 * time.Minute
-	nonceStatic                          = "static"
+	storageMetadataOIDCProvider      = "io.flipt.auth.oidc.provider"
+	storageMetadataOIDCEmail         = "io.flipt.auth.oidc.email"
+	storageMetadataOIDCEmailVerified = "io.flipt.auth.oidc.email_verified"
+	storageMetadataOIDCName          = "io.flipt.auth.oidc.name"
+	storageMetadataOIDCProfile       = "io.flipt.auth.oidc.profile"
+	storageMetadataOIDCPicture       = "io.flipt.auth.oidc.picture"
+	storageMetadataOIDCSub           = "io.flipt.auth.oidc.sub"
+	oauthChallengeTTL                = 2 * time.Minute
 )
 
-// errProviderNotFound is returned when a provider is requested which
-// was not configured
-var errProviderNotFound = errors.ErrNotFound("provider not found")
+// errProviderWithNoEndSessionEndpoint is returned when a provider has no end_session_endpoint.
+var errProviderWithNoEndSessionEndpoint = errors.New("provider doesn't have end_session_endpoint")
 
-// PCKEVerifier is a code verifier used for a PKCE flow during OIDC authentication.
-// This value is declared outside the scope of the function because of consistency throughout
-// the authenciation legs of OIDC.
-var PKCEVerifier, _ = capoidc.NewCodeVerifier()
+type (
+	optionFunc func(*options)
+	options    struct {
+		nonceGenerator func() string
+	}
+)
+
+func (f optionFunc) apply(o *options) { f(o) }
+
+// Option configures the OIDC Server.
+type Option interface {
+	apply(*options)
+}
+
+// WithNonceGenerator sets the function used to generate nonce and PKCE challenge values.
+// By default oauth2.GenerateVerifier is used. Intended for tests that need predictable values.
+func WithNonceGenerator(f func() string) Option {
+	return optionFunc(func(o *options) { o.nonceGenerator = f })
+}
 
 // Server is the core OIDC server implementation for Flipt.
 // It supports two primary operations:
-// - AuthorizeURL
-// - Callback
+//   - AuthorizeURL
+//   - Callback
+//
 // These are two legs of the OIDC/OAuth flow.
 // Step 1 is Flipt establishes a URL directed at the delegated authentication service (e.g. Google).
 // The URL is configured using the client ID configured for the provided, a state parameter used to
@@ -59,9 +74,11 @@ var PKCEVerifier, _ = capoidc.NewCodeVerifier()
 // This client token can be used to access the rest of the Flipt API.
 // Given the user-agent is requestin using HTTP the token is instead established as an HTTP cookie.
 type Server struct {
-	logger *zap.Logger
-	store  storageauth.Store
-	config config.AuthenticationConfig
+	logger         *zap.Logger
+	store          storageauth.Store
+	TokenLifetime  time.Duration
+	registry       *Registry
+	nonceGenerator func() string
 
 	auth.UnimplementedAuthenticationMethodOIDCServiceServer
 }
@@ -69,16 +86,27 @@ type Server struct {
 func NewServer(
 	logger *zap.Logger,
 	store storageauth.Store,
+	registry *Registry,
 	config config.AuthenticationConfig,
+	opts ...Option,
 ) *Server {
+	o := options{
+		nonceGenerator: oauth2.GenerateVerifier,
+	}
+	for _, opt := range opts {
+		opt.apply(&o)
+	}
+
 	return &Server{
-		logger: logger,
-		store:  store,
-		config: config,
+		logger:         logger,
+		store:          store,
+		TokenLifetime:  config.Session.TokenLifetime,
+		registry:       registry,
+		nonceGenerator: o.nonceGenerator,
 	}
 }
 
-// RegisterGRPC registers the server as an Server on the provided grpc server.
+// RegisterGRPC registers the server as a Server on the provided grpc server.
 func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterAuthenticationMethodOIDCServiceServer(server, s)
 }
@@ -92,33 +120,33 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 // The operation is configured to return a URL which ultimately redirects to the
 // callback operation below.
 func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	providerCfg, err := s.configFor(req.Provider)
+	provider, err := s.registry.getProvider(ctx, req.Provider)
 	if err != nil {
-		return nil, err
-	}
-
-	nonce := nonceStatic
-	if providerCfg.UsePKCE {
-		verifier := oauth2.GenerateVerifier()
-		if err := s.store.PutOAuthChallenge(ctx, req.State, verifier, timestamppb.New(time.Now().UTC().Add(oauthChallengeTTL))); err != nil {
-			return nil, err
+		if errors.AsMatch[errors.ErrNotFound](err) {
+			return nil, status.Error(codes.InvalidArgument, "authorize: unknown provider")
 		}
-		nonce = verifier
+		s.logger.Error("failed to get provider", zap.String("provider", req.Provider), zap.Error(err))
+		return nil, status.Error(codes.Internal, "authorize: failed get provider")
 	}
+	challenge := s.nonceGenerator()
+	nonce := s.nonceGenerator()
 
-	provider, oidcRequest, err := s.providerFor(req.Provider, req.State, nonce)
+	encoded, err := encodeOAuthChallenge(challenge, nonce)
 	if err != nil {
-		return nil, fmt.Errorf("authorize: %w", err)
+		s.logger.Error("failed to generate challenge", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, "authorize: failed to generate challenge")
 	}
 
-	defer provider.Done()
+	if err := s.store.PutOAuthChallenge(ctx, req.State, encoded, timestamppb.New(time.Now().UTC().Add(oauthChallengeTTL))); err != nil {
+		s.logger.Error("failed to persist challenge", zap.Error(err))
+		return nil, status.Error(codes.Internal, "authorize: failed to persist challenge")
+	}
 
-	// Create an auth URL
-	authURL, err := provider.AuthURL(context.Background(), oidcRequest)
+	authURL, err := provider.AuthURL(req.State, challenge, nonce)
 	if err != nil {
-		return nil, err
+		s.logger.Error("failed to build auth url", zap.Error(err))
+		return nil, status.Error(codes.Internal, "authorize: failed to create auth url")
 	}
-
 	return &auth.AuthorizeURLResponse{AuthorizeUrl: authURL}, nil
 }
 
@@ -132,96 +160,69 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 // Given all this completes successfully then we established an associated clientToken in
 // the backing authentication store with the identity information retrieved as metadata.
 func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *auth.CallbackResponse, err error) {
-	defer func() {
-		if err != nil {
-			err = fmt.Errorf("handling OIDC callback: %w", err)
-		}
-	}()
-
 	if err := method.CallbackValidateState(ctx, req.State); err != nil {
-		return nil, err
+		s.logger.Error("callback: failed to get state", zap.Error(err))
+		return nil, status.Error(codes.Unauthenticated, "callback: failed to get state")
 	}
 
-	providerCfg, err := s.configFor(req.Provider)
+	provider, err := s.registry.getProvider(ctx, req.Provider)
 	if err != nil {
-		return nil, err
-	}
-
-	nonce := nonceStatic
-	if providerCfg.UsePKCE {
-		verifier, err := s.store.PopOAuthChallenge(ctx, req.State)
-		if err != nil {
-			if _, ok := errors.As[errors.ErrNotFound](err); ok {
-				return nil, errors.ErrUnauthenticatedf("missing or expired oauth challenge")
-			}
-
-			return nil, fmt.Errorf("getting oauth challenge: %w", err)
+		if errors.AsMatch[errors.ErrNotFound](err) {
+			return nil, status.Error(codes.InvalidArgument, "callback: unknown provider")
 		}
-		nonce = verifier
+		s.logger.Error("failed to get provider", zap.String("provider", req.Provider), zap.Error(err))
+		return nil, status.Error(codes.Internal, "callback: failed get provider")
 	}
 
-	provider, oidcRequest, err := s.providerFor(req.Provider, req.State, nonce)
+	authChallenge, err := s.store.PopOAuthChallenge(ctx, req.State)
 	if err != nil {
-		return nil, err
-	}
-
-	defer provider.Done()
-
-	responseToken, err := provider.Exchange(ctx, oidcRequest, req.State, req.Code)
-	if err != nil {
-		return nil, err
-	}
-
-	metadata := map[string]string{
-		storageMetadataOIDCProvider: req.Provider,
-	}
-
-	rawClaims := make(map[string]any)
-	if err := responseToken.IDToken().Claims(&rawClaims); err != nil {
-		return nil, err
-	}
-
-	if providerCfg.FetchExtraUserInfo {
-		// Get the user's claims via the provider's UserInfo endpoint
-		if sub, ok := rawClaims["sub"].(string); ok {
-			infoClaims := make(map[string]any)
-			err := provider.UserInfo(ctx, responseToken.StaticTokenSource(), sub, &infoClaims)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get user info: %w", err)
-			}
-			maps.Copy(rawClaims, infoClaims)
+		if _, ok := errors.As[errors.ErrNotFound](err); ok {
+			return nil, status.Error(codes.InvalidArgument, "callback: missing challenge")
 		}
+		s.logger.Error("getting challenge", zap.Error(err))
+		return nil, status.Error(codes.Unknown, "callback: getting challenge")
 	}
 
-	// marshal raw claims to JSON
-	rawClaimsJSON, err := json.Marshal(rawClaims)
+	challenge, nonce, err := decodeOAuthChallenge(authChallenge)
 	if err != nil {
-		return nil, err
+		s.logger.Error("failed to decode challenge", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, "callback: invalid challenge")
+	}
+	idToken, err := provider.Exchange(ctx, req.Code, challenge, nonce)
+	if err != nil {
+		s.logger.Error("failed to exchange code", zap.Error(err))
+		return nil, status.Error(codes.Unknown, "callback: code exchange failed")
 	}
 
-	if rawClaimsJSON != nil {
-		metadata[method.StorageMetadataClaims] = string(rawClaimsJSON)
+	metadata, claims, err := s.extractMetadata(ctx, provider, idToken)
+	if err != nil {
+		s.logger.Error("failed to extract claims metadata", zap.Error(err))
+		return nil, status.Error(codes.Unknown, "callback: claim extraction failed")
 	}
 
-	// Extract custom claims
-	var claims claims
-
-	if err := responseToken.IDToken().Claims(&claims); err != nil {
-		return nil, err
-	}
-
-	// Fallback to UserInfo claims for missing fields
-	claims.fallbackFrom(rawClaims)
-
-	claims.addToMetadata(metadata)
-
-	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
+	authRequest := &storageauth.CreateAuthenticationRequest{
 		Method:    auth.Method_METHOD_OIDC,
-		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
+		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.TokenLifetime)),
 		Metadata:  metadata,
-	})
+		Provider:  req.Provider,
+	}
+
+	if claims.SID != "" {
+		authRequest.Sid = claims.SID
+	}
+
+	if claims.Sub != nil {
+		authRequest.Sub = *claims.Sub
+	}
+
+	if provider.cfg.UseEndSessionEndpoint {
+		authRequest.IDToken = idToken.rawIDToken
+	}
+
+	clientToken, a, err := s.store.CreateAuthentication(ctx, authRequest)
 	if err != nil {
-		return nil, err
+		s.logger.Error("failed to create authentication", zap.Error(err))
+		return nil, status.Error(codes.Internal, "callback: failed to create authentication")
 	}
 
 	return &auth.CallbackResponse{
@@ -230,77 +231,115 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	}, nil
 }
 
-func callbackURL(host, provider string) string {
-	// strip trailing slash from host
-	host = strings.TrimSuffix(host, "/")
-	return host + "/auth/v1/method/oidc/" + provider + "/callback"
+func (*Server) extractMetadata(ctx context.Context, provider *client, idToken *Tk) (map[string]string, claims, error) {
+	metadata := map[string]string{
+		storageMetadataOIDCProvider: provider.key,
+	}
+
+	rawClaims := make(map[string]any)
+	if err := idToken.Claims(&rawClaims); err != nil {
+		return nil, claims{}, err
+	}
+
+	if provider.cfg.FetchExtraUserInfo {
+		infoClaims := make(map[string]any)
+		err := provider.UserInfo(ctx, oauth2.StaticTokenSource(idToken.oauth2Token), idToken.idToken.Subject, &infoClaims)
+		if err != nil {
+			return nil, claims{}, fmt.Errorf("failed to get extra user info: %w", err)
+		}
+		maps.Copy(rawClaims, infoClaims)
+	}
+
+	rawClaimsJSON, err := json.Marshal(rawClaims)
+	if err != nil {
+		return nil, claims{}, err
+	}
+
+	if rawClaimsJSON != nil {
+		metadata[method.StorageMetadataClaims] = string(rawClaimsJSON)
+	}
+
+	var claimsData claims
+	if err := idToken.Claims(&claimsData); err != nil {
+		return nil, claimsData, err
+	}
+
+	claimsData.fallbackFrom(rawClaims)
+
+	claimsData.addToMetadata(metadata)
+	return metadata, claimsData, nil
 }
 
-func (s *Server) configFor(provider string) (config.AuthenticationMethodOIDCProvider, error) {
-	providerCfg, ok := s.config.Methods.OIDC.Method.Providers[provider]
-	if !ok {
-		return config.AuthenticationMethodOIDCProvider{}, fmt.Errorf("requested provider %q: %w", provider, errProviderNotFound)
-	}
-
-	return providerCfg, nil
-}
-
-func (s *Server) providerFor(provider string, state string, nonce string) (*capoidc.Provider, *capoidc.Req, error) {
-	var (
-		config   *capoidc.Config
-		callback string
-	)
-
-	providerCfg, err := s.configFor(provider)
+// Revoke handles back-channel logout from the OIDC provider.
+// It verifies the logout token, looks up the corresponding authentication record
+// via the session ID (sid), and deletes it.
+func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth.RevokeOIDCResponse, error) {
+	provider, err := s.registry.getProvider(ctx, req.Provider)
 	if err != nil {
-		return nil, nil, err
+		if errors.AsMatch[errors.ErrNotFound](err) {
+			return nil, status.Error(codes.InvalidArgument, "revoke: unknown provider")
+		}
+		s.logger.Error("failed to get provider", zap.String("provider", req.Provider), zap.Error(err))
+		return nil, status.Error(codes.Internal, "revoke: failed get provider")
 	}
-
-	algorithms := make([]capoidc.Alg, len(providerCfg.Algorithms))
-	for i, algorithm := range providerCfg.Algorithms {
-		algorithms[i] = capoidc.Alg(algorithm)
-	}
-	if len(algorithms) == 0 {
-		algorithms = []capoidc.Alg{capoidc.RS256}
-	}
-
-	callback = callbackURL(providerCfg.RedirectAddress, provider)
-
-	config, err = capoidc.NewConfig(
-		providerCfg.IssuerURL,
-		providerCfg.ClientID,
-		capoidc.ClientSecret(providerCfg.ClientSecret),
-		algorithms,
-		[]string{callback},
-	)
+	logoutToken, err := provider.VerifyLogout(ctx, req.LogoutToken)
 	if err != nil {
-		return nil, nil, err
+		s.logger.Debug("failed to verify logout token", zap.Error(err))
+		return nil, status.Error(codes.InvalidArgument, "revoke: invalid logout token")
+	}
+	listQuery := storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+		Predicate: storageauth.ListAuthenticationsPredicate{
+			Method:   new(auth.Method_METHOD_OIDC),
+			Provider: &req.Provider,
+		},
+		QueryParams: storage.QueryParams{Limit: storage.MaxListLimit},
 	}
 
-	p, err := capoidc.NewProvider(config)
-	if err != nil {
-		return nil, nil, err
+	switch {
+	case logoutToken.SessionID != "" && logoutToken.Subject != "":
+		listQuery.Predicate.Sid = &logoutToken.SessionID
+		listQuery.Predicate.Sub = &logoutToken.Subject
+
+	case logoutToken.SessionID != "":
+		listQuery.Predicate.Sid = &logoutToken.SessionID
+
+	case logoutToken.Subject != "":
+		listQuery.Predicate.Sub = &logoutToken.Subject
+
+	default:
+		s.logger.Error("logout token is verified as valid but missing both sid and sub")
+		return nil, status.Error(codes.Internal, "revoke: operation requires sid or sub")
 	}
 
-	oidcOpts := []capoidc.Option{
-		capoidc.WithState(state),
-		capoidc.WithScopes(providerCfg.Scopes...),
-		capoidc.WithNonce(cmp.Or(providerCfg.Nonce, nonce)),
+	var ids []string
+
+	for {
+		authentications, err := s.store.ListAuthentications(ctx, &listQuery)
+		if err != nil {
+			s.logger.Error("failed to lookup authentication", zap.Error(err))
+			return nil, status.Error(codes.Internal, "revoke: lookup failed")
+		}
+
+		for _, authentication := range authentications.Results {
+			ids = append(ids, authentication.Id)
+		}
+
+		if authentications.NextPageToken == "" {
+			break
+		}
+
+		listQuery.QueryParams.PageToken = authentications.NextPageToken
 	}
 
-	if providerCfg.UsePKCE {
-		oidcOpts = append(oidcOpts, capoidc.WithPKCE(PKCEVerifier))
-	}
+	s.logger.Debug("attempting to delete authentications", zap.Int("size", len(ids)))
 
-	req, err := capoidc.NewRequest(oauthChallengeTTL, callback,
-		oidcOpts...,
-	)
-	if err != nil {
-		p.Done()
-		return nil, nil, err
+	for _, id := range ids {
+		if err := s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(id))); err != nil {
+			s.logger.Error("failed to delete authentication", zap.String("id", id), zap.Error(err))
+			return nil, status.Error(codes.Internal, "revoke: operation failed")
+		}
 	}
-
-	return p, req, nil
+	return &auth.RevokeOIDCResponse{}, nil
 }
 
 type claims struct {
@@ -310,10 +349,9 @@ type claims struct {
 	Profile  *string `json:"profile"`
 	Picture  *string `json:"picture"`
 	Sub      *string `json:"sub"`
+	SID      string  `json:"sid"`
 }
 
-// fallbackFrom populates missing claims fields from extra (UserInfo) claims.
-// It only fills fields that are nil or empty, preserving any existing values from the ID token.
 func (c *claims) fallbackFrom(extra map[string]any) {
 	for _, k := range []string{"name", "email", "picture"} {
 		if v, ok := extra[k].(string); ok && v != "" {
@@ -333,6 +371,39 @@ func (c *claims) fallbackFrom(extra map[string]any) {
 			}
 		}
 	}
+}
+
+func EndSessionURI(ctx context.Context, r *Registry, authentication *auth.Authentication, idToken string) (string, error) {
+	providerName := authentication.Metadata[storageMetadataOIDCProvider]
+	p, ok := r.providers[providerName]
+	if !ok {
+		return "", fmt.Errorf("endsessionuri: failed to get provider: no oidc provider %q", providerName)
+	}
+
+	if !p.cfg.UseEndSessionEndpoint {
+		return "", nil
+	}
+
+	provider, err := r.getProvider(ctx, providerName)
+	if err != nil {
+		return "", fmt.Errorf("endsessionuri: failed to get provider: %w", err)
+	}
+
+	if provider.endSessionEndpoint == "" {
+		return "", errProviderWithNoEndSessionEndpoint
+	}
+
+	u, err := url.Parse(provider.endSessionEndpoint)
+	if err != nil {
+		return "", err
+	}
+
+	q := u.Query()
+	q.Set("id_token_hint", idToken)
+	q.Set("post_logout_redirect_uri", provider.cfg.RedirectAddress)
+	u.RawQuery = q.Encode()
+
+	return u.String(), nil
 }
 
 func (c claims) addToMetadata(m map[string]string) {
@@ -355,4 +426,21 @@ func (c claims) addToMetadata(m map[string]string) {
 	if c.Verified != nil {
 		m[storageMetadataOIDCEmailVerified] = fmt.Sprintf("%v", *c.Verified)
 	}
+}
+
+// encodeOAuthChallenge encodes a challenge and nonce into a single string for storage.
+func encodeOAuthChallenge(challenge, nonce string) (string, error) {
+	if challenge == "" || nonce == "" {
+		return "", fmt.Errorf("encodeOAuthChallenge: challenge and nonce must not be empty")
+	}
+	return challenge + "." + nonce, nil
+}
+
+// decodeOAuthChallenge decodes a stored challenge string back into challenge and nonce.
+func decodeOAuthChallenge(s string) (challenge, nonce string, err error) {
+	parts := strings.SplitN(s, ".", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", fmt.Errorf("decodeOAuthChallenge: invalid challenge data: %q", s)
+	}
+	return parts[0], parts[1], nil
 }

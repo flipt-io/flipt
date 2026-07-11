@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/go-jose/go-jose/v4"
-	"github.com/hashicorp/cap/oidc"
 )
 
 const (
@@ -51,7 +50,7 @@ func main() {
 			}{
 				Issuer:        domain,
 				JWKSURI:       domain + wellKnownJwks,
-				SupportedAlgs: []string{string(oidc.RS256)},
+				SupportedAlgs: []string{"RS256"},
 			}
 
 			if err := json.NewEncoder(w).Encode(&reply); err != nil {

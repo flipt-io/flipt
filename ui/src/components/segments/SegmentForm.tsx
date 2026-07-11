@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import {
   useCreateSegmentMutation,
@@ -21,7 +24,7 @@ import { ISegment, SegmentMatchType } from '~/types/Segment';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { cls, getRevision, stringAsKey } from '~/utils/helpers';
+import { cls, stringAsKey } from '~/utils/helpers';
 
 import { SegmentFormProvider } from './SegmentFormContext';
 
@@ -111,7 +114,7 @@ export default function SegmentForm(props: SegmentFormProps) {
 
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
-  const revision = getRevision();
+  const revision = useSelector(selectRevision);
 
   const [createSegment] = useCreateSegmentMutation();
   const [updateSegment] = useUpdateSegmentMutation();

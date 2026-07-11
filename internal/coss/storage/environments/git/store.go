@@ -21,6 +21,13 @@ import (
 
 var _ serverenvs.Environment = (*Environment)(nil)
 
+// templateContext is the data made available to the proposal title and body
+// templates when they are rendered.
+type templateContext struct {
+	Base   *environments.EnvironmentConfiguration
+	Branch *environments.EnvironmentConfiguration
+}
+
 type SCM interface {
 	Propose(context.Context, ProposalRequest) (*environments.EnvironmentProposalDetails, error)
 	ListChanges(context.Context, ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error)
@@ -66,29 +73,34 @@ func (e *Environment) ListBranchedChanges(ctx context.Context, branch serverenvs
 		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), branch.Key())
 	}
 
-	return e.SCM.ListChanges(ctx, ListChangesRequest{
+	resp, err = e.SCM.ListChanges(ctx, ListChangesRequest{
 		Base:  baseCfg.Ref,
 		Head:  branchCfg.Ref,
 		Limit: 10,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Render the hydrated proposal defaults so the UI can pre-fill (and let the
+	// user override) the title and body. Failures here should not prevent the
+	// caller from listing changes, so degrade gracefully.
+	title, body, rerr := e.renderProposalDefaults(ctx, baseCfg, branchCfg)
+	if rerr != nil {
+		e.logger.Warn("rendering proposal defaults", zap.Error(rerr))
+	} else {
+		resp.ProposalTitle = title
+		resp.ProposalBody = body
+	}
+
+	return resp, nil
 }
 
-func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (resp *environments.EnvironmentProposalDetails, err error) {
-	var (
-		baseCfg   = e.Configuration()
-		branchCfg = base.Configuration()
-	)
-
-	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
-		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), base.Key())
-	}
-
-	type templateContext struct {
-		Base   *environments.EnvironmentConfiguration
-		Branch *environments.EnvironmentConfiguration
-	}
-
-	if err := e.Repository().View(ctx, branchCfg.Ref, func(hash plumbing.Hash, src environmentsfs.Filesystem) error {
+// renderProposalDefaults renders the default proposal title and body for the
+// given branch by executing the hydrated templates (built-in defaults overlaid
+// with server-level and repository-level overrides) against the branch context.
+func (e *Environment) renderProposalDefaults(ctx context.Context, baseCfg, branchCfg *environments.EnvironmentConfiguration) (title, body string, err error) {
+	err = e.Repository().View(ctx, branchCfg.Ref, func(hash plumbing.Hash, src environmentsfs.Filesystem) error {
 		// chroot our filesystem to the configured directory
 		dir := ""
 		if baseCfg.Directory != nil {
@@ -101,43 +113,56 @@ func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, 
 			return err
 		}
 
-		var (
-			title = &bytes.Buffer{}
-			body  = &bytes.Buffer{}
-		)
-
 		tmplCtx := templateContext{Base: baseCfg, Branch: branchCfg}
 
-		if opts.Title != "" {
-			title.WriteString(opts.Title)
-		} else {
-			if err := conf.Templates.ProposalTitleTemplate.Execute(title, tmplCtx); err != nil {
-				return err
-			}
+		var titleBuf, bodyBuf bytes.Buffer
+		if err := conf.Templates.ProposalTitleTemplate.Execute(&titleBuf, tmplCtx); err != nil {
+			return err
+		}
+		if err := conf.Templates.ProposalBodyTemplate.Execute(&bodyBuf, tmplCtx); err != nil {
+			return err
 		}
 
-		if opts.Body != "" {
-			body.WriteString(opts.Body)
-		} else {
-			if err := conf.Templates.ProposalBodyTemplate.Execute(body, tmplCtx); err != nil {
-				return err
-			}
-		}
+		title, body = titleBuf.String(), bodyBuf.String()
+		return nil
+	})
 
-		resp, err = e.SCM.Propose(ctx, ProposalRequest{
-			Base:  baseCfg.Ref,
-			Head:  branchCfg.Ref,
-			Title: title.String(),
-			Body:  body.String(),
-			Draft: opts.Draft,
-		})
+	return title, body, err
+}
 
-		return err
-	}); err != nil {
+func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (resp *environments.EnvironmentProposalDetails, err error) {
+	var (
+		baseCfg   = e.Configuration()
+		branchCfg = base.Configuration()
+	)
+
+	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
+		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), base.Key())
+	}
+
+	// Start from the hydrated defaults, then let any caller-supplied title/body
+	// override them. Supplied values are used verbatim (already rendered by the
+	// UI), matching the previous behavior.
+	title, body, err := e.renderProposalDefaults(ctx, baseCfg, branchCfg)
+	if err != nil {
 		return nil, err
 	}
 
-	return
+	if opts.Title != "" {
+		title = opts.Title
+	}
+
+	if opts.Body != "" {
+		body = opts.Body
+	}
+
+	return e.SCM.Propose(ctx, ProposalRequest{
+		Base:  baseCfg.Ref,
+		Head:  branchCfg.Ref,
+		Title: title,
+		Body:  body,
+		Draft: opts.Draft,
+	})
 }
 
 func (e *Environment) ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error) {

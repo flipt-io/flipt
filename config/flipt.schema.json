@@ -411,6 +411,11 @@
                     }
                   ]
                 },
+                "cache_ttl": {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+                  "default": "15m"
+                },
                 "providers": {
                   "type": [
                     "object",
@@ -450,6 +455,10 @@
                           "type": "boolean",
                           "default": false
                         },
+                        "use_end_session_endpoint": {
+                          "type": "boolean",
+                          "default": false
+                        },
                         "algorithms": {
                           "type": [
                             "array",
@@ -476,6 +485,13 @@
                         "fetch_extra_user_info": {
                           "type": "boolean",
                           "default": false
+                        },
+                        "authorize_parameters": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "default": {}
                         }
                       }
                     }

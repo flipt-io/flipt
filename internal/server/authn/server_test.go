@@ -2,7 +2,11 @@ package authn_test
 
 import (
 	"context"
+	"encoding/json"
 	"net"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -10,7 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn"
+	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
@@ -64,7 +70,7 @@ func TestServer(t *testing.T) {
 
 	defer shutdown(t)
 
-	rpcauth.RegisterAuthenticationServiceServer(server, authn.NewServer(logger, store))
+	rpcauth.RegisterAuthenticationServiceServer(server, authn.NewServer(logger, store, config.AuthenticationConfig{}, nil))
 
 	go func() {
 		errC <- server.Serve(listener)
@@ -164,6 +170,128 @@ func TestServer(t *testing.T) {
 		_, err = store.GetAuthenticationByClientToken(ctx, clientToken)
 		var notFound errors.ErrNotFound
 		require.ErrorAs(t, err, &notFound)
+	})
+
+	t.Run("RevokeAuthenticationSelf", func(t *testing.T) {
+		t.Run("unauthenticated", func(t *testing.T) {
+			_, err := client.RevokeAuthenticationSelf(ctx, &rpcauth.RevokeAuthenticationSelfRequest{})
+			require.ErrorContains(t, err, "request was not authenticated")
+		})
+
+		t.Run("token method (no next_uri)", func(t *testing.T) {
+			req := &storageauth.CreateAuthenticationRequest{
+				Method:    rpcauth.Method_METHOD_TOKEN,
+				ExpiresAt: timestamppb.New(time.Now().Add(time.Hour).UTC()),
+			}
+
+			clientToken, _, err := store.CreateAuthentication(ctx, req)
+			require.NoError(t, err)
+
+			authCtx := metadata.AppendToOutgoingContext(
+				ctx,
+				"authorization",
+				"Bearer "+clientToken,
+			)
+
+			resp, err := client.RevokeAuthenticationSelf(authCtx, &rpcauth.RevokeAuthenticationSelfRequest{})
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+			assert.Nil(t, resp.NextUri)
+		})
+
+		t.Run("OIDC method with IDToken (next_uri present)", func(t *testing.T) {
+			// Start an OIDC-like test server for the end_session_endpoint
+			var oidcSrv *httptest.Server
+			oidcSrv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				host := strings.TrimPrefix(oidcSrv.URL, "http://")
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]string{
+					"issuer":                 "http://" + host,
+					"authorization_endpoint": "http://" + host + "/auth",
+					"token_endpoint":         "http://" + host + "/token",
+					"jwks_uri":               "http://" + host + "/certs",
+					"end_session_endpoint":   "http://" + host + "/logout",
+				})
+			}))
+			t.Cleanup(oidcSrv.Close)
+
+			// Create a new server and client with OIDC auth config
+			oidcStore := memory.NewStore(logger)
+			oidcServer := grpc.NewServer(
+				grpc.ChainUnaryInterceptor(
+					authmiddlewaregrpc.ClientTokenAuthenticationUnaryInterceptor(logger, oidcStore),
+					middlewaregrpc.ErrorUnaryInterceptor,
+				),
+			)
+			oidcListener := bufconn.Listen(1024 * 1024)
+
+			oidcAuthConfig := config.AuthenticationConfig{
+				Methods: config.AuthenticationMethodsConfig{
+					OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+						Enabled: true,
+						Method: config.AuthenticationMethodOIDCConfig{
+							Providers: map[string]config.AuthenticationMethodOIDCProvider{
+								"google": {
+									IssuerURL:             oidcSrv.URL,
+									ClientID:              "test-client",
+									ClientSecret:          "test-secret",
+									RedirectAddress:       "http://localhost:8080",
+									UseEndSessionEndpoint: true,
+								},
+							},
+						},
+					},
+				},
+			}
+
+			rpcauth.RegisterAuthenticationServiceServer(oidcServer, authn.NewServer(logger, oidcStore, oidcAuthConfig, authoidc.NewRegistry(oidcAuthConfig)))
+
+			oidcErrC := make(chan error)
+			go func() {
+				oidcErrC <- oidcServer.Serve(oidcListener)
+			}()
+			t.Cleanup(func() {
+				oidcServer.Stop()
+				<-oidcErrC
+			})
+
+			oidcDialer := func(context.Context, string) (net.Conn, error) {
+				return oidcListener.Dial()
+			}
+
+			oidcConn, err := grpc.DialContext(ctx, "", grpc.WithInsecure(), grpc.WithContextDialer(oidcDialer))
+			require.NoError(t, err)
+			t.Cleanup(func() { oidcConn.Close() })
+
+			oidcClient := rpcauth.NewAuthenticationServiceClient(oidcConn)
+
+			// Create OIDC authentication with IDToken
+			oidcToken, _, err := oidcStore.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
+				Method:    rpcauth.Method_METHOD_OIDC,
+				ExpiresAt: timestamppb.New(time.Now().Add(time.Hour).UTC()),
+				Metadata: map[string]string{
+					"io.flipt.auth.oidc.provider": "google",
+				},
+				IDToken: "test-id-token",
+			})
+			require.NoError(t, err)
+
+			authCtx := metadata.AppendToOutgoingContext(
+				ctx,
+				"authorization",
+				"Bearer "+oidcToken,
+			)
+
+			resp, err := oidcClient.RevokeAuthenticationSelf(authCtx, &rpcauth.RevokeAuthenticationSelfRequest{})
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+
+			// Should have next_uri pointing to the end_session_endpoint
+			require.NotNil(t, resp.NextUri)
+			assert.Contains(t, *resp.NextUri, oidcSrv.URL+"/logout")
+			assert.Contains(t, *resp.NextUri, "id_token_hint=test-id-token")
+			assert.Contains(t, *resp.NextUri, "post_logout_redirect_uri=http%3A%2F%2Flocalhost%3A8080")
+		})
 	})
 
 	t.Run("ExpireAuthenticationSelf", func(t *testing.T) {

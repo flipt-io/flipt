@@ -50,3 +50,32 @@ func TestGenerateRandomToken(t *testing.T) {
 
 	assert.NotEmpty(t, s)
 }
+
+func TestIDTokenDataString(t *testing.T) {
+	tests := []struct {
+		name string
+		data *IDTokenData
+		want string
+	}{
+		{
+			name: "redacts token",
+			data: &IDTokenData{IDToken: "my-super-secret-jwt-token"},
+			want: "[REDACTED]",
+		},
+		{
+			name: "nil safe",
+			want: "nil",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.data.String()
+
+			assert.Contains(t, s, tt.want)
+			if tt.want == "[REDACTED]" {
+				assert.NotContains(t, s, "my-super-secret-jwt-token")
+			}
+		})
+	}
+}

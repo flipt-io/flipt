@@ -1,4 +1,5 @@
 import {
+  UnknownAction,
   configureStore,
   createListenerMiddleware,
   isAnyOf
@@ -8,7 +9,8 @@ import { authProvidersApi } from '~/app/auth/authApi';
 import {
   environmentKey,
   environmentsApi,
-  environmentsSlice
+  environmentsSlice,
+  revisionChanged
 } from '~/app/environments/environmentsApi';
 import { eventKey, eventSlice } from '~/app/events/eventSlice';
 import { analyticsApi } from '~/app/flags/analyticsApi';
@@ -102,6 +104,29 @@ listenerMiddleware.startListening({
   }
 });
 
+listenerMiddleware.startListening({
+  predicate: (
+    action
+  ): action is UnknownAction & {
+    meta: {
+      arg: { originalArgs: { environmentKey?: string } };
+      baseQueryMeta?: { revision?: string };
+    };
+  } =>
+    namespaceApi.endpoints.listNamespaces.matchFulfilled(action) ||
+    flagsApi.endpoints.listFlags.matchFulfilled(action) ||
+    flagsApi.endpoints.getFlag.matchFulfilled(action) ||
+    segmentsApi.endpoints.listSegments.matchFulfilled(action) ||
+    segmentsApi.endpoints.getSegment.matchFulfilled(action),
+  effect: (action, api) => {
+    const environmentKey = action.meta?.arg.originalArgs.environmentKey;
+    const revision = action.meta?.baseQueryMeta?.revision;
+    if (environmentKey && revision) {
+      api.dispatch(revisionChanged({ environmentKey, revision }));
+    }
+  }
+});
+
 /*
  * Invalidate flags and segments cache when streaming events are received.
  */
@@ -149,6 +174,7 @@ export const store = configureStore({
       environments: {},
       status: LoadingStatus.IDLE,
       currentEnvironment,
+      revision: 'unknown',
       error: undefined
     },
     namespaces: {

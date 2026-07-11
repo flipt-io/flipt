@@ -1,6 +1,7 @@
 import {
   addNamespaceToPath,
   canFetchUpdates,
+  isSafeRedirectUrl,
   stringAsKey,
   titleCase,
   upperFirst
@@ -70,6 +71,38 @@ describe('stringAsKey', () => {
     expect(stringAsKey('foo_')).toEqual('foo_');
     expect(stringAsKey('foo-bar')).toEqual('foo-bar');
     expect(stringAsKey('foo_-')).toEqual('foo_-');
+  });
+});
+
+describe('isSafeRedirectUrl', () => {
+  it('should return true for https URLs', () => {
+    expect(isSafeRedirectUrl('https://example.com/logout')).toBe(true);
+  });
+
+  it('should return true for http URLs', () => {
+    expect(isSafeRedirectUrl('http://example.com')).toBe(true);
+  });
+
+  it('should return false for javascript: URLs', () => {
+    expect(isSafeRedirectUrl('javascript:alert(1)')).toBe(false);
+  });
+
+  it('should return false for data: URLs', () => {
+    expect(isSafeRedirectUrl('data:text/html,<script>alert(1)</script>')).toBe(
+      false
+    );
+  });
+
+  it('should return false for file: URLs', () => {
+    expect(isSafeRedirectUrl('file:///etc/passwd')).toBe(false);
+  });
+
+  it('should return false for protocol-relative URLs', () => {
+    expect(isSafeRedirectUrl('//evil.com')).toBe(false);
+  });
+
+  it('should return false for empty string', () => {
+    expect(isSafeRedirectUrl('')).toBe(false);
   });
 });
 

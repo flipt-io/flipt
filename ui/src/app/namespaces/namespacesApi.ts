@@ -83,9 +83,6 @@ export const namespaceApi = createApi({
       query: ({ environmentKey }) => `/${environmentKey}/namespaces`,
       providesTags: () => [{ type: 'Namespace' }],
       transformResponse: (response: INamespaceList): INamespaceList => {
-        if (response.revision) {
-          localStorage.setItem('revision', response.revision);
-        }
         return response;
       }
     }),

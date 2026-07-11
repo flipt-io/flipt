@@ -27,6 +27,14 @@ type oauthChallenge struct {
 	expiresAt *timestamppb.Timestamp
 }
 
+type oauthEntity struct {
+	*rpcauth.Authentication
+	provider string
+	sid      string
+	sub      string
+	idToken  *authn.IDTokenData
+}
+
 // Store is an in-memory implementation of storage.AuthenticationStore
 //
 // Authentications are stored in a map by hashedClientToken.
@@ -35,8 +43,8 @@ type oauthChallenge struct {
 type Store struct {
 	logger *zap.Logger
 
-	mu         sync.Mutex
-	byID       map[string]*rpcauth.Authentication
+	mu         sync.RWMutex
+	byID       map[string]*oauthEntity
 	byToken    map[string]*rpcauth.Authentication
 	challenges sync.Map
 
@@ -59,7 +67,7 @@ func NewStore(logger *zap.Logger, opts ...Option) *Store {
 		store       = &Store{
 			logger: logger,
 
-			byID:          map[string]*rpcauth.Authentication{},
+			byID:          map[string]*oauthEntity{},
 			byToken:       map[string]*rpcauth.Authentication{},
 			challenges:    sync.Map{},
 			now:           rpcflipt.Now,
@@ -159,15 +167,20 @@ func (s *Store) CreateAuthentication(_ context.Context, r *authn.CreateAuthentic
 	}
 
 	var (
-		now            = s.now()
-		clientToken    = r.ClientToken
-		authentication = &rpcauth.Authentication{
-			Id:        s.generateID(),
-			Method:    r.Method,
-			Metadata:  r.Metadata,
-			ExpiresAt: r.ExpiresAt,
-			CreatedAt: now,
-			UpdatedAt: now,
+		now         = s.now()
+		clientToken = r.ClientToken
+		oauthEntity = &oauthEntity{
+			Authentication: &rpcauth.Authentication{
+				Id:        s.generateID(),
+				Method:    r.Method,
+				Metadata:  r.Metadata,
+				ExpiresAt: r.ExpiresAt,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			sid:      r.Sid,
+			sub:      r.Sub,
+			provider: r.Provider,
 		}
 	)
 
@@ -181,12 +194,19 @@ func (s *Store) CreateAuthentication(_ context.Context, r *authn.CreateAuthentic
 		return "", nil, fmt.Errorf("creating authentication: %w", err)
 	}
 
+	if r.IDToken != "" {
+		idTokenData := &authn.IDTokenData{
+			IDToken: r.IDToken,
+		}
+		oauthEntity.idToken = idTokenData
+	}
+
 	s.mu.Lock()
-	s.byToken[hashedToken] = authentication
-	s.byID[authentication.Id] = authentication
+	s.byToken[hashedToken] = oauthEntity.Authentication
+	s.byID[oauthEntity.Authentication.Id] = oauthEntity
 	s.mu.Unlock()
 
-	return clientToken, authentication, nil
+	return clientToken, oauthEntity.Authentication, nil
 }
 
 // GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
@@ -197,29 +217,29 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 		return nil, fmt.Errorf("getting authentication by token: %w", err)
 	}
 
-	s.mu.Lock()
+	s.mu.RLock()
 	authentication, ok := s.byToken[hashedToken]
-	s.mu.Unlock()
+	s.mu.RUnlock()
 	if !ok {
 		return nil, errors.ErrNotFound("getting authentication by token")
 	}
-
 	return authentication, nil
 }
 
 // GetAuthenticationByID retrieves an instance of Authentication from the backing
 // store using the provided id string.
 func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.Authentication, error) {
-	s.mu.Lock()
+	s.mu.RLock()
 	authentication, ok := s.byID[id]
-	s.mu.Unlock()
+	s.mu.RUnlock()
 	if !ok {
 		return nil, errors.ErrNotFound("getting authentication by id")
 	}
 
-	return authentication, nil
+	return authentication.Authentication, nil
 }
 
+// PutOAuthChallenge stores an OAuth challenge value keyed by state with an optional expiry.
 func (s *Store) PutOAuthChallenge(_ context.Context, state, value string, expiresAt *timestamppb.Timestamp) error {
 	if expiresAt != nil && !expiresAt.IsValid() {
 		return errors.ErrInvalidf("invalid expiry time: %v", expiresAt)
@@ -230,6 +250,7 @@ func (s *Store) PutOAuthChallenge(_ context.Context, state, value string, expire
 	return nil
 }
 
+// PopOAuthChallenge retrieves and deletes an OAuth challenge by state, returning its value.
 func (s *Store) PopOAuthChallenge(_ context.Context, state string) (string, error) {
 	value, ok := s.challenges.LoadAndDelete(state)
 
@@ -266,12 +287,26 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	req.QueryParams.Normalize()
 
 	// copy all auths into slice
-	s.mu.Lock()
-	set.Results = make([]*rpcauth.Authentication, 0, len(s.byToken))
-	for _, res := range s.byToken {
-		set.Results = append(set.Results, res)
+	s.mu.RLock()
+	set.Results = make([]*rpcauth.Authentication, 0, len(s.byID))
+
+	for _, res := range s.byID {
+		if req.Predicate.Method != nil && *req.Predicate.Method != res.Method {
+			continue
+		}
+		if req.Predicate.Provider != nil && *req.Predicate.Provider != res.provider {
+			continue
+		}
+		if req.Predicate.Sid != nil && *req.Predicate.Sid != res.sid {
+			continue
+		}
+		if req.Predicate.Sub != nil && *req.Predicate.Sub != res.sub {
+			continue
+		}
+
+		set.Results = append(set.Results, res.Authentication)
 	}
-	s.mu.Unlock()
+	s.mu.RUnlock()
 
 	// sort by created_at and specified order
 	sort.Slice(set.Results, func(i, j int) bool {
@@ -323,8 +358,24 @@ func (s *Store) DeleteAuthentications(_ context.Context, req *authn.DeleteAuthen
 			delete(s.byToken, hashedToken)
 		}
 	}
-
 	return nil
+}
+
+// GetIDToken implements authn.Store.
+func (s *Store) GetIDToken(ctx context.Context, id string) (*authn.IDTokenData, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	authentication, ok := s.byID[id]
+	if !ok {
+		return nil, errors.ErrNotFoundf("getting authentication IDToken")
+	}
+
+	if authentication.idToken == nil {
+		return nil, errors.ErrNotFoundf("getting authentication IDToken")
+	}
+
+	return authentication.idToken, nil
 }
 
 // ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
@@ -339,6 +390,7 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expires
 
 	authentication.ExpiresAt = expiresAt
 	authentication.UpdatedAt = s.now()
+
 	return nil
 }
 

@@ -5,7 +5,10 @@ import { forwardRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  selectRevision
+} from '~/app/environments/environmentsApi';
 import {
   useCreateNamespaceMutation,
   useUpdateNamespaceMutation
@@ -21,7 +24,7 @@ import { INamespace } from '~/types/Namespace';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { getRevision, stringAsKey } from '~/utils/helpers';
+import { stringAsKey } from '~/utils/helpers';
 
 const namespaceValidationSchema = Yup.object({
   key: keyValidation,
@@ -45,7 +48,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const { setSuccess } = useSuccess();
 
   const environment = useSelector(selectCurrentEnvironment);
-  const revision = getRevision();
+  const revision = useSelector(selectRevision);
 
   const [createNamespace] = useCreateNamespaceMutation();
   const [updateNamespace] = useUpdateNamespaceMutation();
