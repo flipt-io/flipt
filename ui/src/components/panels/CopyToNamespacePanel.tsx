@@ -49,10 +49,10 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
   );
 
   const [selectedNamespace, setSelectedNamespace] =
-    useState<SelectableNamespace>({
+    useState<SelectableNamespace>(() => ({
       ...namespaces[0],
       displayValue: namespaces[0]?.name
-    });
+    }));
 
   const handleSubmit = () => {
     return handleCopy(selectedNamespace.key);
