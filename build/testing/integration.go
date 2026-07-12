@@ -1090,7 +1090,8 @@ GOEOF
 			}).
 			File("/ca.crt")
 
-		flipt, err := flipt.WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).
+		var err error
+		flipt, err = flipt.WithFile("/usr/local/share/ca-certificates/lowkey-vault.crt", caCert).
 			WithUser("root").
 			WithExec([]string{
 				"sh", "-c",

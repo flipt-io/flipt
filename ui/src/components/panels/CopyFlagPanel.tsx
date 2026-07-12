@@ -25,11 +25,11 @@ import {
 import Listbox from '~/components/forms/Listbox';
 
 import { IEnvironment } from '~/types/Environment';
-import { INamespace, INamespaceList } from '~/types/Namespace';
+import { INamespace } from '~/types/Namespace';
 import { ISelectable } from '~/types/Selectable';
 
-import { apiURL, request } from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { getErrorMessage } from '~/utils/helpers';
 
 type SelectableEnvironment = Pick<IEnvironment, 'key' | 'name'> & ISelectable;
 type SelectableNamespace = Pick<INamespace, 'key' | 'name'> & ISelectable;
@@ -59,7 +59,7 @@ function toSelectableNamespace(namespace: INamespace): SelectableNamespace {
   return {
     key: namespace.key,
     name: namespace.name,
-    displayValue: namespace.name
+    displayValue: namespace.name || namespace.key
   };
 }
 
@@ -103,12 +103,34 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
     useState<SelectableEnvironment>();
   const [selectedNamespace, setSelectedNamespace] =
     useState<SelectableNamespace>();
-  const [remoteNamespaces, setRemoteNamespaces] = useState<INamespace[]>([]);
-  const [namespacesLoading, setNamespacesLoading] = useState(false);
-  const [remoteNamespacesLoaded, setRemoteNamespacesLoaded] = useState(false);
-  const [remoteNamespacesLoadError, setRemoteNamespacesLoadError] =
-    useState<string>();
-  const [remoteNamespacesRetry, setRemoteNamespacesRetry] = useState(0);
+  const shouldLoadRemoteNamespaces =
+    open &&
+    !!selectedEnvironment?.key &&
+    selectedEnvironment.key !== environment.key;
+  const {
+    data: remoteNamespacesData,
+    error: remoteNamespacesError,
+    isFetching: remoteNamespacesLoading,
+    isError: remoteNamespacesIsError,
+    refetch: refetchRemoteNamespaces
+  } = useListNamespacesQuery(
+    {
+      environmentKey: selectedEnvironment?.key || ''
+    },
+    { skip: !shouldLoadRemoteNamespaces }
+  );
+  const remoteNamespaces = useMemo(
+    () => remoteNamespacesData?.items ?? [],
+    [remoteNamespacesData?.items]
+  );
+  const namespacesLoading =
+    shouldLoadRemoteNamespaces && remoteNamespacesLoading;
+  const remoteNamespacesLoaded =
+    shouldLoadRemoteNamespaces && remoteNamespacesData !== undefined;
+  const remoteNamespacesLoadError =
+    shouldLoadRemoteNamespaces && remoteNamespacesIsError
+      ? getErrorMessage(remoteNamespacesError)
+      : undefined;
 
   useEffect(() => {
     if (open) {
@@ -117,11 +139,6 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
 
     setSelectedEnvironment(undefined);
     setSelectedNamespace(undefined);
-    setRemoteNamespaces((current) => (current.length > 0 ? [] : current));
-    setNamespacesLoading(false);
-    setRemoteNamespacesLoaded(false);
-    setRemoteNamespacesLoadError(undefined);
-    setRemoteNamespacesRetry(0);
   }, [open]);
 
   useEffect(() => {
@@ -150,59 +167,6 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
       );
     });
   }, [open, environment.key, environmentOptions, hasAlternativeNamespace]);
-
-  useEffect(() => {
-    if (!open || !selectedEnvironment?.key) {
-      return;
-    }
-
-    let active = true;
-
-    if (selectedEnvironment.key === environment.key) {
-      setRemoteNamespaces((current) => (current.length > 0 ? [] : current));
-      setNamespacesLoading((current) => (current ? false : current));
-      setRemoteNamespacesLoaded(false);
-      setRemoteNamespacesLoadError(undefined);
-      return;
-    }
-
-    setNamespacesLoading(true);
-    setRemoteNamespacesLoaded(false);
-    setRemoteNamespacesLoadError(undefined);
-    request('GET', `${apiURL}/${selectedEnvironment.key}/namespaces`)
-      .then((response) => {
-        if (!active) {
-          return;
-        }
-
-        const data = response as INamespaceList;
-
-        setRemoteNamespaces(data.items);
-        setRemoteNamespacesLoaded(true);
-      })
-      .catch((err) => {
-        if (!active) {
-          return;
-        }
-
-        setRemoteNamespaces([]);
-        setRemoteNamespacesLoaded(false);
-        setRemoteNamespacesLoadError(
-          err instanceof Error
-            ? err.message
-            : 'Unable to load namespaces for the selected environment.'
-        );
-      })
-      .finally(() => {
-        if (active) {
-          setNamespacesLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [environment.key, open, remoteNamespacesRetry, selectedEnvironment?.key]);
 
   const namespaceOptions = useMemo(() => {
     const availableNamespaces =
@@ -299,7 +263,6 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
               Namespace
             </div>
             <Listbox<SelectableNamespace>
-              key={selectedEnvironment?.key || 'copy-namespace'}
               id="copyToNamespace"
               name="namespaceKey"
               ariaLabelledBy="copyToNamespace-label"
@@ -320,7 +283,7 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => setRemoteNamespacesRetry((retry) => retry + 1)}
+                  onClick={() => refetchRemoteNamespaces()}
                 >
                   Retry
                 </Button>
