@@ -8,7 +8,7 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
@@ -134,6 +134,7 @@ export default function SegmentTable(props: SegmentTableProps) {
   });
 
   const [filter, setFilter] = useState<string>('');
+  const deferredFilter = useDeferredValue(filter);
 
   const sorting = useSelector(selectSorting);
 
@@ -155,7 +156,7 @@ export default function SegmentTable(props: SegmentTableProps) {
     data: segments,
     columns,
     state: {
-      globalFilter: filter,
+      globalFilter: deferredFilter,
       sorting,
       pagination
     },
