@@ -3,6 +3,7 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 
 import { IFlag, IFlagList } from '~/types/Flag';
+import { INamespaceList } from '~/types/Namespace';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
@@ -239,7 +240,7 @@ export const flagsApi = createApi({
           return { error: resp.error };
         }
 
-        const destination = resp.data as { revision?: string };
+        const destination = resp.data as INamespaceList;
 
         const data = {
           key: res.resource.key,

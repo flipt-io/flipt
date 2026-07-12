@@ -149,10 +149,11 @@ test.describe('Flags', () => {
     });
     await expect(copyAction).toBeEnabled({ timeout: 30000 });
     await copyAction.click();
-    await expect(page.locator('#copyToNamespace-select-button')).toBeEnabled({
-      timeout: 30000
+    const namespaceSelect = page.getByRole('combobox', {
+      name: 'Namespace'
     });
-    await page.locator('#copyToNamespace-select-button').click();
+    await expect(namespaceSelect).toBeEnabled({ timeout: 30000 });
+    await namespaceSelect.click();
     await page.getByRole('option', { name: 'copy flag', exact: true }).click();
     await page.getByRole('button', { name: 'Copy', exact: true }).click();
     await expect(page.getByText('Successfully copied flag')).toBeVisible();
@@ -187,7 +188,9 @@ test.describe('Flags', () => {
     });
     await expect(copyAction).toBeEnabled({ timeout: 30000 });
     await copyAction.click();
-    const environmentSelect = page.locator('#copyToEnvironment-select-button');
+    const environmentSelect = page.getByRole('combobox', {
+      name: 'Environment'
+    });
     await expect(environmentSelect).toBeEnabled({ timeout: 30000 });
     const currentEnvironmentName = (
       (await environmentSelect.textContent()) || ''
@@ -216,10 +219,11 @@ test.describe('Flags', () => {
       'requires an alternate writable environment'
     );
 
-    await expect(page.locator('#copyToNamespace-select-button')).toBeEnabled({
-      timeout: 30000
+    const namespaceSelect = page.getByRole('combobox', {
+      name: 'Namespace'
     });
-    await page.locator('#copyToNamespace-select-button').click();
+    await expect(namespaceSelect).toBeEnabled({ timeout: 30000 });
+    await namespaceSelect.click();
 
     const namespaceOptions = page.getByRole('option');
     await expect(namespaceOptions.first()).toBeVisible({ timeout: 30000 });

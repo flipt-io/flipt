@@ -12,6 +12,7 @@ import { ISelectable } from '~/types/Selectable';
 type ListBoxProps<T extends ISelectable> = {
   id: string;
   name: string;
+  ariaLabelledBy?: string;
   values?: T[];
   selected?: T;
   setSelected?: (v: T) => void;
@@ -20,8 +21,16 @@ type ListBoxProps<T extends ISelectable> = {
 };
 
 export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
-  const { id, name, values, selected, setSelected, disabled, className } =
-    props;
+  const {
+    id,
+    name,
+    ariaLabelledBy,
+    values,
+    selected,
+    setSelected,
+    disabled,
+    className
+  } = props;
 
   return (
     <Select
@@ -35,7 +44,11 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
         }
       }}
     >
-      <SelectTrigger id={`${id}-select-button`} className={className}>
+      <SelectTrigger
+        id={`${id}-select-button`}
+        aria-labelledby={ariaLabelledBy}
+        className={className}
+      >
         <SelectValue placeholder="Select an option" />
       </SelectTrigger>
       <SelectContent>
