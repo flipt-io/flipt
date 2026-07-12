@@ -1,33 +1,13 @@
 import { SearchIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 type SearchboxProps = {
   value: string;
   onChange: (value: string) => void;
-  debounce?: number;
   className?: string;
 };
 
 export default function Searchbox(props: SearchboxProps) {
-  const {
-    value: initialValue,
-    onChange,
-    debounce = 500,
-    className = ''
-  } = props;
-  const [value, setValue] = useState<string>(initialValue);
-
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      onChange(value);
-    }, debounce);
-
-    return () => clearTimeout(timeout);
-  }, [debounce, onChange, value]);
+  const { value, onChange, className = '' } = props;
 
   return (
     <div className={`${className} flex flex-1 items-center justify-start`}>
@@ -49,7 +29,7 @@ export default function Searchbox(props: SearchboxProps) {
             placeholder="Search"
             type="search"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => onChange(e.target.value)}
           />
         </div>
       </div>

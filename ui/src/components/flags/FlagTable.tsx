@@ -15,7 +15,7 @@ import {
   VariableIcon,
   XSquareIcon
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
@@ -246,6 +246,7 @@ export default function FlagTable(props: FlagTableProps) {
   });
 
   const [filter, setFilter] = useState<string>('');
+  const deferredFilter = useDeferredValue(filter);
 
   const sorting = useSelector(selectSorting);
 
@@ -270,7 +271,7 @@ export default function FlagTable(props: FlagTableProps) {
     data: flags,
     columns,
     state: {
-      globalFilter: filter,
+      globalFilter: deferredFilter,
       sorting,
       pagination
     },

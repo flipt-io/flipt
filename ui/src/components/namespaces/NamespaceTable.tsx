@@ -11,7 +11,7 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { ArrowDownIcon, ArrowUpIcon, PencilIcon, XIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
@@ -106,6 +106,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [filter, setFilter] = useState<string>('');
+  const deferredFilter = useDeferredValue(filter);
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -173,7 +174,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
     data: sortedNamespaces,
     columns,
     state: {
-      globalFilter: filter,
+      globalFilter: deferredFilter,
       sorting,
       pagination
     },
