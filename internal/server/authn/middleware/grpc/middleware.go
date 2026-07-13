@@ -124,7 +124,7 @@ func AuthenticationRequiredUnaryInterceptor(logger *zap.Logger, o ...containers.
 
 		auth := GetAuthenticationFrom(ctx)
 		if auth == nil {
-			logger.Error("unauthenticated", zap.String("reason", "authentication required"))
+			logger.Warn("unauthenticated", zap.String("reason", "authentication required"))
 			return ctx, errUnauthenticated
 		}
 
@@ -148,7 +148,7 @@ func AuthenticationRequiredStreamInterceptor(logger *zap.Logger, o ...containers
 
 		auth := GetAuthenticationFrom(ctx)
 		if auth == nil {
-			logger.Error("unauthenticated", zap.String("reason", "authentication required"))
+			logger.Warn("unauthenticated", zap.String("reason", "authentication required"))
 			return errUnauthenticated
 		}
 
