@@ -10,3 +10,4 @@ ignored_usernames = ["renovate", "dependabot"]
 
 [merge]
 method = "squash"
+notify_on_conflict = true

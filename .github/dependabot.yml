@@ -36,6 +36,22 @@ updates:
       - "javascript"
       # kodiak `merge.automerge_label`
       - "automerge"
+    groups:
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-error-boundary"
+          - "@types/react"
+          - "@types/react-dom"
+      codemirror:
+        patterns:
+          - "@codemirror/*"
+          - "@uiw/react-codemirror"
+          - "@uiw/codemirror-theme-tokyo-night"
 
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
