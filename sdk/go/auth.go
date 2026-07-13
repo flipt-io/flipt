@@ -9,6 +9,22 @@ import (
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 )
 
+// ClientTokenProvider is a type which when requested provides a
+// client token which can be used to authenticate RPC/API calls
+// invoked through the SDK.
+//
+// It exists here as a migration bridge for external consumers
+// (e.g. github.com/open-feature/go-sdk-contrib/providers/flipt)
+// that previously defined this interface themselves. Defining it
+// in the SDK allows those packages to depend on it directly and
+// guide their users toward ClientAuthenticationProvider without
+// a breaking change in the provider layer.
+//
+// Deprecated: Use ClientAuthenticationProvider instead.
+type ClientTokenProvider interface {
+	ClientToken() (string, error)
+}
+
 const (
 	defaultServiceAccountTokenPath = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	defaultKubernetesExpiryLeeway  = 10 * time.Second
