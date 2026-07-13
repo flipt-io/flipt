@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import {
+  selectAllEnvironments,
   selectCurrentEnvironment,
-  selectEnvironments,
   useListEnvironmentsQuery
 } from '~/app/environments/environmentsApi';
 import {
@@ -69,7 +69,7 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
   const { setError, clearError } = useError();
 
   const environment = useSelector(selectCurrentEnvironment);
-  const environmentsFromStore = useSelector(selectEnvironments);
+  const allEnvironmentsFromStore = useSelector(selectAllEnvironments);
   const namespace = useSelector(selectCurrentNamespace);
   const namespacesFromStore = useSelector(selectNamespaces);
   const { data: environmentsData } = useListEnvironmentsQuery();
@@ -82,10 +82,11 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
 
   const environments = useMemo(
     () =>
-      (environmentsData?.environments ?? environmentsFromStore).filter(
-        (candidate) => !candidate.configuration?.base
+      (environmentsData?.environments ?? allEnvironmentsFromStore).filter(
+        (candidate) =>
+          !candidate.configuration?.base || candidate.key === environment.key
       ),
-    [environmentsData?.environments, environmentsFromStore]
+    [allEnvironmentsFromStore, environment.key, environmentsData?.environments]
   );
   const namespaces = namespacesData?.items ?? namespacesFromStore;
 
@@ -103,6 +104,8 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
     useState<SelectableEnvironment>();
   const [selectedNamespace, setSelectedNamespace] =
     useState<SelectableNamespace>();
+  const [isCopying, setIsCopying] = useState(false);
+  const isCopyingRef = useRef(false);
   const shouldLoadRemoteNamespaces =
     open &&
     !!selectedEnvironment?.key &&
@@ -226,11 +229,34 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
     });
   };
 
+  const handleCopyClick = async () => {
+    if (isCopyingRef.current) {
+      return;
+    }
+
+    isCopyingRef.current = true;
+    setIsCopying(true);
+    try {
+      await handleSubmit();
+      clearError();
+      if (onSuccess) {
+        onSuccess();
+      }
+      setOpen(false);
+    } catch (err) {
+      setError(err);
+    } finally {
+      isCopyingRef.current = false;
+      setIsCopying(false);
+    }
+  };
+
   const isCopyDisabled =
     !selectedEnvironment ||
     !selectedNamespace ||
     namespacesLoading ||
-    !!remoteNamespacesLoadError;
+    !!remoteNamespacesLoadError ||
+    isCopying;
   const showEmptyNamespaces =
     !namespacesLoading &&
     !remoteNamespacesLoadError &&
@@ -283,6 +309,7 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
                 <Button
                   variant="secondary"
                   size="sm"
+                  disabled={namespacesLoading}
                   onClick={() => refetchRemoteNamespaces()}
                 >
                   Retry
@@ -302,19 +329,7 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
             variant="primary"
             type="button"
             disabled={isCopyDisabled}
-            onClick={() => {
-              handleSubmit()
-                .then(() => {
-                  clearError();
-                  if (onSuccess) {
-                    onSuccess();
-                  }
-                  setOpen(false);
-                })
-                .catch((err) => {
-                  setError(err);
-                });
-            }}
+            onClick={handleCopyClick}
           >
             Copy
           </Button>

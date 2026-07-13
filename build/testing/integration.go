@@ -1080,7 +1080,7 @@ GOEOF
 			WithExec([]string{
 				"sh", "-c",
 				`for i in $(seq 1 30); do
-					if timeout 5 openssl s_client -connect lowkey-vault:8443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > /ca.crt 2>/dev/null && [ -s /ca.crt ]; then
+					if openssl s_client -connect lowkey-vault:8443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > /ca.crt 2>/dev/null && [ -s /ca.crt ]; then
 						exit 0
 					fi
 					sleep 1
