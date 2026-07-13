@@ -15,6 +15,7 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 	"go.uber.org/zap"
 )
 
@@ -965,4 +966,96 @@ func TestFetchRepos(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorIs(t, err, plumbing.ErrReferenceNotFound)
 	})
+}
+
+func TestUpdateAndPush_NonFastForwardRetry(t *testing.T) {
+	// Create a bare remote repository
+	remoteDir := t.TempDir()
+	remoteRepo, err := git.PlainInit(remoteDir, true,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+
+	// Create a normal local repo, push an initial commit to establish the branch
+	localDir := t.TempDir()
+	localPlain, err := git.PlainInit(localDir, false,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+
+	require.NoError(t, os.WriteFile(filepath.Join(localDir, "init.txt"), []byte("init"), 0o600))
+	wt, err := localPlain.Worktree()
+	require.NoError(t, err)
+	_, err = wt.Add("init.txt")
+	require.NoError(t, err)
+	_, err = wt.Commit("initial commit", &git.CommitOptions{
+		Author: &object.Signature{Name: "test", Email: "test@test.com", When: time.Now()},
+	})
+	require.NoError(t, err)
+
+	_, err = localPlain.CreateRemote(&config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{remoteDir},
+	})
+	require.NoError(t, err)
+	require.NoError(t, localPlain.Push(&git.PushOptions{RemoteName: "origin"}))
+
+	// Open the repo through Flipt's constructor so we get a properly configured Repository
+	repo, _, err := newRepository(t.Context(), zap.NewNop(),
+		WithFilesystemStorage(localDir),
+		WithRemote("origin", remoteDir),
+		WithSignature("test", "test@test.com"),
+	)
+	require.NoError(t, err)
+
+	// Now advance the remote behind our back: clone into a second worktree,
+	// commit, and push. This makes our local remote-tracking ref stale.
+	interferingDir := t.TempDir()
+	interferingRepo, err := git.PlainClone(interferingDir, &git.CloneOptions{
+		URL: remoteDir,
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, os.WriteFile(filepath.Join(interferingDir, "other.txt"), []byte("other"), 0o600))
+	interferingWt, err := interferingRepo.Worktree()
+	require.NoError(t, err)
+	_, err = interferingWt.Add("other.txt")
+	require.NoError(t, err)
+	_, err = interferingWt.Commit("interfering commit", &git.CommitOptions{
+		Author: &object.Signature{Name: "other", Email: "other@test.com", When: time.Now()},
+	})
+	require.NoError(t, err)
+	require.NoError(t, interferingRepo.Push(&git.PushOptions{RemoteName: "origin"}))
+
+	// Now UpdateAndPush from our repo — it should hit non-fast-forward, retry, and succeed
+	hash, err := repo.UpdateAndPush(t.Context(), "main", func(fs envsfs.Filesystem) (string, error) {
+		fi, err := fs.OpenFile("flipt.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+		if err != nil {
+			return "", err
+		}
+		if _, err := fi.Write([]byte("from flipt")); err != nil {
+			return "", err
+		}
+		if err := fi.Close(); err != nil {
+			return "", err
+		}
+		return "flipt commit after retry", nil
+	})
+	require.NoError(t, err)
+	assert.False(t, hash.IsZero())
+
+	// Verify the commit landed on the remote
+	remoteRef, err := remoteRepo.Reference(plumbing.NewBranchReferenceName("main"), true)
+	require.NoError(t, err)
+	assert.Equal(t, hash, remoteRef.Hash(), "remote should point to our commit")
+
+	// Verify the commit has the interfering commit as an ancestor (i.e. we rebased on top of it)
+	commitObj, err := remoteRepo.CommitObject(hash)
+	require.NoError(t, err)
+	assert.Equal(t, "flipt commit after retry", commitObj.Message)
+	assert.Len(t, commitObj.ParentHashes, 1)
+
+	parentCommit, err := remoteRepo.CommitObject(commitObj.ParentHashes[0])
+	require.NoError(t, err)
+	assert.Equal(t, "interfering commit", parentCommit.Message)
 }
