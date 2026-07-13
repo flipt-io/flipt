@@ -164,6 +164,7 @@ func run(kind apiKind, data []byte, outputFile *protogen.GeneratedFile) error {
 				s.Value.Get.RequestBody = nil
 				s.Value.Get.OperationId = "oidcFrontChannelLogout"
 				s.Value.Get.Description = "Handles OpenID Connect Front-Channel Logout requests initiated by the identity provider. The optional `iss` and `sid` query parameters are used to identify the user session to be terminated."
+				s.Value.Post.Description = "Handles OpenID Connect Back-Channel Logout requests initiated by the identity provider."
 			}
 		}
 	}

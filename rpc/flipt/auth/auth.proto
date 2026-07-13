@@ -175,7 +175,7 @@ service AuthenticationMethodOIDCService {
     option (google.api.http) = {get: "/auth/v1/method/oidc/{provider}/callback"};
     option (gnostic.openapi.v3.operation) = {operation_id: "oidcCallback"};
   }
-  // Handles OpenID Connect Back-Channel Logout requests initiated by the identity provider.
+  // Handles OpenID Connect Back-Channel (POST) and Front-Channel (GET) Logout requests initiated by the identity provider.
   rpc Revoke(RevokeOIDCRequest) returns (RevokeOIDCResponse) {
     option (google.api.http) = {
       post: "/auth/v1/method/oidc/{provider}/revoke"
