@@ -1,6 +1,6 @@
-import * as Dialog from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
+import { Dialog } from 'radix-ui';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useMatches, useNavigate } from 'react-router';
