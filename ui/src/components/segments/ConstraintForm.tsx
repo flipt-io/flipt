@@ -1,7 +1,7 @@
-import * as Dialog from '@radix-ui/react-dialog';
 import { addMinutes, format, formatISO, isValid, parseISO } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import { CircleHelpIcon, XIcon } from 'lucide-react';
+import { Dialog } from 'radix-ui';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';

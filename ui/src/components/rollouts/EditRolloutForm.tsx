@@ -1,6 +1,6 @@
-import * as Dialog from '@radix-ui/react-dialog';
 import { FieldArray, Form, Formik } from 'formik';
 import { XIcon } from 'lucide-react';
+import { Dialog } from 'radix-ui';
 
 import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
