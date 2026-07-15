@@ -574,6 +574,8 @@ func UpdateIfHeadMatches(hash *plumbing.Hash) containers.Option[UpdateAndPushOpt
 
 // UpdateAndPush calls the provided function with a Filesystem implementation which intercepts any write
 // operations and builds the changes into a commit.
+// On non-fast-forward errors fn is re-executed against a fresh filesystem rooted at the updated remote head.
+// fn should be free of side effects beyond the filesystem.
 // Given an upstream remote is configured, the commit is also pushed to the given branch.
 func (r *Repository) UpdateAndPush(
 	ctx context.Context,
@@ -666,29 +668,29 @@ func (r *Repository) UpdateAndPush(
 		return commit.Hash, nil
 	}
 
-	local := plumbing.NewBranchReferenceName(branch)
+	localRef := plumbing.NewBranchReferenceName(branch)
 	r.logger.Debug("setting local reference",
-		zap.Stringer("reference", local),
+		zap.Stringer("reference", localRef),
 		zap.Stringer("hash", commit.Hash))
 
-	if err := r.Storer.SetReference(plumbing.NewHashReference(local, commit.Hash)); err != nil {
+	if err := r.Storer.SetReference(plumbing.NewHashReference(localRef, commit.Hash)); err != nil {
 		return hash, err
 	}
 
 	r.logger.Debug("pushing to remote",
 		zap.String("remoteName", r.remote.Name),
 		zap.Strings("remoteURLs", r.remote.URLs),
-		zap.Stringer("refSpec", config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", local))))
+		zap.Stringer("refSpec", config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", localRef))))
 
 	pushErr := r.PushContext(ctx, &git.PushOptions{
 		RemoteName:    r.remote.Name,
 		ClientOptions: r.gitClientOptions,
 		RefSpecs: []config.RefSpec{
-			config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", local)),
+			config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", localRef)),
 		},
 	})
 	if pushErr != nil {
-		if !strings.Contains(pushErr.Error(), "non-fast-forward update") {
+		if pushErr.Error() != fmt.Sprintf("non-fast-forward update: %s", localRef) {
 			return hash, pushErr
 		}
 
@@ -697,7 +699,7 @@ func (r *Repository) UpdateAndPush(
 
 		fetchRefSpec := config.RefSpec(
 			fmt.Sprintf("+%s:%s",
-				plumbing.NewBranchReferenceName(branch),
+				localRef,
 				plumbing.NewRemoteReferenceName(r.remote.Name, branch),
 			),
 		)
@@ -760,7 +762,7 @@ func (r *Repository) UpdateAndPush(
 			}
 		}
 
-		if err := r.Storer.SetReference(plumbing.NewHashReference(local, commit.Hash)); err != nil {
+		if err := r.Storer.SetReference(plumbing.NewHashReference(localRef, commit.Hash)); err != nil {
 			return hash, err
 		}
 
@@ -768,7 +770,7 @@ func (r *Repository) UpdateAndPush(
 			RemoteName:    r.remote.Name,
 			ClientOptions: r.gitClientOptions,
 			RefSpecs: []config.RefSpec{
-				config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", local)),
+				config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", localRef)),
 			},
 		}); err != nil {
 			return hash, err
@@ -828,7 +830,12 @@ func (r *Repository) ResolveHead() (plumbing.Hash, error) {
 }
 
 func (r *Repository) Resolve(branch string) (plumbing.Hash, error) {
-	reference, err := r.Repository.Reference(plumbing.NewRemoteReferenceName("origin", branch), true)
+	remoteName := "origin"
+	if r.remote != nil {
+		remoteName = r.remote.Name
+	}
+
+	reference, err := r.Repository.Reference(plumbing.NewRemoteReferenceName(remoteName, branch), true)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
