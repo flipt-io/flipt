@@ -1,0 +1,10 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "packageRules": [
+    {
+      "matchPackagePrefixes": ["google.golang.org/genproto/"],
+      "groupName": "genproto",
+      "postUpdateOptions": ["gomodTidy"]
+    }
+  ]
+}
