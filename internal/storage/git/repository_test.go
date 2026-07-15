@@ -1165,7 +1165,7 @@ func TestUpdateAndPush_NonFastForwardRetry(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, hash, remoteRef.Hash(), "remote should point to our commit")
 
-	// Verify the commit has the interfering commit as an ancestor (i.e. we rebased on top of it)
+	// Verify the commit has the interfering commit as an ancestor (i.e. we rebased on top of it.)
 	commitObj, err := remoteRepo.CommitObject(hash)
 	require.NoError(t, err)
 	assert.Equal(t, "flipt commit after retry", commitObj.Message)
