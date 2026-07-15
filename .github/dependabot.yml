@@ -9,6 +9,35 @@ updates:
       opentelemetry:
         patterns:
           - "go.opentelemetry.io/*"
+      aws-sdk-go-v2:
+        patterns:
+          - "github.com/aws/aws-sdk-go-v2/*"
+      grpc:
+        patterns:
+          - "google.golang.org/grpc*"
+          - "github.com/grpc-ecosystem/*"
+          - "google.golang.org/protobuf*"
+          - "google.golang.org/genproto*"
+      go-chi:
+        patterns:
+          - "github.com/go-chi/*"
+      azure-sdk-go:
+        patterns:
+          - "github.com/Azure/azure-sdk-for-go/*"
+          - "github.com/microsoft/azure-devops-go-api/*"
+      charmbracelet:
+        patterns:
+          - "github.com/charmbracelet/*"
+      prometheus:
+        patterns:
+          - "github.com/prometheus/*"
+      redis:
+        patterns:
+          - "github.com/redis/go-redis/*"
+      go-git:
+        patterns:
+          - "github.com/go-git/go-git*"
+          - "github.com/go-git/go-billy*"
     ignore:
       - dependency-name: "*"
         update-types:
@@ -36,6 +65,22 @@ updates:
       - "javascript"
       # kodiak `merge.automerge_label`
       - "automerge"
+    groups:
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-error-boundary"
+          - "@types/react"
+          - "@types/react-dom"
+      codemirror:
+        patterns:
+          - "@codemirror/*"
+          - "@uiw/react-codemirror"
+          - "@uiw/codemirror-theme-tokyo-night"
 
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
