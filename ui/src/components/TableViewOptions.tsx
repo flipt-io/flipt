@@ -1,6 +1,6 @@
-import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { Table } from '@tanstack/react-table';
 import { SlidersHorizontal } from 'lucide-react';
+import { DropdownMenu as DropdownMenuPrimitive } from 'radix-ui';
 
 import { Button } from '~/components/Button';
 import {
@@ -18,7 +18,7 @@ export function DataTableViewOptions<TData>({
 }: DataTableViewOptionsProps<TData>) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuPrimitive.Trigger asChild>
         <Button
           variant="ghost"
           className="-ml-3 h-8 data-[state=open]:bg-accent"
@@ -26,7 +26,7 @@ export function DataTableViewOptions<TData>({
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           View
         </Button>
-      </DropdownMenuTrigger>
+      </DropdownMenuPrimitive.Trigger>
       <DropdownMenuContent align="end" className="w-[150px]">
         {table
           .getAllColumns()

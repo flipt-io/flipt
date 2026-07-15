@@ -1,6 +1,6 @@
-import * as Dialog from '@radix-ui/react-dialog';
 import { Form, Formik } from 'formik';
 import { XIcon } from 'lucide-react';
+import { Dialog } from 'radix-ui';
 import { forwardRef, useContext } from 'react';
 import * as Yup from 'yup';
 

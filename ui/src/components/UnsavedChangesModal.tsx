@@ -1,5 +1,5 @@
-import * as Dialog from '@radix-ui/react-dialog';
 import { FormikProps } from 'formik';
+import { Dialog } from 'radix-ui';
 import { useEffect, useState } from 'react';
 import { useBlocker, useNavigate } from 'react-router';
 

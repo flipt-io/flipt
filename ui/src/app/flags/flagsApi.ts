@@ -3,6 +3,7 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 
 import { IFlag, IFlagList } from '~/types/Flag';
+import { INamespaceList } from '~/types/Namespace';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
@@ -205,19 +206,21 @@ export const flagsApi = createApi({
     copyFlag: builder.mutation<
       void,
       {
-        environmentKey: string;
-        from: { namespaceKey: string; flagKey: string };
-        to: { namespaceKey: string; flagKey: string };
+        from: {
+          environmentKey: string;
+          namespaceKey: string;
+          flagKey: string;
+        };
+        to: {
+          environmentKey: string;
+          namespaceKey: string;
+          flagKey: string;
+        };
       }
     >({
-      queryFn: async (
-        { environmentKey, from, to },
-        _api,
-        _extraOptions,
-        baseQuery
-      ) => {
+      queryFn: async ({ from, to }, _api, _extraOptions, baseQuery) => {
         let resp = await baseQuery({
-          url: `/${environmentKey}/namespaces/${from.namespaceKey}/resources/flipt.core.Flag/${from.flagKey}`,
+          url: `/${from.environmentKey}/namespaces/${from.namespaceKey}/resources/flipt.core.Flag/${from.flagKey}`,
           method: 'GET'
         });
         if (resp.error) {
@@ -229,14 +232,24 @@ export const flagsApi = createApi({
           revision: string;
         };
 
-        let data = {
+        resp = await baseQuery({
+          url: `/${to.environmentKey}/namespaces`,
+          method: 'GET'
+        });
+        if (resp.error) {
+          return { error: resp.error };
+        }
+
+        const destination = resp.data as INamespaceList;
+
+        const data = {
           key: res.resource.key,
           payload: res.resource.payload,
-          revision: res.revision
+          revision: destination.revision
         };
 
         resp = await baseQuery({
-          url: `/${environmentKey}/namespaces/${to.namespaceKey}/resources`,
+          url: `/${to.environmentKey}/namespaces/${to.namespaceKey}/resources`,
           method: 'POST',
           body: data
         });
@@ -245,8 +258,8 @@ export const flagsApi = createApi({
         }
         return { data: undefined };
       },
-      invalidatesTags: (_result, _error, { environmentKey, to }) => [
-        { type: 'Flag', id: environmentKey + '/' + to.namespaceKey }
+      invalidatesTags: (_result, _error, { to }) => [
+        { type: 'Flag', id: to.environmentKey + '/' + to.namespaceKey }
       ]
     })
   })

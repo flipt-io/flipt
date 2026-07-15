@@ -1,6 +1,6 @@
-import { Slot } from '@radix-ui/react-slot';
 import { type VariantProps, cva } from 'class-variance-authority';
 import { LucideIcon, PlusIcon } from 'lucide-react';
+import { Slot } from 'radix-ui';
 import * as React from 'react';
 
 import { cn } from '~/components/utils';
@@ -54,7 +54,7 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
   }) {
-  const Comp = asChild ? Slot : 'button';
+  const Comp = asChild ? Slot.Slot : 'button';
   const kind = props.type || 'button';
 
   return (
