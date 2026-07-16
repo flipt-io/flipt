@@ -68,6 +68,9 @@ export const environmentsSlice = createSlice({
       if (state.currentEnvironment === action.payload.environmentKey) {
         state.revision = action.payload.revision;
       }
+    },
+    environmentAdded: (state, action) => {
+      state.environments[action.payload.key] = action.payload;
     }
   }
 });
@@ -77,6 +80,7 @@ export const selectRevision = (state: RootState) => state.environments.revision;
 export const {
   currentEnvironmentChanged,
   environmentsChanged,
+  environmentAdded,
   revisionChanged
 } = environmentsSlice.actions;
 
@@ -152,7 +156,28 @@ export const environmentsApi = createApi({
       invalidatesTags: () => [
         { type: 'Environment' },
         { type: 'BranchEnvironment' }
-      ]
+      ],
+      async onQueryStarted(
+        { environmentKey, key },
+        { dispatch, queryFulfilled }
+      ) {
+        try {
+          await queryFulfilled;
+          dispatch(
+            environmentsSlice.actions.environmentAdded({
+              key,
+              configuration: {
+                base: environmentKey,
+                remote: '',
+                branch: key,
+                directory: ''
+              }
+            })
+          );
+        } catch {
+          // Mutation failed, no cache updates needed
+        }
+      }
     }),
     deleteBranchEnvironment: builder.mutation<
       void,

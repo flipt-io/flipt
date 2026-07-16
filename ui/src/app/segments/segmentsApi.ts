@@ -2,6 +2,8 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 
+import { revisionChanged } from '~/app/environments/environmentsApi';
+
 import { IConstraint } from '~/types/Constraint';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { ISegment, ISegmentList } from '~/types/Segment';
@@ -29,6 +31,16 @@ export const segmentsTableSlice = createSlice({
 
 export const selectSorting = (state: RootState) => state.segmentsTable.sorting;
 export const { setSorting } = segmentsTableSlice.actions;
+
+function enrichSegment(segment: ISegment): ISegment {
+  return {
+    ...segment,
+    constraints: segment.constraints?.map((c: IConstraint) => ({
+      ...c,
+      id: uuid()
+    }))
+  };
+}
 
 export const segmentsApi = createApi({
   reducerPath: 'segments',
@@ -79,20 +91,12 @@ export const segmentsApi = createApi({
         { type: 'Segment', id: environmentKey + '/' + namespaceKey }
       ],
       transformResponse: (response: IResourceResponse<ISegment>): ISegment => {
-        return {
-          ...response.resource.payload,
-          constraints: response.resource.payload.constraints?.map(
-            (c: IConstraint) => ({
-              ...c,
-              id: uuid()
-            })
-          )
-        };
+        return enrichSegment(response.resource.payload);
       }
     }),
     // create a new segment in the namespace
     createSegment: builder.mutation<
-      ISegment,
+      IResourceResponse<ISegment>,
       {
         environmentKey: string;
         namespaceKey: string;
@@ -114,17 +118,42 @@ export const segmentsApi = createApi({
           }
         };
       },
-      invalidatesTags: (
-        _result,
-        _error,
-        { environmentKey, namespaceKey, values }
-      ) => [
-        { type: 'Segment', id: environmentKey + '/' + namespaceKey },
-        {
-          type: 'Segment',
-          id: environmentKey + '/' + namespaceKey + '/' + values.key
+      async onQueryStarted(
+        { environmentKey, namespaceKey },
+        { dispatch, queryFulfilled }
+      ) {
+        try {
+          const { data, meta } = await queryFulfilled;
+          if (meta?.revision) {
+            dispatch(
+              revisionChanged({ environmentKey, revision: meta.revision })
+            );
+          }
+          const payload = data.resource.payload;
+          dispatch(
+            segmentsApi.util.upsertQueryData(
+              'getSegment',
+              {
+                environmentKey,
+                namespaceKey,
+                segmentKey: data.resource.key
+              },
+              enrichSegment(payload)
+            )
+          );
+          dispatch(
+            segmentsApi.util.updateQueryData(
+              'listSegments',
+              { environmentKey, namespaceKey },
+              (draft) => {
+                draft.segments.push(payload);
+              }
+            )
+          );
+        } catch {
+          // Mutation failed, no cache updates needed
         }
-      ]
+      }
     }),
     // delete the segment from the namespace
     deleteSegment: builder.mutation<
@@ -142,21 +171,36 @@ export const segmentsApi = createApi({
           method: 'DELETE'
         };
       },
-      invalidatesTags: (
-        _result,
-        _error,
-        { environmentKey, namespaceKey, segmentKey }
-      ) => [
-        { type: 'Segment', id: environmentKey + '/' + namespaceKey },
-        {
-          type: 'Segment',
-          id: environmentKey + '/' + namespaceKey + '/' + segmentKey
+      async onQueryStarted(
+        { environmentKey, namespaceKey, segmentKey },
+        { dispatch, queryFulfilled }
+      ) {
+        try {
+          const { meta } = await queryFulfilled;
+          if (meta?.revision) {
+            dispatch(
+              revisionChanged({ environmentKey, revision: meta.revision })
+            );
+          }
+          dispatch(
+            segmentsApi.util.updateQueryData(
+              'listSegments',
+              { environmentKey, namespaceKey },
+              (draft) => {
+                draft.segments = draft.segments.filter(
+                  (s) => s.key !== segmentKey
+                );
+              }
+            )
+          );
+        } catch {
+          // Mutation failed, no cache updates needed
         }
-      ]
+      }
     }),
     // update the segment in the namespace
     updateSegment: builder.mutation<
-      ISegment,
+      IResourceResponse<ISegment>,
       {
         environmentKey: string;
         namespaceKey: string;
@@ -180,17 +224,43 @@ export const segmentsApi = createApi({
           }
         };
       },
-      invalidatesTags: (
-        _result,
-        _error,
-        { environmentKey, namespaceKey, segmentKey }
-      ) => [
-        { type: 'Segment', id: environmentKey + '/' + namespaceKey },
-        {
-          type: 'Segment',
-          id: environmentKey + '/' + namespaceKey + '/' + segmentKey
+      async onQueryStarted(
+        { environmentKey, namespaceKey, segmentKey },
+        { dispatch, queryFulfilled }
+      ) {
+        try {
+          const { data, meta } = await queryFulfilled;
+          if (meta?.revision) {
+            dispatch(
+              revisionChanged({ environmentKey, revision: meta.revision })
+            );
+          }
+          const payload = data.resource.payload;
+          dispatch(
+            segmentsApi.util.upsertQueryData(
+              'getSegment',
+              { environmentKey, namespaceKey, segmentKey },
+              enrichSegment(payload)
+            )
+          );
+          dispatch(
+            segmentsApi.util.updateQueryData(
+              'listSegments',
+              { environmentKey, namespaceKey },
+              (draft) => {
+                const idx = draft.segments.findIndex(
+                  (s) => s.key === segmentKey
+                );
+                if (idx >= 0) {
+                  draft.segments[idx] = payload;
+                }
+              }
+            )
+          );
+        } catch {
+          // Mutation failed, no cache updates needed
         }
-      ]
+      }
     }),
     // copy the segment from one namespace to another one
     copySegment: builder.mutation<

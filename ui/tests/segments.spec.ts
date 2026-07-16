@@ -12,6 +12,9 @@ test.describe('Segments', () => {
     await page.getByLabel('Description').click();
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Successfully created segment')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Test Segment' })
+    ).toBeVisible();
   });
 
   test('can update segment', async ({ page }) => {
@@ -20,6 +23,7 @@ test.describe('Segments', () => {
     await page.getByLabel('Description').fill("i'm a test");
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated segment')).toBeVisible();
+    await expect(page.getByLabel('Description')).toHaveValue("i'm a test");
   });
 
   test('can add constraints to segment', async ({ page }) => {

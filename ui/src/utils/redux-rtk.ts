@@ -28,10 +28,16 @@ export const internalQuery = fetchBaseQuery({
   fetchFn: customFetchFn
 });
 
+export interface BaseQueryMeta {
+  revision?: string;
+}
+
 export const baseQuery: BaseQueryFn<
   string | FetchArgs,
   unknown,
-  FetchBaseQueryError
+  FetchBaseQueryError,
+  {},
+  BaseQueryMeta
 > = async (args, api, extraOptions) => {
   const result = await fetchBaseQuery({
     baseUrl: apiURL,

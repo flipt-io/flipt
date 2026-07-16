@@ -2,6 +2,8 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 
+import { revisionChanged } from '~/app/environments/environmentsApi';
+
 import { IFlag, IFlagList } from '~/types/Flag';
 import { INamespaceList } from '~/types/Namespace';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
@@ -31,6 +33,22 @@ export const flagsTableSlice = createSlice({
 
 export const selectSorting = (state: RootState) => state.flagsTable.sorting;
 export const { setSorting } = flagsTableSlice.actions;
+
+function enrichFlag(flag: IFlag): IFlag {
+  return {
+    ...flag,
+    rollouts: flag.rollouts?.map((r: IRollout, i: number) => ({
+      ...r,
+      id: uuid(),
+      rank: i
+    })),
+    rules: flag.rules?.map((r: IRule, i: number) => ({
+      ...r,
+      id: uuid(),
+      rank: i
+    }))
+  };
+}
 
 export const flagsApi = createApi({
   reducerPath: 'flags',
@@ -81,28 +99,12 @@ export const flagsApi = createApi({
         { type: 'Flag', id: environmentKey + '/' + namespaceKey }
       ],
       transformResponse: (response: IResourceResponse<IFlag>): IFlag => {
-        return {
-          ...response.resource.payload,
-          rollouts: response.resource.payload.rollouts?.map(
-            (r: IRollout, i: number) => ({
-              ...r,
-              id: uuid(),
-              rank: i
-            })
-          ),
-          rules: response.resource.payload.rules?.map(
-            (r: IRule, i: number) => ({
-              ...r,
-              id: uuid(),
-              rank: i
-            })
-          )
-        };
+        return enrichFlag(response.resource.payload);
       }
     }),
     // create a new flag in the namespace
     createFlag: builder.mutation<
-      IFlag,
+      IResourceResponse<IFlag>,
       {
         environmentKey: string;
         namespaceKey: string;
@@ -124,17 +126,42 @@ export const flagsApi = createApi({
           }
         };
       },
-      invalidatesTags: (
-        _result,
-        _error,
-        { environmentKey, namespaceKey, values }
-      ) => [
-        { type: 'Flag', id: environmentKey + '/' + namespaceKey },
-        {
-          type: 'Flag',
-          id: environmentKey + '/' + namespaceKey + '/' + values.key
+      async onQueryStarted(
+        { environmentKey, namespaceKey },
+        { dispatch, queryFulfilled }
+      ) {
+        try {
+          const { data, meta } = await queryFulfilled;
+          if (meta?.revision) {
+            dispatch(
+              revisionChanged({ environmentKey, revision: meta.revision })
+            );
+          }
+          const payload = data.resource.payload;
+          dispatch(
+            flagsApi.util.upsertQueryData(
+              'getFlag',
+              {
+                environmentKey,
+                namespaceKey,
+                flagKey: data.resource.key
+              },
+              enrichFlag(payload)
+            )
+          );
+          dispatch(
+            flagsApi.util.updateQueryData(
+              'listFlags',
+              { environmentKey, namespaceKey },
+              (draft) => {
+                draft.flags.push(payload);
+              }
+            )
+          );
+        } catch {
+          // Mutation failed, no cache updates needed
         }
-      ]
+      }
     }),
     // delete the flag from the namespace
     deleteFlag: builder.mutation<
@@ -152,21 +179,34 @@ export const flagsApi = createApi({
           method: 'DELETE'
         };
       },
-      invalidatesTags: (
-        _result,
-        _error,
-        { environmentKey, namespaceKey, flagKey }
-      ) => [
-        { type: 'Flag', id: environmentKey + '/' + namespaceKey },
-        {
-          type: 'Flag',
-          id: environmentKey + '/' + namespaceKey + '/' + flagKey
+      async onQueryStarted(
+        { environmentKey, namespaceKey, flagKey },
+        { dispatch, queryFulfilled }
+      ) {
+        try {
+          const { meta } = await queryFulfilled;
+          if (meta?.revision) {
+            dispatch(
+              revisionChanged({ environmentKey, revision: meta.revision })
+            );
+          }
+          dispatch(
+            flagsApi.util.updateQueryData(
+              'listFlags',
+              { environmentKey, namespaceKey },
+              (draft) => {
+                draft.flags = draft.flags.filter((f) => f.key !== flagKey);
+              }
+            )
+          );
+        } catch {
+          // Mutation failed, no cache updates needed
         }
-      ]
+      }
     }),
     // update the flag in the namespace
     updateFlag: builder.mutation<
-      IFlag,
+      IResourceResponse<IFlag>,
       {
         environmentKey: string;
         namespaceKey: string;
@@ -190,17 +230,41 @@ export const flagsApi = createApi({
           }
         };
       },
-      invalidatesTags: (
-        _result,
-        _error,
-        { environmentKey, namespaceKey, flagKey }
-      ) => [
-        { type: 'Flag', id: environmentKey + '/' + namespaceKey },
-        {
-          type: 'Flag',
-          id: environmentKey + '/' + namespaceKey + '/' + flagKey
+      async onQueryStarted(
+        { environmentKey, namespaceKey, flagKey },
+        { dispatch, queryFulfilled }
+      ) {
+        try {
+          const { data, meta } = await queryFulfilled;
+          if (meta?.revision) {
+            dispatch(
+              revisionChanged({ environmentKey, revision: meta.revision })
+            );
+          }
+          const payload = data.resource.payload;
+          dispatch(
+            flagsApi.util.upsertQueryData(
+              'getFlag',
+              { environmentKey, namespaceKey, flagKey },
+              enrichFlag(payload)
+            )
+          );
+          dispatch(
+            flagsApi.util.updateQueryData(
+              'listFlags',
+              { environmentKey, namespaceKey },
+              (draft) => {
+                const idx = draft.flags.findIndex((f) => f.key === flagKey);
+                if (idx >= 0) {
+                  draft.flags[idx] = payload;
+                }
+              }
+            )
+          );
+        } catch {
+          // Mutation failed, no cache updates needed
         }
-      ]
+      }
     }),
     // copy the flag from one namespace to another one
     copyFlag: builder.mutation<

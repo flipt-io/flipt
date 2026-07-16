@@ -16,6 +16,9 @@ test.describe('Flags', () => {
     await page.getByLabel('Description').click();
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Successfully created flag')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Test Flag' })
+    ).toBeVisible();
   });
 
   test('can update flag', async ({ page }) => {
@@ -24,6 +27,9 @@ test.describe('Flags', () => {
     await page.getByLabel('Description').fill('Test flag description');
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    await expect(page.getByLabel('Description')).toHaveValue(
+      'Test flag description'
+    );
   });
 
   test('can add variants to flag', async ({ page }) => {
