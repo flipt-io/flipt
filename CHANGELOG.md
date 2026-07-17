@@ -3,6 +3,41 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0](https://github.com/flipt-io/flipt/releases/tag/v2.11.0) - 2026-07-17
+
+### Added
+
+- **OIDC Single Logout**: Add OpenID Connect Single Logout (SLO) support (#6125)
+- **OIDC authorization parameters**: Support custom authorization parameters in OIDC provider configuration (#6126)
+- **Environment PR titles**: Allow users to customize pull request titles (#6123)
+- **Flag copying**: Allow flags to be copied across environments (#5772)
+- **Segment reference visibility**: Show flags that reference a segment (#6145)
+- **YAML extension constraints**: Serialize `isoneof` constraint values as YAML lists (#6072)
+
+### Changed
+
+- **Revision tracking**: Move UI revision tracking to the per-environment transport layer and use per-query revisions (#6108, #6106)
+- **Flag evaluation performance**: Improve flag evaluation speed (#6023)
+- **Table search responsiveness**: Replace the Searchbox debounce with `useDeferredValue` (#6173)
+- **Build tooling**: Upgrade build tooling to Node.js 24 (#6073)
+
+### Fixed
+
+- **Git updates**: Retry non-fast-forward Git reference updates (#6207)
+- **Namespace concurrency**: Add namespace ETag support across storage backends (#6041)
+- **Evaluation metrics**: Record evaluation metrics only when the `WithMetrics` option is enabled (#6042)
+- **Redis logging**: Route internal go-redis logs through zap (#6132)
+- **gRPC authentication logging**: Log "authentication required" messages at WARN level (#6198)
+- **UI component initialization**: Lazily initialize state in metadata and flag-copy panels (#6171)
+
+### Security
+
+- **Container dependencies**: Patch container and Docker dependency CVEs (#6163)
+
+### Dependencies
+
+- Updated various dependencies including gRPC, gRPC Gateway, Google APIs, OPA, CUE, AWS SDK, Go Cloud, ClickHouse, OIDC, React, React Router, Radix UI, CodeMirror, Tailwind, Vite, Playwright, PostCSS, and GitHub Actions
+
 ## [2.10.0](https://github.com/flipt-io/flipt/releases/tag/v2.10.0) - 2026-06-12
 
 ### Added
