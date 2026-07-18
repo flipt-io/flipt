@@ -86,8 +86,11 @@ npm run lint
 
 [tasks.prep]
 description = "Prepare project for building (clean + ui:build)"
-depends = ["clean", "ui:build"]
-run = 'echo " > Prepared."'
+depends = ["clean"]
+run = """
+mise run ui:build
+echo " > Prepared."
+"""
 
 [tasks.build]
 description = "Build the project similar to a release build"
