@@ -5,7 +5,7 @@ go 1.25.0
 toolchain go1.26.5
 
 require (
-	cuelang.org/go v0.17.0
+	cuelang.org/go v0.17.1
 	github.com/go-git/go-billy/v5 v5.9.0
 	github.com/gobwas/glob v0.2.3
 	github.com/stretchr/testify v1.11.1
