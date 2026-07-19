@@ -41,19 +41,13 @@ export default function Preferences() {
   const { inTimezone } = useTimezone();
   const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
 
-  const DEBOUNCE_DELAY = 1000;
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const DEBOUNCE_DELAY = 1000;
 
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    if (lastSaved) {
-      if (isInitialLoad.current) {
-        isInitialLoad.current = false;
-        dispatch(resetLastSaved());
-        return;
-      }
-
+    if (lastSaved && !isInitialLoad.current) {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
@@ -66,6 +60,8 @@ export default function Preferences() {
         dispatch(resetLastSaved());
         debounceTimerRef.current = null;
       }, DEBOUNCE_DELAY);
+    } else if (lastSaved && isInitialLoad.current) {
+      dispatch(resetLastSaved());
     }
 
     return () => {
@@ -73,7 +69,11 @@ export default function Preferences() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [lastSaved, dispatch, setNotification]);
+  }, [lastSaved, dispatch, setNotification, isInitialLoad]);
+
+  useEffect(() => {
+    isInitialLoad.current = false;
+  }, []);
 
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>
