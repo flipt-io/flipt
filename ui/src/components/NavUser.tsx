@@ -20,6 +20,7 @@ import {
 import { User } from '~/types/auth/User';
 
 import { revokeAuthSelf } from '~/data/api';
+import { browser } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { redirectAfterLogout } from '~/utils/navigation';
@@ -37,7 +38,7 @@ export function NavUser({ user }: { user: User }) {
       redirectAfterLogout(
         (next: string, hard: boolean) => {
           if (hard) {
-            window.location.href = next;
+            browser.navigateTo(next);
           } else {
             navigate(next);
           }

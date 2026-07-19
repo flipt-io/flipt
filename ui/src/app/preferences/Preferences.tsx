@@ -1,6 +1,6 @@
 import { Formik } from 'formik';
 import { Clock, Moon, Radio, Sun } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Switch } from '~/components/Switch';
@@ -41,17 +41,19 @@ export default function Preferences() {
   const { inTimezone } = useTimezone();
   const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
 
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_DELAY = 1000;
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-  useEffect(() => {
-    setIsInitialLoad(false);
-  }, []);
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    if (lastSaved && !isInitialLoad) {
+    if (lastSaved) {
+      if (isInitialLoad.current) {
+        isInitialLoad.current = false;
+        dispatch(resetLastSaved());
+        return;
+      }
+
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
@@ -64,8 +66,6 @@ export default function Preferences() {
         dispatch(resetLastSaved());
         debounceTimerRef.current = null;
       }, DEBOUNCE_DELAY);
-    } else if (lastSaved && isInitialLoad) {
-      dispatch(resetLastSaved());
     }
 
     return () => {
@@ -73,7 +73,7 @@ export default function Preferences() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [lastSaved, dispatch, setNotification, isInitialLoad]);
+  }, [lastSaved, dispatch, setNotification]);
 
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>

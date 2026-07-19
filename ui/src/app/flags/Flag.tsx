@@ -38,7 +38,7 @@ import {
 } from './flagsApi';
 
 export default function Flag() {
-  let { flagKey } = useParams();
+  const { flagKey } = useParams();
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
   const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);

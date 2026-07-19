@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
@@ -47,9 +46,7 @@ export const { currentNamespaceChanged } = namespacesSlice.actions;
 export const selectNamespaces = createSelector(
   [(state: RootState) => state.namespaces.namespaces],
   (namespaces) => {
-    return Object.entries(namespaces).map(
-      ([_, value]) => value
-    ) as INamespace[];
+    return Object.entries(namespaces).map(([, value]) => value) as INamespace[];
   }
 );
 

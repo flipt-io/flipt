@@ -100,7 +100,9 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
   );
 }
 
-function isFetchBaseQueryError(error: unknown): error is ErrorWithMessage {
+function isFetchBaseQueryError(
+  error: unknown
+): error is { data: ErrorWithMessage } {
   return (
     typeof error === 'object' &&
     error !== null &&
@@ -114,7 +116,6 @@ function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
   if (isErrorWithMessage(maybeError)) return maybeError;
   // handle Redux FetchBaseQueryError
   if (isFetchBaseQueryError(maybeError)) {
-    // @ts-ignore
     return maybeError.data;
   }
   try {

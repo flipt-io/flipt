@@ -116,7 +116,7 @@ function ReferencedFlags({
 }
 
 export default function Segment() {
-  let { segmentKey } = useParams();
+  const { segmentKey } = useParams();
 
   const [showDeleteSegmentModal, setShowDeleteSegmentModal] =
     useState<boolean>(false);

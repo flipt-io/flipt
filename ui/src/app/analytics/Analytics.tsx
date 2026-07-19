@@ -106,6 +106,19 @@ export default function Analytics() {
     durations[0]
   );
   const [pollingInterval, setPollingInterval] = useState<number>(0);
+  const [prevSelection, setPrevSelection] = useState({
+    selectedDuration,
+    selectedFlag
+  });
+
+  if (
+    prevSelection.selectedDuration !== selectedDuration ||
+    prevSelection.selectedFlag !== selectedFlag
+  ) {
+    // Set the polling interval to 0 every time we change durations or flag
+    setPrevSelection({ selectedDuration, selectedFlag });
+    setPollingInterval(0);
+  }
 
   // Select flag from path param if present
   useEffect(() => {
@@ -119,19 +132,10 @@ export default function Analytics() {
     }
   }, [flagKey, flagOptions, selectedFlag]);
 
-  // Keep selectedFlag in sync with flagOptions
-  useEffect(() => {
-    if (
-      flagOptions.length > 0 &&
-      selectedFlag &&
-      !flagOptions.find((f) => f.key === selectedFlag.key)
-    ) {
-      setSelectedFlag(null);
-    }
-    if (flagOptions.length === 0) {
-      setSelectedFlag(null);
-    }
-  }, [flagsData, flagOptions, selectedFlag]);
+  const effectiveSelectedFlag = useMemo(() => {
+    if (!selectedFlag || flagOptions.length === 0) return null;
+    return flagOptions.find((f) => f.key === selectedFlag.key) ?? null;
+  }, [flagOptions, selectedFlag]);
 
   // Analytics query
   const d = new Date();
@@ -139,11 +143,11 @@ export default function Analytics() {
   d.setMilliseconds(0);
 
   const getFlagEvaluationCount = useGetFlagEvaluationCountQuery(
-    selectedFlag && info.analytics?.enabled
+    effectiveSelectedFlag && info.analytics?.enabled
       ? {
           environmentKey: environment.key,
           namespaceKey: namespace.key,
-          flagKey: selectedFlag.key,
+          flagKey: effectiveSelectedFlag.key,
           from: addMinutes(
             d,
             selectedDuration?.value ? selectedDuration.value * -1 : -60
@@ -153,7 +157,7 @@ export default function Analytics() {
       : skipToken,
     {
       pollingInterval,
-      skip: !info.analytics?.enabled || !selectedFlag
+      skip: !info.analytics?.enabled || !effectiveSelectedFlag
     }
   );
 
@@ -163,11 +167,6 @@ export default function Analytics() {
       values: getFlagEvaluationCount.data?.values || []
     };
   }, [getFlagEvaluationCount]);
-
-  // Set the polling interval to 0 every time we change durations or flag
-  useEffect(() => {
-    setPollingInterval(0);
-  }, [selectedDuration, selectedFlag]);
 
   // Empty state if analytics disabled
   if (!info.analytics?.enabled) {
@@ -216,7 +215,7 @@ export default function Analytics() {
                 className="w-lg"
                 placeholder="Select or search for a flag"
                 values={flagOptions}
-                selected={selectedFlag}
+                selected={effectiveSelectedFlag}
                 setSelected={(flag) => {
                   setSelectedFlag(flag);
                   if (flag) {
@@ -275,7 +274,7 @@ export default function Analytics() {
               </Button>
             </Well>
           </div>
-        ) : !selectedFlag ? (
+        ) : !effectiveSelectedFlag ? (
           <div className="mt-12 w-full">
             <Well>
               <ChartNoAxesCombinedIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
@@ -292,7 +291,7 @@ export default function Analytics() {
             <Graph
               timestamps={flagEvaluationCount.timestamps}
               values={flagEvaluationCount.values}
-              flagKey={selectedFlag.key}
+              flagKey={effectiveSelectedFlag.key}
             />
           </div>
         )}
