@@ -117,7 +117,19 @@ func callbackURL(host, provider string) string {
 }
 
 func newOIDCClient(ctx context.Context, cfg config.AuthenticationMethodOIDCProvider, provider string) (*client, error) {
-	p, err := oidc.NewProvider(ctx, cfg.IssuerURL)
+	// Determine where to fetch the discovery document from. Some providers
+	// (e.g. Azure AD B2C) serve the discovery document from a URL that differs
+	// from the issuer reported inside that document and in issued tokens. When
+	// discovery_url is set we fetch from it and pin token verification to
+	// issuer_url via InsecureIssuerURLContext, which skips go-oidc's default
+	// requirement that the discovered issuer match the fetch URL.
+	discoveryURL := cfg.IssuerURL
+	if cfg.DiscoveryURL != "" {
+		discoveryURL = cfg.DiscoveryURL
+		ctx = oidc.InsecureIssuerURLContext(ctx, cfg.IssuerURL)
+	}
+
+	p, err := oidc.NewProvider(ctx, discoveryURL)
 	if err != nil {
 		return nil, fmt.Errorf("creating OIDC provider: %w", err)
 	}

@@ -14,6 +14,70 @@ func TestWithForwardPrefix(t *testing.T) {
 	assert.Equal(t, "/some/prefix", getForwardPrefix(ctx))
 }
 
+func TestAuthenticationMethodOIDCProvider_validate(t *testing.T) {
+	base := func() AuthenticationMethodOIDCProvider {
+		return AuthenticationMethodOIDCProvider{
+			IssuerURL:       "https://issuer.example.com",
+			ClientID:        "id",
+			ClientSecret:    "secret",
+			RedirectAddress: "https://flipt.example.com",
+		}
+	}
+
+	tests := []struct {
+		name          string
+		mutate        func(*AuthenticationMethodOIDCProvider)
+		errorContains string
+	}{
+		{
+			name:   "valid without discovery_url",
+			mutate: func(*AuthenticationMethodOIDCProvider) {},
+		},
+		{
+			name: "valid with discovery_url and issuer_url",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.DiscoveryURL = "https://tenant.b2clogin.com/tenant.onmicrosoft.com/policy/v2.0"
+			},
+		},
+		{
+			name: "discovery_url without issuer_url fails",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.IssuerURL = ""
+				p.DiscoveryURL = "https://tenant.b2clogin.com/tenant.onmicrosoft.com/policy/v2.0"
+			},
+			errorContains: "issuer_url",
+		},
+		{
+			name: "valid claims_mapping",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.ClaimsMapping = map[string]string{"email": "/emails/0", "name": "/given_name"}
+			},
+		},
+		{
+			name: "invalid claims_mapping key fails",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.ClaimsMapping = map[string]string{"role": "/roles/0"}
+			},
+			errorContains: "invalid claim key 'role'",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := base()
+			tt.mutate(&cfg)
+
+			err := cfg.validate()
+			if tt.errorContains != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorContains)
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestAuthenticationMethodJWTConfig_validate_ClaimsMapping(t *testing.T) {
 	tests := []struct {
 		name          string

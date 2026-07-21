@@ -104,6 +104,113 @@ func TestRegistry_GetProvider_ClientCreationFailure(t *testing.T) {
 	require.ErrorContains(t, err, "creating OIDC provider")
 }
 
+func TestRegistry_GetProvider_DiscoveryURLOverride(t *testing.T) {
+	ctx := t.Context()
+
+	// mismatchedIssuer mimics Azure AD B2C: the discovery document reports an
+	// issuer (tenant-GUID form) that differs from the URL the document is
+	// fetched from (domain + policy form).
+	const (
+		mismatchedIssuer = "https://issuer.example.com/26aa757b-a20c-4270-bc1c-d946b1f3e4a2/v2.0/"
+		clientID         = "test-client"
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/.well-known/openid-configuration":
+			serve(t, http.StatusOK, map[string]string{
+				"issuer":                 mismatchedIssuer,
+				"authorization_endpoint": srv.URL + "/auth",
+				"token_endpoint":         srv.URL + "/token",
+				"jwks_uri":               srv.URL + "/certs",
+			})(w, r)
+		case "/certs":
+			jwks := jose.JSONWebKeySet{
+				Keys: []jose.JSONWebKey{
+					{Key: &priv.PublicKey, Algorithm: "RS256", KeyID: "test-key"},
+				},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			assert.NoError(t, json.NewEncoder(w).Encode(jwks))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(srv.Close)
+
+	newRegistry := func(p config.AuthenticationMethodOIDCProvider) *Registry {
+		return NewRegistry(config.AuthenticationConfig{
+			Methods: config.AuthenticationMethodsConfig{
+				OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+					Enabled: true,
+					Method: config.AuthenticationMethodOIDCConfig{
+						Providers: map[string]config.AuthenticationMethodOIDCProvider{"b2c": p},
+					},
+				},
+			},
+		})
+	}
+
+	t.Run("without discovery_url fails on issuer mismatch", func(t *testing.T) {
+		reg := newRegistry(config.AuthenticationMethodOIDCProvider{
+			IssuerURL:       srv.URL,
+			ClientID:        clientID,
+			ClientSecret:    "secret",
+			RedirectAddress: "http://localhost",
+		})
+
+		_, err := reg.getProvider(ctx, "b2c")
+		require.ErrorContains(t, err, "did not match")
+	})
+
+	t.Run("with discovery_url succeeds and pins verification to issuer_url", func(t *testing.T) {
+		reg := newRegistry(config.AuthenticationMethodOIDCProvider{
+			IssuerURL:       mismatchedIssuer,
+			DiscoveryURL:    srv.URL,
+			ClientID:        clientID,
+			ClientSecret:    "secret",
+			RedirectAddress: "http://localhost",
+		})
+
+		c, err := reg.getProvider(ctx, "b2c")
+		require.NoError(t, err)
+
+		// Endpoints must come from the discovery document served at DiscoveryURL.
+		assert.Equal(t, srv.URL+"/auth", c.oauth2Cfg.Endpoint.AuthURL)
+		assert.Equal(t, srv.URL+"/token", c.oauth2Cfg.Endpoint.TokenURL)
+
+		sign := func(iss string) string {
+			tok := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+				"iss": iss,
+				"aud": clientID,
+				"sub": "user-1",
+				"exp": time.Now().Add(time.Hour).Unix(),
+				"iat": time.Now().Unix(),
+			})
+			tok.Header["kid"] = "test-key"
+			signed, err := tok.SignedString(priv)
+			require.NoError(t, err)
+			return signed
+		}
+
+		verifier := c.provider.Verifier(c.oidcCfg)
+
+		// A token whose issuer matches issuer_url (the GUID form) is accepted.
+		idToken, err := verifier.Verify(ctx, sign(mismatchedIssuer))
+		require.NoError(t, err)
+		assert.Equal(t, "user-1", idToken.Subject)
+
+		// A token whose issuer is the discovery/fetch URL is rejected: token
+		// verification remains pinned to issuer_url.
+		_, err = verifier.Verify(ctx, sign(srv.URL))
+		require.ErrorContains(t, err, "id token issued by a different provider")
+	})
+}
+
 func TestClient_UsePKCE(t *testing.T) {
 	t.Run("enabled", func(t *testing.T) {
 		c := &client{
