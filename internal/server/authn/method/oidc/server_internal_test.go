@@ -58,6 +58,84 @@ func TestGetHTTPMethod(t *testing.T) {
 	})
 }
 
+func Test_claims_applyMapping(t *testing.T) {
+	// rawClaims mirrors a typical Azure AD B2C ID token payload, where the
+	// email address is delivered in an "emails" array rather than a string
+	// "email" claim.
+	rawClaims := map[string]any{
+		"emails":     []any{"user@scale.com", "alt@scale.com"},
+		"given_name": "Ada",
+		"oid":        "b2c-object-id",
+		"picture":    "", // present but empty: must not override
+	}
+
+	tests := []struct {
+		name    string
+		initial claims
+		mapping map[string]string
+		want    claims
+	}{
+		{
+			name:    "maps email from emails array",
+			mapping: map[string]string{"email": "/emails/0"},
+			want:    claims{Email: new("user@scale.com")},
+		},
+		{
+			name:    "maps name and sub from non-standard claims",
+			mapping: map[string]string{"name": "/given_name", "sub": "/oid"},
+			want:    claims{Name: new("Ada"), Sub: new("b2c-object-id")},
+		},
+		{
+			name:    "overrides existing value",
+			initial: claims{Email: new("stale@scale.com")},
+			mapping: map[string]string{"email": "/emails/1"},
+			want:    claims{Email: new("alt@scale.com")},
+		},
+		{
+			name:    "empty expression is ignored",
+			initial: claims{Email: new("keep@scale.com")},
+			mapping: map[string]string{"email": ""},
+			want:    claims{Email: new("keep@scale.com")},
+		},
+		{
+			name:    "unresolvable pointer is ignored",
+			initial: claims{Name: new("keep")},
+			mapping: map[string]string{"name": "/does/not/exist"},
+			want:    claims{Name: new("keep")},
+		},
+		{
+			name:    "empty resolved value does not override",
+			initial: claims{Picture: new("keep.png")},
+			mapping: map[string]string{"picture": "/picture"},
+			want:    claims{Picture: new("keep.png")},
+		},
+		{
+			name:    "non-string value is ignored",
+			mapping: map[string]string{"email": "/emails"},
+			want:    claims{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := tt.initial
+			c.applyMapping(rawClaims, tt.mapping)
+
+			assert.Equal(t, deref(tt.want.Email), deref(c.Email), "email")
+			assert.Equal(t, deref(tt.want.Name), deref(c.Name), "name")
+			assert.Equal(t, deref(tt.want.Picture), deref(c.Picture), "picture")
+			assert.Equal(t, deref(tt.want.Sub), deref(c.Sub), "sub")
+		})
+	}
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
 func TestEndSessionURI(t *testing.T) {
 	ctx := t.Context()
 
