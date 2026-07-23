@@ -33,7 +33,7 @@ export class APIError extends Error {
 
 export const browser = {
   navigateTo(url: string) {
-    window.location.href = url;
+    window.location.assign(url);
   },
   reloadPage() {
     window.location.reload();

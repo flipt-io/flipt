@@ -32,30 +32,31 @@ import { useTimezone } from '~/data/hooks/timezone';
 
 // Component for displaying array values in constraints
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
+  let items: string[] | number[];
   try {
-    const items: string[] | number[] = JSON.parse(value || '[]');
-    return (
-      <div className="max-w-[300px]">
-        <div className="flex flex-wrap gap-1">
-          {items.slice(0, 5).map((item, idx) => (
-            <span
-              key={idx}
-              className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs"
-            >
-              {String(item)}
-            </span>
-          ))}
-          {items.length > 5 && (
-            <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">
-              +{items.length - 5} more
-            </span>
-          )}
-        </div>
-      </div>
-    );
-  } catch (err) {
+    items = JSON.parse(value || '[]');
+  } catch {
     return <span className="text-red-500">Invalid array</span>;
   }
+  return (
+    <div className="max-w-[300px]">
+      <div className="flex flex-wrap gap-1">
+        {items.slice(0, 5).map((item, idx) => (
+          <span
+            key={idx}
+            className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs"
+          >
+            {String(item)}
+          </span>
+        ))}
+        {items.length > 5 && (
+          <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">
+            +{items.length - 5} more
+          </span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // Component for displaying constraint values based on type
@@ -67,22 +68,21 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
     constraint.type === ConstraintType.DATETIME &&
     constraint.value !== undefined
   ) {
+    let formattedDate: string;
     try {
-      // Attempt to format the date - if it fails, show a fallback
-      const formattedDate = inTimezone(constraint.value);
-      return (
-        <span className="text-sm text-gray-900 dark:text-white">
-          {formattedDate}
-        </span>
-      );
-    } catch (err) {
-      // Show the raw value with an error indication
+      formattedDate = inTimezone(constraint.value);
+    } catch {
       return (
         <span className="text-sm text-red-600 dark:text-red-400">
           {constraint.value || '(invalid date)'}
         </span>
       );
     }
+    return (
+      <span className="text-sm text-gray-900 dark:text-white">
+        {formattedDate}
+      </span>
+    );
   }
 
   if (isArrayValue) {

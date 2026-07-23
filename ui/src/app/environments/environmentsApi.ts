@@ -85,7 +85,7 @@ export const selectEnvironments = createSelector(
   [(state: RootState) => state.environments.environments],
   (environments) => {
     return Object.entries(environments)
-      .map(([_, value]) => value)
+      .map(([, value]) => value)
       .filter((env) => env.configuration?.base === undefined) as IEnvironment[]; // ignore branched environments
   }
 );
@@ -95,7 +95,7 @@ export const selectAllEnvironments = createSelector(
   [(state: RootState) => state.environments.environments],
   (environments) => {
     return Object.entries(environments).map(
-      ([_, value]) => value
+      ([, value]) => value
     ) as IEnvironment[];
   }
 );

@@ -18,6 +18,7 @@ import { Toaster } from '~/components/Sonner';
 import { IAuthMethod } from '~/types/Auth';
 
 import logoFlag from '~/assets/logo-flag.png';
+import { browser } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { upperFirst } from '~/utils/helpers';
@@ -70,7 +71,7 @@ function InnerLoginButtons() {
     }
     clearError();
     const body = await res.json();
-    window.location.href = body.authorizeUrl;
+    browser.navigateTo(body.authorizeUrl);
   };
   const {
     data: listAuthProviders,

@@ -16,7 +16,7 @@ export const authProvidersApi = createApi({
       query: () => {
         return { url: '/method' };
       },
-      providesTags: (_result, _error, _args) => [{ type: 'Provider' }]
+      providesTags: () => [{ type: 'Provider' }]
     })
   })
 });

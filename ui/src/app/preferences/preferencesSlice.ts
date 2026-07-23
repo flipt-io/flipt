@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 import { fetchInfoAsync } from '~/app/meta/metaSlice';
@@ -58,7 +57,7 @@ const getInitialState = (): PreferencesState => {
         realtime = preferences.realtime;
       }
     }
-  } catch (e) {
+  } catch (_e) {
     // localStorage is disabled or not available, ignore
   }
 
@@ -86,7 +85,7 @@ const savePreferences = (state: PreferencesState) => {
       })
     );
     state.lastSaved = Date.now();
-  } catch (e) {
+  } catch (_e) {
     // localStorage is disabled or not available, ignore
   }
 };
