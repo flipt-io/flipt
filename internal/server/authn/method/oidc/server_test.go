@@ -32,6 +32,7 @@ import (
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/net/html"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -956,13 +957,13 @@ func Test_Server_Callback_DoesStoreSIDWhenEmpty(t *testing.T) {
 	require.Len(t, storedAuth.Results, 1)
 }
 
-func Test_Server_Revoke(t *testing.T) {
+func Test_Server_RevokeBackChannel(t *testing.T) {
 	var (
 		id, secret = "client_id", "client_secret"
 		nonce      = "static"
 
 		logger = zaptest.NewLogger(t)
-		ctx    = t.Context()
+		ctx    = metadata.NewOutgoingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodPost))
 	)
 
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
@@ -1116,6 +1117,181 @@ func Test_Server_Revoke(t *testing.T) {
 	}
 }
 
+func Test_Server_RevokeFrontChannel(t *testing.T) {
+	var (
+		id, secret = "client_id", "client_secret"
+
+		logger = zaptest.NewLogger(t)
+		ctx    = metadata.NewOutgoingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodGet))
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(t, err)
+
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+		SigningKey: &oidc.TestSigningKey{
+			PrivKey: priv,
+			PubKey:  priv.Public(),
+			Alg:     oidc.RS256,
+		},
+		ClientID:     &id,
+		ClientSecret: &secret,
+	}))
+	t.Cleanup(func() { tp.Stop() })
+
+	authConfig := config.AuthenticationConfig{
+		Session: config.AuthenticationSessionConfig{
+			TokenLifetime: 1 * time.Hour,
+			StateLifetime: 10 * time.Minute,
+		},
+		Methods: config.AuthenticationMethodsConfig{
+			OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+				Enabled: true,
+				Method: config.AuthenticationMethodOIDCConfig{
+					Providers: map[string]config.AuthenticationMethodOIDCProvider{
+						"google": {
+							IssuerURL:               tp.Addr(),
+							ClientID:                id,
+							ClientSecret:            secret,
+							RedirectAddress:         "http://localhost:8080",
+							Scopes:                  []string{"openid"},
+							AllowFrontChannelLogout: true,
+						},
+						"disabled": {
+							IssuerURL:               tp.Addr(),
+							ClientID:                id,
+							ClientSecret:            secret,
+							RedirectAddress:         "http://localhost:8080",
+							Scopes:                  []string{"openid"},
+							AllowFrontChannelLogout: false,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	grpcServer := oidctesting.StartGRPCServer(t, ctx, logger, authConfig)
+	t.Cleanup(func() { _ = grpcServer.Stop() })
+
+	tests := []struct {
+		name      string
+		provider  string
+		sid       *string
+		iss       *string
+		setupAuth func(t *testing.T) *auth.Authentication
+		verify    func(t *testing.T, created *auth.Authentication)
+		expectErr bool
+		checkErr  func(t *testing.T, err error)
+	}{
+		{
+			name:     "operation disabled",
+			provider: "disabled",
+			checkErr: func(t *testing.T, err error) {
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				assert.Equal(t, codes.InvalidArgument, st.Code())
+				assert.Equal(t, "revoke: operation disabled", st.Message())
+			},
+			expectErr: true,
+		},
+		{
+			name:     "no sid or iss",
+			provider: "google",
+		},
+		{
+			name:      "nil sid with wrong iss errors",
+			provider:  "google",
+			iss:       new("http://evil.example.com"),
+			expectErr: true,
+			checkErr: func(t *testing.T, err error) {
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				assert.Equal(t, codes.InvalidArgument, st.Code())
+				assert.Equal(t, "revoke: issuer mismatch", st.Message())
+			},
+		},
+		{
+			name:      "mismatched issuer",
+			provider:  "google",
+			sid:       new("some-session"),
+			iss:       new("http://evil.example.com"),
+			expectErr: true,
+			checkErr: func(t *testing.T, err error) {
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				assert.Equal(t, codes.InvalidArgument, st.Code())
+				assert.Equal(t, "revoke: issuer mismatch", st.Message())
+			},
+		},
+		{
+			name:     "sid found and auth deleted",
+			provider: "google",
+			sid:      new("known-session"),
+			iss:      new(tp.Addr()),
+			setupAuth: func(t *testing.T) *auth.Authentication {
+				_, created, err := grpcServer.Store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
+					Method:    auth.Method_METHOD_OIDC,
+					ExpiresAt: timestamppb.New(time.Now().Add(time.Hour)),
+					Provider:  "google",
+					Sid:       "known-session",
+					Sub:       "alice",
+					IDToken:   "id-token-jwt",
+				})
+				require.NoError(t, err)
+				return created
+			},
+			verify: func(t *testing.T, created *auth.Authentication) {
+				_, err := grpcServer.Store.GetAuthenticationByID(ctx, created.Id)
+				require.Error(t, err)
+				storedAuth, err := grpcServer.Store.ListAuthentications(ctx, &storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
+					Predicate: storageauth.ListAuthenticationsPredicate{
+						Method:   new(auth.Method_METHOD_OIDC),
+						Provider: new("google"),
+						Sid:      new("known-session"),
+					},
+				})
+				require.NoError(t, err)
+				require.Empty(t, storedAuth.Results)
+			},
+		},
+		{
+			name:     "no matching authentications",
+			provider: "google",
+			sid:      new("unknown-session"),
+			iss:      new(tp.Addr()),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var created *auth.Authentication
+			if tt.setupAuth != nil {
+				created = tt.setupAuth(t)
+			}
+
+			resp, err := grpcServer.Client().Revoke(ctx, &auth.RevokeOIDCRequest{
+				Provider: tt.provider,
+				Sid:      tt.sid,
+				Iss:      tt.iss,
+			})
+			if tt.expectErr {
+				require.Error(t, err)
+				if tt.checkErr != nil {
+					tt.checkErr(t, err)
+				}
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+
+			if tt.verify != nil {
+				tt.verify(t, created)
+			}
+		})
+	}
+}
+
 type errorStore struct {
 	storageauth.Store
 }
@@ -1128,7 +1304,6 @@ func Test_Server_Revoke_StorageError(t *testing.T) {
 	var (
 		id, secret = "client_id", "client_secret"
 		logger     = zaptest.NewLogger(t)
-		ctx        = t.Context()
 	)
 
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
@@ -1182,7 +1357,8 @@ func Test_Server_Revoke_StorageError(t *testing.T) {
 	}).SignedString(priv)
 	require.NoError(t, err)
 
-	_, err = oidcServer.Revoke(ctx, &auth.RevokeOIDCRequest{Provider: "google", LogoutToken: logoutToken})
+	revokeCtx := metadata.NewIncomingContext(t.Context(), metadata.Pairs("x-http-method", http.MethodPost))
+	_, err = oidcServer.Revoke(revokeCtx, &auth.RevokeOIDCRequest{Provider: "google", LogoutToken: logoutToken})
 	require.Error(t, err)
 
 	st, ok := status.FromError(err)

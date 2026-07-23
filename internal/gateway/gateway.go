@@ -19,6 +19,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -222,4 +223,16 @@ func (u formURLEncodedMarshaler) NewDecoder(r io.Reader) runtime.Decoder {
 // (such as OIDC back-channel logout from providers that send form-encoded bodies).
 func NewFormURLEncodedMarshaler() runtime.ServeMuxOption {
 	return runtime.WithMarshalerOption(MIMEFormURLEncoded, &formURLEncodedMarshaler{runtime.JSONBuiltin{}})
+}
+
+// NewHTTPMethodForwarder returns a ServeMuxOption that forwards the original HTTP
+// method as the x-http-method gRPC metadata header. This allows downstream gRPC
+// handlers to distinguish between request methods (e.g. GET vs POST) when routing
+// on a single gRPC method, such as for OIDC front-channel logout path matching.
+func NewHTTPMethodForwarder() runtime.ServeMuxOption {
+	return runtime.WithMetadata(func(ctx context.Context, r *http.Request) metadata.MD {
+		return metadata.Pairs(
+			"x-http-method", r.Method,
+		)
+	})
 }

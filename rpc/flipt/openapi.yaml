@@ -1,9 +1,8 @@
-# Generated with protoc-gen-openapi
-# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+# Generated with protoc-gen-flipt-openapi
 
 openapi: 3.0.3
 info:
-    title: ""
+    title: Common API
     version: 0.0.1
 servers:
     - url: http://localhost:8080
@@ -116,9 +115,36 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/CallbackResponse'
     /auth/v1/method/oidc/{provider}/revoke:
+        get:
+            tags:
+                - AuthenticationMethodOIDCService
+            description: Handles OpenID Connect Front-Channel Logout requests initiated by the identity provider. The optional `iss` and `sid` query parameters are used to identify the user session to be terminated.
+            operationId: oidcFrontChannelLogout
+            parameters:
+                - name: provider
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: iss
+                  in: query
+                  schema:
+                    type: string
+                - name: sid
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RevokeOIDCResponse'
         post:
             tags:
                 - AuthenticationMethodOIDCService
+            description: Handles OpenID Connect Back-Channel Logout requests initiated by the identity provider.
             operationId: oidcRevoke
             parameters:
                 - name: provider

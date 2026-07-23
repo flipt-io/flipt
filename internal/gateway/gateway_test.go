@@ -3,6 +3,7 @@ package gateway
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -12,6 +13,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
@@ -120,6 +122,28 @@ func TestEventSourceMarshalerUnsupported(t *testing.T) {
 	buf, err := m.Marshal(map[string]any{"result": "nope"})
 	require.Error(t, err)
 	require.Nil(t, buf)
+}
+
+func TestNewHTTPMethodForwarder(t *testing.T) {
+	t.Run("forwards HTTP method as x-http-method metadata", func(t *testing.T) {
+		mux := runtime.NewServeMux(NewHTTPMethodForwarder())
+
+		for _, method := range []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut} {
+			req := httptest.NewRequestWithContext(t.Context(), method, "/", nil)
+			annotated, err := runtime.AnnotateContext(req.Context(), mux, req, "test.Method")
+			require.NoError(t, err)
+
+			md, ok := metadata.FromOutgoingContext(annotated)
+			require.True(t, ok, "method %q", method)
+			require.Equal(t, method, md["x-http-method"][0], "method %q", method)
+		}
+	})
+
+	t.Run("option is a valid ServeMuxOption", func(t *testing.T) {
+		opt := NewHTTPMethodForwarder()
+		mux := runtime.NewServeMux(opt)
+		require.NotNil(t, mux)
+	})
 }
 
 func TestFormURLEncodedMarshaler(t *testing.T) {

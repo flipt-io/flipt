@@ -149,7 +149,8 @@ JsonPath: string
 			use_end_session_endpoint?: bool
 			algorithms?: [...("RS256" | "RS384" | "RS512" | "ES256" | "ES384" | "ES512" | "PS256" | "PS384" | "PS512")] | *["RS256"]
 			fetch_extra_user_info?: bool
-			authorize_parameters?: [string]: string
+			allow_front_channel_logout?:  bool
+			authorize_parameters?:       [string]: string
 		}
 
 	}

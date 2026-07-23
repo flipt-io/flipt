@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -282,11 +284,9 @@ func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth
 		s.logger.Error("failed to get provider", zap.String("provider", req.Provider), zap.Error(err))
 		return nil, status.Error(codes.Internal, "revoke: failed get provider")
 	}
-	logoutToken, err := provider.VerifyLogout(ctx, req.LogoutToken)
-	if err != nil {
-		s.logger.Debug("failed to verify logout token", zap.Error(err))
-		return nil, status.Error(codes.InvalidArgument, "revoke: invalid logout token")
-	}
+
+	httpMethod := getHTTPMethod(ctx)
+
 	listQuery := storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
 		Predicate: storageauth.ListAuthenticationsPredicate{
 			Method:   new(auth.Method_METHOD_OIDC),
@@ -295,20 +295,54 @@ func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth
 		QueryParams: storage.QueryParams{Limit: storage.MaxListLimit},
 	}
 
-	switch {
-	case logoutToken.SessionID != "" && logoutToken.Subject != "":
-		listQuery.Predicate.Sid = &logoutToken.SessionID
-		listQuery.Predicate.Sub = &logoutToken.Subject
+	switch httpMethod {
+	case http.MethodPost, "":
+		logoutToken, err := provider.VerifyLogout(ctx, req.LogoutToken)
+		if err != nil {
+			s.logger.Debug("failed to verify logout token", zap.Error(err))
+			return nil, status.Error(codes.InvalidArgument, "revoke: invalid logout token")
+		}
+		switch {
+		case logoutToken.SessionID != "" && logoutToken.Subject != "":
+			listQuery.Predicate.Sid = &logoutToken.SessionID
+			listQuery.Predicate.Sub = &logoutToken.Subject
 
-	case logoutToken.SessionID != "":
-		listQuery.Predicate.Sid = &logoutToken.SessionID
+		case logoutToken.SessionID != "":
+			listQuery.Predicate.Sid = &logoutToken.SessionID
 
-	case logoutToken.Subject != "":
-		listQuery.Predicate.Sub = &logoutToken.Subject
+		case logoutToken.Subject != "":
+			listQuery.Predicate.Sub = &logoutToken.Subject
+
+		default:
+			s.logger.Error("logout token is verified as valid but missing both sid and sub")
+		}
+
+	case http.MethodGet:
+		if !provider.cfg.AllowFrontChannelLogout {
+			return nil, status.Error(codes.InvalidArgument, "revoke: operation disabled")
+		}
+
+		// Per spec, a present iss MUST match the provider's issuer exactly;
+		// mismatch indicates a misconfigured or spoofed request, so error
+		// rather than silently ignoring it.
+		if req.Iss != nil && *req.Iss != provider.cfg.IssuerURL {
+			return nil, status.Error(codes.InvalidArgument, "revoke: issuer mismatch")
+		}
+
+		// Without sid or iss the session cannot be identified, so treat it as a no-op
+		// success per spec rather than erroring.
+		if req.Sid == nil || req.Iss == nil {
+			return &auth.RevokeOIDCResponse{}, nil
+		}
+
+		listQuery.Predicate.Sid = req.Sid
 
 	default:
-		s.logger.Error("logout token is verified as valid but missing both sid and sub")
-		return nil, status.Error(codes.Internal, "revoke: operation requires sid or sub")
+		return nil, status.Error(codes.InvalidArgument, "revoke: unsupported http method")
+	}
+
+	if listQuery.Predicate.Sid == nil && listQuery.Predicate.Sub == nil {
+		return nil, status.Error(codes.InvalidArgument, "revoke: operation requires sid or sub")
 	}
 
 	var ids []string
@@ -340,6 +374,18 @@ func (s *Server) Revoke(ctx context.Context, req *auth.RevokeOIDCRequest) (*auth
 		}
 	}
 	return &auth.RevokeOIDCResponse{}, nil
+}
+
+func getHTTPMethod(ctx context.Context) string {
+	var httpMethod string
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		methods := md.Get("x-http-method")
+		if len(methods) > 0 {
+			httpMethod = methods[0]
+		}
+	}
+	return httpMethod
 }
 
 type claims struct {

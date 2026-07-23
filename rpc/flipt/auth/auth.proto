@@ -160,6 +160,8 @@ message CallbackResponse {
 message RevokeOIDCRequest {
   string provider = 1;
   string logout_token = 2;
+  optional string iss = 3;
+  optional string sid = 4;
 }
 
 message RevokeOIDCResponse {}
@@ -173,10 +175,12 @@ service AuthenticationMethodOIDCService {
     option (google.api.http) = {get: "/auth/v1/method/oidc/{provider}/callback"};
     option (gnostic.openapi.v3.operation) = {operation_id: "oidcCallback"};
   }
+  // Handles OpenID Connect Back-Channel (POST) and Front-Channel (GET) Logout requests initiated by the identity provider.
   rpc Revoke(RevokeOIDCRequest) returns (RevokeOIDCResponse) {
     option (google.api.http) = {
       post: "/auth/v1/method/oidc/{provider}/revoke"
       body: "*"
+      additional_bindings: {get: "/auth/v1/method/oidc/{provider}/revoke"}
     };
     option (gnostic.openapi.v3.operation) = {
       operation_id: "oidcRevoke"
