@@ -54,7 +54,7 @@
     "@babel/preset-typescript": "^7.29.7",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/forms": "^0.5.11",
-    "@tailwindcss/vite": "^4.3.2",
+    "@tailwindcss/vite": "^4.3.3",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.13.3",
