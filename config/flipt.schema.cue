@@ -140,6 +140,7 @@ JsonPath: string
 		#authentication_oidc_provider: {
 			@jsonschema(id="authentication_oidc_provider")
 			issuer_url?:       string
+			discovery_url?:    string
 			client_id?:        string
 			client_secret?:    string
 			redirect_address?: string
@@ -151,6 +152,7 @@ JsonPath: string
 			fetch_extra_user_info?: bool
 			allow_front_channel_logout?:  bool
 			authorize_parameters?:       [string]: string
+			claims_mapping?: [string]: string
 		}
 
 	}
