@@ -58,7 +58,7 @@ func TestAuthenticationMethodOIDCProvider_validate(t *testing.T) {
 			mutate: func(p *AuthenticationMethodOIDCProvider) {
 				p.ClaimsMapping = map[string]string{"role": "/roles/0"}
 			},
-			errorContains: "invalid claim key 'role'",
+			errorContains: `invalid claim key "role"`,
 		},
 	}
 

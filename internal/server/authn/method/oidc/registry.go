@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/go-openapi/jsonpointer"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"golang.org/x/oauth2"
@@ -110,6 +111,7 @@ type client struct {
 	oidcCfg            *oidc.Config
 	endSessionEndpoint string
 	createdAt          time.Time
+	claimsMapping      map[string]jsonpointer.Pointer
 }
 
 func callbackURL(host, provider string) string {
@@ -155,14 +157,34 @@ func newOIDCClient(ctx context.Context, cfg config.AuthenticationMethodOIDCProvi
 		SupportedSigningAlgs: supportedAlgs,
 	}
 
+	claimsMapping, err := newClaimsMapping(cfg.ClaimsMapping)
+	if err != nil {
+		return nil, err
+	}
+
 	return &client{
-		key:       provider,
-		cfg:       cfg,
-		provider:  p,
-		oauth2Cfg: oauth2Config,
-		oidcCfg:   oidcConfig,
-		createdAt: time.Now(),
+		key:           provider,
+		cfg:           cfg,
+		provider:      p,
+		oauth2Cfg:     oauth2Config,
+		oidcCfg:       oidcConfig,
+		createdAt:     time.Now(),
+		claimsMapping: claimsMapping,
 	}, nil
+}
+
+// newClaimsMapping parses and validates the configured OIDC claim mapping
+// expressions, returning a map of claim names to JSON Pointers.
+func newClaimsMapping(cfgClaimsMapping map[string]string) (map[string]jsonpointer.Pointer, error) {
+	claimsMapping := make(map[string]jsonpointer.Pointer, len(cfgClaimsMapping))
+	for name, expr := range cfgClaimsMapping {
+		jsonptr, err := jsonpointer.New(expr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid claim mapping expression for %q: %w", name, err)
+		}
+		claimsMapping[name] = jsonptr
+	}
+	return claimsMapping, nil
 }
 
 // UsePKCE returns whether PKCE is enabled for this provider.

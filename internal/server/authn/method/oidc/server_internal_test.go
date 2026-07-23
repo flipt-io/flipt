@@ -94,7 +94,7 @@ func Test_claims_applyMapping(t *testing.T) {
 		{
 			name:    "empty expression is ignored",
 			initial: claims{Email: new("keep@scale.com")},
-			mapping: map[string]string{"email": ""},
+			mapping: map[string]string{},
 			want:    claims{Email: new("keep@scale.com")},
 		},
 		{
@@ -116,10 +116,15 @@ func Test_claims_applyMapping(t *testing.T) {
 		},
 	}
 
+	logger := zaptest.NewLogger(t)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := tt.initial
-			c.applyMapping(rawClaims, tt.mapping)
+			claimsMapping, err := newClaimsMapping(tt.mapping)
+			require.NoError(t, err)
+
+			c.applyMapping(logger, rawClaims, claimsMapping)
 
 			assert.Equal(t, deref(tt.want.Email), deref(c.Email), "email")
 			assert.Equal(t, deref(tt.want.Name), deref(c.Name), "name")

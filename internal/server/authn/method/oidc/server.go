@@ -234,7 +234,7 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	}, nil
 }
 
-func (*Server) extractMetadata(ctx context.Context, provider *client, idToken *Tk) (map[string]string, claims, error) {
+func (s *Server) extractMetadata(ctx context.Context, provider *client, idToken *Tk) (map[string]string, claims, error) {
 	metadata := map[string]string{
 		storageMetadataOIDCProvider: provider.key,
 	}
@@ -269,7 +269,7 @@ func (*Server) extractMetadata(ctx context.Context, provider *client, idToken *T
 
 	claimsData.fallbackFrom(rawClaims)
 
-	claimsData.applyMapping(rawClaims, provider.cfg.ClaimsMapping)
+	claimsData.applyMapping(s.logger, rawClaims, provider.claimsMapping)
 
 	claimsData.addToMetadata(metadata)
 	return metadata, claimsData, nil
@@ -280,28 +280,21 @@ func (*Server) extractMetadata(ctx context.Context, provider *client, idToken *T
 // claims don't follow the standard OIDC names (e.g. Azure AD B2C's "emails"
 // array) be mapped onto Flipt's canonical fields. Mappings take precedence
 // over the standard and fallback claim values.
-func (c *claims) applyMapping(rawClaims map[string]any, mapping map[string]string) {
-	for attribute, expr := range mapping {
-		if expr == "" {
-			continue
-		}
-
-		ptr, err := jsonpointer.New(expr)
-		if err != nil {
-			continue
-		}
-
+func (c *claims) applyMapping(logger *zap.Logger, rawClaims map[string]any, mapping map[string]jsonpointer.Pointer) {
+	for name, ptr := range mapping {
 		value, _, err := ptr.Get(rawClaims)
 		if err != nil {
+			logger.Debug("failed to resolve the mapped claim value", zap.String("claim_name", name))
 			continue
 		}
 
 		s, ok := value.(string)
 		if !ok || s == "" {
+			logger.Debug("claim resolved to an empty value or non string", zap.String("claim_name", name))
 			continue
 		}
 
-		switch attribute {
+		switch name {
 		case "email":
 			c.Email = &s
 		case "name":

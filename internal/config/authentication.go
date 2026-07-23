@@ -596,9 +596,15 @@ func (a AuthenticationMethodOIDCProvider) validate() error {
 		return errFieldRequired("authentication", "issuer_url")
 	}
 
-	for key := range a.ClaimsMapping {
+	for key, expr := range a.ClaimsMapping {
 		if !slices.Contains(validOIDCClaimKeys, key) {
-			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid claim key '%s'", key))
+			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid claim key %q", key))
+		}
+
+		if len(expr) < 2 || !strings.HasPrefix(expr, "/") {
+			// jsonpointer expressions must start with `/`, so a valid expression
+			// must contain `/` followed by at least one character.
+			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid expression for key %q", key))
 		}
 	}
 
