@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -500,31 +499,39 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 
 		f, err := store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(b.Reference)))
 		if err != nil {
-			var errnf errs.ErrNotFound
-			if errors.As(err, &errnf) {
-				eresp := &rpcevaluation.EvaluationResponse{
-					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
-					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
-						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
-							FlagKey:      req.FlagKey,
-							NamespaceKey: req.NamespaceKey,
-							Reason:       rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
-						},
+			eresp := &rpcevaluation.EvaluationResponse{
+				Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
+				Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
+					ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
+						FlagKey:      req.FlagKey,
+						NamespaceKey: req.NamespaceKey,
+						Reason:       rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
 					},
-				}
-
-				resp.Responses = append(resp.Responses, eresp)
-				continue
+				},
 			}
 
-			return nil, err
+			resp.Responses = append(resp.Responses, eresp)
+			continue
 		}
+
+		var eresp *rpcevaluation.EvaluationResponse
 
 		switch f.Type {
 		case core.FlagType_BOOLEAN_FLAG_TYPE:
 			res, err := s.boolean(ctx, store, env, f, req)
 			if err != nil {
-				return nil, err
+				eresp = &rpcevaluation.EvaluationResponse{
+					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
+					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
+						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
+							FlagKey:    req.FlagKey,
+							NamespaceKey: req.NamespaceKey,
+							Reason:     rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
+						},
+					},
+				}
+				resp.Responses = append(resp.Responses, eresp)
+				continue
 			}
 
 			if s.tracingEnabled {
@@ -537,7 +544,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 				)
 			}
 
-			eresp := &rpcevaluation.EvaluationResponse{
+			eresp = &rpcevaluation.EvaluationResponse{
 				Type: rpcevaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE,
 				Response: &rpcevaluation.EvaluationResponse_BooleanResponse{
 					BooleanResponse: res,
@@ -548,7 +555,18 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 		case core.FlagType_VARIANT_FLAG_TYPE:
 			res, err := s.variant(ctx, store, env, f, req)
 			if err != nil {
-				return nil, err
+				eresp = &rpcevaluation.EvaluationResponse{
+					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
+					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
+						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
+							FlagKey:    req.FlagKey,
+							NamespaceKey: req.NamespaceKey,
+							Reason:     rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
+						},
+					},
+				}
+				resp.Responses = append(resp.Responses, eresp)
+				continue
 			}
 
 			if s.tracingEnabled {
@@ -561,7 +579,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 					tracing.AttributeFlagTypeVariant,
 				)
 			}
-			eresp := &rpcevaluation.EvaluationResponse{
+			eresp = &rpcevaluation.EvaluationResponse{
 				Type: rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE,
 				Response: &rpcevaluation.EvaluationResponse_VariantResponse{
 					VariantResponse: res,
@@ -570,7 +588,18 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 
 			resp.Responses = append(resp.Responses, eresp)
 		default:
-			return nil, errs.ErrInvalidf("unknown flag type: %s", f.Type)
+			eresp = &rpcevaluation.EvaluationResponse{
+				Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
+				Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
+					ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
+						FlagKey:      req.FlagKey,
+						NamespaceKey: req.NamespaceKey,
+						Reason:       rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
+					},
+				},
+			}
+			resp.Responses = append(resp.Responses, eresp)
+			continue
 		}
 	}
 
