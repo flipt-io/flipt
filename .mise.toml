@@ -4,7 +4,7 @@ node = "24"
 golangci-lint = "2.12.2"
 buf = "1.72.0"
 dagger = "0.21.7"
-mockery = "3.7.1"
+mockery = "3.7.2"
 
 [tasks.bootstrap]
 description = "Install required development tools"
