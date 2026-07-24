@@ -1071,7 +1071,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		Type:        3,
 	}, nil)
 
-	_, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
+	resp, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
 			{
 				FlagKey:      flagKey,
@@ -1084,8 +1084,11 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		},
 	})
 
-	require.Error(t, err)
-	assert.EqualError(t, err, "unknown flag type: 3")
+	assert.NoError(t, err)
+	require.Len(t, resp.GetResponses(), 1)
+	er := resp.GetResponses()[0].GetErrorResponse()
+	assert.NotNil(t, er)
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, er.GetReason())
 }
 
 func TestBatch_InternalError_GetFlag(t *testing.T) {
@@ -1104,7 +1107,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errors.New("internal error"))
 
-	_, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
+	resp, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
 			{
 				FlagKey:      flagKey,
@@ -1117,8 +1120,11 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 		},
 	})
 
-	require.Error(t, err)
-	assert.EqualError(t, err, "internal error")
+	assert.NoError(t, err)
+	require.Len(t, resp.GetResponses(), 1)
+	er := resp.GetResponses()[0].GetErrorResponse()
+	assert.NotNil(t, er)
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, er.GetReason())
 }
 
 func TestBatch_Success(t *testing.T) {
