@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -527,7 +526,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
 							FlagKey:    req.FlagKey,
 							NamespaceKey: req.NamespaceKey,
-							Reason:     rpcevaluation.ErrorEvaluationReason_INTERNAL_ERROR_EVALUATION_REASON,
+							Reason:     rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
 						},
 					},
 				}
@@ -562,7 +561,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
 							FlagKey:    req.FlagKey,
 							NamespaceKey: req.NamespaceKey,
-							Reason:     rpcevaluation.ErrorEvaluationReason_INTERNAL_ERROR_EVALUATION_REASON,
+							Reason:     rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
 						},
 					},
 				}
