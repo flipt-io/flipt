@@ -524,9 +524,9 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
 					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
 						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
-							FlagKey:    req.FlagKey,
+							FlagKey:      req.FlagKey,
 							NamespaceKey: req.NamespaceKey,
-							Reason:     rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
+							Reason:       rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
 						},
 					},
 				}
@@ -559,9 +559,9 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
 					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
 						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
-							FlagKey:    req.FlagKey,
+							FlagKey:      req.FlagKey,
 							NamespaceKey: req.NamespaceKey,
-							Reason:     rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
+							Reason:       rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
 						},
 					},
 				}
