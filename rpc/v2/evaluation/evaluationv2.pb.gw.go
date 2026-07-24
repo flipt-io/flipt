@@ -43,9 +43,6 @@ func request_ClientEvaluationService_EvaluationSnapshotNamespace_0(ctx context.C
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
 	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
@@ -67,6 +64,9 @@ func request_ClientEvaluationService_EvaluationSnapshotNamespace_0(ctx context.C
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClientEvaluationService_EvaluationSnapshotNamespace_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
 	}
 	msg, err := client.EvaluationSnapshotNamespace(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -112,9 +112,6 @@ func request_ClientEvaluationService_EvaluationSnapshotNamespace_1(ctx context.C
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
 	val, ok := pathParams["key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "key")
@@ -128,6 +125,9 @@ func request_ClientEvaluationService_EvaluationSnapshotNamespace_1(ctx context.C
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClientEvaluationService_EvaluationSnapshotNamespace_1); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
 	}
 	msg, err := client.EvaluationSnapshotNamespace(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -165,9 +165,6 @@ func request_ClientEvaluationService_EvaluationSnapshotNamespaceStream_0(ctx con
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
 	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
@@ -189,6 +186,9 @@ func request_ClientEvaluationService_EvaluationSnapshotNamespaceStream_0(ctx con
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClientEvaluationService_EvaluationSnapshotNamespaceStream_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
 	}
 	stream, err := client.EvaluationSnapshotNamespaceStream(ctx, &protoReq)
 	if err != nil {

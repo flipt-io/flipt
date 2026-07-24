@@ -8,8 +8,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/emicklei/proto v1.13.2 h1:z/etSFO3uyXeuEsVPzfl56WNgzcvIr42aQazXaQmFZY=
 github.com/emicklei/proto v1.13.2/go.mod h1:rn1FgRS/FANiZdD2djyH7TMA9jdRDcYQ9IEN9yvjX0A=
-github.com/go-git/go-billy/v6 v6.0.0-alpha.1 h1:xVjAR4oUvrKy7/Xuw/lLlV3gkxR3KO2H8W+MamuVVsQ=
-github.com/go-git/go-billy/v6 v6.0.0-alpha.1/go.mod h1:eaCUpHbedW7//EwcYmUDfJe2N6sJC9O12AT0OTqJR1E=
+github.com/go-git/go-billy/v6 v6.0.0-alpha.2 h1:1Sv5WemXL8CxKrAx1gioJ+uHNb2bZJhiQLfwSZ4Et8c=
+github.com/go-git/go-billy/v6 v6.0.0-alpha.2/go.mod h1:r/bsv9i/iDyyEU8/Z6mjC+YraOVwie1ddfUqBCElKXQ=
 github.com/go-quicktest/qt v1.101.0 h1:O1K29Txy5P2OK0dGo59b7b0LR6wKfIhttaAhHUyn7eI=
 github.com/go-quicktest/qt v1.101.0/go.mod h1:14Bz/f7NwaXPtdYEgzsx46kqSxVwTbzVZsDC26tQJow=
 github.com/gobwas/glob v0.2.3 h1:A4xDbljILXROh+kObIiy5kIaPYD8e96x1tgBhUI5J+Y=
