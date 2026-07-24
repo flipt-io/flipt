@@ -1084,7 +1084,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Len(t, resp.GetResponses(), 1)
 	er := resp.GetResponses()[0].GetErrorResponse()
 	assert.NotNil(t, er)
@@ -1120,7 +1120,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Len(t, resp.GetResponses(), 1)
 	er := resp.GetResponses()[0].GetErrorResponse()
 	assert.NotNil(t, er)
