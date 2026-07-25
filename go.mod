@@ -19,7 +19,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/coreos/go-oidc/v3 v3.20.0
-	github.com/docker/go-connections v0.7.0
+	github.com/docker/go-connections v0.8.0
 	github.com/fatih/color v1.19.0
 	github.com/fullstorydev/grpchan v1.1.2
 	github.com/go-chi/chi/v5 v5.3.1
