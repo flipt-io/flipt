@@ -89,7 +89,7 @@ use (
 )
 `
 	golang = golang.WithNewFile("/src/go.work", goWorkContent, dagger.ContainerWithNewFileOpts{
-		Permissions: 0644,
+		Permissions: 0o644,
 	})
 
 	// Sync the workspace to generate go.work.sum and validate the configuration
@@ -137,7 +137,7 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 	}
 
 	// build container with just Flipt + config
-	return client.Container().From("alpine:3.19").
+	return client.Container().From("alpine:3.24").
 		WithExec([]string{"apk", "add", "--no-cache", "postgresql-client", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/opt/flipt"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
