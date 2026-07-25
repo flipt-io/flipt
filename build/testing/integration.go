@@ -244,7 +244,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	err = g.Wait()
 
 	if exportLogs {
-		_, _ = client.Container().From("alpine:3.16").
+		_, _ = client.Container().From("alpine:3.24").
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithMountedCache("/logs", logs).
 			WithExec([]string{"cp", "-r", "/logs", "/out"}).
