@@ -199,19 +199,19 @@ func NewGRPCServer(
 		return tracingProvider.Shutdown(ctx)
 	})
 
-	if cfg.Tracing.Enabled {
-		exp, traceExpShutdown, err := tracing.GetExporter(ctx, &cfg.Tracing)
-		if err != nil {
-			return nil, fmt.Errorf("creating tracing exporter: %w", err)
+	if cfg.Tracing.Enabled || cfg.Audit.Enabled() {
+		if cfg.Tracing.Enabled {
+			exp, traceExpShutdown, err := tracing.GetExporter(ctx, &cfg.Tracing)
+			if err != nil {
+				return nil, fmt.Errorf("creating tracing exporter: %w", err)
+			}
+
+			server.onShutdown(traceExpShutdown)
+			tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(exp, tracesdk.WithBatchTimeout(1*time.Second)))
+			logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 		}
 
-		server.onShutdown(traceExpShutdown)
-
-		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(exp, tracesdk.WithBatchTimeout(1*time.Second)))
-
 		ipch = ipch.WithServerStatsHandler(otelgrpc.NewServerHandler())
-
-		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
 	// base inteceptors
@@ -332,7 +332,8 @@ func NewGRPCServer(
 			tracingProvider.RegisterSpanProcessor(
 				tracesdk.NewBatchSpanProcessor(
 					analyticsExporter,
-					tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod)),
+					tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod),
+				),
 			)
 			server.onShutdown(func(ctx context.Context) error {
 				return analyticsExporter.Shutdown(ctx)
@@ -365,8 +366,10 @@ func NewGRPCServer(
 	grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
 
 	// add auth interceptors to the server
-	interceptors = append(interceptors,
-		append(authInterceptors,
+	interceptors = append(
+		interceptors,
+		append(
+			authInterceptors,
 			middlewaregrpc.FliptAcceptServerVersionUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
@@ -436,7 +439,8 @@ func NewGRPCServer(
 
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(spanExporter, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
 
-		logger.Debug("audit sinks enabled",
+		logger.Debug(
+			"audit sinks enabled",
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
 			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
