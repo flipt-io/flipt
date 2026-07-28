@@ -6,7 +6,7 @@ toolchain go1.26.5
 
 require (
 	go.flipt.io/flipt/rpc/flipt v1.54.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20260724162435-b2f20204f0df
+	google.golang.org/genproto/googleapis/api v0.0.0-20260727163830-6c54dddc4772
 	google.golang.org/protobuf v1.36.11
 	sigs.k8s.io/yaml v1.6.0
 )
