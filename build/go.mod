@@ -5,7 +5,7 @@ go 1.26
 require (
 	cloud.google.com/go/storage v1.64.0
 	code.gitea.io/sdk/gitea v0.25.1
-	dagger.io/dagger v0.21.7
+	dagger.io/dagger v0.21.8
 	github.com/99designs/gqlgen v0.17.94
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.8.0
 	github.com/Khan/genqlient v0.8.1
