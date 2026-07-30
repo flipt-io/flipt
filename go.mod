@@ -57,7 +57,7 @@ require (
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v1.18.2
-	github.com/prometheus/client_golang v1.24.0
+	github.com/prometheus/client_golang v1.24.1
 	github.com/prometheus/common v0.70.1
 	github.com/prometheus/sigv4 v0.4.1
 	github.com/redis/go-redis/extra/redisotel/v9 v9.21.0
@@ -222,7 +222,7 @@ require (
 	github.com/kevinburke/ssh_config v1.6.0 // indirect
 	github.com/keygen-sh/go-update v1.0.0 // indirect
 	github.com/keygen-sh/jsonapi-go v1.2.1 // indirect
-	github.com/klauspost/compress v1.19.0 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
