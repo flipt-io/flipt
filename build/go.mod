@@ -9,9 +9,9 @@ require (
 	github.com/99designs/gqlgen v0.17.94
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.8.0
 	github.com/Khan/genqlient v0.8.1
-	github.com/aws/aws-sdk-go-v2 v1.43.1
-	github.com/aws/aws-sdk-go-v2/config v1.32.32
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.106.1
+	github.com/aws/aws-sdk-go-v2 v1.43.2
+	github.com/aws/aws-sdk-go-v2/config v1.32.33
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.106.2
 	github.com/dagger/otel-go v1.43.0
 	github.com/dagger/querybuilder v0.0.0-20260402040506-574a5e81cb59
 	github.com/docker/docker v28.5.2+incompatible
