@@ -86,7 +86,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "knip": "^5.88.1",
     "package-changed": "^3.0.0",
-    "playwright": "^1.59.1",
+    "playwright": "^1.62.0",
     "postcss": "^8.5.22",
     "prettier": "^3.9.5",
     "prettier-plugin-organize-imports": "^3.2.4",
