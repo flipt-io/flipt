@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/common"
-	"go.flipt.io/flipt/ui"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
@@ -231,9 +230,6 @@ func TestInvalidUTF8PathRejected(t *testing.T) {
 	core, recorded := observer.New(zapcore.DebugLevel)
 	logger := zap.New(core)
 
-	fsys, err := ui.FS()
-	require.NoError(t, err)
-
 	r := chi.NewRouter()
 
 	// Non-UI routes are mounted on the root router without validateRequestPath,
@@ -246,41 +242,34 @@ func TestInvalidUTF8PathRejected(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	// Mirror the UI mount in internal/cmd/http.go: validateRequestPath plus a
-	// header-setting middleware wrapping the static file server, mounted as the
-	// catch-all at "/".
-	r.With(validateRequestPath(logger), func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			for k, v := range ui.AdditionalHeaders() {
-				w.Header().Set(k, v)
-			}
-			next.ServeHTTP(w, r)
-		})
-	}).Mount("/", http.FileServer(http.FS(fsys)))
+	err := mountUI(r, logger)
+	require.NoError(t, err)
 
 	s := httptest.NewServer(r)
 	t.Cleanup(s.Close)
 
-	// do sends a request preserving the raw percent-encoded path (like
+	// fetch sends a request preserving the raw percent-encoded path (like
 	// `curl --path-as-is`), so the server percent-decodes it itself.
-	do := func(t *testing.T, path string) *http.Response {
+	fetch := func(t *testing.T, path string) (int, []byte) {
 		t.Helper()
 		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, s.URL+path, nil)
 		require.NoError(t, err)
 		res, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
-		return res
+		body, err := io.ReadAll(res.Body)
+		require.NoError(t, err)
+		err = res.Body.Close()
+		require.NoError(t, err)
+		return res.StatusCode, body
 	}
 
 	t.Run("invalid UTF-8 UI paths return 400 and are logged", func(t *testing.T) {
 		for _, p := range []string{"/%c0", "/%c1", "/%ff", "/%e0%80%af", "/%ed%a0%80"} {
 			before := recorded.Len()
-			res := do(t, p)
-			body, _ := io.ReadAll(res.Body)
-			res.Body.Close()
-			assert.Equalf(t, http.StatusBadRequest, res.StatusCode,
-				"path %s: expected 400, got %d (body=%q)", p, res.StatusCode, string(body))
-			assert.Greater(t, recorded.Len(), before, "path %s: expected a debug log line", p)
+			statusCode, body := fetch(t, p)
+			assert.Equalf(t, http.StatusBadRequest, statusCode,
+				"path %s: want 400, got %d (body=%q)", p, statusCode, string(body))
+			assert.Greater(t, recorded.Len(), before, "path %s: want a debug log line", p)
 		}
 	})
 
@@ -290,9 +279,8 @@ func TestInvalidUTF8PathRejected(t *testing.T) {
 		// with 400 by validateRequestPath.
 		apiReached = false
 		before := recorded.Len()
-		res := do(t, "/api/v1/%c0")
-		res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode,
+		statusCode, _ := fetch(t, "/api/v1/%c0")
+		assert.Equal(t, http.StatusOK, statusCode,
 			"non-UI route should be reached, not rejected with 400")
 		assert.True(t, apiReached, "non-UI handler should have been reached")
 		assert.Equal(t, before, recorded.Len(),
@@ -301,21 +289,18 @@ func TestInvalidUTF8PathRejected(t *testing.T) {
 
 	t.Run("valid unknown path returns 404 and is not logged", func(t *testing.T) {
 		before := recorded.Len()
-		res := do(t, "/nonexistent-path-12345")
-		res.Body.Close()
-		assert.Equal(t, http.StatusNotFound, res.StatusCode)
+		statusCode, _ := fetch(t, "/nonexistent-path-12345")
+		assert.Equal(t, http.StatusNotFound, statusCode)
 		assert.Equal(t, before, recorded.Len())
 	})
 
 	t.Run("valid utf8 unknown path returns 404", func(t *testing.T) {
-		res := do(t, "/caf%c3%a9")
-		res.Body.Close()
-		assert.Equal(t, http.StatusNotFound, res.StatusCode)
+		statusCode, _ := fetch(t, "/caf%c3%a9")
+		assert.Equal(t, http.StatusNotFound, statusCode)
 	})
 
 	t.Run("root serves index", func(t *testing.T) {
-		res := do(t, "/")
-		res.Body.Close()
-		assert.Equal(t, http.StatusOK, res.StatusCode)
+		statusCode, _ := fetch(t, "/")
+		assert.Equal(t, http.StatusOK, statusCode)
 	})
 }
