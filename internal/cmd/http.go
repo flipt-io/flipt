@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -232,7 +233,11 @@ func NewHTTPServer(
 			return nil, fmt.Errorf("mounting ui: %w", err)
 		}
 
-		r.With(func(next http.Handler) http.Handler {
+		// Reject malformed request paths (e.g. percent-encoded bytes that are
+		// not valid UTF-8) with a 400 before they reach the static file server,
+		// whose underlying fs.FS turns them into an unlogged 500. Scoped to the
+		// UI mount so API and other non-UI routes are unaffected.
+		r.With(validateRequestPath(logger), func(next http.Handler) http.Handler {
 			// set additional headers enabling the UI to be served securely
 			// ie: Content-Security-Policy, X-Content-Type-Options, etc.
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -309,6 +314,37 @@ func removeTrailingSlash(h http.Handler) http.Handler {
 		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
 		h.ServeHTTP(w, r)
 	})
+}
+
+// validateRequestPath is HTTP middleware that rejects requests whose URL path
+// is not valid UTF-8 once percent-decoded.
+//
+// A path that cannot be decoded as valid UTF-8 is malformed client input and
+// should produce a 4xx response. Without this guard such requests reach the
+// static file server, whose underlying fs.FS rejects invalid UTF-8 names with
+// a non-"not found" error that net/http maps to a 500 Internal Server Error,
+// with no log output at any level.
+//
+// Returning 400 here keeps malformed input in the correct status class and
+// emits a debug log line so the behaviour is observable.
+//
+// See https://github.com/flipt-io/flipt/issues/6337.
+func validateRequestPath(logger *zap.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !utf8.ValidString(r.URL.Path) {
+				// Log the percent-encoded form so we never emit raw invalid
+				// bytes into structured log output.
+				logger.Debug("rejecting request with invalid UTF-8 path",
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.EscapedPath()),
+				)
+				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 // ofrepStreamHandler returns an http.HandlerFunc that rewrites OFREP stream
