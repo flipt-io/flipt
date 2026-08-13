@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	authjwt "go.flipt.io/flipt/internal/server/authn/method/jwt"
 	"go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/internal/storage/authn/memory"
@@ -514,6 +515,11 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 						authentication := GetAuthenticationFrom(ctx)
 
 						for k, v := range authentication.Metadata {
+							// the raw claims are asserted by TestJwtClaimsToMetadataRawClaims
+							if k == method.StorageMetadataClaims {
+								continue
+							}
+
 							assert.Equal(t, tt.expectedMetadata[k], v)
 						}
 					}
@@ -560,6 +566,11 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 						authentication := GetAuthenticationFrom(ctx)
 
 						for k, v := range authentication.Metadata {
+							// the raw claims are asserted by TestJwtClaimsToMetadataRawClaims
+							if k == method.StorageMetadataClaims {
+								continue
+							}
+
 							assert.Equal(t, tt.expectedMetadata[k], v)
 						}
 					}
@@ -1774,10 +1785,54 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := jwtClaimsToMetadata(tt.claims, nil)
+			result, err := jwtClaimsToMetadata(tt.claims, nil)
+			require.NoError(t, err)
+			// the raw claims are asserted by TestJwtClaimsToMetadataRawClaims
+			delete(result, method.StorageMetadataClaims)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
+}
+
+func TestJwtClaimsToMetadataRawClaims(t *testing.T) {
+	claims := map[string]any{
+		"iss":       "https://idp.example.com",
+		"sub":       "user-123",
+		"client_id": "app-client-456",
+		"scope":     "read:flags",
+		"token_use": "access",
+	}
+
+	result, err := jwtClaimsToMetadata(claims, nil)
+	require.NoError(t, err)
+
+	// the issuer is promoted to a named key as normal
+	assert.Equal(t, "https://idp.example.com", result["io.flipt.auth.jwt.issuer"])
+
+	// all claims are also available as raw JSON so that authorization policies can
+	// access fields which are not promoted by the standard mappings
+	rawJSON, ok := result[method.StorageMetadataClaims]
+	require.True(t, ok, "expected %q key in metadata", method.StorageMetadataClaims)
+
+	var parsed map[string]any
+	require.NoError(t, json.Unmarshal([]byte(rawJSON), &parsed))
+	assert.Equal(t, claims, parsed)
+}
+
+func TestJwtClaimsToMetadataRawClaimsNotSpoofable(t *testing.T) {
+	// a token carrying the reserved key must not be able to dictate the metadata
+	// which authorization policies are evaluated against
+	claims := map[string]any{
+		"iss":                        "https://idp.example.com",
+		method.StorageMetadataClaims: "{\"role\":\"admin\"}",
+	}
+
+	result, err := jwtClaimsToMetadata(claims, nil)
+	require.NoError(t, err)
+
+	var parsed map[string]any
+	require.NoError(t, json.Unmarshal([]byte(result[method.StorageMetadataClaims]), &parsed))
+	assert.Equal(t, claims, parsed)
 }
 
 func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
@@ -1901,7 +1956,10 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 			err := json.Unmarshal([]byte(tt.claimsJSON), &claims)
 			require.NoError(t, err)
 
-			result := jwtClaimsToMetadata(claims, tt.claimsMapping)
+			result, err := jwtClaimsToMetadata(claims, tt.claimsMapping)
+			require.NoError(t, err)
+			// the raw claims are asserted by TestJwtClaimsToMetadataRawClaims
+			delete(result, method.StorageMetadataClaims)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
