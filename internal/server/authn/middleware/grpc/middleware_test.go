@@ -1835,6 +1835,31 @@ func TestJwtClaimsToMetadataRawClaimsNotSpoofable(t *testing.T) {
 	assert.Equal(t, claims, parsed)
 }
 
+func TestJwtClaimsToMetadataMarshalError(t *testing.T) {
+	// a channel cannot be encoded as JSON, which exercises the marshal failure path
+	_, err := jwtClaimsToMetadata(map[string]any{"unmarshalable": make(chan int)}, nil)
+	require.Error(t, err)
+}
+
+// unmarshalableClaimsValidator validates successfully but returns claims which
+// cannot be encoded as JSON, so that the metadata mapping failure can be tested.
+type unmarshalableClaimsValidator struct{}
+
+func (unmarshalableClaimsValidator) Validate(context.Context, string) (map[string]any, error) {
+	return map[string]any{"unmarshalable": make(chan int)}, nil
+}
+
+func TestAuthenticateJWTFailsClosedOnMetadataError(t *testing.T) {
+	ctx := metadata.NewIncomingContext(t.Context(), metadata.MD{
+		"Authorization": []string{"JWT token-is-not-inspected-by-the-stub-validator"},
+	})
+
+	// the token itself is valid, but the resulting claims cannot be mapped to
+	// metadata, so authentication must fail rather than proceed without it
+	_, err := authenticateJWT(ctx, zaptest.NewLogger(t), nil, unmarshalableClaimsValidator{})
+	assert.Equal(t, errUnauthenticated, err)
+}
+
 func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 	tests := []struct {
 		name          string
