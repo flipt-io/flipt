@@ -1,0 +1,16 @@
+version: "1.2"
+namespace: default
+segments:
+- key: lt-users
+  name: LT Users
+  description: Users matched with less-than comparisons.
+  match_type: ALL_MATCH_TYPE
+  constraints:
+  - type: NUMBER_COMPARISON_TYPE
+    property: age
+    operator: lt
+    value: "30"
+  - type: DATETIME_COMPARISON_TYPE
+    property: signed_up_at
+    operator: lt
+    value: "2024-01-01T00:00:00Z"

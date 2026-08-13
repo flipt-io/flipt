@@ -98,7 +98,7 @@ close({
 	property:     string & =~"^.+$"
 	value?:       string
 	description?: string
-	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte" | "isoneof" | "isnotoneof"
+	operator:     "eq" | "neq" | "present" | "notpresent" | "lt" | "lte" | "gt" | "gte" | "isoneof" | "isnotoneof"
 } | {
 	type:         "BOOLEAN_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
@@ -110,7 +110,7 @@ close({
 	property:     string & =~"^.+$"
 	value?:       string
 	description?: string
-	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+	operator:     "eq" | "neq" | "present" | "notpresent" | "lt" | "lte" | "gt" | "gte"
 } | {
 	type:         "ENTITY_ID_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
