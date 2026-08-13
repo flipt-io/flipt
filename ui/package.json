@@ -45,7 +45,7 @@
     "react-dom": "^19.2.8",
     "react-redux": "^9.3.0",
     "react-router": "^8.3.0",
-    "sonner": "^2.0.7",
+    "sonner": "^2.0.8",
     "tailwind-merge": "^2.6.1",
     "yup": "^1.7.1",
     "zod": "^3.25.76"
