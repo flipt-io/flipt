@@ -97,7 +97,7 @@ require (
 	go.uber.org/zap v1.28.0
 	gocloud.dev v0.46.0
 	golang.org/x/crypto v0.54.0
-	golang.org/x/exp v0.0.0-20260811152304-ee035b5b010f
+	golang.org/x/exp v0.0.0-20260812173653-3d80eb74bc5b
 	golang.org/x/net v0.57.0
 	golang.org/x/oauth2 v0.36.0
 	golang.org/x/sync v0.22.0
