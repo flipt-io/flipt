@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -501,7 +500,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 		f, err := store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(b.Reference)))
 		if err != nil {
 			reason := rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON
-			if _, ok := errors.AsType[errs.ErrNotFound](err); !ok {
+			if !errs.AsMatch[errs.ErrNotFound](err) {
 				reason = rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON
 				s.logger.Debug("failed to get flag", zap.String("env", env.Key()), zap.String("ns", req.NamespaceKey), zap.String("flag", req.FlagKey), zap.Error(err))
 			}

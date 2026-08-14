@@ -1129,6 +1129,42 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON, er.GetReason())
 }
 
+func TestBatch_NotFoundError_GetFlag(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, envStore, WithMetrics(true))
+	)
+
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("unknown flag"))
+
+	resp, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
+		Requests: []*rpcevaluation.EvaluationRequest{
+			{
+				FlagKey:      flagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.Len(t, resp.GetResponses(), 1)
+	er := resp.GetResponses()[0].GetErrorResponse()
+	assert.NotNil(t, er)
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, er.GetReason())
+}
+
 func TestBatch_Success(t *testing.T) {
 	var (
 		flagKey        = "test-flag"
