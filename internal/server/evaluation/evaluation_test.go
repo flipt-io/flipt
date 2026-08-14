@@ -1165,6 +1165,99 @@ func TestBatch_NotFoundError_GetFlag(t *testing.T) {
 	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, er.GetReason())
 }
 
+func TestBatch_EvaluationError(t *testing.T) {
+	var (
+		booleanFlagKey = "boolean-test-flag"
+		variantFlagKey = "variant-test-flag"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore, WithMetrics(true))
+	)
+
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+	environment.EXPECT().Key().Return(t.Name())
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, booleanFlagKey)).Return(&core.Flag{
+		Key:     booleanFlagKey,
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey)).Return(&core.Flag{
+		Key:     variantFlagKey,
+		Enabled: true,
+		Type:    core.FlagType_VARIANT_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, booleanFlagKey)).Return([]*storage.EvaluationRollout{
+		{
+			NamespaceKey: namespaceKey,
+			Rank:         1,
+			RolloutType:  core.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			Segment: &storage.RolloutSegment{
+				Value:           true,
+				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
+					"test-segment": {
+						SegmentKey: "test-segment",
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     core.ComparisonType_UNKNOWN_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
+					},
+				}),
+			},
+		},
+	}, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey)).Return([]*storage.EvaluationRule{}, errors.New("variant evaluation error"))
+
+	resp, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
+		Requests: []*rpcevaluation.EvaluationRequest{
+			{
+				FlagKey:      booleanFlagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
+			{
+				FlagKey:      variantFlagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	require.Len(t, resp.GetResponses(), 2)
+
+	b, ok := resp.GetResponses()[0].GetResponse().(*rpcevaluation.EvaluationResponse_ErrorResponse)
+	require.True(t, ok, "response should be a error evaluation response")
+	assert.Equal(t, booleanFlagKey, b.ErrorResponse.GetFlagKey())
+	assert.Equal(t, namespaceKey, b.ErrorResponse.GetNamespaceKey())
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON, b.ErrorResponse.GetReason())
+
+	v, ok := resp.GetResponses()[1].GetResponse().(*rpcevaluation.EvaluationResponse_ErrorResponse)
+	require.True(t, ok, "response should be a error evaluation response")
+	assert.Equal(t, variantFlagKey, v.ErrorResponse.GetFlagKey())
+	assert.Equal(t, namespaceKey, v.ErrorResponse.GetNamespaceKey())
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON, v.ErrorResponse.GetReason())
+}
+
 func TestBatch_Success(t *testing.T) {
 	var (
 		flagKey        = "test-flag"
