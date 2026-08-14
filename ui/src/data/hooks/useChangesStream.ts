@@ -47,14 +47,18 @@ export function useChangesStream({
           const streamEvent: StreamEvent = {
             type: data.type || 'message',
             timestamp: new Date().toISOString(),
-            data
+            data: { ...data, envKey: environmentKey, nsKey: namespaceKey }
           };
           dispatch(eventReceived(streamEvent));
         } catch {
           const streamEvent: StreamEvent = {
             type: 'message',
             timestamp: new Date().toISOString(),
-            data: { raw: event.data }
+            data: {
+              raw: event.data,
+              envKey: environmentKey,
+              nsKey: namespaceKey
+            }
           };
           dispatch(eventReceived(streamEvent));
         }

@@ -75,10 +75,12 @@ listenerMiddleware.startListening({
   matcher: isAnyOf(namespacesSlice.actions.currentNamespaceChanged),
   effect: (_action, api) => {
     // save to local storage
-    localStorage.setItem(
-      namespaceKey,
-      (api.getState() as RootState).namespaces.currentNamespace
-    );
+    const ns = (api.getState() as RootState).namespaces.currentNamespace;
+    if (ns) {
+      localStorage.setItem(namespaceKey, ns);
+    } else {
+      localStorage.removeItem(namespaceKey);
+    }
   }
 });
 
@@ -137,6 +139,8 @@ listenerMiddleware.startListening({
     const eventData = action.payload.data as {
       type?: string;
       etag?: string;
+      envKey?: string;
+      nsKey?: string;
     } | null;
 
     if (eventData?.type !== 'refetchEvaluation') {
@@ -144,9 +148,8 @@ listenerMiddleware.startListening({
       return;
     }
 
-    const state = api.getState() as RootState;
-    const envKey = state.environments.currentEnvironment;
-    const nsKey = state.namespaces.currentNamespace;
+    const envKey = eventData.envKey ?? 'default';
+    const nsKey = eventData.nsKey ?? 'default';
     const tagId = envKey + '/' + nsKey;
 
     api.dispatch(flagsApi.util.invalidateTags([{ type: 'Flag', id: tagId }]));

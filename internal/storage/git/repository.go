@@ -24,6 +24,7 @@ import (
 	"github.com/go-git/go-git/v6/storage"
 	gitfilesystem "github.com/go-git/go-git/v6/storage/filesystem"
 	"github.com/go-git/go-git/v6/storage/memory"
+	"github.com/go-git/go-git/v6/x/fdpool"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
@@ -118,7 +119,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 	// we initially assume the repo is empty because we start
 	// with an in-memory blank slate
 	empty = true
-	storage := (storage.Storer)(memory.NewStorage())
+	storage := storage.Storer(memory.NewStorage())
 	r.Repository, err = git.Init(storage, git.WithDefaultBranch(plumbing.NewBranchReferenceName(r.defaultBranch)))
 	if err != nil {
 		return nil, empty, err
@@ -126,7 +127,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 
 	if r.localPath != "" {
 		storage = gitfilesystem.NewStorageWithOptions(osfs.New(r.localPath), cache.NewObjectLRUDefault(), gitfilesystem.Options{
-			MaxOpenDescriptors: r.maxOpenDescriptors,
+			Pool: fdpool.New(r.maxOpenDescriptors),
 		})
 
 		entries, err := os.ReadDir(r.localPath)
@@ -385,7 +386,8 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 
 	for _, head := range heads {
 		refSpec := config.RefSpec(
-			fmt.Sprintf("+%s:%s",
+			fmt.Sprintf(
+				"+%s:%s",
 				plumbing.NewBranchReferenceName(head),
 				plumbing.NewRemoteReferenceName(r.remote.Name, head),
 			),
@@ -660,7 +662,8 @@ func (r *Repository) UpdateAndPush(
 		// update remote tracking reference even without a remote configured
 		remoteRef := plumbing.NewHashReference(
 			plumbing.NewRemoteReferenceName("origin", branch),
-			commit.Hash)
+			commit.Hash,
+		)
 		if err := r.Storer.SetReference(remoteRef); err != nil {
 			return hash, err
 		}
@@ -698,7 +701,8 @@ func (r *Repository) UpdateAndPush(
 			zap.String("branch", branch))
 
 		fetchRefSpec := config.RefSpec(
-			fmt.Sprintf("+%s:%s",
+			fmt.Sprintf(
+				"+%s:%s",
 				localRef,
 				plumbing.NewRemoteReferenceName(r.remote.Name, branch),
 			),
@@ -717,7 +721,8 @@ func (r *Repository) UpdateAndPush(
 		}
 		if fetchOpts.Depth == 1 {
 			remoteRef, err := r.Repository.Reference(
-				plumbing.NewRemoteReferenceName(r.remote.Name, branch), true)
+				plumbing.NewRemoteReferenceName(r.remote.Name, branch), true,
+			)
 			if err != nil {
 				return plumbing.ZeroHash, fmt.Errorf("resolving remote ref after fetch: %w", err)
 			}
@@ -780,7 +785,8 @@ func (r *Repository) UpdateAndPush(
 	// update remote tracking reference to match
 	remoteRef := plumbing.NewHashReference(
 		plumbing.NewRemoteReferenceName(r.remote.Name, branch),
-		commit.Hash)
+		commit.Hash,
+	)
 
 	r.logger.Debug("setting remote tracking reference",
 		zap.Stringer("reference", remoteRef.Name()),
