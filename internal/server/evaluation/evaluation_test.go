@@ -1063,6 +1063,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 
 	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
+	environment.EXPECT().Key().Return(t.Name())
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
 		Key:         flagKey,
@@ -1088,7 +1089,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 	require.Len(t, resp.GetResponses(), 1)
 	er := resp.GetResponses()[0].GetErrorResponse()
 	assert.NotNil(t, er)
-	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, er.GetReason())
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON, er.GetReason())
 }
 
 func TestBatch_InternalError_GetFlag(t *testing.T) {
@@ -1104,6 +1105,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 
 	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
+	environment.EXPECT().Key().Return(t.Name())
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errors.New("internal error"))
 
@@ -1124,7 +1126,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 	require.Len(t, resp.GetResponses(), 1)
 	er := resp.GetResponses()[0].GetErrorResponse()
 	assert.NotNil(t, er)
-	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, er.GetReason())
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON, er.GetReason())
 }
 
 func TestBatch_Success(t *testing.T) {
