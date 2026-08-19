@@ -175,7 +175,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		// Create a container to extract coverage data from the cache volume
 		// We need to copy from cache to a regular directory since cache volumes can't be directly exported
 		coverageContainer := client.Container().
-			From("golang:1.26-alpine").
+			From("golang:1.27-alpine").
 			WithMountedCache("/tmp/coverage", coverageVolume).
 			WithExec([]string{"mkdir", "-p", "/output"}).
 			WithExec([]string{"sh", "-c", "cp -r /tmp/coverage/* /output/ 2>/dev/null || true"})
@@ -827,7 +827,7 @@ func withGCPSecrets(fn testCaseFn) testCaseFn {
 
 		// Setup container to generate GPG key and store it in the emulator via gRPC
 		_, err := client.Container().
-			From("golang:1.26-alpine").
+			From("golang:1.27-alpine").
 			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
 			WithServiceBinding("gcp-secretmanager", gcpEmulator).
 			WithExec([]string{
@@ -984,7 +984,7 @@ func withAzureSecrets(fn testCaseFn) testCaseFn {
 		// can restart from the base container, so seeding via a one-off request is
 		// not durable across subsequent service starts.
 		lowkeyImport := client.Container().
-			From("golang:1.26-alpine").
+			From("golang:1.27-alpine").
 			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
 			WithExec([]string{
 				"sh", "-c",
