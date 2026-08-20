@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blang/semver/v4"
 	errs "go.flipt.io/flipt/errors"
 	environments "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/metrics"
@@ -640,6 +641,8 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 			match, err = matchesDateTime(c, v)
 		case core.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
 			match, err = matchesString(c, entityId)
+		case core.ComparisonType_SEMVER_COMPARISON_TYPE:
+			match, err = matchesSemver(c, v)
 		default:
 			return false, reason, errs.ErrInvalid("unknown constraint type")
 		}
@@ -860,6 +863,59 @@ func matchesDateTime(c storage.EvaluationConstraint, v string) (bool, error) {
 		return d.After(value), nil
 	case flipt.OpGTE:
 		return d.After(value) || value.Equal(d), nil
+	}
+
+	return false, nil
+}
+
+// matchesSemver compares the evaluation context value against the constraint value
+// using Semantic Versioning precedence rules, so that "1.10.0" is greater than "1.9.0"
+// rather than less than it as a lexical comparison would have it.
+//
+// Both sides are parsed tolerantly: a leading "v" is accepted and omitted minor and
+// patch numbers default to zero, so "v1.2" and "1.2.0" describe the same version.
+// Pre-release identifiers are compared as SemVer defines them, meaning "1.0.0-rc.1"
+// precedes "1.0.0". Build metadata is ignored, as SemVer requires.
+func matchesSemver(c storage.EvaluationConstraint, v string) (bool, error) {
+	switch c.Operator {
+	case flipt.OpNotPresent:
+		return len(strings.TrimSpace(v)) == 0, nil
+	case flipt.OpPresent:
+		return len(strings.TrimSpace(v)) != 0, nil
+	}
+
+	// can't parse an empty string
+	if v == "" {
+		return false, nil
+	}
+
+	version, err := semver.ParseTolerant(v)
+	if err != nil {
+		return false, errs.ErrInvalidf("parsing semver from %q", v)
+	}
+
+	switch c.Operator {
+	case flipt.OpEQ, flipt.OpNEQ, flipt.OpLT, flipt.OpLTE, flipt.OpGT, flipt.OpGTE:
+		if c.Semver == nil {
+			return false, errs.ErrInvalidf("constraint %q not prepared for evaluation", c.Property)
+		}
+
+		cmp := version.Compare(*c.Semver)
+
+		switch c.Operator {
+		case flipt.OpEQ:
+			return cmp == 0, nil
+		case flipt.OpNEQ:
+			return cmp != 0, nil
+		case flipt.OpLT:
+			return cmp < 0, nil
+		case flipt.OpLTE:
+			return cmp <= 0, nil
+		case flipt.OpGT:
+			return cmp > 0, nil
+		case flipt.OpGTE:
+			return cmp >= 0, nil
+		}
 	}
 
 	return false, nil

@@ -1,0 +1,19 @@
+version: "1.6"
+namespace: default
+segments:
+- key: modern-clients
+  name: Modern Clients
+  description: Clients running a recent release of the mobile app.
+  match_type: ALL_MATCH_TYPE
+  constraints:
+  - type: SEMVER_COMPARISON_TYPE
+    property: app_version
+    operator: gte
+    value: "1.10.0"
+  - type: SEMVER_COMPARISON_TYPE
+    property: app_version
+    operator: lt
+    value: "2.0.0"
+  - type: SEMVER_COMPARISON_TYPE
+    property: app_version
+    operator: present

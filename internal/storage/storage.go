@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -90,6 +91,7 @@ type EvaluationConstraint struct {
 	NumberSet map[float64]struct{} `json:"-"` // populated for number isoneof/isnotoneof constraints; used by matchesNumberSet.
 	Number    *float64             `json:"-"` // populated for scalar number comparisons (eq, neq, lt, lte, gt, gte); used by matchesNumber.
 	Datetime  time.Time            `json:"-"` // populated for scalar datetime comparisons (eq, neq, lt, lte, gt, gte); used by matchesDatetime.
+	Semver    *semver.Version      `json:"-"` // populated for scalar semver comparisons (eq, neq, lt, lte, gt, gte); used by matchesSemver.
 }
 
 // Pre-parses the Value field to deduplicate JSON deserialization and avoid linear scans.
@@ -130,6 +132,12 @@ func (c *EvaluationConstraint) PrepareForEvaluation() error {
 				return fmt.Errorf("constraint %q: %w", c.Property, err)
 			}
 			c.Datetime = d
+		case c.Type == core.ComparisonType_SEMVER_COMPARISON_TYPE && c.Value != "":
+			v, err := semver.ParseTolerant(c.Value)
+			if err != nil {
+				return fmt.Errorf("constraint %q: parsing semver from %q: %w", c.Property, c.Value, err)
+			}
+			c.Semver = &v
 		}
 	}
 	return nil

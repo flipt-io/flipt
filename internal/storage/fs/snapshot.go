@@ -843,6 +843,8 @@ func toEvaluationConstraintComparisonType(c core.ComparisonType) evaluation.Eval
 		return evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE
 	case core.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
 		return evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE
+	case core.ComparisonType_SEMVER_COMPARISON_TYPE:
+		return evaluation.EvaluationConstraintComparisonType_SEMVER_CONSTRAINT_COMPARISON_TYPE
 	}
 	return evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 }

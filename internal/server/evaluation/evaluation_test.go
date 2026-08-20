@@ -2090,6 +2090,34 @@ func TestPrepareForEvaluation_Errors(t *testing.T) {
 				Value:    "2024-01-15",
 			},
 		},
+		{
+			name: "invalid semver",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "gte",
+				Type:     core.ComparisonType_SEMVER_COMPARISON_TYPE,
+				Value:    "not a version",
+			},
+			wantErr: `constraint "version": parsing semver from "not a version"`,
+		},
+		{
+			name: "no error for valid semver",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "gte",
+				Type:     core.ComparisonType_SEMVER_COMPARISON_TYPE,
+				Value:    "1.2.3",
+			},
+		},
+		{
+			name: "no error for a semver missing its patch number",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "lt",
+				Type:     core.ComparisonType_SEMVER_COMPARISON_TYPE,
+				Value:    "v2.1",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2580,6 +2608,276 @@ func Test_matchesDateTime(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
+		})
+	}
+}
+
+func Test_matchesSemver(t *testing.T) {
+	tests := []struct {
+		name       string
+		constraint storage.EvaluationConstraint
+		value      string
+		wantMatch  bool
+		wantErr    bool
+	}{
+		{
+			name: "present",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "present",
+			},
+			value:     "1.2.3",
+			wantMatch: true,
+		},
+		{
+			name: "negative present",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "present",
+			},
+		},
+		{
+			name: "not present",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "notpresent",
+			},
+			wantMatch: true,
+		},
+		{
+			name: "negative notpresent",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "notpresent",
+			},
+			value: "1.2.3",
+		},
+		{
+			name: "not a semver context value",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "eq",
+				Value:    "1.2.3",
+			},
+			value:   "not a version",
+			wantErr: true,
+		},
+		{
+			name: "empty context value",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "eq",
+				Value:    "1.2.3",
+			},
+		},
+		{
+			name: "eq",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "eq",
+				Value:    "1.2.3",
+			},
+			value:     "1.2.3",
+			wantMatch: true,
+		},
+		{
+			name: "negative eq",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "eq",
+				Value:    "1.2.3",
+			},
+			value: "1.2.4",
+		},
+		{
+			name: "neq",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "neq",
+				Value:    "1.2.3",
+			},
+			value:     "1.2.4",
+			wantMatch: true,
+		},
+		{
+			name: "negative neq",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "neq",
+				Value:    "1.2.3",
+			},
+			value: "1.2.3",
+		},
+		{
+			// the reason this comparison type exists: lexically "1.10.0" sorts
+			// before "1.9.0", by SemVer precedence it comes after it
+			name: "gt across a two digit minor",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "gt",
+				Value:    "1.9.0",
+			},
+			value:     "1.10.0",
+			wantMatch: true,
+		},
+		{
+			name: "negative gt across a two digit minor",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "gt",
+				Value:    "1.10.0",
+			},
+			value: "1.9.0",
+		},
+		{
+			name: "gte on equal versions",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "gte",
+				Value:    "2.0.0",
+			},
+			value:     "2.0.0",
+			wantMatch: true,
+		},
+		{
+			name: "negative gte",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "gte",
+				Value:    "2.0.1",
+			},
+			value: "2.0.0",
+		},
+		{
+			name: "lt across a two digit minor",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "lt",
+				Value:    "1.10.0",
+			},
+			value:     "1.9.0",
+			wantMatch: true,
+		},
+		{
+			name: "negative lt",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "lt",
+				Value:    "1.9.0",
+			},
+			value: "1.10.0",
+		},
+		{
+			name: "lte on equal versions",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "lte",
+				Value:    "2.0.0",
+			},
+			value:     "2.0.0",
+			wantMatch: true,
+		},
+		{
+			name: "negative lte",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "lte",
+				Value:    "2.0.0",
+			},
+			value: "2.0.1",
+		},
+		{
+			name: "leading v and omitted patch parse tolerantly on both sides",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "eq",
+				Value:    "1.2",
+			},
+			value:     "v1.2.0",
+			wantMatch: true,
+		},
+		{
+			name: "a pre-release precedes its release",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "lt",
+				Value:    "1.0.0",
+			},
+			value:     "1.0.0-rc.1",
+			wantMatch: true,
+		},
+		{
+			name: "a pre-release is not the release",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "eq",
+				Value:    "1.0.0",
+			},
+			value: "1.0.0-rc.1",
+		},
+		{
+			name: "build metadata is ignored",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "eq",
+				Value:    "1.0.0",
+			},
+			value:     "1.0.0+build.5",
+			wantMatch: true,
+		},
+		{
+			name: "unknown operator",
+			constraint: storage.EvaluationConstraint{
+				Property: "version",
+				Operator: "foo",
+				Value:    "1.2.3",
+			},
+			value: "1.2.3",
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			constraint = tt.constraint
+			value      = tt.value
+			wantMatch  = tt.wantMatch
+			wantErr    = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			constraint.Type = core.ComparisonType_SEMVER_COMPARISON_TYPE
+			require.NoError(t, constraint.PrepareForEvaluation())
+
+			match, err := matchesSemver(constraint, value)
+
+			if wantErr {
+				require.Error(t, err)
+				var ierr errs.ErrInvalid
+				assert.ErrorAs(t, err, &ierr)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, wantMatch, match)
+		})
+	}
+}
+
+func Test_matchesSemver_ErrorsWithoutPrepare(t *testing.T) {
+	for _, operator := range []string{"eq", "neq", "lt", "lte", "gt", "gte"} {
+		t.Run(operator, func(t *testing.T) {
+			c := storage.EvaluationConstraint{
+				Property: "version",
+				Operator: operator,
+				Type:     core.ComparisonType_SEMVER_COMPARISON_TYPE,
+				Value:    "1.2.3",
+			}
+
+			match, err := matchesSemver(c, "1.2.3")
+			require.Error(t, err)
+			var ierr errs.ErrInvalid
+			require.ErrorAs(t, err, &ierr)
+			assert.False(t, match)
 		})
 	}
 }

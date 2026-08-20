@@ -79,6 +79,20 @@ func TestValidate_ConstraintLTOperator(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestValidate_ConstraintSemver(t *testing.T) {
+	const file = "testdata/valid_constraint_semver.yaml"
+	f, err := os.Open(file)
+	require.NoError(t, err)
+
+	defer f.Close()
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	err = v.Validate(file, f)
+	assert.NoError(t, err)
+}
+
 func TestValidate_DefaultVariant_V3(t *testing.T) {
 	const file = "testdata/valid_default_variant_v3.yaml"
 	f, err := os.Open(file)

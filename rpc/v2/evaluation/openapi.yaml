@@ -102,6 +102,7 @@ components:
                         - BOOLEAN_CONSTRAINT_COMPARISON_TYPE
                         - DATETIME_CONSTRAINT_COMPARISON_TYPE
                         - ENTITY_ID_CONSTRAINT_COMPARISON_TYPE
+                        - SEMVER_CONSTRAINT_COMPARISON_TYPE
                     type: string
                     format: enum
                 property:

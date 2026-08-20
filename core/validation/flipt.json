@@ -407,6 +407,37 @@
         }
       }
     },
+    "semverComparisonOperator": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "SEMVER_COMPARISON_TYPE"
+          }
+        },
+        "required": [
+          "operator"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "eq",
+              "neq",
+              "present",
+              "notpresent",
+              "lt",
+              "lte",
+              "gt",
+              "gte"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "entityIdComparisonOperator": {
       "allOf": [
         {
@@ -520,7 +551,8 @@
             "NUMBER_COMPARISON_TYPE",
             "BOOLEAN_COMPARISON_TYPE",
             "DATETIME_COMPARISON_TYPE",
-            "ENTITY_ID_COMPARISON_TYPE"
+            "ENTITY_ID_COMPARISON_TYPE",
+            "SEMVER_COMPARISON_TYPE"
           ]
         },
         "property": {
@@ -564,6 +596,9 @@
         },
         {
           "$ref": "#/$defs/entityIdComparisonOperator"
+        },
+        {
+          "$ref": "#/$defs/semverComparisonOperator"
         }
       ]
     },
