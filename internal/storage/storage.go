@@ -422,9 +422,7 @@ type ResourceRequest struct {
 // Optionally, the target storage revision reference can also be supplied.
 func NewResource(ns, key string, opts ...containers.Option[ReferenceRequest]) ResourceRequest {
 	p := ResourceRequest{
-		NamespaceRequest: NamespaceRequest{
-			key: ns,
-		},
+		key: ns,
 		Key: key,
 	}
 

@@ -35,7 +35,7 @@ func TestSCM_Propose(t *testing.T) {
 		Draft: false,
 	}
 
-	mr := &gitlab.MergeRequest{BasicMergeRequest: gitlab.BasicMergeRequest{WebURL: "http://example.com/mr", State: "opened"}}
+	mr := &gitlab.MergeRequest{WebURL: "http://example.com/mr", State: "opened"}
 	resp := &gitlab.Response{Response: &http.Response{Body: io.NopCloser(strings.NewReader("ok")), StatusCode: 201}}
 	mockMR.EXPECT().CreateMergeRequest("owner/repo", &gitlab.CreateMergeRequestOptions{
 		Title:        &req.Title,
@@ -68,7 +68,7 @@ func TestSCM_Propose_Draft(t *testing.T) {
 		Draft: true,
 	}
 	draftTitle := "Draft: Test MR"
-	mr := &gitlab.MergeRequest{BasicMergeRequest: gitlab.BasicMergeRequest{WebURL: "http://example.com/mr", State: "opened"}}
+	mr := &gitlab.MergeRequest{WebURL: "http://example.com/mr", State: "opened"}
 	resp := &gitlab.Response{Response: &http.Response{Body: io.NopCloser(strings.NewReader("ok")), StatusCode: 201}}
 	mockMR.EXPECT().CreateMergeRequest("owner/repo", &gitlab.CreateMergeRequestOptions{
 		Title:        &draftTitle,
@@ -190,7 +190,7 @@ func TestSCM_ListProposals(t *testing.T) {
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
 		TargetBranch: new("main"),
 		State:        new("all"),
-		ListOptions:  gitlab.ListOptions{PerPage: 100},
+		PerPage:      100,
 	}).Return(mrsList, resp, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)
@@ -225,7 +225,7 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
 		TargetBranch: new("main"),
 		State:        new("all"),
-		ListOptions:  gitlab.ListOptions{PerPage: 100},
+		PerPage:      100,
 	}).Return(mrsList, resp, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)
@@ -263,7 +263,7 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
 		TargetBranch: new("main"),
 		State:        new("all"),
-		ListOptions:  gitlab.ListOptions{PerPage: 100},
+		PerPage:      100,
 	}).Return(mrsList, resp, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)
@@ -298,7 +298,7 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
 		TargetBranch: new("main"),
 		State:        new("all"),
-		ListOptions:  gitlab.ListOptions{PerPage: 100},
+		PerPage:      100,
 	}).Return(mrsList, resp, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)
@@ -333,7 +333,7 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	mockMR.EXPECT().ListProjectMergeRequests("owner/repo", &gitlab.ListProjectMergeRequestsOptions{
 		TargetBranch: new("main"),
 		State:        new("all"),
-		ListOptions:  gitlab.ListOptions{PerPage: 100},
+		PerPage:      100,
 	}).Return(mrsList, resp, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)

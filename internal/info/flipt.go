@@ -130,7 +130,7 @@ func (f Flipt) MarshalJSON() ([]byte, error) {
 		Alias
 		Product product.Product `json:"product"`
 	}{
-		Alias:   (Alias)(f),
+		Alias:   Alias(f),
 		Product: f.Product(),
 	}
 	return json.Marshal(aux)

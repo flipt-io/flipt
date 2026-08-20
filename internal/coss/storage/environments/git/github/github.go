@@ -282,11 +282,9 @@ func (p *prs) All() iter.Seq[*github.PullRequest] {
 			zap.String("base", p.base))
 
 		opts := &github.PullRequestListOptions{
-			Base: p.base,
-			ListOptions: github.ListOptions{
-				PerPage: 100,
-			},
-			State: "all",
+			Base:    p.base,
+			PerPage: 100,
+			State:   "all",
 		}
 
 		var totalPRs int
