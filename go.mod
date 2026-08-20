@@ -7,7 +7,7 @@ require (
 	code.gitea.io/sdk/gitea v0.25.1
 	cuelang.org/go v0.17.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.22.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.14.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.5.0
 	github.com/ClickHouse/clickhouse-go/v2 v2.47.0
