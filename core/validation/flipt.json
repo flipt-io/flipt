@@ -270,7 +270,7 @@
                   "neq",
                   "present",
                   "notpresent",
-                  "le",
+                  "lt",
                   "lte",
                   "gt",
                   "gte",
@@ -395,7 +395,7 @@
               "neq",
               "present",
               "notpresent",
-              "le",
+              "lt",
               "lte",
               "gt",
               "gte"

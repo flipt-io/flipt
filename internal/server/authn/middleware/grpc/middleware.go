@@ -2,6 +2,7 @@ package grpc_middleware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"net/http"
@@ -219,7 +220,7 @@ func JWTAuthenticationStreamInterceptor(logger *zap.Logger, validator method.JWT
 	}
 }
 
-func jwtClaimsToMetadata(jwtClaims map[string]any, claimsMapping map[string]string) map[string]string {
+func jwtClaimsToMetadata(jwtClaims map[string]any, claimsMapping map[string]string) (map[string]string, error) {
 	md := map[string]string{}
 
 	for k, v := range jwtClaims {
@@ -264,7 +265,21 @@ func jwtClaimsToMetadata(jwtClaims map[string]any, claimsMapping map[string]stri
 		md[fmt.Sprintf("io.flipt.auth.jwt.%s", attribute)] = fmt.Sprintf("%v", value)
 	}
 
-	return md
+	// Expose the full set of claims as a JSON string so that authorization policies
+	// can reference claims which are not promoted by the mappings above (e.g. client_id
+	// or scope on machine-to-machine tokens). This mirrors the OIDC method, which
+	// already populates the same key.
+	//
+	// This is deliberately written last so that it always wins over an
+	// "io.flipt.auth.claims" claim carried within the token itself.
+	raw, err := json.Marshal(jwtClaims)
+	if err != nil {
+		return nil, fmt.Errorf("marshalling jwt claims: %w", err)
+	}
+
+	md[method.StorageMetadataClaims] = string(raw)
+
+	return md, nil
 }
 
 // authenticateJWT authenticates a JWT found in the incoming request metadata and returns a new context with the authenticated authentication instance.
@@ -303,9 +318,20 @@ func authenticateJWT(ctx context.Context, logger *zap.Logger, claimsMapping map[
 		return ctx, errUnauthenticated
 	}
 
+	// fail closed: authorization policies are evaluated against this metadata, so an
+	// incomplete mapping must not be treated as a successful authentication.
+	authMetadata, err := jwtClaimsToMetadata(jwtClaims, claimsMapping)
+	if err != nil {
+		logger.Error("unauthenticated",
+			zap.String("reason", "error mapping jwt claims to metadata"),
+			zap.Error(err))
+
+		return ctx, errUnauthenticated
+	}
+
 	return ContextWithAuthentication(ctx, &authrpc.Authentication{
 		Method:   authrpc.Method_METHOD_JWT,
-		Metadata: jwtClaimsToMetadata(jwtClaims, claimsMapping),
+		Metadata: authMetadata,
 	}), nil
 }
 

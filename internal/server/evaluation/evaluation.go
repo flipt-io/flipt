@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -246,7 +245,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 		}
 
 		if len(validDistributions) == 0 {
-			s.logger.Info("no distributions for rule")
+			s.logger.Debug("no distributions for rule")
 			resp.Match = true
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 			return resp, nil
@@ -500,31 +499,46 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 
 		f, err := store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(b.Reference)))
 		if err != nil {
-			var errnf errs.ErrNotFound
-			if errors.As(err, &errnf) {
-				eresp := &rpcevaluation.EvaluationResponse{
-					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
-					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
-						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
-							FlagKey:      req.FlagKey,
-							NamespaceKey: req.NamespaceKey,
-							Reason:       rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
-						},
-					},
-				}
-
-				resp.Responses = append(resp.Responses, eresp)
-				continue
+			reason := rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON
+			if !errs.AsMatch[errs.ErrNotFound](err) {
+				reason = rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON
+				s.logger.Debug("failed to get flag", zap.String("env", env.Key()), zap.String("ns", req.NamespaceKey), zap.String("flag", req.FlagKey), zap.Error(err))
 			}
 
-			return nil, err
+			eresp := &rpcevaluation.EvaluationResponse{
+				Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
+				Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
+					ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
+						FlagKey:      req.FlagKey,
+						NamespaceKey: req.NamespaceKey,
+						Reason:       reason,
+					},
+				},
+			}
+
+			resp.Responses = append(resp.Responses, eresp)
+			continue
 		}
+
+		var eresp *rpcevaluation.EvaluationResponse
 
 		switch f.Type {
 		case core.FlagType_BOOLEAN_FLAG_TYPE:
 			res, err := s.boolean(ctx, store, env, f, req)
 			if err != nil {
-				return nil, err
+				s.logger.Debug("failed to evaluate boolean flag", zap.String("env", env.Key()), zap.String("ns", req.NamespaceKey), zap.String("flag", req.FlagKey), zap.Error(err))
+				eresp = &rpcevaluation.EvaluationResponse{
+					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
+					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
+						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
+							FlagKey:      req.FlagKey,
+							NamespaceKey: req.NamespaceKey,
+							Reason:       rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON,
+						},
+					},
+				}
+				resp.Responses = append(resp.Responses, eresp)
+				continue
 			}
 
 			if s.tracingEnabled {
@@ -537,7 +551,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 				)
 			}
 
-			eresp := &rpcevaluation.EvaluationResponse{
+			eresp = &rpcevaluation.EvaluationResponse{
 				Type: rpcevaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE,
 				Response: &rpcevaluation.EvaluationResponse_BooleanResponse{
 					BooleanResponse: res,
@@ -548,7 +562,19 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 		case core.FlagType_VARIANT_FLAG_TYPE:
 			res, err := s.variant(ctx, store, env, f, req)
 			if err != nil {
-				return nil, err
+				s.logger.Debug("failed to evaluate variant flag", zap.String("env", env.Key()), zap.String("ns", req.NamespaceKey), zap.String("flag", req.FlagKey), zap.Error(err))
+				eresp = &rpcevaluation.EvaluationResponse{
+					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
+					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
+						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
+							FlagKey:      req.FlagKey,
+							NamespaceKey: req.NamespaceKey,
+							Reason:       rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON,
+						},
+					},
+				}
+				resp.Responses = append(resp.Responses, eresp)
+				continue
 			}
 
 			if s.tracingEnabled {
@@ -561,7 +587,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 					tracing.AttributeFlagTypeVariant,
 				)
 			}
-			eresp := &rpcevaluation.EvaluationResponse{
+			eresp = &rpcevaluation.EvaluationResponse{
 				Type: rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE,
 				Response: &rpcevaluation.EvaluationResponse_VariantResponse{
 					VariantResponse: res,
@@ -570,7 +596,19 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 
 			resp.Responses = append(resp.Responses, eresp)
 		default:
-			return nil, errs.ErrInvalidf("unknown flag type: %s", f.Type)
+			s.logger.Debug("unexpected flag type", zap.String("env", env.Key()), zap.String("ns", req.NamespaceKey), zap.String("flag", req.FlagKey), zap.Stringer("type", f.Type))
+			eresp = &rpcevaluation.EvaluationResponse{
+				Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
+				Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
+					ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
+						FlagKey:      req.FlagKey,
+						NamespaceKey: req.NamespaceKey,
+						Reason:       rpcevaluation.ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON,
+					},
+				},
+			}
+			resp.Responses = append(resp.Responses, eresp)
+			continue
 		}
 	}
 

@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import {
   selectCurrentEnvironment,
