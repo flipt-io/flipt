@@ -58,6 +58,8 @@ func WithServerSkipsAuthorization(server any) containers.Option[InterceptorOptio
 
 var errUnauthorized = errors.ErrUnauthorizedf("permission denied")
 
+// authorizationRequest derives the action from the RPC method because create and
+// update RPCs share the same protobuf request messages.
 func authorizationRequest(fullMethod string, request flipt.Request) flipt.Request {
 	switch fullMethod {
 	case environments.EnvironmentsService_CreateNamespace_FullMethodName,
