@@ -56,6 +56,55 @@ var adminAuth = &authrpc.Authentication{
 	},
 }
 
+func TestAuthorizationActionForCreateAndUpdateMethods(t *testing.T) {
+	tests := []struct {
+		name       string
+		fullMethod string
+		req        flipt.Requester
+		want       flipt.Request
+	}{
+		{
+			name:       "create namespace",
+			fullMethod: environments.EnvironmentsService_CreateNamespace_FullMethodName,
+			req:        &environments.UpdateNamespaceRequest{EnvironmentKey: "default", Key: "namespace"},
+			want:       flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionCreate, flipt.WithEnvironment("default"), flipt.WithNamespace("namespace")),
+		},
+		{
+			name:       "update namespace",
+			fullMethod: environments.EnvironmentsService_UpdateNamespace_FullMethodName,
+			req:        &environments.UpdateNamespaceRequest{EnvironmentKey: "default", Key: "namespace"},
+			want:       flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionUpdate, flipt.WithEnvironment("default"), flipt.WithNamespace("namespace")),
+		},
+		{
+			name:       "create resource",
+			fullMethod: environments.EnvironmentsService_CreateResource_FullMethodName,
+			req:        &environments.UpdateResourceRequest{EnvironmentKey: "default", NamespaceKey: "namespace"},
+			want:       flipt.NewRequest(flipt.ScopeNamespace, flipt.ActionCreate, flipt.WithEnvironment("default"), flipt.WithNamespace("namespace")),
+		},
+		{
+			name:       "update resource",
+			fullMethod: environments.EnvironmentsService_UpdateResource_FullMethodName,
+			req:        &environments.UpdateResourceRequest{EnvironmentKey: "default", NamespaceKey: "namespace"},
+			want:       flipt.NewRequest(flipt.ScopeNamespace, flipt.ActionUpdate, flipt.WithEnvironment("default"), flipt.WithNamespace("namespace")),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			policyVerifier := &mockPolicyVerifier{isAllowed: true}
+			ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), adminAuth)
+			info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: tt.fullMethod}
+
+			_, err := AuthorizationRequiredInterceptor(zap.NewNop(), policyVerifier)(ctx, tt.req, info, func(context.Context, any) (any, error) {
+				return nil, nil
+			})
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, policyVerifier.input["request"])
+		})
+	}
+}
+
 func TestAuthorizationRequiredInterceptor(t *testing.T) {
 	tests := []struct {
 		name                             string
