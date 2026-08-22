@@ -140,6 +140,12 @@ close({
 	description?: string | null
 	operator:     "eq" | "neq" | "present" | "notpresent" | "lt" | "lte" | "gt" | "gte"
 } | {
+	type:         "SEMVER_COMPARISON_TYPE"
+	property:     string & =~"^.+$"
+	value?:       string
+	description?: string | null
+	operator:     "eq" | "neq" | "present" | "notpresent" | "lt" | "lte" | "gt" | "gte"
+} | {
 	type:         "ENTITY_ID_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
 	value?:       string

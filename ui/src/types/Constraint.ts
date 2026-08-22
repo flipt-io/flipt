@@ -12,7 +12,8 @@ export enum ConstraintType {
   NUMBER = 'NUMBER_COMPARISON_TYPE',
   BOOLEAN = 'BOOLEAN_COMPARISON_TYPE',
   DATETIME = 'DATETIME_COMPARISON_TYPE',
-  ENTITY_ID = 'ENTITY_ID_COMPARISON_TYPE'
+  ENTITY_ID = 'ENTITY_ID_COMPARISON_TYPE',
+  SEMVER = 'SEMVER_COMPARISON_TYPE'
 }
 
 export function constraintTypeToLabel(c: ConstraintType): string {
@@ -27,6 +28,8 @@ export function constraintTypeToLabel(c: ConstraintType): string {
       return 'Date Time';
     case ConstraintType.ENTITY_ID:
       return 'Entity';
+    case ConstraintType.SEMVER:
+      return 'Semantic Version';
     default:
       return 'Unknown';
   }
@@ -85,6 +88,17 @@ export const ConstraintDateTimeOperators: Record<string, string> = {
   notpresent: 'IS NOT PRESENT'
 };
 
+export const ConstraintSemverOperators: Record<string, string> = {
+  eq: '==',
+  neq: '!=',
+  gt: '>',
+  gte: '>=',
+  lt: '<',
+  lte: '<=',
+  present: 'IS PRESENT',
+  notpresent: 'IS NOT PRESENT'
+};
+
 export const NoValueOperators: string[] = [
   'true',
   'false',
@@ -99,5 +113,6 @@ export const ConstraintOperators: Record<string, string> = {
   ...ConstraintNumberOperators,
   ...ConstraintBooleanOperators,
   ...ConstraintDateTimeOperators,
-  ...ConstraintEntityIdOperators
+  ...ConstraintEntityIdOperators,
+  ...ConstraintSemverOperators
 };

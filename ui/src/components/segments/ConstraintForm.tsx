@@ -21,6 +21,7 @@ import {
   ConstraintDateTimeOperators,
   ConstraintEntityIdOperators,
   ConstraintNumberOperators,
+  ConstraintSemverOperators,
   ConstraintStringOperators,
   ConstraintType,
   IConstraint,
@@ -63,6 +64,9 @@ const constraintOperators = (c: string) => {
       break;
     case ConstraintType.ENTITY_ID:
       opts = ConstraintEntityIdOperators;
+      break;
+    case ConstraintType.SEMVER:
+      opts = ConstraintSemverOperators;
       break;
   }
   return Object.entries(opts).map(([k, v]) => ({
@@ -330,7 +334,8 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
 
     const placeholder = {
       [ConstraintType.STRING]: 'Eg: Any text',
-      [ConstraintType.NUMBER]: 'Eg: 200'
+      [ConstraintType.NUMBER]: 'Eg: 200',
+      [ConstraintType.SEMVER]: 'Eg: 1.2.3'
     }[type as string];
     return placeholder ?? '';
   };

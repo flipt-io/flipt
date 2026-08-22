@@ -14,6 +14,7 @@ import {
   HashIcon,
   IdCardIcon,
   PencilIcon,
+  TagIcon,
   Text,
   ToggleLeftIcon,
   XIcon
@@ -124,6 +125,8 @@ function getTypeIcon(type: ConstraintType) {
       return <CalendarIcon className="h-4 w-4" />;
     case ConstraintType.ENTITY_ID:
       return <IdCardIcon className="h-4 w-4" />;
+    case ConstraintType.SEMVER:
+      return <TagIcon className="h-4 w-4" />;
     default:
       return <FilterIcon className="h-4 w-4" />;
   }
@@ -142,6 +145,8 @@ function getTypeColor(type: ConstraintType) {
       return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
     case ConstraintType.ENTITY_ID:
       return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100';
+    case ConstraintType.SEMVER:
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
     default:
       return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
   }

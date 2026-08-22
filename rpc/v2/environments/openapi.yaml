@@ -517,6 +517,7 @@ components:
                         - BOOLEAN_COMPARISON_TYPE
                         - DATETIME_COMPARISON_TYPE
                         - ENTITY_ID_COMPARISON_TYPE
+                        - SEMVER_COMPARISON_TYPE
                     type: string
                     format: enum
                 property:
