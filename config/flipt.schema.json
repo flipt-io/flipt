@@ -430,6 +430,9 @@
                         "issuer_url": {
                           "type": "string"
                         },
+                        "discovery_url": {
+                          "type": "string"
+                        },
                         "client_id": {
                           "type": "string"
                         },
@@ -491,6 +494,13 @@
                           "default": false
                         },
                         "authorize_parameters": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "default": {}
+                        },
+                        "claims_mapping": {
                           "type": "object",
                           "additionalProperties": {
                             "type": "string"
