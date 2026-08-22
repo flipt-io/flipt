@@ -240,10 +240,10 @@ func (p *prs) All() iter.Seq[*gitea.PullRequest] {
 
 		opts := gitea.ListPullRequestsOptions{
 			State: gitea.StateAll,
-		}
 
-		// PageSize is embedded under opts.ListOptions
-		opts.PageSize = 100
+			// PageSize is embedded under opts.ListOptions
+			PageSize: 100,
+		}
 
 		var totalPRs int
 		for {
