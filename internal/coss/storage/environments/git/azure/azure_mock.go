@@ -74,7 +74,7 @@ type MockClient_CreatePullRequest_Call struct {
 // CreatePullRequest is a helper method to define mock.On call
 //   - context1 context.Context
 //   - createPullRequestArgs git.CreatePullRequestArgs
-func (_e *MockClient_Expecter) CreatePullRequest(context1 interface{}, createPullRequestArgs interface{}) *MockClient_CreatePullRequest_Call {
+func (_e *MockClient_Expecter) CreatePullRequest(context1 any, createPullRequestArgs any) *MockClient_CreatePullRequest_Call {
 	return &MockClient_CreatePullRequest_Call{Call: _e.mock.On("CreatePullRequest", context1, createPullRequestArgs)}
 }
 
@@ -142,7 +142,7 @@ type MockClient_GetCommits_Call struct {
 // GetCommits is a helper method to define mock.On call
 //   - context1 context.Context
 //   - getCommitsArgs git.GetCommitsArgs
-func (_e *MockClient_Expecter) GetCommits(context1 interface{}, getCommitsArgs interface{}) *MockClient_GetCommits_Call {
+func (_e *MockClient_Expecter) GetCommits(context1 any, getCommitsArgs any) *MockClient_GetCommits_Call {
 	return &MockClient_GetCommits_Call{Call: _e.mock.On("GetCommits", context1, getCommitsArgs)}
 }
 
@@ -210,7 +210,7 @@ type MockClient_GetPullRequests_Call struct {
 // GetPullRequests is a helper method to define mock.On call
 //   - context1 context.Context
 //   - getPullRequestsArgs git.GetPullRequestsArgs
-func (_e *MockClient_Expecter) GetPullRequests(context1 interface{}, getPullRequestsArgs interface{}) *MockClient_GetPullRequests_Call {
+func (_e *MockClient_Expecter) GetPullRequests(context1 any, getPullRequestsArgs any) *MockClient_GetPullRequests_Call {
 	return &MockClient_GetPullRequests_Call{Call: _e.mock.On("GetPullRequests", context1, getPullRequestsArgs)}
 }
 

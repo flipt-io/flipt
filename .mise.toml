@@ -1,10 +1,10 @@
 [tools]
 go = "1.27.0"
 node = "24"
-golangci-lint = "2.13.0"
+golangci-lint = "2.13.1"
 buf = "1.71.0"
 dagger = "0.21.0"
-mockery = "3.7.3"
+mockery = "3.7.4"
 
 [tasks.bootstrap]
 description = "Install required development tools"
