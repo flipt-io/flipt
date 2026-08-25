@@ -58,6 +58,18 @@ func WithServerSkipsAuthorization(server any) containers.Option[InterceptorOptio
 
 var errUnauthorized = errors.ErrUnauthorizedf("permission denied")
 
+// authorizationRequest derives the action from the RPC method because create and
+// update RPCs share the same protobuf request messages.
+func authorizationRequest(fullMethod string, request flipt.Request) flipt.Request {
+	switch fullMethod {
+	case environments.EnvironmentsService_CreateNamespace_FullMethodName,
+		environments.EnvironmentsService_CreateResource_FullMethodName:
+		request.Action = flipt.ActionCreate
+	}
+
+	return request
+}
+
 func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.Verifier, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
@@ -82,6 +94,8 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 		}
 
 		for _, request := range requester.Request() {
+			request = authorizationRequest(info.FullMethod, request)
+
 			allowed, err := policyVerifier.IsAllowed(ctx, map[string]any{
 				"request":        request,
 				"authentication": auth,

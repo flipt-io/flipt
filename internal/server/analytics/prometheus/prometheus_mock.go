@@ -91,9 +91,9 @@ type MockPrometheusClient_QueryRange_Call struct {
 //   - query string
 //   - r v1.Range
 //   - opts ...v1.Option
-func (_e *MockPrometheusClient_Expecter) QueryRange(ctx interface{}, query interface{}, r interface{}, opts ...interface{}) *MockPrometheusClient_QueryRange_Call {
+func (_e *MockPrometheusClient_Expecter) QueryRange(ctx any, query any, r any, opts ...any) *MockPrometheusClient_QueryRange_Call {
 	return &MockPrometheusClient_QueryRange_Call{Call: _e.mock.On("QueryRange",
-		append([]interface{}{ctx, query, r}, opts...)...)}
+		append([]any{ctx, query, r}, opts...)...)}
 }
 
 func (_c *MockPrometheusClient_QueryRange_Call) Run(run func(ctx context.Context, query string, r v1.Range, opts ...v1.Option)) *MockPrometheusClient_QueryRange_Call {

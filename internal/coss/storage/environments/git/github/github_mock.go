@@ -84,7 +84,7 @@ type MockPullRequestsService_Create_Call struct {
 //   - owner string
 //   - repo string
 //   - pr *github.NewPullRequest
-func (_e *MockPullRequestsService_Expecter) Create(ctx interface{}, owner interface{}, repo interface{}, pr interface{}) *MockPullRequestsService_Create_Call {
+func (_e *MockPullRequestsService_Expecter) Create(ctx any, owner any, repo any, pr any) *MockPullRequestsService_Create_Call {
 	return &MockPullRequestsService_Create_Call{Call: _e.mock.On("Create", ctx, owner, repo, pr)}
 }
 
@@ -172,7 +172,7 @@ type MockPullRequestsService_List_Call struct {
 //   - owner string
 //   - repo string
 //   - opts *github.PullRequestListOptions
-func (_e *MockPullRequestsService_Expecter) List(ctx interface{}, owner interface{}, repo interface{}, opts interface{}) *MockPullRequestsService_List_Call {
+func (_e *MockPullRequestsService_Expecter) List(ctx any, owner any, repo any, opts any) *MockPullRequestsService_List_Call {
 	return &MockPullRequestsService_List_Call{Call: _e.mock.On("List", ctx, owner, repo, opts)}
 }
 
@@ -289,7 +289,7 @@ type MockRepositoriesService_CompareCommits_Call struct {
 //   - base string
 //   - head string
 //   - opts *github.ListOptions
-func (_e *MockRepositoriesService_Expecter) CompareCommits(ctx interface{}, owner interface{}, repo interface{}, base interface{}, head interface{}, opts interface{}) *MockRepositoriesService_CompareCommits_Call {
+func (_e *MockRepositoriesService_Expecter) CompareCommits(ctx any, owner any, repo any, base any, head any, opts any) *MockRepositoriesService_CompareCommits_Call {
 	return &MockRepositoriesService_CompareCommits_Call{Call: _e.mock.On("CompareCommits", ctx, owner, repo, base, head, opts)}
 }
 

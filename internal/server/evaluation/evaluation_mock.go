@@ -74,7 +74,7 @@ type MockEnvironmentStore_Get_Call struct {
 // Get is a helper method to define mock.On call
 //   - context1 context.Context
 //   - s string
-func (_e *MockEnvironmentStore_Expecter) Get(context1 interface{}, s interface{}) *MockEnvironmentStore_Get_Call {
+func (_e *MockEnvironmentStore_Expecter) Get(context1 any, s any) *MockEnvironmentStore_Get_Call {
 	return &MockEnvironmentStore_Get_Call{Call: _e.mock.On("Get", context1, s)}
 }
 
@@ -141,7 +141,7 @@ type MockEnvironmentStore_GetFromContext_Call struct {
 
 // GetFromContext is a helper method to define mock.On call
 //   - context1 context.Context
-func (_e *MockEnvironmentStore_Expecter) GetFromContext(context1 interface{}) *MockEnvironmentStore_GetFromContext_Call {
+func (_e *MockEnvironmentStore_Expecter) GetFromContext(context1 any) *MockEnvironmentStore_GetFromContext_Call {
 	return &MockEnvironmentStore_GetFromContext_Call{Call: _e.mock.On("GetFromContext", context1)}
 }
 

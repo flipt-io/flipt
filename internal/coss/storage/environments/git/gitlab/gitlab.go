@@ -278,9 +278,7 @@ func (m *mrs) All() iter.Seq[*gitlab.BasicMergeRequest] {
 		opts := &gitlab.ListProjectMergeRequestsOptions{
 			TargetBranch: &m.base,
 			State:        new("all"),
-			ListOptions: gitlab.ListOptions{
-				PerPage: 100,
-			},
+			PerPage:      100,
 		}
 
 		var totalMRs int

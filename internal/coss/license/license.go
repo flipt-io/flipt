@@ -104,8 +104,7 @@ func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, err
 		}
 
 		// Check if this is a rate limit error
-		var rateLimitErr *keygen.RateLimitError
-		if errors.As(err, &rateLimitErr) {
+		if rateLimitErr, ok := errors.AsType[*keygen.RateLimitError](err); ok {
 			lm.rateLimitMu.Lock()
 			lm.rateLimited = true
 			lm.rateLimitResetAt = rateLimitErr.Reset
@@ -133,8 +132,7 @@ func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, err
 			// Activate the current fingerprint
 			if _, err := license.Activate(ctx, fingerprint); err != nil {
 				// Check if activation failed due to rate limit
-				var rateLimitErr *keygen.RateLimitError
-				if errors.As(err, &rateLimitErr) {
+				if rateLimitErr, ok := errors.AsType[*keygen.RateLimitError](err); ok {
 					lm.rateLimitMu.Lock()
 					lm.rateLimited = true
 					lm.rateLimitResetAt = rateLimitErr.Reset
