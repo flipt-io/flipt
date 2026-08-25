@@ -87,9 +87,9 @@ type MockMergeRequestsService_CreateMergeRequest_Call struct {
 //   - pid any
 //   - opt *gitlab.CreateMergeRequestOptions
 //   - options ...gitlab.RequestOptionFunc
-func (_e *MockMergeRequestsService_Expecter) CreateMergeRequest(pid interface{}, opt interface{}, options ...interface{}) *MockMergeRequestsService_CreateMergeRequest_Call {
+func (_e *MockMergeRequestsService_Expecter) CreateMergeRequest(pid any, opt any, options ...any) *MockMergeRequestsService_CreateMergeRequest_Call {
 	return &MockMergeRequestsService_CreateMergeRequest_Call{Call: _e.mock.On("CreateMergeRequest",
-		append([]interface{}{pid, opt}, options...)...)}
+		append([]any{pid, opt}, options...)...)}
 }
 
 func (_c *MockMergeRequestsService_CreateMergeRequest_Call) Run(run func(pid any, opt *gitlab.CreateMergeRequestOptions, options ...gitlab.RequestOptionFunc)) *MockMergeRequestsService_CreateMergeRequest_Call {
@@ -178,9 +178,9 @@ type MockMergeRequestsService_ListProjectMergeRequests_Call struct {
 //   - pid any
 //   - opt *gitlab.ListProjectMergeRequestsOptions
 //   - options ...gitlab.RequestOptionFunc
-func (_e *MockMergeRequestsService_Expecter) ListProjectMergeRequests(pid interface{}, opt interface{}, options ...interface{}) *MockMergeRequestsService_ListProjectMergeRequests_Call {
+func (_e *MockMergeRequestsService_Expecter) ListProjectMergeRequests(pid any, opt any, options ...any) *MockMergeRequestsService_ListProjectMergeRequests_Call {
 	return &MockMergeRequestsService_ListProjectMergeRequests_Call{Call: _e.mock.On("ListProjectMergeRequests",
-		append([]interface{}{pid, opt}, options...)...)}
+		append([]any{pid, opt}, options...)...)}
 }
 
 func (_c *MockMergeRequestsService_ListProjectMergeRequests_Call) Run(run func(pid any, opt *gitlab.ListProjectMergeRequestsOptions, options ...gitlab.RequestOptionFunc)) *MockMergeRequestsService_ListProjectMergeRequests_Call {
@@ -296,9 +296,9 @@ type MockRepositoriesService_Compare_Call struct {
 //   - pid any
 //   - opt *gitlab.CompareOptions
 //   - options ...gitlab.RequestOptionFunc
-func (_e *MockRepositoriesService_Expecter) Compare(pid interface{}, opt interface{}, options ...interface{}) *MockRepositoriesService_Compare_Call {
+func (_e *MockRepositoriesService_Expecter) Compare(pid any, opt any, options ...any) *MockRepositoriesService_Compare_Call {
 	return &MockRepositoriesService_Compare_Call{Call: _e.mock.On("Compare",
-		append([]interface{}{pid, opt}, options...)...)}
+		append([]any{pid, opt}, options...)...)}
 }
 
 func (_c *MockRepositoriesService_Compare_Call) Run(run func(pid any, opt *gitlab.CompareOptions, options ...gitlab.RequestOptionFunc)) *MockRepositoriesService_Compare_Call {

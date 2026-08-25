@@ -116,7 +116,7 @@ type MockManager_GetProvider_Call struct {
 
 // GetProvider is a helper method to define mock.On call
 //   - name string
-func (_e *MockManager_Expecter) GetProvider(name interface{}) *MockManager_GetProvider_Call {
+func (_e *MockManager_Expecter) GetProvider(name any) *MockManager_GetProvider_Call {
 	return &MockManager_GetProvider_Call{Call: _e.mock.On("GetProvider", name)}
 }
 
@@ -180,7 +180,7 @@ type MockManager_GetSecret_Call struct {
 //   - ctx context.Context
 //   - providerName string
 //   - path string
-func (_e *MockManager_Expecter) GetSecret(ctx interface{}, providerName interface{}, path interface{}) *MockManager_GetSecret_Call {
+func (_e *MockManager_Expecter) GetSecret(ctx any, providerName any, path any) *MockManager_GetSecret_Call {
 	return &MockManager_GetSecret_Call{Call: _e.mock.On("GetSecret", ctx, providerName, path)}
 }
 
@@ -253,7 +253,7 @@ type MockManager_GetSecretValue_Call struct {
 // GetSecretValue is a helper method to define mock.On call
 //   - ctx context.Context
 //   - ref Reference
-func (_e *MockManager_Expecter) GetSecretValue(ctx interface{}, ref interface{}) *MockManager_GetSecretValue_Call {
+func (_e *MockManager_Expecter) GetSecretValue(ctx any, ref any) *MockManager_GetSecretValue_Call {
 	return &MockManager_GetSecretValue_Call{Call: _e.mock.On("GetSecretValue", ctx, ref)}
 }
 
@@ -368,7 +368,7 @@ type MockManager_ListSecrets_Call struct {
 //   - ctx context.Context
 //   - providerName string
 //   - pathPrefix string
-func (_e *MockManager_Expecter) ListSecrets(ctx interface{}, providerName interface{}, pathPrefix interface{}) *MockManager_ListSecrets_Call {
+func (_e *MockManager_Expecter) ListSecrets(ctx any, providerName any, pathPrefix any) *MockManager_ListSecrets_Call {
 	return &MockManager_ListSecrets_Call{Call: _e.mock.On("ListSecrets", ctx, providerName, pathPrefix)}
 }
 
@@ -430,7 +430,7 @@ type MockManager_RegisterProvider_Call struct {
 // RegisterProvider is a helper method to define mock.On call
 //   - name string
 //   - provider Provider
-func (_e *MockManager_Expecter) RegisterProvider(name interface{}, provider interface{}) *MockManager_RegisterProvider_Call {
+func (_e *MockManager_Expecter) RegisterProvider(name any, provider any) *MockManager_RegisterProvider_Call {
 	return &MockManager_RegisterProvider_Call{Call: _e.mock.On("RegisterProvider", name, provider)}
 }
 
@@ -525,7 +525,7 @@ type MockProvider_GetSecret_Call struct {
 // GetSecret is a helper method to define mock.On call
 //   - ctx context.Context
 //   - path string
-func (_e *MockProvider_Expecter) GetSecret(ctx interface{}, path interface{}) *MockProvider_GetSecret_Call {
+func (_e *MockProvider_Expecter) GetSecret(ctx any, path any) *MockProvider_GetSecret_Call {
 	return &MockProvider_GetSecret_Call{Call: _e.mock.On("GetSecret", ctx, path)}
 }
 
@@ -593,7 +593,7 @@ type MockProvider_ListSecrets_Call struct {
 // ListSecrets is a helper method to define mock.On call
 //   - ctx context.Context
 //   - pathPrefix string
-func (_e *MockProvider_Expecter) ListSecrets(ctx interface{}, pathPrefix interface{}) *MockProvider_ListSecrets_Call {
+func (_e *MockProvider_Expecter) ListSecrets(ctx any, pathPrefix any) *MockProvider_ListSecrets_Call {
 	return &MockProvider_ListSecrets_Call{Call: _e.mock.On("ListSecrets", ctx, pathPrefix)}
 }
 

@@ -77,7 +77,7 @@ type MockEnvironment_Branch_Call struct {
 // Branch is a helper method to define mock.On call
 //   - ctx context.Context
 //   - branch string
-func (_e *MockEnvironment_Expecter) Branch(ctx interface{}, branch interface{}) *MockEnvironment_Branch_Call {
+func (_e *MockEnvironment_Expecter) Branch(ctx any, branch any) *MockEnvironment_Branch_Call {
 	return &MockEnvironment_Branch_Call{Call: _e.mock.On("Branch", ctx, branch)}
 }
 
@@ -190,7 +190,7 @@ type MockEnvironment_CreateNamespace_Call struct {
 //   - context1 context.Context
 //   - rev string
 //   - namespace *environments.Namespace
-func (_e *MockEnvironment_Expecter) CreateNamespace(context1 interface{}, rev interface{}, namespace interface{}) *MockEnvironment_CreateNamespace_Call {
+func (_e *MockEnvironment_Expecter) CreateNamespace(context1 any, rev any, namespace any) *MockEnvironment_CreateNamespace_Call {
 	return &MockEnvironment_CreateNamespace_Call{Call: _e.mock.On("CreateNamespace", context1, rev, namespace)}
 }
 
@@ -296,7 +296,7 @@ type MockEnvironment_DeleteBranch_Call struct {
 // DeleteBranch is a helper method to define mock.On call
 //   - ctx context.Context
 //   - branch string
-func (_e *MockEnvironment_Expecter) DeleteBranch(ctx interface{}, branch interface{}) *MockEnvironment_DeleteBranch_Call {
+func (_e *MockEnvironment_Expecter) DeleteBranch(ctx any, branch any) *MockEnvironment_DeleteBranch_Call {
 	return &MockEnvironment_DeleteBranch_Call{Call: _e.mock.On("DeleteBranch", ctx, branch)}
 }
 
@@ -363,7 +363,7 @@ type MockEnvironment_DeleteNamespace_Call struct {
 //   - context1 context.Context
 //   - rev string
 //   - key string
-func (_e *MockEnvironment_Expecter) DeleteNamespace(context1 interface{}, rev interface{}, key interface{}) *MockEnvironment_DeleteNamespace_Call {
+func (_e *MockEnvironment_Expecter) DeleteNamespace(context1 any, rev any, key any) *MockEnvironment_DeleteNamespace_Call {
 	return &MockEnvironment_DeleteNamespace_Call{Call: _e.mock.On("DeleteNamespace", context1, rev, key)}
 }
 
@@ -436,7 +436,7 @@ type MockEnvironment_EvaluationNamespaceSnapshot_Call struct {
 // EvaluationNamespaceSnapshot is a helper method to define mock.On call
 //   - context1 context.Context
 //   - s string
-func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshot(context1 interface{}, s interface{}) *MockEnvironment_EvaluationNamespaceSnapshot_Call {
+func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshot(context1 any, s any) *MockEnvironment_EvaluationNamespaceSnapshot_Call {
 	return &MockEnvironment_EvaluationNamespaceSnapshot_Call{Call: _e.mock.On("EvaluationNamespaceSnapshot", context1, s)}
 }
 
@@ -505,7 +505,7 @@ type MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call struct {
 //   - context1 context.Context
 //   - s string
 //   - evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot
-func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshotSubscribe(context1 interface{}, s interface{}, evaluationNamespaceSnapshotCh interface{}) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
+func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshotSubscribe(context1 any, s any, evaluationNamespaceSnapshotCh any) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
 	return &MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call{Call: _e.mock.On("EvaluationNamespaceSnapshotSubscribe", context1, s, evaluationNamespaceSnapshotCh)}
 }
 
@@ -633,7 +633,7 @@ type MockEnvironment_GetNamespace_Call struct {
 // GetNamespace is a helper method to define mock.On call
 //   - context1 context.Context
 //   - key string
-func (_e *MockEnvironment_Expecter) GetNamespace(context1 interface{}, key interface{}) *MockEnvironment_GetNamespace_Call {
+func (_e *MockEnvironment_Expecter) GetNamespace(context1 any, key any) *MockEnvironment_GetNamespace_Call {
 	return &MockEnvironment_GetNamespace_Call{Call: _e.mock.On("GetNamespace", context1, key)}
 }
 
@@ -745,7 +745,7 @@ type MockEnvironment_ListBranchedChanges_Call struct {
 // ListBranchedChanges is a helper method to define mock.On call
 //   - ctx context.Context
 //   - branch Environment
-func (_e *MockEnvironment_Expecter) ListBranchedChanges(ctx interface{}, branch interface{}) *MockEnvironment_ListBranchedChanges_Call {
+func (_e *MockEnvironment_Expecter) ListBranchedChanges(ctx any, branch any) *MockEnvironment_ListBranchedChanges_Call {
 	return &MockEnvironment_ListBranchedChanges_Call{Call: _e.mock.On("ListBranchedChanges", ctx, branch)}
 }
 
@@ -812,7 +812,7 @@ type MockEnvironment_ListBranches_Call struct {
 
 // ListBranches is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockEnvironment_Expecter) ListBranches(ctx interface{}) *MockEnvironment_ListBranches_Call {
+func (_e *MockEnvironment_Expecter) ListBranches(ctx any) *MockEnvironment_ListBranches_Call {
 	return &MockEnvironment_ListBranches_Call{Call: _e.mock.On("ListBranches", ctx)}
 }
 
@@ -874,7 +874,7 @@ type MockEnvironment_ListNamespaces_Call struct {
 
 // ListNamespaces is a helper method to define mock.On call
 //   - context1 context.Context
-func (_e *MockEnvironment_Expecter) ListNamespaces(context1 interface{}) *MockEnvironment_ListNamespaces_Call {
+func (_e *MockEnvironment_Expecter) ListNamespaces(context1 any) *MockEnvironment_ListNamespaces_Call {
 	return &MockEnvironment_ListNamespaces_Call{Call: _e.mock.On("ListNamespaces", context1)}
 }
 
@@ -938,7 +938,7 @@ type MockEnvironment_Propose_Call struct {
 //   - ctx context.Context
 //   - branch Environment
 //   - opts ProposalOptions
-func (_e *MockEnvironment_Expecter) Propose(ctx interface{}, branch interface{}, opts interface{}) *MockEnvironment_Propose_Call {
+func (_e *MockEnvironment_Expecter) Propose(ctx any, branch any, opts any) *MockEnvironment_Propose_Call {
 	return &MockEnvironment_Propose_Call{Call: _e.mock.On("Propose", ctx, branch, opts)}
 }
 
@@ -1011,7 +1011,7 @@ type MockEnvironment_Update_Call struct {
 //   - rev string
 //   - typ ResourceType
 //   - fn UpdateFunc
-func (_e *MockEnvironment_Expecter) Update(context1 interface{}, rev interface{}, typ interface{}, fn interface{}) *MockEnvironment_Update_Call {
+func (_e *MockEnvironment_Expecter) Update(context1 any, rev any, typ any, fn any) *MockEnvironment_Update_Call {
 	return &MockEnvironment_Update_Call{Call: _e.mock.On("Update", context1, rev, typ, fn)}
 }
 
@@ -1088,7 +1088,7 @@ type MockEnvironment_UpdateNamespace_Call struct {
 //   - context1 context.Context
 //   - rev string
 //   - namespace *environments.Namespace
-func (_e *MockEnvironment_Expecter) UpdateNamespace(context1 interface{}, rev interface{}, namespace interface{}) *MockEnvironment_UpdateNamespace_Call {
+func (_e *MockEnvironment_Expecter) UpdateNamespace(context1 any, rev any, namespace any) *MockEnvironment_UpdateNamespace_Call {
 	return &MockEnvironment_UpdateNamespace_Call{Call: _e.mock.On("UpdateNamespace", context1, rev, namespace)}
 }
 
@@ -1151,7 +1151,7 @@ type MockEnvironment_View_Call struct {
 //   - context1 context.Context
 //   - typ ResourceType
 //   - fn ViewFunc
-func (_e *MockEnvironment_Expecter) View(context1 interface{}, typ interface{}, fn interface{}) *MockEnvironment_View_Call {
+func (_e *MockEnvironment_Expecter) View(context1 any, typ any, fn any) *MockEnvironment_View_Call {
 	return &MockEnvironment_View_Call{Call: _e.mock.On("View", context1, typ, fn)}
 }
 

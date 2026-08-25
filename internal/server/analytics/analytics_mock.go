@@ -73,7 +73,7 @@ type MockClient_GetBatchFlagEvaluationsCount_Call struct {
 // GetBatchFlagEvaluationsCount is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req *BatchFlagEvaluationsCountRequest
-func (_e *MockClient_Expecter) GetBatchFlagEvaluationsCount(ctx interface{}, req interface{}) *MockClient_GetBatchFlagEvaluationsCount_Call {
+func (_e *MockClient_Expecter) GetBatchFlagEvaluationsCount(ctx any, req any) *MockClient_GetBatchFlagEvaluationsCount_Call {
 	return &MockClient_GetBatchFlagEvaluationsCount_Call{Call: _e.mock.On("GetBatchFlagEvaluationsCount", ctx, req)}
 }
 
@@ -149,7 +149,7 @@ type MockClient_GetFlagEvaluationsCount_Call struct {
 // GetFlagEvaluationsCount is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req *FlagEvaluationsCountRequest
-func (_e *MockClient_Expecter) GetFlagEvaluationsCount(ctx interface{}, req interface{}) *MockClient_GetFlagEvaluationsCount_Call {
+func (_e *MockClient_Expecter) GetFlagEvaluationsCount(ctx any, req any) *MockClient_GetFlagEvaluationsCount_Call {
 	return &MockClient_GetFlagEvaluationsCount_Call{Call: _e.mock.On("GetFlagEvaluationsCount", ctx, req)}
 }
 
