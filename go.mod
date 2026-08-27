@@ -56,7 +56,7 @@ require (
 	github.com/mattn/go-isatty v0.0.24
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/open-policy-agent/opa v1.19.0
+	github.com/open-policy-agent/opa v1.19.1
 	github.com/prometheus/client_golang v1.24.1
 	github.com/prometheus/common v0.70.1
 	github.com/prometheus/sigv4 v0.4.1
