@@ -1,6 +1,7 @@
 package credentials
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/go-git/go-git/v6/plumbing/client"
+	"github.com/go-git/go-git/v6/plumbing/transport"
 	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
 	gitssh "github.com/go-git/go-git/v6/plumbing/transport/ssh"
 	"github.com/jferrl/go-githubauth"
@@ -38,6 +40,26 @@ func (s *CredentialSource) Get(name string) (*Credential, error) {
 type Credential struct {
 	logger *zap.Logger
 	config *config.CredentialConfig
+}
+
+// insecureHostKeyAuth wraps an SSH auth method whose HostKeyCallback has already been
+// set to ssh.InsecureIgnoreHostKey, guaranteeing HostKeyAlgorithms is non-empty so that
+// go-git does not fall back to reading known_hosts. See GitAuthentication for detail.
+type insecureHostKeyAuth struct {
+	*gitssh.PublicKeys
+}
+
+func (a insecureHostKeyAuth) ClientConfig(ctx context.Context, req *transport.Request) (*ssh.ClientConfig, error) {
+	cfg, err := a.PublicKeys.ClientConfig(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(cfg.HostKeyAlgorithms) == 0 {
+		cfg.HostKeyAlgorithms = ssh.SupportedAlgorithms().HostKeys
+	}
+
+	return cfg, nil
 }
 
 // GitAuthentication returns the appropriate client.Option for Git operations.
@@ -77,6 +99,26 @@ func (c *Credential) GitAuthentication() (client.Option, error) {
 		if c.config.SSH.InsecureIgnoreHostKey {
 			// nolint:gosec
 			method.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+
+			// Setting HostKeyCallback alone is not enough. go-git still reads
+			// known_hosts in order to pre-populate HostKeyAlgorithms, and returns an
+			// error when no known_hosts file exists -- even though a HostKeyCallback
+			// has been supplied:
+			//
+			//	} else if len(config.HostKeyAlgorithms) == 0 {
+			//		db, err := newKnownHostsDb()
+			//		if err != nil {
+			//			return nil, err
+			//		}
+			//
+			// (go-git plumbing/transport/ssh/ssh.go, Transport.connect)
+			//
+			// So on a host with no known_hosts file -- a container, typically --
+			// insecure_ignore_host_key still fails with "unable to find any valid
+			// known_hosts file, set SSH_KNOWN_HOSTS env variable". Pre-populating the
+			// algorithms skips that lookup. Their ordering is a negotiation preference
+			// rather than a correctness requirement, so the defaults are fine here.
+			return client.WithSSHAuth(insecureHostKeyAuth{PublicKeys: method}), nil
 		}
 
 		return client.WithSSHAuth(method), nil
