@@ -73,7 +73,7 @@ type MockReadOnlyStore_CountFlags_Call struct {
 // CountFlags is a helper method to define mock.On call
 //   - ctx context.Context
 //   - ns NamespaceRequest
-func (_e *MockReadOnlyStore_Expecter) CountFlags(ctx interface{}, ns interface{}) *MockReadOnlyStore_CountFlags_Call {
+func (_e *MockReadOnlyStore_Expecter) CountFlags(ctx any, ns any) *MockReadOnlyStore_CountFlags_Call {
 	return &MockReadOnlyStore_CountFlags_Call{Call: _e.mock.On("CountFlags", ctx, ns)}
 }
 
@@ -141,7 +141,7 @@ type MockReadOnlyStore_EvaluationNamespaceSnapshot_Call struct {
 // EvaluationNamespaceSnapshot is a helper method to define mock.On call
 //   - context1 context.Context
 //   - ns string
-func (_e *MockReadOnlyStore_Expecter) EvaluationNamespaceSnapshot(context1 interface{}, ns interface{}) *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call {
+func (_e *MockReadOnlyStore_Expecter) EvaluationNamespaceSnapshot(context1 any, ns any) *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call {
 	return &MockReadOnlyStore_EvaluationNamespaceSnapshot_Call{Call: _e.mock.On("EvaluationNamespaceSnapshot", context1, ns)}
 }
 
@@ -210,7 +210,7 @@ type MockReadOnlyStore_GetEvaluationDistributions_Call struct {
 //   - ctx context.Context
 //   - flag ResourceRequest
 //   - rule IDRequest
-func (_e *MockReadOnlyStore_Expecter) GetEvaluationDistributions(ctx interface{}, flag interface{}, rule interface{}) *MockReadOnlyStore_GetEvaluationDistributions_Call {
+func (_e *MockReadOnlyStore_Expecter) GetEvaluationDistributions(ctx any, flag any, rule any) *MockReadOnlyStore_GetEvaluationDistributions_Call {
 	return &MockReadOnlyStore_GetEvaluationDistributions_Call{Call: _e.mock.On("GetEvaluationDistributions", ctx, flag, rule)}
 }
 
@@ -283,7 +283,7 @@ type MockReadOnlyStore_GetEvaluationRollouts_Call struct {
 // GetEvaluationRollouts is a helper method to define mock.On call
 //   - ctx context.Context
 //   - flag ResourceRequest
-func (_e *MockReadOnlyStore_Expecter) GetEvaluationRollouts(ctx interface{}, flag interface{}) *MockReadOnlyStore_GetEvaluationRollouts_Call {
+func (_e *MockReadOnlyStore_Expecter) GetEvaluationRollouts(ctx any, flag any) *MockReadOnlyStore_GetEvaluationRollouts_Call {
 	return &MockReadOnlyStore_GetEvaluationRollouts_Call{Call: _e.mock.On("GetEvaluationRollouts", ctx, flag)}
 }
 
@@ -351,7 +351,7 @@ type MockReadOnlyStore_GetEvaluationRules_Call struct {
 // GetEvaluationRules is a helper method to define mock.On call
 //   - ctx context.Context
 //   - flag ResourceRequest
-func (_e *MockReadOnlyStore_Expecter) GetEvaluationRules(ctx interface{}, flag interface{}) *MockReadOnlyStore_GetEvaluationRules_Call {
+func (_e *MockReadOnlyStore_Expecter) GetEvaluationRules(ctx any, flag any) *MockReadOnlyStore_GetEvaluationRules_Call {
 	return &MockReadOnlyStore_GetEvaluationRules_Call{Call: _e.mock.On("GetEvaluationRules", ctx, flag)}
 }
 
@@ -419,7 +419,7 @@ type MockReadOnlyStore_GetFlag_Call struct {
 // GetFlag is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req ResourceRequest
-func (_e *MockReadOnlyStore_Expecter) GetFlag(ctx interface{}, req interface{}) *MockReadOnlyStore_GetFlag_Call {
+func (_e *MockReadOnlyStore_Expecter) GetFlag(ctx any, req any) *MockReadOnlyStore_GetFlag_Call {
 	return &MockReadOnlyStore_GetFlag_Call{Call: _e.mock.On("GetFlag", ctx, req)}
 }
 
@@ -485,7 +485,7 @@ type MockReadOnlyStore_ListFlags_Call struct {
 // ListFlags is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req *ListRequest[NamespaceRequest]
-func (_e *MockReadOnlyStore_Expecter) ListFlags(ctx interface{}, req interface{}) *MockReadOnlyStore_ListFlags_Call {
+func (_e *MockReadOnlyStore_Expecter) ListFlags(ctx any, req any) *MockReadOnlyStore_ListFlags_Call {
 	return &MockReadOnlyStore_ListFlags_Call{Call: _e.mock.On("ListFlags", ctx, req)}
 }
 

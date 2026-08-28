@@ -31,7 +31,7 @@ type V1toV2MarshallerAdapter struct {
 
 func NewV1toV2MarshallerAdapter(logger *zap.Logger) *V1toV2MarshallerAdapter {
 	return &V1toV2MarshallerAdapter{&grpc_gateway_v2.JSONPb{
-		MarshalOptions: protojson.MarshalOptions{EmitDefaultValues: true},
+		EmitDefaultValues: true,
 	}, logger}
 }
 
@@ -66,8 +66,7 @@ func (c *decoderInterceptor) Decode(v any) error {
 	}
 	if err != nil {
 		c.logger.Debug("JSON decoding failed for inputs", zap.Error(err))
-		var uerr *json.UnmarshalTypeError
-		if errors.As(err, &uerr) {
+		if _, ok := errors.AsType[*json.UnmarshalTypeError](err); ok {
 			return errors.New("invalid values for key(s) in json body")
 		}
 

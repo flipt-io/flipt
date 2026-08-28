@@ -82,7 +82,7 @@ type MockClient_CompareCommits_Call struct {
 //   - repo string
 //   - prev string
 //   - current string
-func (_e *MockClient_Expecter) CompareCommits(user interface{}, repo interface{}, prev interface{}, current interface{}) *MockClient_CompareCommits_Call {
+func (_e *MockClient_Expecter) CompareCommits(user any, repo any, prev any, current any) *MockClient_CompareCommits_Call {
 	return &MockClient_CompareCommits_Call{Call: _e.mock.On("CompareCommits", user, repo, prev, current)}
 }
 
@@ -169,7 +169,7 @@ type MockClient_CreatePullRequest_Call struct {
 //   - owner string
 //   - repo string
 //   - opt gitea.CreatePullRequestOption
-func (_e *MockClient_Expecter) CreatePullRequest(owner interface{}, repo interface{}, opt interface{}) *MockClient_CreatePullRequest_Call {
+func (_e *MockClient_Expecter) CreatePullRequest(owner any, repo any, opt any) *MockClient_CreatePullRequest_Call {
 	return &MockClient_CreatePullRequest_Call{Call: _e.mock.On("CreatePullRequest", owner, repo, opt)}
 }
 
@@ -251,7 +251,7 @@ type MockClient_ListRepoPullRequests_Call struct {
 //   - owner string
 //   - repo string
 //   - opt gitea.ListPullRequestsOptions
-func (_e *MockClient_Expecter) ListRepoPullRequests(owner interface{}, repo interface{}, opt interface{}) *MockClient_ListRepoPullRequests_Call {
+func (_e *MockClient_Expecter) ListRepoPullRequests(owner any, repo any, opt any) *MockClient_ListRepoPullRequests_Call {
 	return &MockClient_ListRepoPullRequests_Call{Call: _e.mock.On("ListRepoPullRequests", owner, repo, opt)}
 }
 

@@ -115,7 +115,7 @@ close({
 	property:     string & =~"^.+$"
 	value?:       string
 	description?: string | null
-	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+	operator:     "eq" | "neq" | "present" | "notpresent" | "lt" | "lte" | "gt" | "gte"
 } | {
 	type:         "NUMBER_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
@@ -138,7 +138,7 @@ close({
 	property:     string & =~"^.+$"
 	value?:       string
 	description?: string | null
-	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+	operator:     "eq" | "neq" | "present" | "notpresent" | "lt" | "lte" | "gt" | "gte"
 } | {
 	type:         "ENTITY_ID_COMPARISON_TYPE"
 	property:     string & =~"^.+$"

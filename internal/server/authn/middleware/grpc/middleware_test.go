@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	authjwt "go.flipt.io/flipt/internal/server/authn/method/jwt"
 	"go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/internal/storage/authn/memory"
@@ -370,6 +371,10 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 				"io.flipt.auth.jwt.picture": "image",
 				"io.flipt.auth.jwt.name":    "name",
 				"io.flipt.auth.jwt.issuer":  "flipt.io",
+				method.StorageMetadataClaims: fmt.Sprintf(
+					`{"aud":"flipt","exp":%.0f,"iat":%.0f,"iss":"flipt.io","user":{"email":"email","image":"image","name":"name","sub":"sub"}}`,
+					futureUnix, nowUnix,
+				),
 			},
 		},
 		{
@@ -405,6 +410,10 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 				"io.flipt.auth.jwt.name":    "name",
 				"io.flipt.auth.jwt.issuer":  "flipt.io",
 				"io.flipt.auth.role":        "admin",
+				method.StorageMetadataClaims: fmt.Sprintf(
+					`{"aud":"flipt","exp":%.0f,"iat":%.0f,"io.flipt.auth.role":"admin","iss":"flipt.io","user":{"email":"email","image":"image","name":"name","sub":"sub"}}`,
+					futureUnix, nowUnix,
+				),
 			},
 		},
 		{
@@ -513,9 +522,8 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
 
-						for k, v := range authentication.Metadata {
-							assert.Equal(t, tt.expectedMetadata[k], v)
-						}
+						// assert the whole map so that only the expected claims are stored
+						assert.Equal(t, tt.expectedMetadata, authentication.Metadata)
 					}
 					return nil, nil
 				}
@@ -559,9 +567,8 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
 
-						for k, v := range authentication.Metadata {
-							assert.Equal(t, tt.expectedMetadata[k], v)
-						}
+						// assert the whole map so that only the expected claims are stored
+						assert.Equal(t, tt.expectedMetadata, authentication.Metadata)
 					}
 					return nil, nil
 				}
@@ -1679,9 +1686,11 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 		expected map[string]string
 	}{
 		{
-			name:     "empty claims",
-			claims:   map[string]any{},
-			expected: map[string]string{},
+			name:   "empty claims",
+			claims: map[string]any{},
+			expected: map[string]string{
+				method.StorageMetadataClaims: `{}`,
+			},
 		},
 		{
 			name: "issuer claim",
@@ -1689,7 +1698,8 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 				"iss": "flipt.io",
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.issuer": "flipt.io",
+				"io.flipt.auth.jwt.issuer":   "flipt.io",
+				method.StorageMetadataClaims: `{"iss":"flipt.io"}`,
 			},
 		},
 		{
@@ -1699,8 +1709,9 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 				"io.flipt.auth.tenant": "acme",
 			},
 			expected: map[string]string{
-				"io.flipt.auth.role":   "admin",
-				"io.flipt.auth.tenant": "acme",
+				"io.flipt.auth.role":         "admin",
+				"io.flipt.auth.tenant":       "acme",
+				method.StorageMetadataClaims: `{"io.flipt.auth.role":"admin","io.flipt.auth.tenant":"acme"}`,
 			},
 		},
 		{
@@ -1715,11 +1726,12 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 				},
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.email":   "user@example.com",
-				"io.flipt.auth.jwt.sub":     "12345",
-				"io.flipt.auth.jwt.picture": "https://example.com/avatar.jpg",
-				"io.flipt.auth.jwt.name":    "John Doe",
-				"io.flipt.auth.jwt.role":    "user",
+				"io.flipt.auth.jwt.email":    "user@example.com",
+				"io.flipt.auth.jwt.sub":      "12345",
+				"io.flipt.auth.jwt.picture":  "https://example.com/avatar.jpg",
+				"io.flipt.auth.jwt.name":     "John Doe",
+				"io.flipt.auth.jwt.role":     "user",
+				method.StorageMetadataClaims: `{"user":{"email":"user@example.com","image":"https://example.com/avatar.jpg","name":"John Doe","role":"user","sub":"12345"}}`,
 			},
 		},
 		{
@@ -1733,10 +1745,11 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 				},
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.issuer": "flipt.io",
-				"io.flipt.auth.scope":      "read",
-				"io.flipt.auth.jwt.email":  "admin@flipt.io",
-				"io.flipt.auth.jwt.name":   "Admin User",
+				"io.flipt.auth.jwt.issuer":   "flipt.io",
+				"io.flipt.auth.scope":        "read",
+				"io.flipt.auth.jwt.email":    "admin@flipt.io",
+				"io.flipt.auth.jwt.name":     "Admin User",
+				method.StorageMetadataClaims: `{"io.flipt.auth.scope":"read","iss":"flipt.io","user":{"email":"admin@flipt.io","name":"Admin User"}}`,
 			},
 		},
 		{
@@ -1744,14 +1757,18 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 			claims: map[string]any{
 				"iss": 12345,
 			},
-			expected: map[string]string{},
+			expected: map[string]string{
+				method.StorageMetadataClaims: `{"iss":12345}`,
+			},
 		},
 		{
 			name: "user claim not a map",
 			claims: map[string]any{
 				"user": "not-a-map",
 			},
-			expected: map[string]string{},
+			expected: map[string]string{
+				method.StorageMetadataClaims: `{"user":"not-a-map"}`,
+			},
 		},
 		{
 			name: "mixed user claim types",
@@ -1765,19 +1782,87 @@ func TestJwtClaimsToMetadata(t *testing.T) {
 				},
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.email": "test@example.com",
-				"io.flipt.auth.jwt.sub":   "123",
-				"io.flipt.auth.jwt.name":  "Test User",
+				"io.flipt.auth.jwt.email":    "test@example.com",
+				"io.flipt.auth.jwt.sub":      "123",
+				"io.flipt.auth.jwt.name":     "Test User",
+				method.StorageMetadataClaims: `{"user":{"email":"test@example.com","name":"Test User","picture":null,"sub":123,"unknown":"ignored"}}`,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := jwtClaimsToMetadata(tt.claims, nil)
+			result, err := jwtClaimsToMetadata(tt.claims, nil)
+			require.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
+}
+
+func TestJwtClaimsToMetadataRawClaims(t *testing.T) {
+	claims := map[string]any{
+		"iss":       "https://idp.example.com",
+		"sub":       "user-123",
+		"client_id": "app-client-456",
+		"scope":     "read:flags",
+		"token_use": "access",
+	}
+
+	result, err := jwtClaimsToMetadata(claims, nil)
+	require.NoError(t, err)
+
+	// the issuer is promoted to a named key as normal
+	assert.Equal(t, "https://idp.example.com", result["io.flipt.auth.jwt.issuer"])
+
+	// all claims are also available as raw JSON so that authorization policies can
+	// access fields which are not promoted by the standard mappings
+	rawJSON, ok := result[method.StorageMetadataClaims]
+	require.True(t, ok, "expected %q key in metadata", method.StorageMetadataClaims)
+
+	var parsed map[string]any
+	require.NoError(t, json.Unmarshal([]byte(rawJSON), &parsed))
+	assert.Equal(t, claims, parsed)
+}
+
+func TestJwtClaimsToMetadataRawClaimsNotSpoofable(t *testing.T) {
+	// a token carrying the reserved key must not be able to dictate the metadata
+	// which authorization policies are evaluated against
+	claims := map[string]any{
+		"iss":                        "https://idp.example.com",
+		method.StorageMetadataClaims: "{\"role\":\"admin\"}",
+	}
+
+	result, err := jwtClaimsToMetadata(claims, nil)
+	require.NoError(t, err)
+
+	var parsed map[string]any
+	require.NoError(t, json.Unmarshal([]byte(result[method.StorageMetadataClaims]), &parsed))
+	assert.Equal(t, claims, parsed)
+}
+
+func TestJwtClaimsToMetadataMarshalError(t *testing.T) {
+	// a channel cannot be encoded as JSON, which exercises the marshal failure path
+	_, err := jwtClaimsToMetadata(map[string]any{"unmarshalable": make(chan int)}, nil)
+	require.Error(t, err)
+}
+
+// unmarshalableClaimsValidator validates successfully but returns claims which
+// cannot be encoded as JSON, so that the metadata mapping failure can be tested.
+type unmarshalableClaimsValidator struct{}
+
+func (unmarshalableClaimsValidator) Validate(context.Context, string) (map[string]any, error) {
+	return map[string]any{"unmarshalable": make(chan int)}, nil
+}
+
+func TestAuthenticateJWTFailsClosedOnMetadataError(t *testing.T) {
+	ctx := metadata.NewIncomingContext(t.Context(), metadata.MD{
+		"Authorization": []string{"JWT token-is-not-inspected-by-the-stub-validator"},
+	})
+
+	// the token itself is valid, but the resulting claims cannot be mapped to
+	// metadata, so authentication must fail rather than proceed without it
+	_, err := authenticateJWT(ctx, zaptest.NewLogger(t), nil, unmarshalableClaimsValidator{})
+	assert.Equal(t, errUnauthenticated, err)
 }
 
 func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
@@ -1791,7 +1876,10 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 			name:          "empty claims mapping uses defaults",
 			claimsJSON:    `{"user": {"email": "test@example.com"}}`,
 			claimsMapping: map[string]string{},
-			expected:      map[string]string{"io.flipt.auth.jwt.email": "test@example.com"},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.email":    "test@example.com",
+				method.StorageMetadataClaims: `{"user":{"email":"test@example.com"}}`,
+			},
 		},
 		{
 			name: "simple JSON pointer mapping",
@@ -1806,8 +1894,9 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 				"name":  "/user/name",
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.email": "user@example.com",
-				"io.flipt.auth.jwt.name":  "John Doe",
+				"io.flipt.auth.jwt.email":    "user@example.com",
+				"io.flipt.auth.jwt.name":     "John Doe",
+				method.StorageMetadataClaims: `{"user":{"email":"user@example.com","name":"John Doe"}}`,
 			},
 		},
 		{
@@ -1825,8 +1914,9 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 				"sub":   "/sub",
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.email": "deep@example.com",
-				"io.flipt.auth.jwt.sub":   "123456",
+				"io.flipt.auth.jwt.email":    "deep@example.com",
+				"io.flipt.auth.jwt.sub":      "123456",
+				method.StorageMetadataClaims: `{"profile":{"personal":{"email":"deep@example.com"}},"sub":"123456"}`,
 			},
 		},
 		{
@@ -1841,7 +1931,8 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 				"name":  "/user/nonexistent",
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.email": "valid@example.com",
+				"io.flipt.auth.jwt.email":    "valid@example.com",
+				method.StorageMetadataClaims: `{"user":{"email":"valid@example.com"}}`,
 			},
 		},
 		{
@@ -1856,8 +1947,9 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 				"email": "/user/email",
 			},
 			expected: map[string]string{
-				"io.flipt.auth.role":      "admin",
-				"io.flipt.auth.jwt.email": "admin@example.com",
+				"io.flipt.auth.role":         "admin",
+				"io.flipt.auth.jwt.email":    "admin@example.com",
+				method.StorageMetadataClaims: `{"io.flipt.auth.role":"admin","user":{"email":"admin@example.com"}}`,
 			},
 		},
 		{
@@ -1872,8 +1964,9 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 				"email": "/user/email",
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.issuer": "flipt.io",
-				"io.flipt.auth.jwt.email":  "user@flipt.io",
+				"io.flipt.auth.jwt.issuer":   "flipt.io",
+				"io.flipt.auth.jwt.email":    "user@flipt.io",
+				method.StorageMetadataClaims: `{"iss":"flipt.io","user":{"email":"user@flipt.io"}}`,
 			},
 		},
 		{
@@ -1889,8 +1982,9 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 				"name": "/name", // Override default path for name
 			},
 			expected: map[string]string{
-				"io.flipt.auth.jwt.email": "user@example.com", // From default path
-				"io.flipt.auth.jwt.name":  "Custom Name",      // From custom path
+				"io.flipt.auth.jwt.email":    "user@example.com", // From default path
+				"io.flipt.auth.jwt.name":     "Custom Name",      // From custom path
+				method.StorageMetadataClaims: `{"name":"Custom Name","user":{"email":"user@example.com","name":"John Doe"}}`,
 			},
 		},
 	}
@@ -1901,7 +1995,8 @@ func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
 			err := json.Unmarshal([]byte(tt.claimsJSON), &claims)
 			require.NoError(t, err)
 
-			result := jwtClaimsToMetadata(claims, tt.claimsMapping)
+			result, err := jwtClaimsToMetadata(claims, tt.claimsMapping)
+			require.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

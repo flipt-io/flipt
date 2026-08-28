@@ -1,6 +1,6 @@
 module go.flipt.io/protoc-gen-flipt-openapi
 
-go 1.26
+go 1.27
 
 require (
 	github.com/google/gnostic v0.7.1

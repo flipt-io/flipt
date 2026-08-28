@@ -22,7 +22,7 @@ Read more about the reasoning behind the choice of React/TypeScript on our [blog
 
 1. **App**: These files contain the 'pages for the application. This folder is further divided into subfolders for each page. The `App.tsx` file is the entry point for the application. It contains the routes for the application and the top-level components that are rendered on each page.
 
-   We use [React Router](https://reactrouter.com/web/guides/quick-start) for routing. [HashRouter](https://reactrouter.com/web/api/HashRouter) is used for client-side routing to maintain backward compatability with the previous version of the UI.
+   We use [React Router](https://reactrouter.com/web/guides/quick-start) for routing. [HashRouter](https://reactrouter.com/web/api/HashRouter) is used for client-side routing to maintain backward compatibility with the previous version of the UI.
 
 2. **Components**: These are reusable pieces of code that return a React element to be rendered to the page. The components for this application are located in the `components` directory. This directory is further divided into subdirectories which roughly correspond to the pages of the application. For example, the `namespaces` directory contains components that are used on the Namespaces page.
 

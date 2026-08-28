@@ -71,7 +71,7 @@ type MockPullRequestsService_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //   - po *bitbucket.PullRequestsOptions
-func (_e *MockPullRequestsService_Expecter) Create(po interface{}) *MockPullRequestsService_Create_Call {
+func (_e *MockPullRequestsService_Expecter) Create(po any) *MockPullRequestsService_Create_Call {
 	return &MockPullRequestsService_Create_Call{Call: _e.mock.On("Create", po)}
 }
 
@@ -88,8 +88,8 @@ func (_c *MockPullRequestsService_Create_Call) Run(run func(po *bitbucket.PullRe
 	return _c
 }
 
-func (_c *MockPullRequestsService_Create_Call) Return(v any, err error) *MockPullRequestsService_Create_Call {
-	_c.Call.Return(v, err)
+func (_c *MockPullRequestsService_Create_Call) Return(anyMoqParam any, err error) *MockPullRequestsService_Create_Call {
+	_c.Call.Return(anyMoqParam, err)
 	return _c
 }
 
@@ -133,7 +133,7 @@ type MockPullRequestsService_Gets_Call struct {
 
 // Gets is a helper method to define mock.On call
 //   - po *bitbucket.PullRequestsOptions
-func (_e *MockPullRequestsService_Expecter) Gets(po interface{}) *MockPullRequestsService_Gets_Call {
+func (_e *MockPullRequestsService_Expecter) Gets(po any) *MockPullRequestsService_Gets_Call {
 	return &MockPullRequestsService_Gets_Call{Call: _e.mock.On("Gets", po)}
 }
 
@@ -150,8 +150,8 @@ func (_c *MockPullRequestsService_Gets_Call) Run(run func(po *bitbucket.PullRequ
 	return _c
 }
 
-func (_c *MockPullRequestsService_Gets_Call) Return(v any, err error) *MockPullRequestsService_Gets_Call {
-	_c.Call.Return(v, err)
+func (_c *MockPullRequestsService_Gets_Call) Return(anyMoqParam any, err error) *MockPullRequestsService_Gets_Call {
+	_c.Call.Return(anyMoqParam, err)
 	return _c
 }
 
@@ -222,7 +222,7 @@ type MockCommitsService_GetCommits_Call struct {
 
 // GetCommits is a helper method to define mock.On call
 //   - cmo *bitbucket.CommitsOptions
-func (_e *MockCommitsService_Expecter) GetCommits(cmo interface{}) *MockCommitsService_GetCommits_Call {
+func (_e *MockCommitsService_Expecter) GetCommits(cmo any) *MockCommitsService_GetCommits_Call {
 	return &MockCommitsService_GetCommits_Call{Call: _e.mock.On("GetCommits", cmo)}
 }
 
@@ -239,8 +239,8 @@ func (_c *MockCommitsService_GetCommits_Call) Run(run func(cmo *bitbucket.Commit
 	return _c
 }
 
-func (_c *MockCommitsService_GetCommits_Call) Return(v any, err error) *MockCommitsService_GetCommits_Call {
-	_c.Call.Return(v, err)
+func (_c *MockCommitsService_GetCommits_Call) Return(anyMoqParam any, err error) *MockCommitsService_GetCommits_Call {
+	_c.Call.Return(anyMoqParam, err)
 	return _c
 }
 

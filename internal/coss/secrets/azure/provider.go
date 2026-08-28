@@ -55,9 +55,7 @@ func NewProvider(vaultURL string, logger *zap.Logger) (*Provider, error) {
 		cred = &fakeCredential{}
 		clientOpts = &azsecrets.ClientOptions{
 			DisableChallengeResourceVerification: true,
-			ClientOptions: azcore.ClientOptions{
-				APIVersion: "7.6",
-			},
+			APIVersion:                           "7.6",
 		}
 	} else {
 		var err error

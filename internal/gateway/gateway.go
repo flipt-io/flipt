@@ -62,9 +62,7 @@ func NewGatewayServeMux(logger *zap.Logger, opts ...runtime.ServeMuxOption) *run
 					Indent:    "  ",
 					Multiline: true, // Optional, implied by presence of "Indent".
 				},
-				UnmarshalOptions: protojson.UnmarshalOptions{
-					DiscardUnknown: true,
-				},
+				DiscardUnknown: true,
 			}),
 			// Make sure trace-related headers are propagated from otelhttp through
 			// grpc-gateway.
