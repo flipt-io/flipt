@@ -4,8 +4,8 @@ go 1.25.0
 
 require (
 	go.flipt.io/flipt/rpc/flipt v1.54.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20260706201446-f0a921348800
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/genproto/googleapis/api v0.0.0-20260803160001-6ac0973c030d
+	google.golang.org/protobuf v1.36.12
 	sigs.k8s.io/yaml v1.6.0
 )
 
