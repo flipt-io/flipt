@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/google/gnostic v0.7.1
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
