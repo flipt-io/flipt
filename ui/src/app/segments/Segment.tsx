@@ -8,10 +8,7 @@ import {
   selectRevision
 } from '~/app/environments/environmentsApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
-import {
-  selectCurrentNamespace,
-  selectNamespaces
-} from '~/app/namespaces/namespacesApi';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import {
   useCopySegmentMutation,
   useDeleteSegmentMutation,
@@ -22,7 +19,7 @@ import { Badge } from '~/components/Badge';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import { PageHeader } from '~/components/Page';
-import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
+import CopyFlagPanel from '~/components/panels/CopyFlagPanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import SegmentForm from '~/components/segments/SegmentForm';
 
@@ -130,7 +127,6 @@ export default function Segment() {
   const navigate = useNavigate();
 
   const environment = useSelector(selectCurrentEnvironment);
-  const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
   const revision = useSelector(selectRevision);
 
@@ -195,22 +191,29 @@ export default function Segment() {
       />
 
       {/* segment copy modal */}
-      <CopyToNamespacePanel
+      <CopyFlagPanel
         open={showCopySegmentModal}
         setOpen={setShowCopySegmentModal}
+        panelType="Segment"
         panelMessage={
           <>
             Copy the segment{' '}
             <span className="font-medium text-brand">{segment.key}</span> to the
-            namespace:
+            selected environment and namespace:
           </>
         }
-        panelType="Segment"
-        handleCopy={(namespaceKey: string) =>
+        handleCopy={({ environmentKey, namespaceKey }) =>
           copySegment({
-            environmentKey: environment.key,
-            from: { namespaceKey: namespace.key, segmentKey: segment.key },
-            to: { namespaceKey: namespaceKey, segmentKey: segment.key }
+            from: {
+              environmentKey: environment.key,
+              namespaceKey: namespace.key,
+              segmentKey: segment.key
+            },
+            to: {
+              environmentKey,
+              namespaceKey,
+              segmentKey: segment.key
+            }
           }).unwrap()
         }
         onSuccess={() => {
@@ -236,10 +239,9 @@ export default function Segment() {
           actions={[
             {
               id: 'segment-copy',
-              label: 'Copy to Namespace',
-              disabled: namespaces.length < 2,
+              label: 'Copy to Environment / Namespace',
               onClick: () => {
-                setShowCopySegmentModal(true);
+                window.setTimeout(() => setShowCopySegmentModal(true), 0);
               },
               icon: FilesIcon
             },
