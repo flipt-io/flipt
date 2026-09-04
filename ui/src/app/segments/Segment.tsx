@@ -19,7 +19,7 @@ import { Badge } from '~/components/Badge';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import { PageHeader } from '~/components/Page';
-import CopyFlagPanel from '~/components/panels/CopyFlagPanel';
+import CopyResourcePanel from '~/components/panels/CopyResourcePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import SegmentForm from '~/components/segments/SegmentForm';
 
@@ -191,7 +191,7 @@ export default function Segment() {
       />
 
       {/* segment copy modal */}
-      <CopyFlagPanel
+      <CopyResourcePanel
         open={showCopySegmentModal}
         setOpen={setShowCopySegmentModal}
         panelType="Segment"

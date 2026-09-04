@@ -22,7 +22,7 @@ import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import { PageHeader } from '~/components/Page';
 import FlagForm from '~/components/flags/FlagForm';
-import CopyFlagPanel from '~/components/panels/CopyFlagPanel';
+import CopyResourcePanel from '~/components/panels/CopyResourcePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 
 import { FlagType, flagTypeToLabel } from '~/types/Flag';
@@ -113,7 +113,7 @@ export default function Flag() {
       />
 
       {/* flag copy modal */}
-      <CopyFlagPanel
+      <CopyResourcePanel
         open={showCopyFlagModal}
         panelMessage={
           <>

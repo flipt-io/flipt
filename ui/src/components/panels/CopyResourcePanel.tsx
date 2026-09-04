@@ -34,7 +34,7 @@ import { getErrorMessage } from '~/utils/helpers';
 type SelectableEnvironment = Pick<IEnvironment, 'key' | 'name'> & ISelectable;
 type SelectableNamespace = Pick<INamespace, 'key' | 'name'> & ISelectable;
 
-type CopyFlagPanelProps = {
+type CopyResourcePanelProps = {
   panelMessage: string | React.ReactNode;
   panelType?: string;
   open: boolean;
@@ -64,7 +64,7 @@ function toSelectableNamespace(namespace: INamespace): SelectableNamespace {
   };
 }
 
-export default function CopyFlagPanel(props: CopyFlagPanelProps) {
+export default function CopyResourcePanel(props: CopyResourcePanelProps) {
   const {
     open,
     setOpen,
