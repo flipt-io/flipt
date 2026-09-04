@@ -50,7 +50,7 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/mattn/go-sqlite3 v1.14.50
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/moby/moby/api v1.55.0
+	github.com/moby/moby/api v1.56.0
 	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20260716131114-90f7ca99ce60
 	github.com/open-policy-agent/opa v1.20.2
 	github.com/opencontainers/go-digest v1.0.0
