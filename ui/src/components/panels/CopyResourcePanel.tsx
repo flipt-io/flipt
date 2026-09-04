@@ -36,7 +36,7 @@ type SelectableNamespace = Pick<INamespace, 'key' | 'name'> & ISelectable;
 
 type CopyResourcePanelProps = {
   panelMessage: string | React.ReactNode;
-  panelType?: string;
+  panelType: string;
   open: boolean;
   setOpen: (open: boolean) => void;
   handleCopy: (target: {
@@ -65,14 +65,8 @@ function toSelectableNamespace(namespace: INamespace): SelectableNamespace {
 }
 
 export default function CopyResourcePanel(props: CopyResourcePanelProps) {
-  const {
-    open,
-    setOpen,
-    panelMessage,
-    panelType = 'Flag',
-    onSuccess,
-    handleCopy
-  } = props;
+  const { open, setOpen, panelMessage, panelType, onSuccess, handleCopy } =
+    props;
 
   const { setError, clearError } = useError();
 

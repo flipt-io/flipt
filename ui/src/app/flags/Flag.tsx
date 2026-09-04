@@ -115,6 +115,7 @@ export default function Flag() {
       {/* flag copy modal */}
       <CopyResourcePanel
         open={showCopyFlagModal}
+        panelType="Flag"
         panelMessage={
           <>
             Copy the flag{' '}
