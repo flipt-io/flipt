@@ -3,6 +3,36 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0](https://github.com/flipt-io/flipt/releases/tag/v2.12.0) - 2026-09-05
+
+### Added
+
+- **Cross-environment segment copying**: Allow segments to be copied across environments (#6467)
+- **JWT claims metadata**: Expose full JWT claims as `io.flipt.auth.claims` metadata (#6361)
+- **OIDC front-channel logout**: Add front-channel logout support (#6164)
+
+### Fixed
+
+- **JSON Schema validation**: Correct JSON Schema meta-schema keywords (#6449)
+- **SSH host key validation**: Make `insecure_ignore_host_key` work without a `known_hosts` file (#6427)
+- **Authorization**: Authorize v2 create RPCs as create operations (#6402)
+- **Batch evaluation**: Return per-request error responses in `Batch` (#6262)
+- **HTTP paths**: Reject invalid UTF-8 request paths (#6338)
+- **Validation**: Correct the less-than operator from `le` to `lt` in the schema (#6304)
+- **SSE invalidation**: Guard namespace local storage and use selectors for SSE invalidation (#6257)
+
+### Changed
+
+- **UI code quality**: Modernize UI code for ESLint 10 and React best practices (#6227)
+
+### Documentation
+
+- **UI architecture documentation**: Fix a compatibility spelling error (#6404)
+
+### Dependencies
+
+- Updated various dependencies, including gRPC, AWS and Azure SDKs, OpenTelemetry, OPA, React Router, Vite, Playwright, and other Go and UI packages.
+
 ## [2.11.0](https://github.com/flipt-io/flipt/releases/tag/v2.11.0) - 2026-07-17
 
 ### Added
