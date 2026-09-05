@@ -32,22 +32,17 @@ The process for each looks roughly the same using GitHub Actions and GoReleaser 
 6. Push the tag to GitHub.
 7. CI will build and publish the release to GitHub and Docker Hub.
 
-#### Using AI Agent Commands
+#### Using the Release Skill
 
-The stable release process can be automated with the prompts in
-`.agents/commands/`:
+The stable release process is documented as an agent skill in
+`.agents/skills/release/SKILL.md`. The skill covers changelog preparation,
+confirmation checkpoints, pull request creation, and safe tag publishing.
 
-- **`.agents/commands/release.md`** — Walks through the full release process
-  step-by-step with confirmations at each stage.
-- **`.agents/commands/changelog.md`** — Generates the changelog entry for a
-  given version. This is called by the release workflow but can also be used
-  standalone.
-
-Provide the version explicitly when invoking the prompt with your agent. For
+Provide the version explicitly when invoking the skill with your agent. For
 example:
 
 ```text
-Use .agents/commands/release.md for version 2.9.0.
+Use .agents/skills/release/SKILL.md for version 2.9.0.
 ```
 
 ### Snapshot Releases

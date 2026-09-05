@@ -5,7 +5,7 @@ This directory contains reusable reviewer personas for agent workflows.
 They are written to be usable with Codex or any other AI agent that can read a
 Markdown prompt file and follow repository instructions from `AGENTS.md`.
 
-Unlike the procedural prompts in `.agents/commands/`, a persona defines a *role*
+Unlike the procedural release skill in `.agents/skills/`, a persona defines a *role*
 (what to look for, how to flag findings, what output to produce) rather than a
 step-by-step task.
 
