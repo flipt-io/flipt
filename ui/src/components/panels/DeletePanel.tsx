@@ -17,6 +17,7 @@ type DeletePanelProps = {
   setOpen: (open: boolean) => void;
   handleDelete: (...args: string[]) => Promise<any>;
   panelType: string;
+  canBeUndone?: boolean;
   onSuccess?: () => void;
   onError?: () => void;
 };
@@ -27,6 +28,7 @@ export default function DeletePanel(props: DeletePanelProps) {
     setOpen,
     panelType,
     panelMessage,
+    canBeUndone,
     onSuccess,
     handleDelete,
     onError
@@ -43,8 +45,14 @@ export default function DeletePanel(props: DeletePanelProps) {
         <DialogHeader>
           <DialogTitle>Delete {panelType}</DialogTitle>
           <DialogDescription>
-            This action is <span className="underline">destructive</span> and
-            cannot be undone.
+            {canBeUndone ? (
+              <>Changes will only take effect after saving.</>
+            ) : (
+              <>
+                This action is <span className="underline">destructive</span>{' '}
+                and cannot be undone.
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="my-2">{panelMessage}</div>
