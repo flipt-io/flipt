@@ -57,6 +57,7 @@ export default function Variants({ variants }: VariantsProps) {
           </>
         }
         panelType="Variant"
+        canBeUndone
         setOpen={setShowDeleteVariantModal}
         handleDelete={() => {
           try {

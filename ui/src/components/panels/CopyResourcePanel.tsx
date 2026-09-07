@@ -34,8 +34,9 @@ import { getErrorMessage } from '~/utils/helpers';
 type SelectableEnvironment = Pick<IEnvironment, 'key' | 'name'> & ISelectable;
 type SelectableNamespace = Pick<INamespace, 'key' | 'name'> & ISelectable;
 
-type CopyFlagPanelProps = {
+type CopyResourcePanelProps = {
   panelMessage: string | React.ReactNode;
+  panelType: string;
   open: boolean;
   setOpen: (open: boolean) => void;
   handleCopy: (target: {
@@ -63,8 +64,9 @@ function toSelectableNamespace(namespace: INamespace): SelectableNamespace {
   };
 }
 
-export default function CopyFlagPanel(props: CopyFlagPanelProps) {
-  const { open, setOpen, panelMessage, onSuccess, handleCopy } = props;
+export default function CopyResourcePanel(props: CopyResourcePanelProps) {
+  const { open, setOpen, panelMessage, panelType, onSuccess, handleCopy } =
+    props;
 
   const { setError, clearError } = useError();
 
@@ -267,7 +269,7 @@ export default function CopyFlagPanel(props: CopyFlagPanelProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Copy Flag</DialogTitle>
+          <DialogTitle>Copy {panelType}</DialogTitle>
           <DialogDescription>{panelMessage}</DialogDescription>
         </DialogHeader>
         <div className="my-2 space-y-4">
