@@ -45,9 +45,14 @@ export default function DeletePanel(props: DeletePanelProps) {
         <DialogHeader>
           <DialogTitle>Delete {panelType}</DialogTitle>
           <DialogDescription>
-            {canBeUndone
-              ? 'You can cancel and the changes will be restored.'
-              : 'This action is <span className="underline">destructive</span> and cannot be undone.'}
+            {canBeUndone ? (
+              <>Changes will only take effect after saving.</>
+            ) : (
+              <>
+                This action is <span className="underline">destructive</span>{' '}
+                and cannot be undone.
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="my-2">{panelMessage}</div>
