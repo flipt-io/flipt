@@ -1,6 +1,6 @@
 {
-  "$schema": "http://json-schema.org/draft/2019-09/schema#",
-  "id": "flipt.schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "flipt.schema.json",
   "type": "object",
   "title": "flipt-schema-v2",
   "description": "Flipt config file is a YAML file defining how to configure the Flipt application.",

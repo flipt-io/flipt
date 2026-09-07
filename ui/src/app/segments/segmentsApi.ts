@@ -3,6 +3,7 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 
 import { IConstraint } from '~/types/Constraint';
+import { INamespaceList } from '~/types/Namespace';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { ISegment, ISegmentList } from '~/types/Segment';
 
@@ -192,23 +193,25 @@ export const segmentsApi = createApi({
         }
       ]
     }),
-    // copy the segment from one namespace to another one
+    // copy the segment to another environment and/or namespace
     copySegment: builder.mutation<
       void,
       {
-        environmentKey: string;
-        from: { namespaceKey: string; segmentKey: string };
-        to: { namespaceKey: string; segmentKey: string };
+        from: {
+          environmentKey: string;
+          namespaceKey: string;
+          segmentKey: string;
+        };
+        to: {
+          environmentKey: string;
+          namespaceKey: string;
+          segmentKey: string;
+        };
       }
     >({
-      queryFn: async (
-        { environmentKey, from, to },
-        _api,
-        _extraOptions,
-        baseQuery
-      ) => {
+      queryFn: async ({ from, to }, _api, _extraOptions, baseQuery) => {
         let resp = await baseQuery({
-          url: `/${environmentKey}/namespaces/${from.namespaceKey}/resources/flipt.core.Segment/${from.segmentKey}`,
+          url: `/${from.environmentKey}/namespaces/${from.namespaceKey}/resources/flipt.core.Segment/${from.segmentKey}`,
           method: 'GET'
         });
         if (resp.error) {
@@ -220,14 +223,24 @@ export const segmentsApi = createApi({
           revision: string;
         };
 
-        let data = {
+        resp = await baseQuery({
+          url: `/${to.environmentKey}/namespaces`,
+          method: 'GET'
+        });
+        if (resp.error) {
+          return { error: resp.error };
+        }
+
+        const destination = resp.data as INamespaceList;
+
+        const data = {
           key: res.resource.key,
           payload: res.resource.payload,
-          revision: res.revision
+          revision: destination.revision
         };
 
         resp = await baseQuery({
-          url: `/${environmentKey}/namespaces/${to.namespaceKey}/resources`,
+          url: `/${to.environmentKey}/namespaces/${to.namespaceKey}/resources`,
           method: 'POST',
           body: data
         });
@@ -236,8 +249,8 @@ export const segmentsApi = createApi({
         }
         return { data: undefined };
       },
-      invalidatesTags: (_result, _error, { environmentKey, to }) => [
-        { type: 'Segment', id: environmentKey + '/' + to.namespaceKey }
+      invalidatesTags: (_result, _error, { to }) => [
+        { type: 'Segment', id: to.environmentKey + '/' + to.namespaceKey }
       ]
     })
   })

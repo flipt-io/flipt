@@ -33,7 +33,7 @@ All common tasks run through mise (`mise tasks` to list). Key ones:
 | `mise run proto` | Regenerate protobuf + gRPC stubs |
 | `mise run go:mockery` | Regenerate mocks (config in `.mockery.yml`) |
 
-Portable agent prompts for Codex and other tools live in `.agents/`: commands in `.agents/commands/` (`changelog.md`, `release.md`) and reviewer personas in `.agents/personas/` (`go-reviewer.md`).
+Portable agent guidance for Codex and other tools lives in `.agents/`: the release skill is in `.agents/skills/release/SKILL.md`, and reviewer personas are in `.agents/personas/` (`go-reviewer.md`).
 
 ## Detailed rules — read the relevant file before working in that area
 
