@@ -23,6 +23,12 @@ lint:
     - RPC_RESPONSE_STANDARD_NAME
     - SERVICE_SUFFIX
   disallow_comment_ignores: true
+  ignore_only:
+    # environments.proto imports core/core.proto solely so the OpenAPI generator
+    # (protoc-gen-flipt-openapi) has the Flag/Segment descriptors in the protoc
+    # request; the types are not referenced by the proto itself.
+    IMPORT_USED:
+      - rpc/v2/environments/environments.proto
 breaking:
   use:
     - FILE
