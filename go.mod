@@ -58,8 +58,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v1.19.1
 	github.com/prometheus/client_golang v1.24.1
-	github.com/prometheus/common v0.70.1
-	github.com/prometheus/sigv4 v0.4.1
+	github.com/prometheus/common v0.71.0
+	github.com/prometheus/sigv4 v0.5.0
 	github.com/redis/go-redis/extra/redisotel/v9 v9.22.0
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/samber/lo v1.53.0
