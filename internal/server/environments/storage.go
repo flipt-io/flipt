@@ -10,6 +10,7 @@ import (
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/common"
+	"go.flipt.io/flipt/internal/names"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/v2/environments"
@@ -184,7 +185,7 @@ func (e *EnvironmentStore) Branch(ctx context.Context, base string, branch strin
 	}
 
 	for key := range e.byKey {
-		if strings.EqualFold(key, strings.TrimSpace(branch)) {
+		if strings.EqualFold(key, names.RefSlug(strings.TrimSpace(branch))) {
 			return nil, errors.ErrAlreadyExistsf("environment: %q", branch)
 		}
 	}
