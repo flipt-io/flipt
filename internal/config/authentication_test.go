@@ -60,6 +60,20 @@ func TestAuthenticationMethodOIDCProvider_validate(t *testing.T) {
 			},
 			errorContains: `invalid claim key "role"`,
 		},
+		{
+			name: "invalid claims_mapping expression without leading slash fails",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.ClaimsMapping = map[string]string{"email": "no-slash"}
+			},
+			errorContains: `invalid expression for key "email"`,
+		},
+		{
+			name: "invalid claims_mapping expression too short fails",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.ClaimsMapping = map[string]string{"email": "/"}
+			},
+			errorContains: `invalid expression for key "email"`,
+		},
 	}
 
 	for _, tt := range tests {
