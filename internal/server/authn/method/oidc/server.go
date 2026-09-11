@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-openapi/jsonpointer"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn/method"
@@ -233,7 +234,7 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	}, nil
 }
 
-func (*Server) extractMetadata(ctx context.Context, provider *client, idToken *Tk) (map[string]string, claims, error) {
+func (s *Server) extractMetadata(ctx context.Context, provider *client, idToken *Tk) (map[string]string, claims, error) {
 	metadata := map[string]string{
 		storageMetadataOIDCProvider: provider.key,
 	}
@@ -268,8 +269,42 @@ func (*Server) extractMetadata(ctx context.Context, provider *client, idToken *T
 
 	claimsData.fallbackFrom(rawClaims)
 
+	claimsData.applyMapping(s.logger, rawClaims, provider.claimsMapping)
+
 	claimsData.addToMetadata(metadata)
 	return metadata, claimsData, nil
+}
+
+// applyMapping overrides claim fields using the configured JSON Pointer
+// expressions evaluated against the raw claims. This lets providers whose
+// claims don't follow the standard OIDC names (e.g. Azure AD B2C's "emails"
+// array) be mapped onto Flipt's canonical fields. Mappings take precedence
+// over the standard and fallback claim values.
+func (c *claims) applyMapping(logger *zap.Logger, rawClaims map[string]any, mapping map[string]jsonpointer.Pointer) {
+	for name, ptr := range mapping {
+		value, _, err := ptr.Get(rawClaims)
+		if err != nil {
+			logger.Debug("failed to resolve the mapped claim value", zap.String("claim_name", name))
+			continue
+		}
+
+		s, ok := value.(string)
+		if !ok || s == "" {
+			logger.Debug("claim resolved to an empty value or non string", zap.String("claim_name", name))
+			continue
+		}
+
+		switch name {
+		case "email":
+			c.Email = &s
+		case "name":
+			c.Name = &s
+		case "picture":
+			c.Picture = &s
+		case "sub":
+			c.Sub = &s
+		}
+	}
 }
 
 // Revoke handles back-channel logout from the OIDC provider.
