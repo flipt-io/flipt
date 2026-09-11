@@ -1175,3 +1175,132 @@ func TestUpdateAndPush_NonFastForwardRetry(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "interfering commit", parentCommit.Message)
 }
+
+// commitAndPush writes one file in the worktree of repo, commits it and pushes
+// the current branch to origin. It returns the hash of the new commit.
+func commitAndPush(t *testing.T, repo *git.Repository, dir, file, message string) plumbing.Hash {
+	t.Helper()
+
+	require.NoError(t, os.WriteFile(filepath.Join(dir, file), []byte(message), 0o600))
+
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	_, err = wt.Add(file)
+	require.NoError(t, err)
+
+	hash, err := wt.Commit(message, &git.CommitOptions{
+		Author: &object.Signature{Name: "test", Email: "test@test.com", When: time.Now()},
+	})
+	require.NoError(t, err)
+	require.NoError(t, repo.Push(&git.PushOptions{RemoteName: "origin"}))
+
+	return hash
+}
+
+// TestUpdateAndPush_BranchAfterBaseAdvances_BareRepo_Shallows is a regression
+// test for https://github.com/flipt-io/flipt/issues/6478.
+//
+// A Flipt branch is created from the base branch. Then the base branch
+// advances. After the next depth=1 fetch both branch heads are shallow
+// boundaries and the branch head is the parent of the base head:
+//
+//	A---B---C  main
+//	    |
+//	    +----  flipt/main/target
+//
+// A commit D on top of B is a fast-forward of flipt/main/target and the push
+// must succeed. Older go-git releases rejected it with a false
+// "non-fast-forward update" error because B was ignored during the ancestry
+// walk (go-git/go-git#2367).
+func TestUpdateAndPush_BranchAfterBaseAdvances_BareRepo_Shallows(t *testing.T) {
+	// TODO: remove this skip once go-git includes the fix from
+	// https://github.com/go-git/go-git/pull/2373 (go-git/go-git#2367).
+	t.Skip("blocked on an upstream go-git fix, see https://github.com/flipt-io/flipt/issues/6478")
+
+	const (
+		base   = "main"
+		branch = "flipt/main/target"
+	)
+
+	remoteDir := t.TempDir()
+	remoteRepo, err := git.PlainInit(
+		remoteDir, true,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName(base)),
+	)
+	require.NoError(t, err)
+
+	// A and B: the base branch history before the Flipt branch is created.
+	bootstrapDir := t.TempDir()
+	bootstrapRepo, err := git.PlainInit(
+		bootstrapDir, false,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName(base)),
+	)
+	require.NoError(t, err)
+	_, err = bootstrapRepo.CreateRemote(&config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{remoteDir},
+	})
+	require.NoError(t, err)
+	commitAndPush(t, bootstrapRepo, bootstrapDir, "a.txt", "commit A")
+	branchPoint := commitAndPush(t, bootstrapRepo, bootstrapDir, "b.txt", "commit B")
+
+	// Flipt opens a bare repository, which fetches with depth=1.
+	repo, _, err := newRepository(
+		t.Context(), zap.NewNop(),
+		WithFilesystemStorage(t.TempDir()),
+		WithRemote("origin", remoteDir),
+		WithSignature("test", "test@test.com"),
+	)
+	require.NoError(t, err)
+	require.False(t, repo.isNormalRepo, "should be bare repository")
+
+	// Create the Flipt branch from B and push it to the remote.
+	require.NoError(t, repo.CreateBranchIfNotExists(t.Context(), branch, WithBase(base)))
+	branchRef, err := remoteRepo.Reference(plumbing.NewBranchReferenceName(branch), true)
+	require.NoError(t, err)
+	require.Equal(t, branchPoint, branchRef.Hash(), "branch must start at B")
+
+	// C: the base branch advances behind our back.
+	interferingDir := t.TempDir()
+	interferingRepo, err := git.PlainClone(interferingDir, &git.CloneOptions{URL: remoteDir})
+	require.NoError(t, err)
+	baseHead := commitAndPush(t, interferingRepo, interferingDir, "c.txt", "commit C")
+
+	// The storage poller fetches the base branch and all Flipt branches.
+	require.NoError(t, repo.Fetch(t.Context(), base, "flipt/main/*"))
+
+	shallows, err := repo.Storer.Shallow()
+	require.NoError(t, err)
+	require.ElementsMatch(t, []plumbing.Hash{branchPoint, baseHead}, shallows,
+		"both branch heads must be shallow boundaries")
+
+	// D: edit the Flipt branch. Its parent is B, so this is a fast-forward.
+	hash, err := repo.UpdateAndPush(t.Context(), branch, func(fs envsfs.Filesystem) (string, error) {
+		fi, err := fs.OpenFile("d.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+		if err != nil {
+			return "", err
+		}
+		if _, err := fi.Write([]byte("commit D")); err != nil {
+			return "", err
+		}
+		if err := fi.Close(); err != nil {
+			return "", err
+		}
+		return "commit D", nil
+	})
+	require.NoError(t, err, "a direct child of the branch head is a fast-forward")
+	require.False(t, hash.IsZero())
+
+	branchRef, err = remoteRepo.Reference(plumbing.NewBranchReferenceName(branch), true)
+	require.NoError(t, err)
+	assert.Equal(t, hash, branchRef.Hash(), "remote branch must point to D")
+
+	commitObj, err := remoteRepo.CommitObject(hash)
+	require.NoError(t, err)
+	assert.Equal(t, "commit D", commitObj.Message)
+	assert.Equal(t, []plumbing.Hash{branchPoint}, commitObj.ParentHashes, "D must be a child of B")
+
+	baseRef, err := remoteRepo.Reference(plumbing.NewBranchReferenceName(base), true)
+	require.NoError(t, err)
+	assert.Equal(t, baseHead, baseRef.Hash(), "base branch must be untouched")
+}
