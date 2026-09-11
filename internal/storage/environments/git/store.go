@@ -97,8 +97,21 @@ func NewEnvironmentFromRepo(
 func (e *Environment) Branches() []string {
 	return []string{
 		e.currentBranch,
-		fmt.Sprintf("flipt/%s/*", e.cfg.Name),
+		e.branchRef("*"),
 	}
+}
+
+// branchPrefix returns the Git branch prefix under which Flipt stores the
+// branches of this environment. The environment name is passed through
+// names.RefSlug because Git does not permit some characters (for example
+// spaces) in reference names. Names that are already valid are unchanged.
+func (e *Environment) branchPrefix() string {
+	return fmt.Sprintf("flipt/%s/", names.RefSlug(e.cfg.Name))
+}
+
+// branchRef returns the full Git branch name for a branch of this environment.
+func (e *Environment) branchRef(branch string) string {
+	return e.branchPrefix() + branch
 }
 
 func (e *Environment) Key() string {
@@ -162,18 +175,19 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 // that is backed by the new branch.
 // The new Environment is added to the branches map and the current branch is updated.
 func (e *Environment) Branch(ctx context.Context, branch string) (serverenvs.Environment, error) {
-	var (
-		branchPrefix = fmt.Sprintf("flipt/%s/", e.cfg.Name)
-		name         = strings.TrimSpace(strings.TrimPrefix(branch, branchPrefix))
-	)
+	name := strings.TrimSpace(strings.TrimPrefix(branch, e.branchPrefix()))
 
 	if name == "" {
 		// generate a name for the branched environment if no name is provided
 		name = names.Random()
 	}
 
+	// the branch key is also a component of the Git branch name,
+	// so it must only contain characters that Git permits
+	name = names.RefSlug(name)
+
 	var (
-		branchName = fmt.Sprintf("%s%s", branchPrefix, name)
+		branchName = e.branchRef(name)
 		cfg        = *e.cfg
 	)
 
@@ -244,8 +258,7 @@ func (e *Environment) DeleteBranch(ctx context.Context, branch string) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	gitBranch := fmt.Sprintf("flipt/%s/%s", e.cfg.Name, branch)
-	if err := e.repo.DeleteBranch(ctx, gitBranch); err != nil {
+	if err := e.repo.DeleteBranch(ctx, e.branchRef(branch)); err != nil {
 		return err
 	}
 
@@ -286,7 +299,7 @@ func (e *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
 			branch := strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")
 
 			// if one of our branches that we created
-			if candidate, ok := strings.CutPrefix(branch, fmt.Sprintf("flipt/%s/", e.env.cfg.Name)); ok {
+			if candidate, ok := strings.CutPrefix(branch, e.env.branchPrefix()); ok {
 				// get the name of the environment from the branch name
 				// e.g. flipt/my-env/my-branch -> my-env
 				name, _, _ := strings.Cut(candidate, "/")
@@ -732,7 +745,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				zap.String("branch", branchName),
 			)
 			delete(e.branches, branchName)
-			delete(e.refs, fmt.Sprintf("flipt/%s/%s", e.cfg.Name, branchName))
+			delete(e.refs, e.branchRef(branchName))
 			result.DeletedBranchKeys = append(result.DeletedBranchKeys, branchName)
 		}
 	}
