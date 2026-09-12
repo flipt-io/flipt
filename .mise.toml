@@ -2,7 +2,7 @@
 go = "1.27.1"
 node = "24"
 golangci-lint = "2.13.2"
-buf = "1.72.0"
+buf = "1.73.0"
 dagger = "0.21.9"
 mockery = "3.8.0"
 
