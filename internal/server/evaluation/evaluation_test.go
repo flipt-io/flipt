@@ -522,6 +522,44 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	assert.Equal(t, flagKey, res.FlagKey)
 }
 
+func TestBoolean_FlagDisabled_NoRollouts(t *testing.T) {
+	var (
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore, WithMetrics(true))
+	)
+
+	environment.On("Key").Return(environmentKey)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: false,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
+
+	res, err := s.Boolean(t.Context(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.NoError(t, err)
+	assert.False(t, res.Enabled)
+	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, res.Reason)
+}
+
 func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 	var (
 		flagKey        = "test-flag"
