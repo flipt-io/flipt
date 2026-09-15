@@ -20,6 +20,7 @@ import CommandDialog from '~/components/command/CommandDialog';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { LoadingStatus } from '~/types/Meta';
+import { consumePostLoginRedirect } from '~/utils/postLoginRedirect';
 import { fetchInfoAsync, selectConfig } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
@@ -65,6 +66,25 @@ function InnerLayout() {
   useEffect(() => {
     dispatch(fetchInfoAsync());
   }, [dispatch]);
+
+  // Fresh from an external OIDC/GitHub round trip (full-page reload loses all
+  // router state): restore the deep link stashed before the authorize hop, so
+  // the user lands back where they were instead of the dashboard. navigate()
+  // in an effect, not render, and keep the original entry out of history.
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+    const target = consumePostLoginRedirect();
+    if (
+      target &&
+      target !== location.pathname + location.search + location.hash
+    ) {
+      navigate(target, { replace: true });
+    }
+    // run once per mount — location intentionally excluded
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, session]);
 
   if (!session) {
     return <Navigate to="/login" />;
