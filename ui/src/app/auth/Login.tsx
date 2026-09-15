@@ -7,7 +7,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 
@@ -22,6 +22,10 @@ import { browser } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { upperFirst } from '~/utils/helpers';
+import {
+  buildAuthorizeUrl,
+  resolvePostLoginRedirect
+} from '~/utils/navigation';
 
 interface ILoginProvider {
   displayName: string;
@@ -55,9 +59,10 @@ const knownProviders: Record<string, ILoginProvider> = {
 
 function InnerLoginButtons() {
   const { setError, clearError } = useError();
+  const location = useLocation();
 
-  const authorize = async (uri: string) => {
-    const res = await fetch(uri, {
+  const authorize = async (uri: string, state?: string) => {
+    const res = await fetch(buildAuthorizeUrl(uri, state), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -120,6 +125,8 @@ function InnerLoginButtons() {
     return <Loading />;
   }
 
+  const state: string | undefined =
+    typeof location.state === 'string' ? location.state : undefined;
   return (
     <>
       {providers.length > 0 && (
@@ -131,7 +138,7 @@ function InnerLoginButtons() {
               className="flex items-center gap-2 w-full justify-center"
               onClick={(e) => {
                 e.preventDefault();
-                authorize(provider.authorize_url);
+                authorize(provider.authorize_url, state);
               }}
             >
               <FontAwesomeIcon
@@ -176,9 +183,10 @@ function InnerLoginButtons() {
 
 function InnerLogin() {
   const { session } = useSession();
+  const location = useLocation();
 
   if (session && (!session.required || session.authenticated)) {
-    return <Navigate to="/" />;
+    return <Navigate to={resolvePostLoginRedirect(location.state)} state="" />;
   }
 
   return (

@@ -113,7 +113,7 @@ function InnerLayout() {
   }, [dispatch]);
 
   if (!session) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" state={location.pathname} />;
   }
 
   if (
