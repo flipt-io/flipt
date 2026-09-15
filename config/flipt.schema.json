@@ -496,6 +496,13 @@
                             "type": "string"
                           },
                           "default": {}
+                        },
+                        "claims_mapping": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "default": {}
                         }
                       }
                     }
