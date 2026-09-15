@@ -151,6 +151,7 @@ JsonPath: string
 			fetch_extra_user_info?: bool
 			allow_front_channel_logout?:  bool
 			authorize_parameters?:       [string]: string
+			claims_mapping?: [string]: string
 		}
 
 	}

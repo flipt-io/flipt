@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/jsonpointer"
 	"github.com/spf13/viper"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -551,6 +552,7 @@ type AuthenticationMethodOIDCProvider struct {
 	AuthorizeParameters     map[string]string `json:"authorizeParameters,omitempty" mapstructure:"authorize_parameters" yaml:"authorize_parameters,omitempty"`
 	UseEndSessionEndpoint   bool              `json:"useEndSessionEndpoint,omitempty" mapstructure:"use_end_session_endpoint" yaml:"use_end_session_endpoint,omitempty"`
 	AllowFrontChannelLogout bool              `json:"allowFrontChannelLogout,omitempty" mapstructure:"allow_front_channel_logout" yaml:"allow_front_channel_logout,omitempty"`
+	ClaimsMapping           map[string]string `json:"claimsMapping,omitempty" mapstructure:"claims_mapping" yaml:"claims_mapping,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {
@@ -568,6 +570,21 @@ func (a AuthenticationMethodOIDCProvider) validate() error {
 
 	if a.RedirectAddress == "" {
 		return errFieldRequired("authentication", "redirect_address")
+	}
+
+	for key, expr := range a.ClaimsMapping {
+		if !slices.Contains([]string{"email", "name", "picture", "sub"}, key) {
+			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid claim key %q", key))
+		}
+
+		// Keep startup validation in sync with newClaimsMapping's parser while
+		// rejecting the degenerate "/" pointer (empty reference).
+		if len(expr) < 2 {
+			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid expression for key %q", key))
+		}
+		if _, err := jsonpointer.New(expr); err != nil {
+			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid expression for key %q: %w", key, err))
+		}
 	}
 
 	return nil
