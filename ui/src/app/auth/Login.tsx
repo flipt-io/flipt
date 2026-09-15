@@ -16,6 +16,10 @@ import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
 import { upperFirst } from '~/utils/helpers';
+import {
+  consumePostLoginRedirect,
+  savePostLoginRedirect
+} from '~/utils/postLoginRedirect';
 
 interface ILoginProvider {
   displayName: string;
@@ -66,6 +70,12 @@ function InnerLoginButtons() {
 
     clearError();
     const body = await res.json();
+    // The authorize hop leaves the app entirely (IdP round trip + full page
+    // reload on return), so stash where we are now: Login/Layout consume it
+    // after the session comes back and send the user home to the deep link.
+    savePostLoginRedirect(
+      window.location.pathname + window.location.search + window.location.hash
+    );
     window.location.href = body.authorizeUrl;
   };
   const {
@@ -175,7 +185,9 @@ function InnerLogin() {
   const { session } = useSession();
 
   if (session && (!session.required || session.authenticated)) {
-    return <Navigate to="/" />;
+    // A deep link stashed before the authorize hop belongs to the returning
+    // user, not to a direct login visit: send them back where they were.
+    return <Navigate to={consumePostLoginRedirect() ?? '/'} replace />;
   }
 
   return (
