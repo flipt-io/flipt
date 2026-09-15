@@ -538,7 +538,14 @@ func (a AuthenticationMethodOIDCConfig) validate() error {
 
 // AuthenticationMethodOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
-	IssuerURL       string `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
+	IssuerURL string `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
+	// DiscoveryURL optionally overrides the URL used to fetch the OIDC discovery
+	// document (.well-known/openid-configuration). When empty, IssuerURL is used.
+	// Set this for providers (e.g. Azure AD B2C) that serve discovery from a URL
+	// that differs from the issuer reported in that document and in issued tokens.
+	// When set, the discovery document is fetched from DiscoveryURL while tokens
+	// are still verified against IssuerURL.
+	DiscoveryURL    string `json:"discoveryURL,omitempty" mapstructure:"discovery_url" yaml:"discovery_url,omitempty"`
 	ClientID        string `json:"-" mapstructure:"client_id" yaml:"-"`
 	ClientSecret    string `json:"-" mapstructure:"client_secret" yaml:"-"`
 	RedirectAddress string `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
@@ -551,7 +558,18 @@ type AuthenticationMethodOIDCProvider struct {
 	AuthorizeParameters     map[string]string `json:"authorizeParameters,omitempty" mapstructure:"authorize_parameters" yaml:"authorize_parameters,omitempty"`
 	UseEndSessionEndpoint   bool              `json:"useEndSessionEndpoint,omitempty" mapstructure:"use_end_session_endpoint" yaml:"use_end_session_endpoint,omitempty"`
 	AllowFrontChannelLogout bool              `json:"allowFrontChannelLogout,omitempty" mapstructure:"allow_front_channel_logout" yaml:"allow_front_channel_logout,omitempty"`
+	// ClaimsMapping maps user attribute names to JSON Pointer expressions that
+	// specify how to extract those attributes from the ID token (or user info)
+	// claims. This is useful for providers whose claims don't match the standard
+	// OIDC names, e.g. Azure AD B2C, which returns the email in an "emails" array:
+	// {"email": "/emails/0"}. Only the keys "email", "name", "picture" and "sub"
+	// are supported.
+	ClaimsMapping map[string]string `json:"claimsMapping,omitempty" mapstructure:"claims_mapping" yaml:"claims_mapping,omitempty"`
 }
+
+// validOIDCClaimKeys enumerates the user attributes that can be overridden via
+// AuthenticationMethodOIDCProvider.ClaimsMapping.
+var validOIDCClaimKeys = []string{"email", "name", "picture", "sub"}
 
 func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {
 	defaults["algorithms"] = []string{"RS256"}
@@ -568,6 +586,26 @@ func (a AuthenticationMethodOIDCProvider) validate() error {
 
 	if a.RedirectAddress == "" {
 		return errFieldRequired("authentication", "redirect_address")
+	}
+
+	// When overriding the discovery URL we skip go-oidc's check that the
+	// discovered issuer matches the fetch URL, and instead pin token
+	// verification to issuer_url. That pin is only meaningful when issuer_url
+	// is set, so require it here.
+	if a.DiscoveryURL != "" && a.IssuerURL == "" {
+		return errFieldRequired("authentication", "issuer_url")
+	}
+
+	for key, expr := range a.ClaimsMapping {
+		if !slices.Contains(validOIDCClaimKeys, key) {
+			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid claim key %q", key))
+		}
+
+		if len(expr) < 2 || !strings.HasPrefix(expr, "/") {
+			// jsonpointer expressions must start with `/`, so a valid expression
+			// must contain `/` followed by at least one character.
+			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid expression for key %q", key))
+		}
 	}
 
 	return nil

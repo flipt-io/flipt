@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/go-openapi/jsonpointer"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"golang.org/x/oauth2"
@@ -110,6 +111,7 @@ type client struct {
 	oidcCfg            *oidc.Config
 	endSessionEndpoint string
 	createdAt          time.Time
+	claimsMapping      map[string]jsonpointer.Pointer
 }
 
 func callbackURL(host, provider string) string {
@@ -117,7 +119,19 @@ func callbackURL(host, provider string) string {
 }
 
 func newOIDCClient(ctx context.Context, cfg config.AuthenticationMethodOIDCProvider, provider string) (*client, error) {
-	p, err := oidc.NewProvider(ctx, cfg.IssuerURL)
+	// Determine where to fetch the discovery document from. Some providers
+	// (e.g. Azure AD B2C) serve the discovery document from a URL that differs
+	// from the issuer reported inside that document and in issued tokens. When
+	// discovery_url is set we fetch from it and pin token verification to
+	// issuer_url via InsecureIssuerURLContext, which skips go-oidc's default
+	// requirement that the discovered issuer match the fetch URL.
+	discoveryURL := cfg.IssuerURL
+	if cfg.DiscoveryURL != "" {
+		discoveryURL = cfg.DiscoveryURL
+		ctx = oidc.InsecureIssuerURLContext(ctx, cfg.IssuerURL)
+	}
+
+	p, err := oidc.NewProvider(ctx, discoveryURL)
 	if err != nil {
 		return nil, fmt.Errorf("creating OIDC provider: %w", err)
 	}
@@ -143,14 +157,34 @@ func newOIDCClient(ctx context.Context, cfg config.AuthenticationMethodOIDCProvi
 		SupportedSigningAlgs: supportedAlgs,
 	}
 
+	claimsMapping, err := newClaimsMapping(cfg.ClaimsMapping)
+	if err != nil {
+		return nil, err
+	}
+
 	return &client{
-		key:       provider,
-		cfg:       cfg,
-		provider:  p,
-		oauth2Cfg: oauth2Config,
-		oidcCfg:   oidcConfig,
-		createdAt: time.Now(),
+		key:           provider,
+		cfg:           cfg,
+		provider:      p,
+		oauth2Cfg:     oauth2Config,
+		oidcCfg:       oidcConfig,
+		createdAt:     time.Now(),
+		claimsMapping: claimsMapping,
 	}, nil
+}
+
+// newClaimsMapping parses and validates the configured OIDC claim mapping
+// expressions, returning a map of claim names to JSON Pointers.
+func newClaimsMapping(cfgClaimsMapping map[string]string) (map[string]jsonpointer.Pointer, error) {
+	claimsMapping := make(map[string]jsonpointer.Pointer, len(cfgClaimsMapping))
+	for name, expr := range cfgClaimsMapping {
+		jsonptr, err := jsonpointer.New(expr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid claim mapping expression for %q: %w", name, err)
+		}
+		claimsMapping[name] = jsonptr
+	}
+	return claimsMapping, nil
 }
 
 // UsePKCE returns whether PKCE is enabled for this provider.
