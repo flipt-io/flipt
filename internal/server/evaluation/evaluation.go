@@ -396,6 +396,11 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 		}()
 	}
 
+	if !flag.Enabled && len(rollouts) == 0 {
+		resp.Reason = rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
+		return resp, nil
+	}
+
 	for _, rollout := range rollouts {
 		if rollout.Rank < lastRank {
 			return nil, fmt.Errorf("rollout rank: %d detected out of order", rollout.Rank)
