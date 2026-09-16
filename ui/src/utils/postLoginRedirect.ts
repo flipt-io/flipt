@@ -30,6 +30,11 @@ export function isSafeInAppRedirect(candidate: unknown): candidate is string {
 }
 
 export function savePostLoginRedirect(target: string) {
+  // Callers must pass the *router* location (useLocation), not
+  // window.location: with the hash router the path lives after the `#`, so a
+  // window.location value looks like `/#/flags` and navigates nowhere.
+  // consume() tolerates that shape anyway (belt and braces), but save the
+  // router path directly.
   try {
     window.sessionStorage.setItem(
       postLoginRedirectKey,
@@ -86,5 +91,15 @@ export function consumePostLoginRedirect(
   if (!isSafeInAppRedirect(parsed.target)) {
     return null;
   }
-  return parsed.target === '/login' ? '/' : parsed.target;
+  let target: string = parsed.target;
+  // Hash-router tolerance: a window.location-style value (`/#/flags`) still
+  // resolves to the router path (`/flags`). Without this, navigating to the
+  // raw `/#/...` value lands nowhere and the user ends up on the dashboard.
+  if (target.startsWith('/#')) {
+    target = target.slice(2) || '/';
+    if (!isSafeInAppRedirect(target)) {
+      return null;
+    }
+  }
+  return target === '/login' ? '/' : target;
 }

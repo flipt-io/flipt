@@ -20,7 +20,10 @@ import CommandDialog from '~/components/command/CommandDialog';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { LoadingStatus } from '~/types/Meta';
-import { consumePostLoginRedirect } from '~/utils/postLoginRedirect';
+import {
+  consumePostLoginRedirect,
+  savePostLoginRedirect
+} from '~/utils/postLoginRedirect';
 import { fetchInfoAsync, selectConfig } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
@@ -87,6 +90,12 @@ function InnerLayout() {
   }, [navigate, session]);
 
   if (!session) {
+    // Bounced to /login: stash the router location we are leaving now, while
+    // we still have it. (Stashing later, on the authorize click, only ever
+    // sees /login — the deep link is already gone by then.) Login/Layout
+    // consume this after the session comes back. Router location, not
+    // window.location: with the hash router the path lives after the `#`.
+    savePostLoginRedirect(location.pathname + location.search + location.hash);
     return <Navigate to="/login" />;
   }
 

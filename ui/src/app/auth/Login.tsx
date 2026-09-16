@@ -16,10 +16,7 @@ import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
 import { upperFirst } from '~/utils/helpers';
-import {
-  consumePostLoginRedirect,
-  savePostLoginRedirect
-} from '~/utils/postLoginRedirect';
+import { consumePostLoginRedirect } from '~/utils/postLoginRedirect';
 
 interface ILoginProvider {
   displayName: string;
@@ -70,12 +67,10 @@ function InnerLoginButtons() {
 
     clearError();
     const body = await res.json();
-    // The authorize hop leaves the app entirely (IdP round trip + full page
-    // reload on return), so stash where we are now: Login/Layout consume it
-    // after the session comes back and send the user home to the deep link.
-    savePostLoginRedirect(
-      window.location.pathname + window.location.search + window.location.hash
-    );
+    // The deep link (if any) was stashed by Layout when it bounced to /login;
+    // nothing to save here — by now the location is just /login. The IdP round
+    // trip + full page reload still wipes router state, which is why the stash
+    // lives in sessionStorage for Login/Layout to consume on return.
     window.location.href = body.authorizeUrl;
   };
   const {

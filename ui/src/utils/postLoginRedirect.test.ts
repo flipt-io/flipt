@@ -90,6 +90,13 @@ describe('post-login redirect round trip', () => {
     expect(consumePostLoginRedirect()).toBeNull();
   });
 
+  it('tolerates a window.location-style hash-router value', () => {
+    savePostLoginRedirect('/#/namespaces/default/flags/my-flag');
+    expect(consumePostLoginRedirect()).toBe(
+      '/namespaces/default/flags/my-flag'
+    );
+  });
+
   it('drops garbage and non-object payloads', () => {
     window.sessionStorage.setItem(postLoginRedirectKey, 'not-json{{{');
     expect(consumePostLoginRedirect()).toBeNull();
