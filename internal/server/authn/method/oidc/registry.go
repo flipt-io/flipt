@@ -124,7 +124,14 @@ func newOIDCClient(ctx context.Context, cfg config.AuthenticationMethodOIDCProvi
 		return nil, err
 	}
 
-	p, err := oidc.NewProvider(ctx, cfg.IssuerURL)
+	issuerURL := cfg.IssuerURL
+
+	if cfg.DiscoveryURL != "" {
+		issuerURL = cfg.DiscoveryURL
+		ctx = oidc.InsecureIssuerURLContext(ctx, cfg.IssuerURL)
+	}
+
+	p, err := oidc.NewProvider(ctx, issuerURL)
 	if err != nil {
 		return nil, fmt.Errorf("creating OIDC provider: %w", err)
 	}

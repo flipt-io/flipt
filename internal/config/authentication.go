@@ -553,6 +553,7 @@ type AuthenticationMethodOIDCProvider struct {
 	UseEndSessionEndpoint   bool              `json:"useEndSessionEndpoint,omitempty" mapstructure:"use_end_session_endpoint" yaml:"use_end_session_endpoint,omitempty"`
 	AllowFrontChannelLogout bool              `json:"allowFrontChannelLogout,omitempty" mapstructure:"allow_front_channel_logout" yaml:"allow_front_channel_logout,omitempty"`
 	ClaimsMapping           map[string]string `json:"claimsMapping,omitempty" mapstructure:"claims_mapping" yaml:"claims_mapping,omitempty"`
+	DiscoveryURL            string            `json:"discoveryURL,omitempty" mapstructure:"discovery_url" yaml:"discovery_url,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {
@@ -584,6 +585,16 @@ func (a AuthenticationMethodOIDCProvider) validate() error {
 		}
 		if _, err := jsonpointer.New(expr); err != nil {
 			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid expression for key %q: %w", key, err))
+		}
+	}
+
+	if a.DiscoveryURL != "" {
+		if a.IssuerURL == "" {
+			return errFieldRequired("authentication", "issuer_url")
+		}
+
+		if _, err := url.Parse(a.DiscoveryURL); err != nil {
+			return errFieldWrap("authentication", "discovery_url", err)
 		}
 	}
 
