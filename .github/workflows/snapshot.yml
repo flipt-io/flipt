@@ -41,7 +41,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
-          version: "~> v2.3.0"
+          version: "~> 2.18.0"
           args: build --clean --snapshot -f .goreleaser.${{ matrix.name }}.yml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
@@ -88,7 +88,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
-          version: "~> v2.3.0"
+          version: "~> 2.18.0"
           args: build --snapshot
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
