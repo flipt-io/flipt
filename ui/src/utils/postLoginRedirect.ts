@@ -46,14 +46,6 @@ export function savePostLoginRedirect(target: string) {
   }
 }
 
-export function clearPostLoginRedirect() {
-  try {
-    window.sessionStorage.removeItem(postLoginRedirectKey);
-  } catch {
-    // ignore — nothing to restore from anyway
-  }
-}
-
 // Reads and clears the stashed target (consume-once, so it can only ever
 // redirect a single login). Returns null when nothing usable was stored.
 // `/login` normalizes to `/` since landing there while authenticated just

@@ -7,7 +7,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import logoFlag from '~/assets/logo-flag.png';
 import { Loading } from '~/components/Loading';
@@ -16,7 +16,11 @@ import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
 import { upperFirst } from '~/utils/helpers';
-import { consumePostLoginRedirect } from '~/utils/postLoginRedirect';
+import {
+  consumePostLoginRedirect,
+  isSafeInAppRedirect,
+  savePostLoginRedirect
+} from '~/utils/postLoginRedirect';
 
 interface ILoginProvider {
   displayName: string;
@@ -51,6 +55,8 @@ const knownProviders: Record<string, ILoginProvider> = {
 function InnerLoginButtons() {
   const { setError, clearError } = useError();
 
+  const location = useLocation();
+
   const authorize = async (uri: string) => {
     const res = await fetch(uri, {
       method: 'GET',
@@ -67,10 +73,13 @@ function InnerLoginButtons() {
 
     clearError();
     const body = await res.json();
-    // The deep link (if any) was stashed by Layout when it bounced to /login;
-    // nothing to save here — by now the location is just /login. The IdP round
-    // trip + full page reload still wipes router state, which is why the stash
-    // lives in sessionStorage for Login/Layout to consume on return.
+    if (isSafeInAppRedirect(location.state)) {
+      savePostLoginRedirect(location.state);
+    }
+    // Layout forwards the deep link via router state when it bounces to
+    // /login. Stash it before the external IdP hop — the round trip + full
+    // page reload wipes router state, so the stash lives in sessionStorage
+    // for Login to consume on return.
     window.location.href = body.authorizeUrl;
   };
   const {
