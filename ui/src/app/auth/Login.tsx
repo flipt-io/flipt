@@ -7,7 +7,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import logoFlag from '~/assets/logo-flag.png';
 import { Loading } from '~/components/Loading';
@@ -16,6 +16,11 @@ import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
 import { upperFirst } from '~/utils/helpers';
+import {
+  consumePostLoginRedirect,
+  isSafeInAppRedirect,
+  savePostLoginRedirect
+} from '~/utils/postLoginRedirect';
 
 interface ILoginProvider {
   displayName: string;
@@ -50,6 +55,8 @@ const knownProviders: Record<string, ILoginProvider> = {
 function InnerLoginButtons() {
   const { setError, clearError } = useError();
 
+  const location = useLocation();
+
   const authorize = async (uri: string) => {
     const res = await fetch(uri, {
       method: 'GET',
@@ -66,6 +73,13 @@ function InnerLoginButtons() {
 
     clearError();
     const body = await res.json();
+    if (isSafeInAppRedirect(location.state)) {
+      savePostLoginRedirect(location.state);
+    }
+    // Layout forwards the deep link via router state when it bounces to
+    // /login. Stash it before the external IdP hop — the round trip + full
+    // page reload wipes router state, so the stash lives in sessionStorage
+    // for Login to consume on return.
     window.location.href = body.authorizeUrl;
   };
   const {
@@ -175,7 +189,9 @@ function InnerLogin() {
   const { session } = useSession();
 
   if (session && (!session.required || session.authenticated)) {
-    return <Navigate to="/" />;
+    // A deep link stashed before the authorize hop belongs to the returning
+    // user, not to a direct login visit: send them back where they were.
+    return <Navigate to={consumePostLoginRedirect() ?? '/'} replace />;
   }
 
   return (
