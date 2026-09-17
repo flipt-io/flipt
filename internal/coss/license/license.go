@@ -169,7 +169,11 @@ func (lm *ManagerImpl) validateOffline(_ context.Context) (*keygen.License, erro
 	}
 
 	license := &keygen.LicenseFile{Certificate: string(cert)}
-	if err := license.Verify(); err != nil {
+	verifyOptions := []keygen.VerifyOption(nil)
+	if lm.verifyKey != "" {
+		verifyOptions = append(verifyOptions, keygen.VerifyPublicKey(lm.verifyKey))
+	}
+	if err := license.Verify(verifyOptions...); err != nil {
 		return nil, err
 	}
 
@@ -347,8 +351,13 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID st
 
 // Product returns the product that the license is valid for.
 func (lm *ManagerImpl) Product() product.Product {
-	lm.mu.RLock()
-	defer lm.mu.RUnlock()
+	lm.mu.Lock()
+	defer lm.mu.Unlock()
+
+	if lm.license != nil && lm.license.Expiry != nil && time.Now().After(*lm.license.Expiry) {
+		lm.product = product.OSS
+	}
+
 	return lm.product
 }
 
@@ -484,8 +493,9 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 		}
 	}
 
-	if license.Expiry == nil {
-		lm.logger.Warn("license has no expiry date; additional features are disabled.")
+	if license.Expiry == nil || time.Now().After(*license.Expiry) {
+		lm.setOSSProduct()
+		lm.logger.Warn("license has no valid expiry date; additional features are disabled.")
 		return
 	}
 
