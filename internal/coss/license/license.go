@@ -65,6 +65,12 @@ func isPermanentError(err error) bool {
 		errors.Is(err, keygen.ErrValidationFingerprintMissing) // FINGERPRINT_SCOPE_MISMATCH maps to this
 }
 
+// hasValidExpiry reports whether the license carries an expiry date that has
+// not yet passed. A license without an expiry date is never considered valid.
+func hasValidExpiry(license *keygen.License) bool {
+	return license != nil && license.Expiry != nil && time.Now().Before(*license.Expiry)
+}
+
 // validateOnline directly calls the keygen API to validate the license and handles activation
 func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, error) {
 	// Check if we're currently rate limited
@@ -354,7 +360,8 @@ func (lm *ManagerImpl) Product() product.Product {
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
 
-	if lm.license != nil && lm.license.Expiry != nil && time.Now().After(*lm.license.Expiry) {
+	// the license may have expired since the last revalidation
+	if lm.license != nil && !hasValidExpiry(lm.license) {
 		lm.product = product.OSS
 	}
 
@@ -423,22 +430,25 @@ func (lm *ManagerImpl) periodicRevalidate(ctx context.Context) {
 	}
 }
 
-// setOSSProduct is a helper method to set the product to OSS and avoid code duplication
-func (lm *ManagerImpl) setOSSProduct() {
-	lm.mu.Lock()
-	lm.product = product.OSS
-	lm.mu.Unlock()
-}
-
 func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 	if lm.config.Key == "" {
-		lm.setOSSProduct()
+		lm.mu.Lock()
+		lm.product = product.OSS
+		lm.mu.Unlock()
 		lm.logger.Warn("no license key provided; additional features are disabled.")
 		return
 	}
 
 	// Check cache first before making API calls
 	if cached, ok := lm.cache.get(); ok {
+		if !hasValidExpiry(cached) {
+			lm.mu.Lock()
+			lm.product = product.OSS
+			lm.mu.Unlock()
+			lm.logger.Warn("cached license has no valid expiry date; additional features are disabled.")
+			return
+		}
+
 		lm.mu.Lock()
 		lm.product = product.Pro
 		lm.license = cached
@@ -458,7 +468,9 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 		if err != nil {
 			// If permanent error, disable retries completely
 			if isPermanentError(err) {
-				lm.setOSSProduct()
+				lm.mu.Lock()
+				lm.product = product.OSS
+				lm.mu.Unlock()
 				lm.logger.Error("permanent license error; disabling Pro features and stopping validation", zap.Error(err))
 				// Mark as permanent error to stop future revalidation attempts
 				lm.rateLimitMu.Lock()
@@ -479,7 +491,9 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 				}
 			}
 
-			lm.setOSSProduct()
+			lm.mu.Lock()
+			lm.product = product.OSS
+			lm.mu.Unlock()
 			lm.logger.Warn("license is invalid; additional features are disabled.", zap.Error(err))
 			return
 		}
@@ -487,14 +501,18 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 	case LicenseTypeOffline:
 		license, err = lm.validateOffline(ctx)
 		if err != nil {
-			lm.setOSSProduct()
+			lm.mu.Lock()
+			lm.product = product.OSS
+			lm.mu.Unlock()
 			lm.logger.Warn("license is invalid; additional features are disabled.", zap.Error(err))
 			return
 		}
 	}
 
-	if license.Expiry == nil || time.Now().After(*license.Expiry) {
-		lm.setOSSProduct()
+	if !hasValidExpiry(license) {
+		lm.mu.Lock()
+		lm.product = product.OSS
+		lm.mu.Unlock()
 		lm.logger.Warn("license has no valid expiry date; additional features are disabled.")
 		return
 	}
