@@ -34,6 +34,27 @@ func TestAuthenticationMethodOIDCProvider_validate(t *testing.T) {
 			mutate: func(*AuthenticationMethodOIDCProvider) {},
 		},
 		{
+			name: "valid with discovery_url",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.DiscoveryURL = "https://discovery.example.com"
+			},
+		},
+		{
+			name: "discovery_url without issuer_url fails",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.IssuerURL = ""
+				p.DiscoveryURL = "https://discovery.example.com"
+			},
+			errorContains: "issuer_url",
+		},
+		{
+			name: "invalid discovery_url fails",
+			mutate: func(p *AuthenticationMethodOIDCProvider) {
+				p.DiscoveryURL = "://invalid-url"
+			},
+			errorContains: "discovery_url",
+		},
+		{
 			name: "valid claims_mapping",
 			mutate: func(p *AuthenticationMethodOIDCProvider) {
 				p.ClaimsMapping = map[string]string{"email": "/emails/0", "name": "/given_name"}
