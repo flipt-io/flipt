@@ -442,6 +442,181 @@ func TestClient_UserInfo(t *testing.T) {
 	}
 }
 
+func TestClient_newOIDCClient_ClaimsMapping(t *testing.T) {
+	ctx := t.Context()
+
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/.well-known/openid-configuration":
+			serve(t, http.StatusOK, map[string]string{
+				"issuer":                 srv.URL,
+				"authorization_endpoint": srv.URL + "/auth",
+				"token_endpoint":         srv.URL + "/token",
+				"jwks_uri":               srv.URL + "/certs",
+			})(w, r)
+		case "/certs":
+			jwks := jose.JSONWebKeySet{
+				Keys: []jose.JSONWebKey{
+					{Key: &priv.PublicKey, Algorithm: "RS256", KeyID: "test-key"},
+				},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			assert.NoError(t, json.NewEncoder(w).Encode(jwks))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(srv.Close)
+
+	tests := []struct {
+		name          string
+		claimsMapping map[string]string
+		want          int
+		wantErr       string
+	}{
+		{
+			name:          "nil claims mapping",
+			claimsMapping: nil,
+			want:          0,
+		},
+		{
+			name:          "empty claims mapping",
+			claimsMapping: map[string]string{},
+			want:          0,
+		},
+		{
+			name:          "valid claims mapping",
+			claimsMapping: map[string]string{"email": "/preferred_email", "name": "/display_name"},
+			want:          2,
+		},
+		{
+			name:          "invalid JSON pointer expression",
+			claimsMapping: map[string]string{"email": "not/a/valid/pointer"},
+			wantErr:       `invalid claim mapping expression for "email"`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := config.AuthenticationMethodOIDCProvider{
+				IssuerURL:       srv.URL,
+				ClientID:        "test-client",
+				ClientSecret:    "test-secret",
+				RedirectAddress: "http://localhost",
+				ClaimsMapping:   tt.claimsMapping,
+			}
+
+			c, err := newOIDCClient(ctx, cfg, "test")
+			if tt.wantErr != "" {
+				require.ErrorContains(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, c)
+			require.Len(t, c.claimsMapping, tt.want)
+			for name := range tt.claimsMapping {
+				_, ok := c.claimsMapping[name]
+				require.True(t, ok, "missing claim %q in client", name)
+			}
+		})
+	}
+}
+
+func TestClient_newOIDCClient_DiscoveryURL(t *testing.T) {
+	ctx := t.Context()
+
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	// logicalIssuer differs from the discovery host on purpose: the discovery
+	// document is served by the test server, but the issuer it advertises is
+	// a separate URL, mimicking providers hosted behind a proxy or with an
+	// off-spec discovery path.
+	const logicalIssuer = "https://issuer.example.com"
+
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/.well-known/openid-configuration":
+			serve(t, http.StatusOK, map[string]string{
+				"issuer":                 logicalIssuer,
+				"authorization_endpoint": srv.URL + "/auth",
+				"token_endpoint":         srv.URL + "/token",
+				"jwks_uri":               srv.URL + "/certs",
+			})(w, r)
+		case "/certs":
+			jwks := jose.JSONWebKeySet{
+				Keys: []jose.JSONWebKey{
+					{Key: &priv.PublicKey, Algorithm: "RS256", KeyID: "test-key"},
+				},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			assert.NoError(t, json.NewEncoder(w).Encode(jwks))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(srv.Close)
+
+	t.Run("plain discovery without override fails with issuer mismatch", func(t *testing.T) {
+		_, err := oidc.NewProvider(ctx, srv.URL)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "did not match the issuer URL returned by provider")
+	})
+
+	t.Run("client with discovery_url succeeds and verifies tokens against issuer_url", func(t *testing.T) {
+		cfg := config.AuthenticationMethodOIDCProvider{
+			IssuerURL:       logicalIssuer,
+			DiscoveryURL:    srv.URL,
+			ClientID:        "test-client",
+			ClientSecret:    "test-secret",
+			RedirectAddress: "http://localhost",
+		}
+
+		c, err := newOIDCClient(ctx, cfg, "test")
+		require.NoError(t, err)
+		require.NotNil(t, c)
+
+		// endpoints come from the discovery document, not the issuer URL
+		assert.Equal(t, srv.URL+"/auth", c.oauth2Cfg.Endpoint.AuthURL)
+		assert.Equal(t, srv.URL+"/token", c.oauth2Cfg.Endpoint.TokenURL)
+
+		// a token issued by the logical issuer verifies
+		now := time.Now()
+		rawIDToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+			"iss": logicalIssuer,
+			"aud": "test-client",
+			"exp": now.Add(time.Hour).Unix(),
+			"iat": now.Unix(),
+			"sub": "test-user",
+		}).SignedString(priv)
+		require.NoError(t, err)
+
+		idToken, err := c.provider.Verifier(c.oidcCfg).Verify(ctx, rawIDToken)
+		require.NoError(t, err)
+		assert.Equal(t, logicalIssuer, idToken.Issuer)
+		assert.Equal(t, "test-user", idToken.Subject)
+
+		// a token from an unknown issuer does not verify
+		rawBadIssuerToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+			"iss": "https://other-issuer.example.com",
+			"aud": "test-client",
+			"exp": now.Add(time.Hour).Unix(),
+			"iat": now.Unix(),
+			"sub": "test-user",
+		}).SignedString(priv)
+		require.NoError(t, err)
+
+		_, err = c.provider.Verifier(c.oidcCfg).Verify(ctx, rawBadIssuerToken)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "issued by a different provider")
+	})
+}
+
 func serve(tb testing.TB, status int, data map[string]string) func(http.ResponseWriter, *http.Request) {
 	tb.Helper()
 	return func(w http.ResponseWriter, _ *http.Request) {

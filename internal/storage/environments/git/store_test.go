@@ -3,12 +3,17 @@ package git
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/go-git/go-git/v6"
+	gitconfig "github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
@@ -878,4 +883,95 @@ func Test_Environment_Branch_WithSpaces(t *testing.T) {
 	assert.Equal(t, "spaced-branch", branchEnv.Key())
 	// The full branch name should be properly constructed
 	assert.Equal(t, "flipt/production/spaced-branch", branchEnv.(*Environment).currentBranch)
+}
+
+// newTestEnvironmentWithRemote creates a bare remote repository with one commit
+// on main, opens a bare Flipt repository against it and returns an environment
+// with the given name that is subscribed to the repository.
+func newTestEnvironmentWithRemote(t *testing.T, envName string) (*Environment, *storagegit.Repository) {
+	t.Helper()
+
+	logger := zaptest.NewLogger(t)
+	ctx := t.Context()
+
+	remoteDir := t.TempDir()
+	_, err := git.PlainInit(remoteDir, true, git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")))
+	require.NoError(t, err)
+
+	bootstrapDir := t.TempDir()
+	bootstrapRepo, err := git.PlainInit(bootstrapDir, false, git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")))
+	require.NoError(t, err)
+	_, err = bootstrapRepo.CreateRemote(&gitconfig.RemoteConfig{Name: "origin", URLs: []string{remoteDir}})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(bootstrapDir, "init.txt"), []byte("init"), 0o600))
+	wt, err := bootstrapRepo.Worktree()
+	require.NoError(t, err)
+	_, err = wt.Add("init.txt")
+	require.NoError(t, err)
+	_, err = wt.Commit("initial commit", &git.CommitOptions{
+		Author: &object.Signature{Name: "test", Email: "test@test.com", When: time.Now()},
+	})
+	require.NoError(t, err)
+	require.NoError(t, bootstrapRepo.Push(&git.PushOptions{RemoteName: "origin"}))
+
+	repo, err := storagegit.NewRepository(ctx, logger,
+		storagegit.WithFilesystemStorage(t.TempDir()),
+		storagegit.WithRemote("origin", remoteDir),
+		storagegit.WithSignature("test", "test@test.com"),
+	)
+	require.NoError(t, err)
+
+	cfg := &config.EnvironmentConfig{Name: envName, Default: true}
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, fs.NewStorage(logger), evaluation.NoopPublisher, config.TemplatesConfig{})
+	require.NoError(t, err)
+
+	repo.Subscribe(env)
+
+	return env, repo
+}
+
+// Test_Environment_NameWithSpace is a regression test for
+// https://github.com/flipt-io/flipt/issues/6491.
+//
+// The environment name is used as part of the Git branch names that Flipt
+// creates and fetches. A space is not permitted in a Git reference name
+// (see git-check-ref-format), so an environment name with a space must not
+// stop the server from starting and must not produce invalid branch names.
+func Test_Environment_NameWithSpace(t *testing.T) {
+	const envName = "Dev Playground"
+
+	t.Run("startup fetch succeeds", func(t *testing.T) {
+		env, repo := newTestEnvironmentWithRemote(t, envName)
+
+		// this is the fetch that runs when the environment store is initialized
+		require.NoError(t, repo.Fetch(t.Context()))
+
+		// the API key of the environment is still the configured name
+		assert.Equal(t, envName, env.Key())
+	})
+
+	t.Run("branches use a git-safe prefix", func(t *testing.T) {
+		env, repo := newTestEnvironmentWithRemote(t, envName)
+
+		branchEnv, err := env.Branch(t.Context(), "my feature")
+		require.NoError(t, err)
+		assert.Equal(t, "my-feature", branchEnv.Key())
+
+		gitBranch := branchEnv.(*Environment).currentBranch
+		assert.Equal(t, "flipt/Dev-Playground/my-feature", gitBranch)
+		require.NoError(t, plumbing.NewBranchReferenceName(gitBranch).Validate(),
+			"branch %q must be a valid git reference name", gitBranch)
+
+		resp, err := env.ListBranches(t.Context())
+		require.NoError(t, err)
+		require.Len(t, resp.Branches, 1)
+		assert.Equal(t, "my-feature", resp.Branches[0].Key)
+		assert.Equal(t, gitBranch, resp.Branches[0].Ref)
+		assert.Equal(t, envName, resp.Branches[0].EnvironmentKey)
+
+		// the branch now exists on the remote, so the poller fetches it
+		require.NoError(t, repo.Fetch(t.Context()))
+
+		require.NoError(t, env.DeleteBranch(t.Context(), "my-feature"))
+	})
 }

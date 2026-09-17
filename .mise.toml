@@ -230,12 +230,14 @@ buf lint
 """
 
 [tasks."go:modernize"]
-description = "Run Go modernize tool"
+description = "Apply modern Go idioms"
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
 echo " > Running modernize..."
-go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -category=-omitzero -fix -test ./...
+# run the same modernize analyzers that CI runs, so the set of enabled
+# analyses lives only in .golangci.yml
+golangci-lint run --default=none -E modernize --fix ./...
 """
 
 [tasks."go:proto"]
