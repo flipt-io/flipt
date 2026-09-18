@@ -91,6 +91,7 @@ export default function Combobox<T extends ISelectable>(
                 <CommandItem
                   key={item.key}
                   value={item.key}
+                  keywords={[item.displayValue]}
                   aria-role="option"
                   aria-label={item.displayValue}
                   onSelect={(key) => {
