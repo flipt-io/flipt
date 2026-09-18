@@ -3,8 +3,11 @@ package license
 import (
 	"context"
 	"errors"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,18 +18,6 @@ import (
 	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap/zaptest"
 )
-
-func TestManager_setOSSProduct(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	manager := &ManagerImpl{
-		logger:  logger,
-		product: product.Pro, // Start with Pro
-	}
-
-	manager.setOSSProduct()
-
-	assert.Equal(t, product.OSS, manager.product)
-}
 
 func TestManager_validateAndSet_NoLicenseKey(t *testing.T) {
 	logger := zaptest.NewLogger(t)
@@ -244,18 +235,17 @@ func TestManager_validateAndSet_LicenseWithoutExpiry(t *testing.T) {
 		config:      &config.LicenseConfig{Key: "test-key"},
 		licenseType: LicenseTypeOnline,
 		product:     product.Pro,
+		cache:       &licenseCache{},
 	}
 
-	// Simulate what happens when validateAndSet encounters a license without expiry
-	// We test this by directly calling the expiry check logic
-	license := &keygen.License{Expiry: nil}
+	// cache a license without an expiry date so validateAndSet short circuits
+	// before any API call
+	manager.cache.set(&keygen.License{Key: "test-key"}, cacheDuration)
 
-	// This mimics the logic in validateAndSet around line 277
-	if license.Expiry == nil {
-		manager.setOSSProduct()
-	}
+	manager.validateAndSet(t.Context())
 
-	assert.Equal(t, product.OSS, manager.product)
+	assert.Equal(t, product.OSS, manager.Product())
+	assert.Nil(t, manager.license)
 }
 
 func TestManager_Shutdown_FingerprintError(t *testing.T) {
@@ -356,4 +346,130 @@ func TestManager_ConfiguredMachineID(t *testing.T) {
 	fp, err := manager.fingerprinter("test-product")
 	require.NoError(t, err)
 	assert.Equal(t, ProtectedMachineID("test-product", machineID), fp)
+}
+
+func TestManager_validateAndSet_CachedLicenseExpiry(t *testing.T) {
+	const licenseKey = "test-license-key"
+
+	tests := []struct {
+		name            string
+		expiry          time.Time
+		expectedProduct product.Product
+		expectLicense   bool
+	}{
+		{
+			name:            "valid cached license",
+			expiry:          time.Now().Add(24 * time.Hour),
+			expectedProduct: product.Pro,
+			expectLicense:   true,
+		},
+		{
+			name:            "expired cached license",
+			expiry:          time.Now().Add(-time.Second),
+			expectedProduct: product.OSS,
+			expectLicense:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cached := &keygen.License{Key: licenseKey, Expiry: &tt.expiry}
+			manager := &ManagerImpl{
+				logger:      zaptest.NewLogger(t),
+				config:      &config.LicenseConfig{Key: licenseKey},
+				licenseType: LicenseTypeOnline,
+				product:     product.Pro,
+				cache:       &licenseCache{},
+			}
+			// cache the license so validateAndSet short circuits before any API call
+			manager.cache.set(cached, cacheDuration)
+
+			manager.validateAndSet(t.Context())
+
+			assert.Equal(t, tt.expectedProduct, manager.Product())
+			if tt.expectLicense {
+				require.NotNil(t, manager.license)
+				assert.Equal(t, licenseKey, manager.license.Key)
+			} else {
+				assert.Nil(t, manager.license)
+			}
+		})
+	}
+}
+
+func TestHasValidExpiry(t *testing.T) {
+	future := time.Now().Add(time.Hour)
+	past := time.Now().Add(-time.Hour)
+
+	assert.False(t, hasValidExpiry(nil), "nil license")
+	assert.False(t, hasValidExpiry(&keygen.License{}), "license without expiry")
+	assert.False(t, hasValidExpiry(&keygen.License{Expiry: &past}), "expired license")
+	assert.True(t, hasValidExpiry(&keygen.License{Expiry: &future}), "unexpired license")
+}
+
+// rateLimitedRoundTripper stubs the Keygen API with an HTTP 429 so that
+// keygen.Validate returns a *keygen.RateLimitError without network access.
+type rateLimitedRoundTripper struct{}
+
+func (rateLimitedRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusTooManyRequests,
+		Header:     http.Header{},
+		Body:       io.NopCloser(strings.NewReader("")),
+		Request:    req,
+	}, nil
+}
+
+func TestManager_validateAndSet_RateLimitedWithPriorLicense(t *testing.T) {
+	future := time.Now().Add(24 * time.Hour)
+	past := time.Now().Add(-time.Hour)
+
+	tests := []struct {
+		name            string
+		priorLicense    *keygen.License
+		expectedProduct product.Product
+	}{
+		{
+			name:            "keeps Pro with valid prior license",
+			priorLicense:    &keygen.License{Key: "test-key", Expiry: &future},
+			expectedProduct: product.Pro,
+		},
+		{
+			name:            "falls back to OSS with expired prior license",
+			priorLicense:    &keygen.License{Key: "test-key", Expiry: &past},
+			expectedProduct: product.OSS,
+		},
+		{
+			name:            "falls back to OSS with prior license without expiry",
+			priorLicense:    &keygen.License{Key: "test-key"},
+			expectedProduct: product.OSS,
+		},
+		{
+			name:            "falls back to OSS without prior license",
+			priorLicense:    nil,
+			expectedProduct: product.OSS,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			originalHTTPClient := keygen.HTTPClient
+			keygen.HTTPClient = &http.Client{Transport: rateLimitedRoundTripper{}}
+			t.Cleanup(func() { keygen.HTTPClient = originalHTTPClient })
+
+			manager := &ManagerImpl{
+				logger:        zaptest.NewLogger(t),
+				config:        &config.LicenseConfig{Key: "test-key"},
+				licenseType:   LicenseTypeOnline,
+				fingerprinter: func(string) (string, error) { return "test-fingerprint", nil },
+				product:       product.Pro,
+				license:       tt.priorLicense,
+				cache:         &licenseCache{},
+			}
+
+			manager.validateAndSet(t.Context())
+
+			assert.Equal(t, tt.expectedProduct, manager.Product())
+		})
+	}
 }
