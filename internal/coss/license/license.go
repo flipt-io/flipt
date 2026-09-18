@@ -482,7 +482,7 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 			// If rate limited but we previously had a valid license, keep Pro features
 			if isRateLimitError(err) {
 				lm.mu.RLock()
-				hasLicense := lm.license != nil
+				hasLicense := hasValidExpiry(lm.license)
 				lm.mu.RUnlock()
 
 				if hasLicense {

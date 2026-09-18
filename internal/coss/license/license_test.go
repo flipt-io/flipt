@@ -3,8 +3,11 @@ package license
 import (
 	"context"
 	"errors"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -402,4 +405,71 @@ func TestHasValidExpiry(t *testing.T) {
 	assert.False(t, hasValidExpiry(&keygen.License{}), "license without expiry")
 	assert.False(t, hasValidExpiry(&keygen.License{Expiry: &past}), "expired license")
 	assert.True(t, hasValidExpiry(&keygen.License{Expiry: &future}), "unexpired license")
+}
+
+// rateLimitedRoundTripper stubs the Keygen API with an HTTP 429 so that
+// keygen.Validate returns a *keygen.RateLimitError without network access.
+type rateLimitedRoundTripper struct{}
+
+func (rateLimitedRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusTooManyRequests,
+		Header:     http.Header{},
+		Body:       io.NopCloser(strings.NewReader("")),
+		Request:    req,
+	}, nil
+}
+
+func TestManager_validateAndSet_RateLimitedWithPriorLicense(t *testing.T) {
+	future := time.Now().Add(24 * time.Hour)
+	past := time.Now().Add(-time.Hour)
+
+	tests := []struct {
+		name            string
+		priorLicense    *keygen.License
+		expectedProduct product.Product
+	}{
+		{
+			name:            "keeps Pro with valid prior license",
+			priorLicense:    &keygen.License{Key: "test-key", Expiry: &future},
+			expectedProduct: product.Pro,
+		},
+		{
+			name:            "falls back to OSS with expired prior license",
+			priorLicense:    &keygen.License{Key: "test-key", Expiry: &past},
+			expectedProduct: product.OSS,
+		},
+		{
+			name:            "falls back to OSS with prior license without expiry",
+			priorLicense:    &keygen.License{Key: "test-key"},
+			expectedProduct: product.OSS,
+		},
+		{
+			name:            "falls back to OSS without prior license",
+			priorLicense:    nil,
+			expectedProduct: product.OSS,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			originalHTTPClient := keygen.HTTPClient
+			keygen.HTTPClient = &http.Client{Transport: rateLimitedRoundTripper{}}
+			t.Cleanup(func() { keygen.HTTPClient = originalHTTPClient })
+
+			manager := &ManagerImpl{
+				logger:        zaptest.NewLogger(t),
+				config:        &config.LicenseConfig{Key: "test-key"},
+				licenseType:   LicenseTypeOnline,
+				fingerprinter: func(string) (string, error) { return "test-fingerprint", nil },
+				product:       product.Pro,
+				license:       tt.priorLicense,
+				cache:         &licenseCache{},
+			}
+
+			manager.validateAndSet(t.Context())
+
+			assert.Equal(t, tt.expectedProduct, manager.Product())
+		})
+	}
 }
