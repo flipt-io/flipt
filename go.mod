@@ -22,7 +22,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/huh v0.8.0
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/coreos/go-oidc/v3 v3.20.0
+	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/docker/go-connections v0.8.1
 	github.com/fatih/color v1.19.0
 	github.com/fullstorydev/grpchan v1.1.2
