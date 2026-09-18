@@ -2,6 +2,9 @@ version: 2
 updates:
   - package-ecosystem: gomod
     directory: "/"
+    exclude-paths:
+      - "examples/**"
+      - "_tools/**"
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
