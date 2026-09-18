@@ -187,16 +187,32 @@ type EnvironmentFactory struct {
 	credentials    *credentials.CredentialSource
 	repoManager    *RepositoryManager
 	licenseManager interface{ Product() product.Product } // Accepts LicenseManager or a mock for tests
+	readyReporter  serverconfig.SnapshotReadyReporter
 }
 
-func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager, licenseManager license.Manager) *EnvironmentFactory {
-	return &EnvironmentFactory{
+// FactoryOption configures an EnvironmentFactory.
+type FactoryOption func(*EnvironmentFactory)
+
+// WithSnapshotReadyReporter attaches a reporter notified whenever a static
+// environment successfully builds its evaluation snapshot.
+func WithSnapshotReadyReporter(r serverconfig.SnapshotReadyReporter) FactoryOption {
+	return func(f *EnvironmentFactory) {
+		f.readyReporter = r
+	}
+}
+
+func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager, licenseManager license.Manager, opts ...FactoryOption) *EnvironmentFactory {
+	f := &EnvironmentFactory{
 		logger:         logger,
 		cfg:            cfg,
 		credentials:    credentials,
 		repoManager:    repoManager,
 		licenseManager: licenseManager,
 	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }
 
 func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *config.EnvironmentConfig) (serverconfig.Environment, error) {
@@ -220,6 +236,10 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	}
 
 	// build new git backend environment over repository
+	var envOpts []environmentsgit.EnvironmentOption
+	if f.readyReporter != nil {
+		envOpts = append(envOpts, environmentsgit.WithSnapshotReadyReporter(f.readyReporter))
+	}
 	env, err := environmentsgit.NewEnvironmentFromRepo(
 		ctx,
 		f.logger,
@@ -228,6 +248,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 		fileStorage,
 		evaluation.NewSnapshotPublisher(ctx, f.logger),
 		f.cfg.Templates,
+		envOpts...,
 	)
 	if err != nil {
 		return nil, err
@@ -488,9 +509,24 @@ type repoEnv interface {
 	Branches() []string
 }
 
+// StoreOption configures NewStore.
+type StoreOption func(*storeOptions)
+
+type storeOptions struct {
+	readyReporter serverconfig.SnapshotReadyReporter
+}
+
+// WithStoreSnapshotReadyReporter attaches a reporter notified whenever a
+// static environment successfully builds its evaluation snapshot.
+func WithStoreSnapshotReadyReporter(r serverconfig.SnapshotReadyReporter) StoreOption {
+	return func(o *storeOptions) {
+		o.readyReporter = r
+	}
+}
+
 // NewStore is a constructor that handles all the environment storage types
 // Given the provided storage type is know, the relevant backend is configured and returned
-func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secretsManager secrets.Manager, licenseManager license.Manager) (
+func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secretsManager secrets.Manager, licenseManager license.Manager, opts ...StoreOption) (
 	_ *serverconfig.EnvironmentStore,
 	err error,
 ) {
@@ -499,10 +535,19 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 	}
 
 	var (
+		o           storeOptions
 		credentials = credentials.New(logger, cfg.Credentials)
 		repoManager = NewRepositoryManager(logger, cfg, secretsManager, licenseManager)
-		factory     = NewEnvironmentFactory(logger, cfg, credentials, repoManager, licenseManager)
 	)
+	for _, opt := range opts {
+		opt(&o)
+	}
+
+	var factoryOpts []FactoryOption
+	if o.readyReporter != nil {
+		factoryOpts = append(factoryOpts, WithSnapshotReadyReporter(o.readyReporter))
+	}
+	factory := NewEnvironmentFactory(logger, cfg, credentials, repoManager, licenseManager, factoryOpts...)
 
 	var envs []serverconfig.Environment
 	for name, envConf := range cfg.Environments {

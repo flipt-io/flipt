@@ -975,3 +975,40 @@ func Test_Environment_NameWithSpace(t *testing.T) {
 		require.NoError(t, env.DeleteBranch(t.Context(), "my-feature"))
 	})
 }
+
+type snapshotReadyRecorder struct {
+	keys []string
+}
+
+func (r *snapshotReadyRecorder) ReportSnapshotReady(envKey string) {
+	r.keys = append(r.keys, envKey)
+}
+
+func Test_Environment_HasSnapshot_EventDriven(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	ctx := t.Context()
+	repo, err := storagegit.NewRepository(ctx, logger)
+	require.NoError(t, err)
+
+	recorder := &snapshotReadyRecorder{}
+	env, err := NewEnvironmentFromRepo(ctx, logger,
+		&config.EnvironmentConfig{Name: "test"},
+		repo, fs.NewStorage(logger),
+		evaluation.NewSnapshotPublisher(ctx, logger),
+		config.TemplatesConfig{},
+		WithSnapshotReadyReporter(recorder))
+	require.NoError(t, err)
+
+	// Empty repository still builds a valid (empty) snapshot on startup.
+	require.True(t, env.HasSnapshot(), "environment should be ready after successful initial snapshot")
+	require.Contains(t, recorder.keys, "test", "reporter should receive exactly the environment key")
+
+	store, err := env.EvaluationStore()
+	require.NoError(t, err)
+	require.NotNil(t, store)
+}
+
+func Test_Environment_HasSnapshot_NoReporter(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	require.True(t, env.HasSnapshot(), "environment without reporter should still track readiness")
+}

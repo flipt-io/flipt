@@ -49,10 +49,23 @@ type ProposalOptions struct {
 	Draft bool
 }
 
+// SnapshotReadyReporter is notified whenever a static environment
+// successfully builds its evaluation snapshot.
+// Implementations must be goroutine-safe: notifications arrive from
+// repository polling goroutines as well as startup.
+type SnapshotReadyReporter interface {
+	ReportSnapshotReady(envKey string)
+}
+
 type Environment interface {
 	Key() string
 	Default() bool
 	Configuration() *environments.EnvironmentConfiguration
+
+	// HasSnapshot reports whether the environment has successfully built
+	// its evaluation snapshot at least once. Once true it stays true
+	// (sticky): later rebuild failures keep serving the last-good snapshot.
+	HasSnapshot() bool
 
 	// Branches
 
@@ -225,6 +238,29 @@ func (e *EnvironmentStore) Get(ctx context.Context, key string) (Environment, er
 	}
 
 	return env, nil
+}
+
+// EvaluationReady reports whether every static environment has successfully
+// built its evaluation snapshot at least once. Branched (ephemeral)
+// environments — identified by a non-nil Configuration().Base — are excluded.
+// Sticky: once an environment reports ready it stays ready, so transient
+// rebuild failures keep serving the last-good snapshot.
+func (e *EnvironmentStore) EvaluationReady() bool {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	var statics int
+	for _, env := range e.byKey {
+		if cfg := env.Configuration(); cfg != nil && cfg.Base != nil {
+			continue
+		}
+		statics++
+		if !env.HasSnapshot() {
+			return false
+		}
+	}
+
+	return statics > 0
 }
 
 // GetFromContext returns the environment identified by name from the context or the default environment if no name is provided.

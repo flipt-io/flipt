@@ -54,6 +54,21 @@ type Environment struct {
 	head          plumbing.Hash
 	snap          atomic.Pointer[storagefs.Snapshot]
 	publisher     evaluation.SnapshotPublisher
+
+	snapshotReady atomic.Bool
+	readyReporter serverenvs.SnapshotReadyReporter
+}
+
+// EnvironmentOption configures an Environment.
+type EnvironmentOption func(*Environment)
+
+// WithSnapshotReadyReporter attaches a reporter notified (event-driven)
+// whenever the environment successfully builds its evaluation snapshot.
+// Branched environments should leave the reporter nil.
+func WithSnapshotReadyReporter(r serverenvs.SnapshotReadyReporter) EnvironmentOption {
+	return func(e *Environment) {
+		e.readyReporter = r
+	}
 }
 
 // NewEnvironmentFromRepo takes a git repository and a set of typed resource storage implementations and exposes
@@ -69,6 +84,7 @@ func NewEnvironmentFromRepo(
 	storage environmentsfs.Storage,
 	publisher evaluation.SnapshotPublisher,
 	serverTemplates config.TemplatesConfig,
+	opts ...EnvironmentOption,
 ) (_ *Environment, err error) {
 	env := &Environment{
 		logger:          logger,
@@ -80,6 +96,9 @@ func NewEnvironmentFromRepo(
 		publisher:       publisher,
 		currentBranch:   repo.GetDefaultBranch(),
 		branches:        map[string]*Environment{},
+	}
+	for _, opt := range opts {
+		opt(env)
 	}
 	env.snap.Store(storagefs.EmptySnapshot())
 
@@ -120,6 +139,12 @@ func (e *Environment) Key() string {
 
 func (e *Environment) Default() bool {
 	return e.cfg.Default
+}
+
+// HasSnapshot reports whether the environment has successfully built its
+// evaluation snapshot at least once. Sticky: never reset on later failures.
+func (e *Environment) HasSnapshot() bool {
+	return e.snapshotReady.Load()
 }
 
 func (e *Environment) Repository() *storagegit.Repository {
@@ -786,10 +811,19 @@ func (e *Environment) updateSnapshot(ctx context.Context) error {
 	}
 
 	e.mu.Lock()
-	defer e.mu.Unlock()
-
 	e.head = hash
 	e.snap.Store(snap)
+	reporter := e.readyReporter
+	envKey := e.cfg.Name
+	e.mu.Unlock()
+
+	// Mark ready (sticky) and notify event-driven health aggregation.
+	// Done after releasing the lock: the reporter only touches its own
+	// state and the health server, never the environment.
+	e.snapshotReady.Store(true)
+	if reporter != nil {
+		reporter.ReportSnapshotReady(envKey)
+	}
 
 	return nil
 }

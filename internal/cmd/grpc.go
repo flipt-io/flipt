@@ -87,6 +87,58 @@ func WithForceMigrate() GRPCServerOption {
 	}
 }
 
+const (
+	// healthServiceManagement covers the management APIs (Flipt,
+	// Environments, Metadata). SERVING once the environment store —
+	// including its initial fetch — is constructed.
+	healthServiceManagement = "management"
+	// healthServiceEvaluation covers the evaluation APIs. SERVING once every
+	// static environment has a parsed snapshot available for evaluation.
+	healthServiceEvaluation = "evaluation"
+)
+
+// evaluationHealthAggregator tracks per-environment snapshot readiness and
+// flips the evaluation health service to SERVING once all expected static
+// environments have reported. Sticky: it never flips back — later rebuild
+// failures keep serving the last-good snapshot.
+type evaluationHealthAggregator struct {
+	mu       sync.Mutex
+	expected map[string]struct{}
+	ready    map[string]struct{}
+	health   *health.Server
+	serving  bool
+}
+
+func newEvaluationHealthAggregator(healthSrv *health.Server, expected []string) *evaluationHealthAggregator {
+	exp := make(map[string]struct{}, len(expected))
+	for _, k := range expected {
+		exp[k] = struct{}{}
+	}
+	return &evaluationHealthAggregator{
+		expected: exp,
+		ready:    make(map[string]struct{}, len(expected)),
+		health:   healthSrv,
+	}
+}
+
+// ReportSnapshotReady implements environments.SnapshotReadyReporter.
+func (a *evaluationHealthAggregator) ReportSnapshotReady(envKey string) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	if a.serving {
+		return
+	}
+	if _, ok := a.expected[envKey]; !ok {
+		return
+	}
+	a.ready[envKey] = struct{}{}
+	if len(a.ready) == len(a.expected) {
+		a.serving = true
+		a.health.SetServingStatus(healthServiceEvaluation, grpchealth.HealthCheckResponse_SERVING)
+	}
+}
+
 // GRPCServer configures the dependencies associated with the Flipt GRPC Service.
 // It provides an entrypoint to start serving the gRPC stack (Run()).
 // Along with a teardown function (Shutdown(ctx)).
@@ -140,8 +192,26 @@ func NewGRPCServer(
 		return server.ln.Close()
 	})
 
+	// health service starts UNKNOWN for per-service readiness and is
+	// flipped event-driven as dependencies become ready. Shutdown flips
+	// everything to NOT_SERVING via healthsrv.Shutdown().
+	healthsrv := health.NewServer()
+	healthsrv.SetServingStatus(healthServiceManagement, grpchealth.HealthCheckResponse_UNKNOWN)
+	healthsrv.SetServingStatus(healthServiceEvaluation, grpchealth.HealthCheckResponse_UNKNOWN)
+
+	expectedEnvs := make([]string, 0, len(cfg.Environments))
+	for name, envConf := range cfg.Environments {
+		if envConf != nil && envConf.Name != "" {
+			expectedEnvs = append(expectedEnvs, envConf.Name)
+		} else {
+			expectedEnvs = append(expectedEnvs, name)
+		}
+	}
+	evalHealth := newEvaluationHealthAggregator(healthsrv, expectedEnvs)
+
 	// configure a declarative backend store
-	environmentStore, err := environments.NewStore(ctx, logger, cfg, secretsManager, licenseManager)
+	// static environments report snapshot readiness event-driven via evalHealth
+	environmentStore, err := environments.NewStore(ctx, logger, cfg, secretsManager, licenseManager, environments.WithStoreSnapshotReadyReporter(evalHealth))
 	if err != nil {
 		return nil, fmt.Errorf("initializing environment store: %w", err)
 	}
@@ -252,9 +322,6 @@ func NewGRPCServer(
 		evalsrv    = evaluation.New(logger, environmentStore, evaluation.WithTracing(cfg.Tracing.Enabled || cfg.Analytics.Storage.Clickhouse.Enabled), evaluation.WithMetrics(cfg.Metrics.Enabled))
 		fliptv1srv = serverfliptv1.New(logger, environmentStore, serverfliptv1.WithFlagMetadata(cfg.Evaluation.IncludeFlagMetadata))
 		ofrepsrv   = ofrep.New(logger, evalsrv, environmentStore)
-
-		// health service
-		healthsrv = health.NewServer()
 	)
 
 	envsrv, err := serverenvironments.NewServer(logger, environmentStore)
@@ -418,6 +485,18 @@ func NewGRPCServer(
 	grpcServer := grpc.NewServer(grpcOpts...)
 	grpchealth.RegisterHealthServer(handlers, healthsrv)
 
+	// Management is SERVING: the environment store (including its initial
+	// fetch) constructed successfully. Construction failure returns early,
+	// so NOT_SERVING is only reachable via Shutdown().
+	healthsrv.SetServingStatus(healthServiceManagement, grpchealth.HealthCheckResponse_SERVING)
+	// Evaluation reflects the synchronous initial state; later snapshot
+	// successes flip it event-driven via evalHealth. Sticky SERVING:
+	// subsequent rebuild failures keep serving the last-good snapshot.
+	if environmentStore.EvaluationReady() {
+		healthsrv.SetServingStatus(healthServiceEvaluation, grpchealth.HealthCheckResponse_SERVING)
+	} else {
+		healthsrv.SetServingStatus(healthServiceEvaluation, grpchealth.HealthCheckResponse_NOT_SERVING)
+	}
 	// register grpc services onto the in-process client connection and the grpc server
 	handlers.ForEach(ipch.RegisterService)
 	handlers.ForEach(grpcServer.RegisterService)

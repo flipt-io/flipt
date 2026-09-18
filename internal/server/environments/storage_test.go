@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/rpc/flipt"
+	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -131,6 +132,60 @@ func TestEnvironmentStore_GetFromContext_WithActualDefaultEnvironment(t *testing
 			assert.Equal(t, tt.expectedKey, env.Key())
 		})
 	}
+}
+
+func TestEnvironmentStore_EvaluationReady(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	newStaticMock := func(key string, isDefault, ready bool) *MockEnvironment {
+		m := NewMockEnvironment(t)
+		m.On("Key").Return(key)
+		m.On("Default").Return(isDefault)
+		// Maybe: map iteration order is random, so a short-circuiting
+		// EvaluationReady may never poll every environment.
+		m.On("Configuration").Return(&rpcenvironments.EnvironmentConfiguration{}).Maybe()
+		m.On("HasSnapshot").Return(ready).Maybe()
+		return m
+	}
+
+	t.Run("empty store is not ready", func(t *testing.T) {
+		only := NewMockEnvironment(t)
+		only.On("Key").Return("only")
+		only.On("Default").Return(true)
+		store, err := NewEnvironmentStore(logger, only)
+		require.NoError(t, err)
+		store.Remove("only")
+		assert.False(t, store.EvaluationReady())
+	})
+
+	t.Run("all static environments ready", func(t *testing.T) {
+		store, err := NewEnvironmentStore(logger,
+			newStaticMock("production", true, true),
+			newStaticMock("staging", false, true))
+		require.NoError(t, err)
+		assert.True(t, store.EvaluationReady())
+	})
+
+	t.Run("one static environment not ready", func(t *testing.T) {
+		store, err := NewEnvironmentStore(logger,
+			newStaticMock("production", true, true),
+			newStaticMock("staging", false, false))
+		require.NoError(t, err)
+		assert.False(t, store.EvaluationReady())
+	})
+
+	t.Run("unready branched environments are excluded", func(t *testing.T) {
+		base := "production"
+		branch := NewMockEnvironment(t)
+		branch.On("Key").Return("feature-1")
+		branch.On("Default").Return(false)
+		branch.On("Configuration").Return(&rpcenvironments.EnvironmentConfiguration{Base: &base})
+		// NOTE: no HasSnapshot expectation — excluded branches must never be polled.
+
+		store, err := NewEnvironmentStore(logger, newStaticMock("production", true, true), branch)
+		require.NoError(t, err)
+		assert.True(t, store.EvaluationReady())
+	})
 }
 
 func TestEnvironmentStore_NewEnvironmentStore_DefaultSelection(t *testing.T) {
