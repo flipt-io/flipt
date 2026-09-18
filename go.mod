@@ -68,7 +68,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.44.0
 	github.com/tursodatabase/libsql-client-go v0.0.0-20260528064733-9d5d30a29a60
 	github.com/twmb/franz-go v1.22.0
-	github.com/twmb/franz-go/pkg/kadm v1.18.0
+	github.com/twmb/franz-go/pkg/kadm v1.19.0
 	github.com/twmb/franz-go/pkg/sr v1.8.0
 	github.com/twmb/franz-go/plugin/kzap v1.1.2
 	github.com/xeipuuv/gojsonschema v1.2.0
