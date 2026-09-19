@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"testing"
+	"testing/fstest"
 
 	"github.com/gobwas/glob"
 	"github.com/google/go-cmp/cmp"
@@ -914,6 +915,377 @@ func TestSnapshot_IsOneOf(t *testing.T) {
 			assert.Equal(t, map[string]struct{}{"org-a": {}, "org-b": {}, "org-c": {}}, seg.Constraints[0].StringSet)
 			assert.Equal(t, map[float64]struct{}{18: {}, 21: {}, 65: {}}, seg.Constraints[1].NumberSet)
 			assert.Equal(t, map[string]struct{}{"US": {}, "UK": {}}, seg.Constraints[2].StringSet)
+		})
+	}
+}
+
+func TestSnapshot_VersionlessMembershipConstraints(t *testing.T) {
+	const (
+		namespaceKey = "default"
+		flagKey      = "flag1"
+		segmentKey   = "org_segment"
+	)
+
+	const versionlessLegacyYAML = `namespace: default
+flags:
+  - key: flag1
+    name: Flag 1
+    type: VARIANT_FLAG_TYPE
+    enabled: true
+    variants:
+      - key: on
+      - key: off
+    rules:
+      - segment: org_segment
+        distributions:
+          - variant: on
+            rollout: 100
+segments:
+  - key: org_segment
+    name: Org Segment
+    match_type: ALL_MATCH_TYPE
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: org
+        operator: isoneof
+        value: '["org-a","org-b","org-c"]'
+      - type: NUMBER_COMPARISON_TYPE
+        property: age
+        operator: isoneof
+        value: '[18,21,65]'
+      - type: ENTITY_ID_COMPARISON_TYPE
+        property: user_id
+        operator: isoneof
+        value: '["user-1","user-2"]'
+      - type: STRING_COMPARISON_TYPE
+        property: country
+        operator: isnotoneof
+        value: '["US","UK"]'
+`
+
+	const versionlessListYAML = `namespace: default
+flags:
+  - key: flag1
+    name: Flag 1
+    type: VARIANT_FLAG_TYPE
+    enabled: true
+    variants:
+      - key: on
+      - key: off
+    rules:
+      - segment: org_segment
+        distributions:
+          - variant: on
+            rollout: 100
+segments:
+  - key: org_segment
+    name: Org Segment
+    match_type: ALL_MATCH_TYPE
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: org
+        operator: isoneof
+        value:
+          - org-a
+          - org-b
+          - org-c
+      - type: NUMBER_COMPARISON_TYPE
+        property: age
+        operator: isoneof
+        value:
+          - 18
+          - 21
+          - 65
+      - type: ENTITY_ID_COMPARISON_TYPE
+        property: user_id
+        operator: isoneof
+        value:
+          - user-1
+          - user-2
+      - type: STRING_COMPARISON_TYPE
+        property: country
+        operator: isnotoneof
+        value:
+          - US
+          - UK
+`
+
+	const versionlessLegacyJSON = `{
+  "namespace": "default",
+  "flags": [
+    {
+      "key": "flag1",
+      "name": "Flag 1",
+      "type": "VARIANT_FLAG_TYPE",
+      "enabled": true,
+      "variants": [{"key": "on"}, {"key": "off"}],
+      "rules": [
+        {
+          "segment": {"keys": ["org_segment"]},
+          "distributions": [{"variant": "on", "rollout": 100}]
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "key": "org_segment",
+      "name": "Org Segment",
+      "match_type": "ALL_MATCH_TYPE",
+      "constraints": [
+        {
+          "type": "STRING_COMPARISON_TYPE",
+          "property": "org",
+          "operator": "isoneof",
+          "value": "[\"org-a\",\"org-b\",\"org-c\"]"
+        },
+        {
+          "type": "NUMBER_COMPARISON_TYPE",
+          "property": "age",
+          "operator": "isoneof",
+          "value": "[18,21,65]"
+        },
+        {
+          "type": "ENTITY_ID_COMPARISON_TYPE",
+          "property": "user_id",
+          "operator": "isoneof",
+          "value": "[\"user-1\",\"user-2\"]"
+        },
+        {
+          "type": "STRING_COMPARISON_TYPE",
+          "property": "country",
+          "operator": "isnotoneof",
+          "value": "[\"US\",\"UK\"]"
+        }
+      ]
+    }
+  ]
+}`
+
+	const versionlessListJSON = `{
+  "namespace": "default",
+  "flags": [
+    {
+      "key": "flag1",
+      "name": "Flag 1",
+      "type": "VARIANT_FLAG_TYPE",
+      "enabled": true,
+      "variants": [{"key": "on"}, {"key": "off"}],
+      "rules": [
+        {
+          "segment": {"keys": ["org_segment"]},
+          "distributions": [{"variant": "on", "rollout": 100}]
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "key": "org_segment",
+      "name": "Org Segment",
+      "match_type": "ALL_MATCH_TYPE",
+      "constraints": [
+        {
+          "type": "STRING_COMPARISON_TYPE",
+          "property": "org",
+          "operator": "isoneof",
+          "value": ["org-a", "org-b", "org-c"]
+        },
+        {
+          "type": "NUMBER_COMPARISON_TYPE",
+          "property": "age",
+          "operator": "isoneof",
+          "value": [18, 21, 65]
+        },
+        {
+          "type": "ENTITY_ID_COMPARISON_TYPE",
+          "property": "user_id",
+          "operator": "isoneof",
+          "value": ["user-1", "user-2"]
+        },
+        {
+          "type": "STRING_COMPARISON_TYPE",
+          "property": "country",
+          "operator": "isnotoneof",
+          "value": ["US", "UK"]
+        }
+      ]
+    }
+  ]
+}`
+
+	const explicit16LegacyYAML = `version: "1.6"
+namespace: default
+flags:
+  - key: flag1
+    name: Flag 1
+    type: VARIANT_FLAG_TYPE
+    enabled: true
+    variants:
+      - key: on
+      - key: off
+    rules:
+      - segment: org_segment
+        distributions:
+          - variant: on
+            rollout: 100
+segments:
+  - key: org_segment
+    name: Org Segment
+    match_type: ALL_MATCH_TYPE
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: org
+        operator: isoneof
+        value: '["org-a","org-b","org-c"]'
+`
+
+	const explicit16LegacyJSON = `{
+  "version": "1.6",
+  "namespace": "default",
+  "flags": [
+    {
+      "key": "flag1",
+      "name": "Flag 1",
+      "type": "VARIANT_FLAG_TYPE",
+      "enabled": true,
+      "variants": [{"key": "on"}, {"key": "off"}],
+      "rules": [
+        {
+          "segment": {"keys": ["org_segment"]},
+          "distributions": [{"variant": "on", "rollout": 100}]
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "key": "org_segment",
+      "name": "Org Segment",
+      "match_type": "ALL_MATCH_TYPE",
+      "constraints": [
+        {
+          "type": "STRING_COMPARISON_TYPE",
+          "property": "org",
+          "operator": "isoneof",
+          "value": "[\"org-a\",\"org-b\",\"org-c\"]"
+        }
+      ]
+    }
+  ]
+}`
+
+	assertMembershipSnapshot := func(t *testing.T, snap *Snapshot) {
+		t.Helper()
+
+		flag, err := snap.GetFlag(t.Context(), storage.NewResource(namespaceKey, flagKey))
+		require.NoError(t, err)
+		require.NotNil(t, flag)
+		assert.Equal(t, flagKey, flag.Key)
+		assert.Equal(t, "Flag 1", flag.Name)
+		assert.True(t, flag.Enabled)
+		assert.Equal(t, core.FlagType_VARIANT_FLAG_TYPE, flag.Type)
+		require.Len(t, flag.Rules, 1)
+		assert.Equal(t, []string{segmentKey}, flag.Rules[0].Segments)
+		require.Len(t, flag.Rules[0].Distributions, 1)
+		assert.Equal(t, "on", flag.Rules[0].Distributions[0].Variant)
+		assert.Equal(t, float32(100), flag.Rules[0].Distributions[0].Rollout)
+
+		rules, err := snap.GetEvaluationRules(t.Context(), storage.NewResource(namespaceKey, flagKey))
+		require.NoError(t, err)
+		require.Len(t, rules, 1)
+		require.Contains(t, rules[0].Segments, segmentKey)
+
+		seg := rules[0].Segments[segmentKey]
+		require.Len(t, seg.Constraints, 4)
+
+		assert.Equal(t, core.ComparisonType_STRING_COMPARISON_TYPE, seg.Constraints[0].Type)
+		assert.Equal(t, "org", seg.Constraints[0].Property)
+		assert.Equal(t, "isoneof", seg.Constraints[0].Operator)
+		assert.Equal(t, `["org-a","org-b","org-c"]`, seg.Constraints[0].Value)
+
+		assert.Equal(t, core.ComparisonType_NUMBER_COMPARISON_TYPE, seg.Constraints[1].Type)
+		assert.Equal(t, "age", seg.Constraints[1].Property)
+		assert.Equal(t, "isoneof", seg.Constraints[1].Operator)
+		assert.Equal(t, `[18,21,65]`, seg.Constraints[1].Value)
+
+		assert.Equal(t, core.ComparisonType_ENTITY_ID_COMPARISON_TYPE, seg.Constraints[2].Type)
+		assert.Equal(t, "user_id", seg.Constraints[2].Property)
+		assert.Equal(t, "isoneof", seg.Constraints[2].Operator)
+		assert.Equal(t, `["user-1","user-2"]`, seg.Constraints[2].Value)
+
+		assert.Equal(t, core.ComparisonType_STRING_COMPARISON_TYPE, seg.Constraints[3].Type)
+		assert.Equal(t, "country", seg.Constraints[3].Property)
+		assert.Equal(t, "isnotoneof", seg.Constraints[3].Operator)
+		assert.Equal(t, `["US","UK"]`, seg.Constraints[3].Value)
+
+		for i := range seg.Constraints {
+			require.NoError(t, seg.Constraints[i].PrepareForEvaluation(),
+				"PrepareForEvaluation failed for constraint %d (%s)", i, seg.Constraints[i].Operator)
+		}
+
+		assert.Equal(t, map[string]struct{}{"org-a": {}, "org-b": {}, "org-c": {}}, seg.Constraints[0].StringSet)
+		assert.Equal(t, map[float64]struct{}{18: {}, 21: {}, 65: {}}, seg.Constraints[1].NumberSet)
+		assert.Equal(t, map[string]struct{}{"user-1": {}, "user-2": {}}, seg.Constraints[2].StringSet)
+		assert.Equal(t, map[string]struct{}{"US": {}, "UK": {}}, seg.Constraints[3].StringSet)
+	}
+
+	tests := []struct {
+		name    string
+		path    string
+		data    string
+		wantErr bool
+	}{
+		{
+			name: "versionless YAML JSON-string membership values",
+			path: "default/features.yaml",
+			data: versionlessLegacyYAML,
+		},
+		{
+			name: "versionless YAML typed list membership values",
+			path: "default/features.yaml",
+			data: versionlessListYAML,
+		},
+		{
+			name: "versionless JSON JSON-string membership values",
+			path: "default/features.json",
+			data: versionlessLegacyJSON,
+		},
+		{
+			name: "versionless JSON typed list membership values",
+			path: "default/features.json",
+			data: versionlessListJSON,
+		},
+		{
+			name:    "explicit 1.6 YAML JSON-string membership values fail",
+			path:    "default/features.yaml",
+			data:    explicit16LegacyYAML,
+			wantErr: true,
+		},
+		{
+			name:    "explicit 1.6 JSON JSON-string membership values fail",
+			path:    "default/features.json",
+			data:    explicit16LegacyJSON,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fsys := fstest.MapFS{
+				tt.path: &fstest.MapFile{Data: []byte(tt.data)},
+			}
+
+			snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(config.TemplatesConfig{}), fsys)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Nil(t, snap)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, snap)
+			assertMembershipSnapshot(t, snap)
 		})
 	}
 }
