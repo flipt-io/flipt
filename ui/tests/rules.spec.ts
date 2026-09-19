@@ -75,6 +75,69 @@ test.describe('Rules', () => {
     });
   });
 
+  test('can search segments by display name when key is completely different', async ({
+    page
+  }) => {
+    await test.step('create segment with distinct key', async () => {
+      await page.getByRole('link', { name: 'Segments' }).click();
+      await page.getByRole('button', { name: 'New Segment' }).click();
+      await page.getByLabel('Name').fill('Beta Cohort Display');
+      await page.locator('#key').fill('foobarsrch');
+      await page.getByLabel('Description').click();
+      await page.getByRole('button', { name: 'Create' }).click();
+      await expect(
+        page.getByText('Successfully created segment')
+      ).toBeVisible();
+    });
+
+    await test.step('create flag', async () => {
+      await page.getByRole('link', { name: 'Flags' }).click();
+      await page.getByRole('button', { name: 'New Flag' }).click();
+      await page.getByTestId('VARIANT_FLAG_TYPE').click();
+      await page.getByLabel('Name').fill('Combobox Search Flag');
+      await page.locator('#key').fill('combobox-search-flag');
+      await page.getByRole('switch', { name: 'Enabled' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
+      await page.getByRole('button', { name: 'New Variant' }).click();
+      await page
+        .getByRole('dialog', { name: 'New Variant' })
+        .locator('#key')
+        .fill('v1');
+      await page.getByRole('button', { name: 'Add' }).click();
+      await page.getByRole('button', { name: 'Update' }).click();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    });
+
+    await test.step('search segment by display name', async () => {
+      await page.getByRole('link', { name: 'Flags' }).click();
+      await page.getByRole('link', { name: 'combobox-search-flag' }).click();
+      await page.getByRole('link', { name: 'Rules' }).click();
+      await page.getByRole('button', { name: 'New Rule' }).click();
+
+      const dialog = page.getByRole('dialog', { name: 'New Rule' });
+      await dialog.getByTestId('segmentKey-0-select-button').click();
+
+      // key 'foobarsrch' shares no substring with 'Beta Cohort Display',
+      // so this only matches via Combobox keywords (displayValue)
+      await dialog.getByPlaceholder('Search ...').fill('Beta Cohort');
+      await expect(
+        dialog.getByRole('option', { name: 'Beta Cohort Display' })
+      ).toBeVisible();
+      await expect(dialog.getByText('No results found.')).toBeHidden();
+
+      // key search still works
+      await dialog.getByPlaceholder('Search ...').fill('foobarsrch');
+      await expect(
+        dialog.getByRole('option', { name: 'Beta Cohort Display' })
+      ).toBeVisible();
+
+      await dialog.getByRole('option', { name: 'Beta Cohort Display' }).click();
+      await expect(
+        dialog.getByTestId('segmentKey-0-select-button')
+      ).toContainText('Beta Cohort Display');
+    });
+  });
+
   test('create rule with multiple segments', async ({ page }) => {
     await test.step('create additional segment', async () => {
       await page.getByRole('link', { name: 'Segments' }).click();
