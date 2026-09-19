@@ -240,6 +240,7 @@ func (e *Engine) Shutdown(_ context.Context) error {
 
 func poll(ctx context.Context, d time.Duration, fn func()) {
 	ticker := time.NewTicker(d)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
