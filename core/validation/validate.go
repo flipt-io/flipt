@@ -23,6 +23,10 @@ const (
 	// IndexFileName is the name of the index file on disk
 	IndexFileName = ".flipt.yml"
 	indexVersion  = "1.0"
+
+	// versionlessFallbackVersion is the last schema that stored isoneof/isnotoneof
+	// membership values as JSON-encoded strings rather than typed lists.
+	versionlessFallbackVersion = "1.5"
 )
 
 //go:embed flipt.cue
@@ -120,10 +124,35 @@ func (v FeaturesValidator) validateSingleDocument(file string, f *ast.File, offs
 		return err
 	}
 
-	err := v.v.
-		Unify(yv).
-		Validate(cue.All(), cue.Concrete(true))
+	err := v.validateAgainstSchema(yv)
+	if err == nil {
+		return nil
+	}
 
+	// Versionless documents valid under the last pre-list schema (1.5) are
+	// accepted so upgrades keep evaluating legacy membership strings.
+	// Explicit versions, including null, empty, and unsupported values,
+	// never take this fallback. The configured schema is not mutated.
+	if !hasExplicitVersion(yv) {
+		legacy := yv.FillPath(cue.MakePath(cue.Str("version")), versionlessFallbackVersion)
+		if legacy.Err() == nil && v.validateAgainstSchema(legacy) == nil {
+			return nil
+		}
+	}
+
+	return mapCueValidationErrors(file, yv, offset, err)
+}
+
+func (v FeaturesValidator) validateAgainstSchema(doc cue.Value) error {
+	return v.v.Unify(doc).Validate(cue.All(), cue.Concrete(true))
+}
+
+func hasExplicitVersion(doc cue.Value) bool {
+	version := doc.LookupPath(cue.MakePath(cue.Str("version")))
+	return version.Exists() && version.IsConcrete()
+}
+
+func mapCueValidationErrors(file string, yv cue.Value, offset int, err error) error {
 	var errs []error
 OUTER:
 	for _, e := range cueerrors.Errors(err) {
