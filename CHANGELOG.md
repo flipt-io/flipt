@@ -3,6 +3,27 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0](https://github.com/flipt-io/flipt/releases/tag/v2.13.0) - 2026-09-20
+
+### Added
+
+- **gRPC service readiness**: Report per-service health readiness for management and evaluation (#6559)
+- **OIDC discovery URLs**: Support providers whose discovery document is hosted at a URL different from the issuer (#6525)
+- **OIDC claims mapping**: Map non-standard ID token claims to Flipt session fields (#6519)
+
+### Fixed
+
+- **Legacy feature files**: Preserve validation for versionless files after schema default changes (#6547)
+- **License validation**: Enforce expiry consistently and harden offline license validation (#6539)
+- **Evaluation**: Return `FLAG_DISABLED` for disabled boolean flags without rollouts (#6515)
+- **Git environment refs**: Use git-safe environment names for branch refs (#6508)
+- **UI comboboxes**: Match options by display name, not only key (#6550)
+- **UI variant deletion**: Allow cancellation to undo variant deletion (#6435)
+
+### Dependencies
+
+- Updated various dependencies, including AWS SDK, CodeMirror, React Router, Vite, Playwright, Google APIs, OPA, OAuth, and other Go and UI packages.
+
 ## [2.12.0](https://github.com/flipt-io/flipt/releases/tag/v2.12.0) - 2026-09-05
 
 ### Added
