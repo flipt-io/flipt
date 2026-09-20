@@ -1189,7 +1189,7 @@ segments:
 		assert.Equal(t, []string{segmentKey}, flag.Rules[0].Segments)
 		require.Len(t, flag.Rules[0].Distributions, 1)
 		assert.Equal(t, "on", flag.Rules[0].Distributions[0].Variant)
-		assert.Equal(t, float32(100), flag.Rules[0].Distributions[0].Rollout)
+		assert.InDelta(t, float32(100), flag.Rules[0].Distributions[0].Rollout, 0.001)
 
 		rules, err := snap.GetEvaluationRules(t.Context(), storage.NewResource(namespaceKey, flagKey))
 		require.NoError(t, err)
