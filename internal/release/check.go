@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/blang/semver/v4"
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v92/github"
 )
 
 type Info struct {
@@ -51,10 +51,21 @@ var (
 	}
 	// defaultReleaseChecker checks for the latest release
 	// can be overridden for testing
-	defaultReleaseChecker githubReleaseChecker = &githubReleaseCheckerImpl{
-		client: github.NewClient(nil).Repositories,
-	}
+	defaultReleaseChecker githubReleaseChecker = mustNewDefaultReleaseChecker()
 )
+
+func mustNewDefaultReleaseChecker() githubReleaseChecker {
+	client, err := github.NewClient()
+	if err != nil {
+		// NewClient with default options cannot fail; panic guards against
+		// future upstream changes that introduce validation.
+		panic(err)
+	}
+
+	return &githubReleaseCheckerImpl{
+		client: client.Repositories,
+	}
+}
 
 // Check checks for the latest release and returns an Info struct containing
 // the current version, latest version, if the current version is a release, and

@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v92/github"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
 	"go.flipt.io/flipt/internal/credentials"
@@ -30,7 +30,7 @@ var _ git.SCM = (*SCM)(nil)
 
 // PullRequestsService defines the interface for GitHub pull request operations used by SCM.
 type PullRequestsService interface {
-	Create(ctx context.Context, owner, repo string, pr *github.NewPullRequest) (*github.PullRequest, *github.Response, error)
+	Create(ctx context.Context, owner, repo string, pr github.CreatePullRequest) (*github.PullRequest, *github.Response, error)
 	List(ctx context.Context, owner, repo string, opts *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
 }
 
@@ -50,7 +50,7 @@ type SCM struct {
 
 type gitHubOptions struct {
 	ctx        context.Context
-	apiURL     *url.URL
+	apiURL     *string
 	httpClient *http.Client
 }
 
@@ -68,7 +68,7 @@ func WithApiURL(apiURL *url.URL) ClientOption {
 			apiURL.Path += "api/v3/"
 		}
 
-		c.apiURL = apiURL
+		c.apiURL = new(apiURL.String())
 	}
 }
 
@@ -102,9 +102,9 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 		opt(githubOpts)
 	}
 
-	client := github.NewClient(githubOpts.httpClient)
-	if githubOpts.apiURL != nil {
-		client.BaseURL = githubOpts.apiURL
+	client, err := github.NewClient(github.WithHTTPClient(githubOpts.httpClient), github.WithURLs(githubOpts.apiURL, nil))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create github client: %w", err)
 	}
 
 	return &SCM{
@@ -120,9 +120,9 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
 	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
 
-	pr, _, err := s.prs.Create(ctx, s.owner, s.repository, &github.NewPullRequest{
-		Base:  new(req.Base),
-		Head:  new(req.Head),
+	pr, _, err := s.prs.Create(ctx, s.owner, s.repository, github.CreatePullRequest{
+		Base:  req.Base,
+		Head:  req.Head,
 		Title: new(req.Title),
 		Body:  new(req.Body),
 		Draft: new(req.Draft),
