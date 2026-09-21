@@ -1,7 +1,6 @@
 package filesystem
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,7 +12,7 @@ func TestLocalDataSourceGetReturnsDecodedData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, _, err := DataSourceFromPath(path).Get(context.Background(), nil)
+	data, _, err := DataSourceFromPath(path).Get(t.Context(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
