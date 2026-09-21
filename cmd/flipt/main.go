@@ -173,16 +173,8 @@ func execute() error {
 	rootCmd.AddCommand(newEvaluateCommand())
 	rootCmd.AddCommand(newLicenseCommand())
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-interrupt
-		cancel()
-	}()
 
 	return rootCmd.ExecuteContext(ctx)
 }

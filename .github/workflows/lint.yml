@@ -18,10 +18,8 @@ jobs:
       - uses: ./.github/actions/setup
       - name: golangci-lint
         run: golangci-lint run --timeout=10m
-      - name: Run GoHawk
-        run: |
-          go install github.com/kojah/gohawk@v0.3.3
-          gohawk -json -enable-all ./...
+      - name: Run gohawk
+        run: mise run go:hawk
 
   ui-lint:
     name: "Lint UI"
