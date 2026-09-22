@@ -85,6 +85,8 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			return handler(ctx, req)
 		}
 
+		ctx = authz.ContextWithAuthorizationRequired(ctx)
+
 		requester, ok := req.(flipt.Requester)
 		if !ok {
 			logger.Error("request must implement flipt.Requester", zap.String("method", info.FullMethod))

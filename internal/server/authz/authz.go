@@ -20,4 +20,17 @@ const (
 	EnvironmentsKey contextKey = "environments"
 	// NamespacesKey is the context key for storing viewable namespaces
 	NamespacesKey contextKey = "namespaces"
+	// AuthorizationRequiredKey marks requests that passed through the authorization interceptor.
+	AuthorizationRequiredKey contextKey = "authorization_required"
 )
+
+// ContextWithAuthorizationRequired marks ctx as enforced by authorization middleware.
+func ContextWithAuthorizationRequired(ctx context.Context) context.Context {
+	return context.WithValue(ctx, AuthorizationRequiredKey, true)
+}
+
+// IsAuthorizationRequired reports whether ctx is enforced by authorization middleware.
+func IsAuthorizationRequired(ctx context.Context) bool {
+	required, _ := ctx.Value(AuthorizationRequiredKey).(bool)
+	return required
+}

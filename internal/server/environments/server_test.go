@@ -29,20 +29,25 @@ func TestServer_ListEnvironments_FailsClosedWithoutScope(t *testing.T) {
 	}
 
 	tests := []struct {
-		name      string
-		scope     []string
-		withScope bool
-		wantKeys  []string
+		name                  string
+		scope                 []string
+		withScope             bool
+		authorizationRequired bool
+		wantKeys              []string
 	}{
-		{name: "missing scope", wantKeys: []string{}},
-		{name: "empty scope", withScope: true, scope: []string{}, wantKeys: []string{}},
-		{name: "partial scope", withScope: true, scope: []string{"staging"}, wantKeys: []string{"staging"}},
-		{name: "wildcard scope", withScope: true, scope: []string{"*"}, wantKeys: []string{"default", "staging"}},
+		{name: "authorization disabled without scope", wantKeys: []string{"default", "staging"}},
+		{name: "authorization enabled without scope", authorizationRequired: true, wantKeys: []string{}},
+		{name: "empty scope", withScope: true, authorizationRequired: true, scope: []string{}, wantKeys: []string{}},
+		{name: "partial scope", withScope: true, authorizationRequired: true, scope: []string{"staging"}, wantKeys: []string{"staging"}},
+		{name: "wildcard scope", withScope: true, authorizationRequired: true, scope: []string{"*"}, wantKeys: []string{"default", "staging"}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := t.Context()
+			if tt.authorizationRequired {
+				ctx = authz.ContextWithAuthorizationRequired(ctx)
+			}
 			if tt.withScope {
 				ctx = context.WithValue(ctx, authz.EnvironmentsKey, tt.scope)
 			}
@@ -78,20 +83,25 @@ func TestServer_ListNamespaces_FailsClosedWithoutScope(t *testing.T) {
 	}
 
 	tests := []struct {
-		name      string
-		scope     []string
-		withScope bool
-		wantKeys  []string
+		name                  string
+		scope                 []string
+		withScope             bool
+		authorizationRequired bool
+		wantKeys              []string
 	}{
-		{name: "missing scope", wantKeys: []string{}},
-		{name: "empty scope", withScope: true, scope: []string{}, wantKeys: []string{}},
-		{name: "partial scope", withScope: true, scope: []string{"reporting"}, wantKeys: []string{"reporting"}},
-		{name: "wildcard scope", withScope: true, scope: []string{"*"}, wantKeys: []string{"analytics", "reporting"}},
+		{name: "authorization disabled without scope", wantKeys: []string{"analytics", "reporting"}},
+		{name: "authorization enabled without scope", authorizationRequired: true, wantKeys: []string{}},
+		{name: "empty scope", withScope: true, authorizationRequired: true, scope: []string{}, wantKeys: []string{}},
+		{name: "partial scope", withScope: true, authorizationRequired: true, scope: []string{"reporting"}, wantKeys: []string{"reporting"}},
+		{name: "wildcard scope", withScope: true, authorizationRequired: true, scope: []string{"*"}, wantKeys: []string{"analytics", "reporting"}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := t.Context()
+			if tt.authorizationRequired {
+				ctx = authz.ContextWithAuthorizationRequired(ctx)
+			}
 			if tt.withScope {
 				ctx = context.WithValue(ctx, authz.NamespacesKey, tt.scope)
 			}

@@ -274,6 +274,7 @@ func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 				return
 			}
 			require.NotNil(t, handlerContext)
+			assert.True(t, authz.IsAuthorizationRequired(handlerContext))
 			assert.ElementsMatch(t, tt.wantScopeValue, handlerContext.Value(tt.wantScopeKey).([]string))
 		})
 	}

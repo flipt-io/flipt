@@ -38,7 +38,11 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 
 	viewableEnvironments, ok := ctx.Value(authz.EnvironmentsKey).([]string)
 	if !ok {
-		return el, nil
+		if authz.IsAuthorizationRequired(ctx) {
+			return el, nil
+		}
+
+		viewableEnvironments = []string{"*"}
 	}
 
 	// First collect all environments
@@ -148,7 +152,11 @@ func (s *Server) GetNamespace(ctx context.Context, req *environments.GetNamespac
 func (s *Server) ListNamespaces(ctx context.Context, req *environments.ListNamespacesRequest) (nl *environments.ListNamespacesResponse, err error) {
 	viewableNamespaces, ok := ctx.Value(authz.NamespacesKey).([]string)
 	if !ok {
-		return &environments.ListNamespacesResponse{}, nil
+		if authz.IsAuthorizationRequired(ctx) {
+			return &environments.ListNamespacesResponse{}, nil
+		}
+
+		viewableNamespaces = []string{"*"}
 	}
 
 	env, err := s.envs.Get(ctx, req.EnvironmentKey)
