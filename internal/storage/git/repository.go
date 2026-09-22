@@ -278,6 +278,7 @@ func (r *Repository) startPolling(ctx context.Context) {
 		defer close(r.done)
 
 		ticker := time.NewTicker(r.pollInterval)
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():

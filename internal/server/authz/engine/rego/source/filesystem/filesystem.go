@@ -52,7 +52,10 @@ func (d *LocalDataSource) Get(_ context.Context, seen source.Hash) (map[string]a
 	}
 
 	data := map[string]any{}
-	return data, mod, json.Unmarshal(b, &data)
+	if err := json.Unmarshal(b, &data); err != nil {
+		return nil, nil, err
+	}
+	return data, mod, nil
 }
 
 func read(path string, seen []byte) (data, mod []byte, err error) {

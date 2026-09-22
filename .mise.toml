@@ -229,6 +229,11 @@ golangci-lint run
 buf lint
 """
 
+[tasks."go:hawk"]
+description = "Run gohawk"
+tools = { "github:kojah/gohawk" = "0.3.6" }
+run = "gohawk -json -enable-all ./..."
+
 [tasks."go:modernize"]
 description = "Apply modern Go idioms"
 run = """

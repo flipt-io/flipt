@@ -23,5 +23,9 @@ func OpenBrowser(url string) error {
 	}
 
 	args = append(args, url)
-	return exec.Command(cmd, args...).Start() //nolint noctx
+	command := exec.Command(cmd, args...) //nolint noctx
+	if err := command.Start(); err != nil {
+		return err
+	}
+	return command.Process.Release()
 }
