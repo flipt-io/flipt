@@ -131,26 +131,32 @@ func TestReadOnlyPrincipalsCannotMutateBranches(t *testing.T) {
 		name       string
 		fullMethod string
 		req        flipt.Requester
+		action     flipt.Action
 	}{
 		{
 			name:       "create branch",
 			fullMethod: environments.EnvironmentsService_BranchEnvironment_FullMethodName,
 			req:        &environments.BranchEnvironmentRequest{EnvironmentKey: "default", Key: "feature"},
+			action:     flipt.ActionCreate,
 		},
 		{
 			name:       "delete branch",
 			fullMethod: environments.EnvironmentsService_DeleteBranchEnvironment_FullMethodName,
 			req:        &environments.DeleteBranchEnvironmentRequest{EnvironmentKey: "default", Key: "feature"},
+			action:     flipt.ActionDelete,
 		},
 		{
 			name:       "propose branch",
 			fullMethod: environments.EnvironmentsService_ProposeEnvironment_FullMethodName,
 			req:        &environments.ProposeEnvironmentRequest{EnvironmentKey: "default", Key: "feature"},
+			action:     flipt.ActionCreate,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.action, tt.req.Request()[0].Action)
+
 			called := false
 			ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), adminAuth)
 			info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: tt.fullMethod}

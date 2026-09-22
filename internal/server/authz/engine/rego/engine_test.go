@@ -252,6 +252,17 @@ func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, namespaces)
 
+	policySource.Set(policyWithViewableScopes)
+	require.NoError(t, engine.updatePolicy(ctx))
+
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"production"}, environments)
+
+	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"analytics"}, namespaces)
+
 	policySource.Set(policyWithoutViewableScopes)
 	require.NoError(t, engine.updatePolicy(ctx))
 

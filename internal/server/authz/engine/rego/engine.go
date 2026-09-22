@@ -282,7 +282,10 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	if err != nil {
 		// Never keep evaluating a previous policy after a changed policy fails
 		// to compile. Failing closed also prevents stale optional queries from
-		// exposing scopes from the previous policy.
+		// exposing scopes from the previous policy. Remember the failed policy
+		// hash so a later rollback to the last valid policy is not mistaken for
+		// an unchanged policy.
+		e.policyHash = hash
 		e.queryAllow = rego.PreparedEvalQuery{}
 		e.queryEnvironments = nil
 		e.queryNamespaces = nil
