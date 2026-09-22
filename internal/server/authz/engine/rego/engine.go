@@ -280,6 +280,12 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 
 	queryAllow, err := r.PrepareForEval(ctx)
 	if err != nil {
+		// Never keep evaluating a previous policy after a changed policy fails
+		// to compile. Failing closed also prevents stale optional queries from
+		// exposing scopes from the previous policy.
+		e.queryAllow = rego.PreparedEvalQuery{}
+		e.queryEnvironments = nil
+		e.queryNamespaces = nil
 		return fmt.Errorf("preparing policy allow: %w", err)
 	}
 
@@ -291,9 +297,11 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	)
 
 	queryEnvironments, err := r.PrepareForEval(ctx)
+	var queryEnvironmentsPtr *rego.PreparedEvalQuery
 	if err == nil {
-		// queryEnvironments is optional, so we dont error here
-		e.queryEnvironments = &queryEnvironments
+		queryEnvironmentsPtr = &queryEnvironments
+	} else {
+		e.logger.Warn("optional environments query could not be prepared", zap.Error(err))
 	}
 
 	// Prepare namespaces query
@@ -304,9 +312,11 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	)
 
 	queryNamespaces, err := r.PrepareForEval(ctx)
+	var queryNamespacesPtr *rego.PreparedEvalQuery
 	if err == nil {
-		// queryNamespaces is optional, so we dont error here
-		e.queryNamespaces = &queryNamespaces
+		queryNamespacesPtr = &queryNamespaces
+	} else {
+		e.logger.Warn("optional namespaces query could not be prepared", zap.Error(err))
 	}
 
 	if !bytes.Equal(e.policyHash, policyHash) {
@@ -314,8 +324,13 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		return nil
 	}
 
+	// Publish all queries together. Optional queries must be replaced with nil
+	// when the new policy cannot prepare them; otherwise a reload can retain a
+	// query compiled from the previous policy.
 	e.policyHash = hash
 	e.queryAllow = queryAllow
+	e.queryEnvironments = queryEnvironmentsPtr
+	e.queryNamespaces = queryNamespacesPtr
 
 	return nil
 }
