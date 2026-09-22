@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v92/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -39,9 +39,9 @@ func TestSCM_Propose(t *testing.T) {
 	expectedPR := &github.PullRequest{}
 	expectedPR.HTMLURL = new("http://example.com/pr")
 	mockPR.EXPECT().
-		Create(ctx, "owner", "repo", &github.NewPullRequest{
-			Base:  new("main"),
-			Head:  new("feature"),
+		Create(ctx, "owner", "repo", github.CreatePullRequest{
+			Base:  "main",
+			Head:  "feature",
 			Title: new("Test PR"),
 			Body:  new("This is a test"),
 			Draft: new(false),
@@ -67,9 +67,9 @@ func TestSCM_Propose_Error(t *testing.T) {
 	ctx := t.Context()
 	req := git.ProposalRequest{}
 	mockPR.EXPECT().
-		Create(ctx, "owner", "repo", &github.NewPullRequest{
-			Base:  new(""),
-			Head:  new(""),
+		Create(ctx, "owner", "repo", github.CreatePullRequest{
+			Base:  "",
+			Head:  "",
 			Title: new(""),
 			Body:  new(""),
 			Draft: new(false),
@@ -339,38 +339,55 @@ func TestWithApiAuth(t *testing.T) {
 }
 
 func TestWithApiURL(t *testing.T) {
-	t.Run("adds trailing slash if missing", func(t *testing.T) {
-		u, _ := url.Parse("https://github.example.com")
-		opts := &gitHubOptions{}
-		WithApiURL(u)(opts)
-		assert.Equal(t, "https://github.example.com/api/v3/", opts.apiURL.String())
-	})
+	const wantEnterprise = "https://github.example.com/api/v3/"
 
-	t.Run("does not add /api/v3/ if already present", func(t *testing.T) {
-		u, _ := url.Parse("https://github.example.com/api/v3/")
-		opts := &gitHubOptions{}
-		WithApiURL(u)(opts)
-		assert.Equal(t, "https://github.example.com/api/v3/", opts.apiURL.String())
-	})
+	tests := []struct {
+		name    string
+		rawURL  string
+		wantURL string
+	}{
+		{
+			name:    "adds trailing slash and api path if missing",
+			rawURL:  "https://github.example.com",
+			wantURL: wantEnterprise,
+		},
+		{
+			name:    "adds api path if missing and path has trailing slash",
+			rawURL:  "https://github.example.com/",
+			wantURL: wantEnterprise,
+		},
+		{
+			name:    "does not add api path if already present",
+			rawURL:  "https://github.example.com/api/v3/",
+			wantURL: wantEnterprise,
+		},
+		{
+			name:    "does not add api path without trailing slash if already present",
+			rawURL:  "https://github.example.com/api/v3",
+			wantURL: wantEnterprise,
+		},
+		{
+			name:    "does not add api path for api.github.com host",
+			rawURL:  "https://api.github.com/",
+			wantURL: "https://api.github.com/",
+		},
+		{
+			name:    "does not add api path for .api. in host",
+			rawURL:  "https://foo.api.github.com/",
+			wantURL: "https://foo.api.github.com/",
+		},
+	}
 
-	t.Run("adds /api/v3/ if missing and path has trailing slash", func(t *testing.T) {
-		u, _ := url.Parse("https://github.example.com/")
-		opts := &gitHubOptions{}
-		WithApiURL(u)(opts)
-		assert.Equal(t, "https://github.example.com/api/v3/", opts.apiURL.String())
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u, err := url.Parse(tt.rawURL)
+			require.NoError(t, err)
 
-	t.Run("does not add /api/v3/ for api.github.com host", func(t *testing.T) {
-		u, _ := url.Parse("https://api.github.com/")
-		opts := &gitHubOptions{}
-		WithApiURL(u)(opts)
-		assert.Equal(t, "https://api.github.com/", opts.apiURL.String())
-	})
+			opts := &gitHubOptions{}
+			WithApiURL(u)(opts)
 
-	t.Run("does not add /api/v3/ for .api. in host", func(t *testing.T) {
-		u, _ := url.Parse("https://foo.api.github.com/")
-		opts := &gitHubOptions{}
-		WithApiURL(u)(opts)
-		assert.Equal(t, "https://foo.api.github.com/", opts.apiURL.String())
-	})
+			require.NotNil(t, opts.apiURL)
+			assert.Equal(t, tt.wantURL, *opts.apiURL)
+		})
+	}
 }

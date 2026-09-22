@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v92/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,8 +34,8 @@ func TestGetLatestRelease(t *testing.T) {
 			htmlURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
 			err:     nil,
 			want: &github.RepositoryRelease{
-				TagName: new("0.17.1"),
-				HTMLURL: new("https://github.com/flipt-io/flipt/releases/tag/0.17.2"),
+				TagName: "0.17.1",
+				HTMLURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
 			},
 		},
 		{
@@ -48,8 +48,8 @@ func TestGetLatestRelease(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			srv := &mockGithubReleaseService{
 				release: &github.RepositoryRelease{
-					TagName: new(tt.tagName),
-					HTMLURL: new(tt.htmlURL),
+					TagName: tt.tagName,
+					HTMLURL: tt.htmlURL,
 				},
 				err: tt.err,
 			}
@@ -78,8 +78,8 @@ type mockReleaseChecker struct {
 
 func (m *mockReleaseChecker) getLatestRelease(ctx context.Context) (*github.RepositoryRelease, error) {
 	return &github.RepositoryRelease{
-		TagName: &m.tagName,
-		HTMLURL: &m.htmlURL,
+		TagName: m.tagName,
+		HTMLURL: m.htmlURL,
 	}, m.err
 }
 
