@@ -7,7 +7,7 @@ package github
 import (
 	"context"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v92/github"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -48,7 +48,7 @@ func (_m *MockPullRequestsService) EXPECT() *MockPullRequestsService_Expecter {
 }
 
 // Create provides a mock function for the type MockPullRequestsService
-func (_mock *MockPullRequestsService) Create(ctx context.Context, owner string, repo string, pr *github.NewPullRequest) (*github.PullRequest, *github.Response, error) {
+func (_mock *MockPullRequestsService) Create(ctx context.Context, owner string, repo string, pr github.CreatePullRequest) (*github.PullRequest, *github.Response, error) {
 	ret := _mock.Called(ctx, owner, repo, pr)
 
 	if len(ret) == 0 {
@@ -58,24 +58,24 @@ func (_mock *MockPullRequestsService) Create(ctx context.Context, owner string, 
 	var r0 *github.PullRequest
 	var r1 *github.Response
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *github.NewPullRequest) (*github.PullRequest, *github.Response, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, github.CreatePullRequest) (*github.PullRequest, *github.Response, error)); ok {
 		return returnFunc(ctx, owner, repo, pr)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *github.NewPullRequest) *github.PullRequest); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, github.CreatePullRequest) *github.PullRequest); ok {
 		r0 = returnFunc(ctx, owner, repo, pr)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*github.PullRequest)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *github.NewPullRequest) *github.Response); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, github.CreatePullRequest) *github.Response); ok {
 		r1 = returnFunc(ctx, owner, repo, pr)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*github.Response)
 		}
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, string, *github.NewPullRequest) error); ok {
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, string, github.CreatePullRequest) error); ok {
 		r2 = returnFunc(ctx, owner, repo, pr)
 	} else {
 		r2 = ret.Error(2)
@@ -92,12 +92,12 @@ type MockPullRequestsService_Create_Call struct {
 //   - ctx context.Context
 //   - owner string
 //   - repo string
-//   - pr *github.NewPullRequest
+//   - pr github.CreatePullRequest
 func (_e *MockPullRequestsService_Expecter) Create(ctx any, owner any, repo any, pr any) *MockPullRequestsService_Create_Call {
 	return &MockPullRequestsService_Create_Call{Call: _e.mock.On("Create", ctx, owner, repo, pr)}
 }
 
-func (_c *MockPullRequestsService_Create_Call) Run(run func(ctx context.Context, owner string, repo string, pr *github.NewPullRequest)) *MockPullRequestsService_Create_Call {
+func (_c *MockPullRequestsService_Create_Call) Run(run func(ctx context.Context, owner string, repo string, pr github.CreatePullRequest)) *MockPullRequestsService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -111,9 +111,9 @@ func (_c *MockPullRequestsService_Create_Call) Run(run func(ctx context.Context,
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
-		var arg3 *github.NewPullRequest
+		var arg3 github.CreatePullRequest
 		if args[3] != nil {
-			arg3 = args[3].(*github.NewPullRequest)
+			arg3 = args[3].(github.CreatePullRequest)
 		}
 		run(
 			arg0,
@@ -130,7 +130,7 @@ func (_c *MockPullRequestsService_Create_Call) Return(pullRequest *github.PullRe
 	return _c
 }
 
-func (_c *MockPullRequestsService_Create_Call) RunAndReturn(run func(ctx context.Context, owner string, repo string, pr *github.NewPullRequest) (*github.PullRequest, *github.Response, error)) *MockPullRequestsService_Create_Call {
+func (_c *MockPullRequestsService_Create_Call) RunAndReturn(run func(ctx context.Context, owner string, repo string, pr github.CreatePullRequest) (*github.PullRequest, *github.Response, error)) *MockPullRequestsService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
