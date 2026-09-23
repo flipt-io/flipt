@@ -194,9 +194,18 @@ func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 			wantHandlerCalled: true,
 		},
 		{
+			name:              "undefined environments scope remains unrestricted",
+			fullMethod:        environments.EnvironmentsService_ListEnvironments_FullMethodName,
+			req:               &environments.ListEnvironmentsRequest{},
+			wantScopeKey:      authz.EnvironmentsKey,
+			wantScopeValue:    []string{"*"},
+			wantHandlerCalled: true,
+		},
+		{
 			name:              "empty environments are not unrestricted",
 			fullMethod:        environments.EnvironmentsService_ListEnvironments_FullMethodName,
 			req:               &environments.ListEnvironmentsRequest{},
+			viewable:          []string{},
 			validatorAllowed:  true,
 			wantScopeKey:      authz.EnvironmentsKey,
 			wantScopeValue:    []string{},

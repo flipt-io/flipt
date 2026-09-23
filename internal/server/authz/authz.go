@@ -5,7 +5,8 @@ import "context"
 type Verifier interface {
 	// IsAllowed returns whether the user is allowed to access the resource
 	IsAllowed(ctx context.Context, input map[string]any) (bool, error)
-	// ViewableEnvironments returns the list of environments the user has access to
+	// ViewableEnvironments returns the list of environments the user has access to.
+	// A nil slice indicates that the policy does not define the optional scope.
 	ViewableEnvironments(ctx context.Context, input map[string]any) ([]string, error)
 	// ViewableNamespaces returns the list of namespaces the user has access to in a specific environment
 	ViewableNamespaces(ctx context.Context, env string, input map[string]any) ([]string, error)

@@ -126,6 +126,11 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 				// request itself is not allowed (there is no environment on a list
 				// request to evaluate). An empty scope is still passed to the handler
 				// so the endpoint can return an empty list rather than fail open.
+				// Policies that do not define the optional scope retain the historical
+				// unrestricted list behavior.
+				if viewableEnvironments == nil {
+					viewableEnvironments = []string{"*"}
+				}
 				ctx = context.WithValue(ctx, authz.EnvironmentsKey, viewableEnvironments)
 				continue
 			case environments.EnvironmentsService_ListNamespaces_FullMethodName:

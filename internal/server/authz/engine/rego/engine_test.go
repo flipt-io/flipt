@@ -220,6 +220,7 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.ElementsMatch(t, tt.expected, environments)
+			assert.NotNil(t, environments)
 		})
 	}
 }
@@ -263,12 +264,20 @@ func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []string{"analytics"}, namespaces)
 
-	policySource.Set(policyWithoutViewableScopes)
+	policySource.Set(policyWithEmptyViewableEnvironments)
 	require.NoError(t, engine.updatePolicy(ctx))
 
 	environments, err = engine.ViewableEnvironments(ctx, input)
 	require.NoError(t, err)
 	assert.Empty(t, environments)
+	assert.NotNil(t, environments)
+
+	policySource.Set(policyWithoutViewableScopes)
+	require.NoError(t, engine.updatePolicy(ctx))
+
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Nil(t, environments)
 
 	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
 	require.NoError(t, err)
@@ -374,6 +383,14 @@ viewable_namespaces(_) := ["analytics"]
 import rego.v1
 
 default allow := true
+`
+	policyWithEmptyViewableEnvironments = `package flipt.authz.v2
+
+import rego.v1
+
+default allow := true
+
+viewable_environments := []
 `
 	policyInvalid = `package flipt.authz.v2
 

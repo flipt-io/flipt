@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
@@ -36,11 +37,12 @@ type DataSource CachedSource[map[string]any]
 type Engine struct {
 	logger *zap.Logger
 
-	mu                sync.RWMutex
-	queryAllow        rego.PreparedEvalQuery
-	queryEnvironments *rego.PreparedEvalQuery
-	queryNamespaces   *rego.PreparedEvalQuery
-	store             storage.Store
+	mu                          sync.RWMutex
+	queryAllow                  rego.PreparedEvalQuery
+	queryEnvironments           *rego.PreparedEvalQuery
+	viewableEnvironmentsDefined bool
+	queryNamespaces             *rego.PreparedEvalQuery
+	store                       storage.Store
 
 	policySource PolicySource
 	policyHash   source.Hash
@@ -170,9 +172,13 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 
 	e.logger.Debug("evaluating viewable environments", zap.Any("input", input))
 
-	if e.queryEnvironments == nil || *e.queryEnvironments == (rego.PreparedEvalQuery{}) {
-		e.logger.Debug("environments query not prepared, skipping evaluation")
+	if !e.viewableEnvironmentsDefined {
+		e.logger.Debug("viewable environments rule not defined, skipping evaluation")
 		return nil, nil
+	}
+
+	if e.queryEnvironments == nil || *e.queryEnvironments == (rego.PreparedEvalQuery{}) {
+		return []string{}, nil
 	}
 
 	results, err := e.queryEnvironments.Eval(ctx, rego.EvalInput(input))
@@ -181,7 +187,7 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 	}
 
 	if len(results) == 0 {
-		return nil, nil
+		return []string{}, nil
 	}
 
 	values, ok := results[0].Bindings["x"].([]any)
@@ -271,6 +277,24 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		s = rego.Store(e.store)
 	)
 
+	parsedPolicy, err := ast.ParseModule("policy.rego", string(policy))
+	if err != nil {
+		e.policyHash = hash
+		e.queryAllow = rego.PreparedEvalQuery{}
+		e.queryEnvironments = nil
+		e.viewableEnvironmentsDefined = true
+		e.queryNamespaces = nil
+		return fmt.Errorf("parsing policy: %w", err)
+	}
+
+	viewableEnvironmentsDefined := false
+	for _, rule := range parsedPolicy.Rules {
+		if rule.Path().String() == "data.flipt.authz.v2.viewable_environments" {
+			viewableEnvironmentsDefined = true
+			break
+		}
+	}
+
 	// Prepare allow query
 	r := rego.New(
 		rego.Query("data.flipt.authz.v2.allow"),
@@ -288,6 +312,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		e.policyHash = hash
 		e.queryAllow = rego.PreparedEvalQuery{}
 		e.queryEnvironments = nil
+		e.viewableEnvironmentsDefined = true
 		e.queryNamespaces = nil
 		return fmt.Errorf("preparing policy allow: %w", err)
 	}
@@ -333,6 +358,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	e.policyHash = hash
 	e.queryAllow = queryAllow
 	e.queryEnvironments = queryEnvironmentsPtr
+	e.viewableEnvironmentsDefined = viewableEnvironmentsDefined
 	e.queryNamespaces = queryNamespacesPtr
 
 	return nil
