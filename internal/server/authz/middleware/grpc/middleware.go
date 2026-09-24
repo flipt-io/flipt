@@ -63,12 +63,8 @@ var errUnauthorized = errors.ErrUnauthorizedf("permission denied")
 func authorizationRequest(fullMethod string, request flipt.Request) flipt.Request {
 	switch fullMethod {
 	case environments.EnvironmentsService_CreateNamespace_FullMethodName,
-		environments.EnvironmentsService_CreateResource_FullMethodName,
-		environments.EnvironmentsService_BranchEnvironment_FullMethodName,
-		environments.EnvironmentsService_ProposeEnvironment_FullMethodName:
+		environments.EnvironmentsService_CreateResource_FullMethodName:
 		request.Action = flipt.ActionCreate
-	case environments.EnvironmentsService_DeleteBranchEnvironment_FullMethodName:
-		request.Action = flipt.ActionDelete
 	}
 
 	return request
@@ -146,6 +142,11 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 				logger.Debug("policy namespaces evaluation", zap.Any("namespaces", viewableNamespaces))
 				// As with environments, preserve partial access but always attach a
 				// scope, including an empty one, so the endpoint cannot fail open.
+				// Policies that do not define the optional scope retain the historical
+				// unrestricted list behavior.
+				if viewableNamespaces == nil {
+					viewableNamespaces = []string{"*"}
+				}
 				ctx = context.WithValue(ctx, authz.NamespacesKey, viewableNamespaces)
 				continue
 			}

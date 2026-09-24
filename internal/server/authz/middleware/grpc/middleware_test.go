@@ -237,6 +237,14 @@ func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 			wantHandlerCalled: true,
 		},
 		{
+			name:              "undefined namespaces scope remains unrestricted",
+			fullMethod:        environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:               &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			wantScopeKey:      authz.NamespacesKey,
+			wantScopeValue:    []string{"*"},
+			wantHandlerCalled: true,
+		},
+		{
 			name:              "empty namespaces are not unrestricted",
 			fullMethod:        environments.EnvironmentsService_ListNamespaces_FullMethodName,
 			req:               &environments.ListNamespacesRequest{EnvironmentKey: "production"},

@@ -8,7 +8,8 @@ type Verifier interface {
 	// ViewableEnvironments returns the list of environments the user has access to.
 	// A nil slice indicates that the policy does not define the optional scope.
 	ViewableEnvironments(ctx context.Context, input map[string]any) ([]string, error)
-	// ViewableNamespaces returns the list of namespaces the user has access to in a specific environment
+	// ViewableNamespaces returns the list of namespaces the user has access to in a specific environment.
+	// A nil slice indicates that the policy does not define the optional scope.
 	ViewableNamespaces(ctx context.Context, env string, input map[string]any) ([]string, error)
 	// Shutdown is called when the server is shutting down
 	Shutdown(ctx context.Context) error

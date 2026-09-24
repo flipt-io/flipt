@@ -264,13 +264,39 @@ func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []string{"analytics"}, namespaces)
 
-	policySource.Set(policyWithEmptyViewableEnvironments)
+	// A policy that parses but fails to compile must also fail closed rather
+	// than keep serving the previous policy's queries.
+	policySource.Set(policyUncompilable)
+	require.ErrorContains(t, engine.updatePolicy(ctx), "preparing policy allow")
+
+	allowed, err := engine.IsAllowed(ctx, input)
+	require.NoError(t, err)
+	assert.False(t, allowed)
+
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Empty(t, environments)
+	assert.NotNil(t, environments)
+
+	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Empty(t, namespaces)
+	assert.NotNil(t, namespaces)
+
+	policySource.Set(policyWithEmptyViewableScopes)
 	require.NoError(t, engine.updatePolicy(ctx))
 
 	environments, err = engine.ViewableEnvironments(ctx, input)
 	require.NoError(t, err)
 	assert.Empty(t, environments)
 	assert.NotNil(t, environments)
+
+	// A defined namespace rule with no result for the environment is an
+	// empty scope, not an undefined one.
+	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Empty(t, namespaces)
+	assert.NotNil(t, namespaces)
 
 	policySource.Set(policyWithoutViewableScopes)
 	require.NoError(t, engine.updatePolicy(ctx))
@@ -281,7 +307,7 @@ func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
 
 	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
 	require.NoError(t, err)
-	assert.Empty(t, namespaces)
+	assert.Nil(t, namespaces)
 }
 
 func TestEngine_ViewableNamespaces(t *testing.T) {
@@ -384,13 +410,23 @@ import rego.v1
 
 default allow := true
 `
-	policyWithEmptyViewableEnvironments = `package flipt.authz.v2
+	policyWithEmptyViewableScopes = `package flipt.authz.v2
 
 import rego.v1
 
 default allow := true
 
 viewable_environments := []
+viewable_namespaces("staging") := ["analytics"]
+`
+	policyUncompilable = `package flipt.authz.v2
+
+import rego.v1
+
+viewable_environments := ["production"]
+viewable_namespaces(_) := ["analytics"]
+
+allow if undefined_function(input.request)
 `
 	policyInvalid = `package flipt.authz.v2
 
