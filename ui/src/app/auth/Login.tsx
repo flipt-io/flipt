@@ -7,7 +7,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 
@@ -22,6 +22,11 @@ import { browser } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { upperFirst } from '~/utils/helpers';
+import {
+  consumePostLoginRedirect,
+  isSafeInAppRedirect,
+  savePostLoginRedirect
+} from '~/utils/postLoginRedirect';
 
 interface ILoginProvider {
   displayName: string;
@@ -55,6 +60,7 @@ const knownProviders: Record<string, ILoginProvider> = {
 
 function InnerLoginButtons() {
   const { setError, clearError } = useError();
+  const location = useLocation();
 
   const authorize = async (uri: string) => {
     const res = await fetch(uri, {
@@ -71,6 +77,12 @@ function InnerLoginButtons() {
     }
     clearError();
     const body = await res.json();
+    // Layout forwards the deep link via router state when it bounces to
+    // /login. The IdP round trip reloads the page and wipes router state,
+    // so stash it in sessionStorage for InnerLogin to consume on return.
+    if (isSafeInAppRedirect(location.state)) {
+      savePostLoginRedirect(location.state);
+    }
     browser.navigateTo(body.authorizeUrl);
   };
   const {
@@ -178,7 +190,9 @@ function InnerLogin() {
   const { session } = useSession();
 
   if (session && (!session.required || session.authenticated)) {
-    return <Navigate to="/" />;
+    // The server callback lands on /, which bounces here until the session
+    // loads: send the returning user to the deep link stashed before the hop.
+    return <Navigate to={consumePostLoginRedirect() ?? '/'} replace />;
   }
 
   return (
