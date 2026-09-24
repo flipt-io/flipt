@@ -2,8 +2,10 @@ package environments
 
 import (
 	"context"
+	"os"
 	"testing"
 
+	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -12,6 +14,8 @@ import (
 	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/secrets"
+	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
+	storagegit "go.flipt.io/flipt/internal/storage/git"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -452,4 +456,82 @@ func Test_environmentSubscriber(t *testing.T) {
 	ctx := t.Context()
 	err := subscriber.Notify(ctx, map[string]string{"main": "abc123"})
 	require.NoError(t, err)
+}
+
+func Test_NewStore_DiscoveredBranchDoesNotReplaceEnvironment(t *testing.T) {
+	var (
+		ctx    = t.Context()
+		logger = zaptest.NewLogger(t)
+		cfg    = &config.Config{
+			Environments: map[string]*config.EnvironmentConfig{
+				"production": {
+					Name:      "production",
+					Storage:   "default",
+					Directory: "production",
+					Default:   true,
+				},
+				"staging": {
+					Name:      "staging",
+					Storage:   "default",
+					Directory: "staging",
+				},
+			},
+			Storage: map[string]*config.StorageConfig{
+				"default": {
+					Backend: config.StorageBackendConfig{
+						Type: config.MemoryStorageBackendType,
+					},
+					Branch: "main",
+				},
+			},
+		}
+	)
+
+	store, err := NewStore(ctx, logger, cfg, &secrets.MockManager{}, &license.MockManager{})
+	require.NoError(t, err)
+
+	production, err := store.Get(ctx, "production")
+	require.NoError(t, err)
+
+	staging, err := store.Get(ctx, "staging")
+	require.NoError(t, err)
+
+	repo := staging.(interface{ Repository() *storagegit.Repository }).Repository()
+
+	// a branch pushed directly to the repository under the staging branch prefix
+	// whose name collides with the static production environment
+	const rogue = "flipt/staging/production"
+	require.NoError(t, repo.CreateBranchIfNotExists(ctx, rogue, storagegit.WithBase("main")))
+
+	// committing to the branch notifies subscribers, which discovers it
+	_, err = repo.UpdateAndPush(ctx, rogue, func(fs envsfs.Filesystem) (string, error) {
+		fi, err := fs.OpenFile("staging/README.md", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+		if err != nil {
+			return "", err
+		}
+		return "rogue commit", fi.Close()
+	})
+	require.NoError(t, err)
+
+	got, err := store.Get(ctx, "production")
+	require.NoError(t, err)
+	assert.Same(t, production, got, "discovered branch replaced the production environment")
+	assert.Nil(t, got.Configuration().Base)
+
+	// removing the branch and pruning it must not remove the production environment
+	require.NoError(t, repo.DeleteBranch(ctx, rogue))
+	require.NoError(t, repo.Storer.RemoveReference(plumbing.NewRemoteReferenceName("origin", rogue)))
+
+	_, err = repo.UpdateAndPush(ctx, "main", func(fs envsfs.Filesystem) (string, error) {
+		fi, err := fs.OpenFile("staging/README.md", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+		if err != nil {
+			return "", err
+		}
+		return "trigger refresh", fi.Close()
+	})
+	require.NoError(t, err)
+
+	got, err = store.Get(ctx, "production")
+	require.NoError(t, err)
+	assert.Same(t, production, got, "pruned branch removed the production environment")
 }
