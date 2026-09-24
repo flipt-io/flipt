@@ -22,8 +22,12 @@ import (
 func (s *Server) getCurrentEnvironment(ctx context.Context, key string) (environments.Environment, error) {
 	env, err := s.envs.Get(ctx, key)
 	if err != nil {
-		// try to get the environment from the context
-		// this is for backwards compatibility with v1
+		// fall back to the environment from the X-Flipt-Environment header, or the
+		// default environment when there is no header. This is for backwards
+		// compatibility with v1 clients which don't set an environment key.
+		// Note: the fallback applies to any lookup failure, so an unknown
+		// environment key is served from the header or default environment
+		// rather than returning an error.
 		return s.envs.GetFromContext(ctx)
 	}
 	return env, nil

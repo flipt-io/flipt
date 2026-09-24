@@ -58,8 +58,12 @@ func (s *Server) addEvaluationEvent(ctx context.Context, env environments.Enviro
 func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
 	env, err := s.store.Get(ctx, r.EnvironmentKey)
 	if err != nil {
-		// try to get the environment from the context
-		// this is for backwards compatibility with v1
+		// fall back to the environment from the X-Flipt-Environment header, or the
+		// default environment when there is no header. This is for backwards
+		// compatibility with v1 clients which don't set environment_key.
+		// Note: the fallback applies to any lookup failure, so an unknown
+		// environment_key (e.g. a typo) is evaluated against the header or default
+		// environment rather than returning an error.
 		env, err = s.store.GetFromContext(ctx)
 		if err != nil {
 			return nil, err
@@ -303,8 +307,12 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
 	env, err := s.store.Get(ctx, r.EnvironmentKey)
 	if err != nil {
-		// try to get the environment from the context
-		// this is for backwards compatibility with v1
+		// fall back to the environment from the X-Flipt-Environment header, or the
+		// default environment when there is no header. This is for backwards
+		// compatibility with v1 clients which don't set environment_key.
+		// Note: the fallback applies to any lookup failure, so an unknown
+		// environment_key (e.g. a typo) is evaluated against the header or default
+		// environment rather than returning an error.
 		env, err = s.store.GetFromContext(ctx)
 		if err != nil {
 			return nil, err
@@ -489,8 +497,12 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 		// but since we are using an in-memory map it's probably not that bad
 		env, err := s.store.Get(ctx, req.EnvironmentKey)
 		if err != nil {
-			// try to get the environment from the context
-			// this is for backwards compatibility with v1
+			// fall back to the environment from the X-Flipt-Environment header, or the
+			// default environment when there is no header. This is for backwards
+			// compatibility with v1 clients which don't set environment_key.
+			// Note: the fallback applies to any lookup failure, so an unknown
+			// environment_key (e.g. a typo) is evaluated against the header or default
+			// environment rather than returning an error.
 			env, err = s.store.GetFromContext(ctx)
 			if err != nil {
 				return nil, err
