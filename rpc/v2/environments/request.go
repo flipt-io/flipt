@@ -9,11 +9,11 @@ func (r *ListEnvironmentsRequest) Request() []flipt.Request {
 }
 
 func (r *BranchEnvironmentRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey))}
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionCreate, flipt.WithEnvironment(r.EnvironmentKey))}
 }
 
 func (r *DeleteBranchEnvironmentRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey))}
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionDelete, flipt.WithEnvironment(r.EnvironmentKey))}
 }
 
 func (r *ListEnvironmentBranchesRequest) Request() []flipt.Request {
@@ -25,7 +25,7 @@ func (r *ListBranchedEnvironmentChangesRequest) Request() []flipt.Request {
 }
 
 func (r *ProposeEnvironmentRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey))}
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionCreate, flipt.WithEnvironment(r.EnvironmentKey))}
 }
 
 func (r *GetNamespaceRequest) Request() []flipt.Request {
