@@ -575,9 +575,24 @@ func UpdateIfHeadMatches(hash *plumbing.Hash) containers.Option[UpdateAndPushOpt
 	}
 }
 
+// checkHead returns a conflict error if the caller supplied an expected head
+// revision which does not match hash.
+func (o UpdateAndPushOptions) checkHead(logger *zap.Logger, hash plumbing.Hash) error {
+	if o.ifHeadMatches == nil || o.ifHeadMatches.IsZero() || *o.ifHeadMatches == hash {
+		return nil
+	}
+
+	logger.Warn("head revision mismatch",
+		zap.Stringer("expected", *o.ifHeadMatches),
+		zap.Stringer("actual", hash))
+
+	return errors.ErrConflictf("expected head revision %q has changed (now %q)", *o.ifHeadMatches, hash)
+}
+
 // UpdateAndPush calls the provided function with a Filesystem implementation which intercepts any write
 // operations and builds the changes into a commit.
-// On non-fast-forward errors fn is re-executed against a fresh filesystem rooted at the updated remote head.
+// On non-fast-forward errors fn is re-executed against a fresh filesystem rooted at the updated remote head,
+// unless a non-zero UpdateIfHeadMatches revision was supplied, in which case a conflict error is returned instead.
 // fn should be free of side effects beyond the filesystem.
 // Given an upstream remote is configured, the commit is also pushed to the given branch.
 func (r *Repository) UpdateAndPush(
@@ -621,11 +636,8 @@ func (r *Repository) UpdateAndPush(
 			zap.Stringer("hash", hash))
 	}
 
-	if options.ifHeadMatches != nil && !options.ifHeadMatches.IsZero() && *options.ifHeadMatches != hash {
-		r.logger.Warn("head revision mismatch",
-			zap.Stringer("expected", *options.ifHeadMatches),
-			zap.Stringer("actual", hash))
-		return hash, errors.ErrConflictf("expected head revision %q has changed (now %q)", *options.ifHeadMatches, hash)
+	if err := options.checkHead(r.logger, hash); err != nil {
+		return hash, err
 	}
 
 	// if rev == nil then hash will be the zero hash
@@ -743,6 +755,15 @@ func (r *Repository) UpdateAndPush(
 		hash, err = r.Resolve(branch)
 		if err != nil {
 			return plumbing.ZeroHash, err
+		}
+
+		// the remote head has moved on, so a caller which supplied the revision it
+		// last observed must get a conflict rather than having fn re-applied over
+		// changes it has not seen
+		if err := options.checkHead(r.logger, hash); err != nil {
+			// the commit was never pushed, so don't notify subscribers about it
+			commit = nil
+			return hash, err
 		}
 
 		fs, err = r.newFilesystem(hash)
