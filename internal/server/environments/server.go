@@ -36,6 +36,15 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnvironmentsRequest) (el *environments.ListEnvironmentsResponse, err error) {
 	el = &environments.ListEnvironmentsResponse{}
 
+	viewableEnvironments, ok := ctx.Value(authz.EnvironmentsKey).([]string)
+	if !ok {
+		if authz.IsAuthorizationRequired(ctx) {
+			return el, nil
+		}
+
+		viewableEnvironments = []string{"*"}
+	}
+
 	// First collect all environments
 	for env := range s.envs.List(ctx) {
 		cfg := env.Configuration()
@@ -48,19 +57,16 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 		})
 	}
 
-	// Only filter if we have viewable environments in context
-	viewableEnvironments, ok := ctx.Value(authz.EnvironmentsKey).([]string)
-	if ok {
-		// if user has access to all environments, return all environments
-		if len(viewableEnvironments) == 1 && viewableEnvironments[0] == "*" {
-			return el, nil
-		}
-
-		// filter environments based on viewable environments
-		el.Environments = lo.Filter(el.Environments, func(env *environments.Environment, _ int) bool {
-			return lo.Contains(viewableEnvironments, env.Key)
-		})
+	// If user has access to all environments, return all environments.
+	if len(viewableEnvironments) == 1 && viewableEnvironments[0] == "*" {
+		return el, nil
 	}
+
+	// Filter environments based on the authorized scope, including an empty
+	// scope. The missing-context case returned above is intentionally fail-closed.
+	el.Environments = lo.Filter(el.Environments, func(env *environments.Environment, _ int) bool {
+		return lo.Contains(viewableEnvironments, env.Key)
+	})
 
 	return el, nil
 }
@@ -144,6 +150,15 @@ func (s *Server) GetNamespace(ctx context.Context, req *environments.GetNamespac
 }
 
 func (s *Server) ListNamespaces(ctx context.Context, req *environments.ListNamespacesRequest) (nl *environments.ListNamespacesResponse, err error) {
+	viewableNamespaces, ok := ctx.Value(authz.NamespacesKey).([]string)
+	if !ok {
+		if authz.IsAuthorizationRequired(ctx) {
+			return &environments.ListNamespacesResponse{}, nil
+		}
+
+		viewableNamespaces = []string{"*"}
+	}
+
 	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
@@ -154,17 +169,16 @@ func (s *Server) ListNamespaces(ctx context.Context, req *environments.ListNames
 		return nil, err
 	}
 
-	viewableNamespaces, ok := ctx.Value(authz.NamespacesKey).([]string)
-	if ok {
-		// if user has access to all namespaces, return all namespaces
-		if len(viewableNamespaces) == 1 && viewableNamespaces[0] == "*" {
-			return namespaces, nil
-		}
-
-		namespaces.Items = lo.Filter(namespaces.Items, func(ns *environments.Namespace, _ int) bool {
-			return lo.Contains(viewableNamespaces, ns.Key)
-		})
+	// If user has access to all namespaces, return all namespaces.
+	if len(viewableNamespaces) == 1 && viewableNamespaces[0] == "*" {
+		return namespaces, nil
 	}
+
+	// Filter namespaces based on the authorized scope, including an empty
+	// scope. The missing-context case returned above is intentionally fail-closed.
+	namespaces.Items = lo.Filter(namespaces.Items, func(ns *environments.Namespace, _ int) bool {
+		return lo.Contains(viewableNamespaces, ns.Key)
+	})
 
 	return namespaces, nil
 }

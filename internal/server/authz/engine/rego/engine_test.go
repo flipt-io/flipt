@@ -2,8 +2,10 @@ package rego
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -218,8 +220,94 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.ElementsMatch(t, tt.expected, environments)
+			assert.NotNil(t, environments)
 		})
 	}
+}
+
+func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	t.Cleanup(cancel)
+
+	policySource := &reloadablePolicySource{policy: policyWithViewableScopes}
+	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource))
+	require.NoError(t, err)
+
+	input := map[string]any{"authentication": map[string]any{}}
+	environments, err := engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"production"}, environments)
+
+	namespaces, err := engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"analytics"}, namespaces)
+
+	policySource.Set(policyInvalid)
+	require.Error(t, engine.updatePolicy(ctx))
+
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Empty(t, environments)
+
+	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Empty(t, namespaces)
+
+	policySource.Set(policyWithViewableScopes)
+	require.NoError(t, engine.updatePolicy(ctx))
+
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"production"}, environments)
+
+	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"analytics"}, namespaces)
+
+	// A policy that parses but fails to compile must also fail closed rather
+	// than keep serving the previous policy's queries.
+	policySource.Set(policyUncompilable)
+	require.ErrorContains(t, engine.updatePolicy(ctx), "preparing policy allow")
+
+	allowed, err := engine.IsAllowed(ctx, input)
+	require.NoError(t, err)
+	assert.False(t, allowed)
+
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Empty(t, environments)
+	assert.NotNil(t, environments)
+
+	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Empty(t, namespaces)
+	assert.NotNil(t, namespaces)
+
+	policySource.Set(policyWithEmptyViewableScopes)
+	require.NoError(t, engine.updatePolicy(ctx))
+
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Empty(t, environments)
+	assert.NotNil(t, environments)
+
+	// A defined namespace rule with no result for the environment is an
+	// empty scope, not an undefined one.
+	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Empty(t, namespaces)
+	assert.NotNil(t, namespaces)
+
+	policySource.Set(policyWithoutViewableScopes)
+	require.NoError(t, engine.updatePolicy(ctx))
+
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Nil(t, environments)
+
+	namespaces, err = engine.ViewableNamespaces(ctx, "production", input)
+	require.NoError(t, err)
+	assert.Nil(t, namespaces)
 }
 
 func TestEngine_ViewableNamespaces(t *testing.T) {
@@ -306,10 +394,73 @@ func TestEngine_ViewableNamespaces(t *testing.T) {
 	}
 }
 
+const (
+	policyWithViewableScopes = `package flipt.authz.v2
+
+import rego.v1
+
+default allow := true
+
+viewable_environments := ["production"]
+viewable_namespaces(_) := ["analytics"]
+`
+	policyWithoutViewableScopes = `package flipt.authz.v2
+
+import rego.v1
+
+default allow := true
+`
+	policyWithEmptyViewableScopes = `package flipt.authz.v2
+
+import rego.v1
+
+default allow := true
+
+viewable_environments := []
+viewable_namespaces("staging") := ["analytics"]
+`
+	policyUncompilable = `package flipt.authz.v2
+
+import rego.v1
+
+viewable_environments := ["production"]
+viewable_namespaces(_) := ["analytics"]
+
+allow if undefined_function(input.request)
+`
+	policyInvalid = `package flipt.authz.v2
+
+import rego.v1
+
+default allow := true
+
+allow :=
+`
+)
+
 type policySource string
 
 func (p policySource) Get(context.Context, source.Hash) ([]byte, source.Hash, error) {
 	return []byte(p), nil, nil
+}
+
+type reloadablePolicySource struct {
+	mu     sync.RWMutex
+	policy string
+}
+
+func (p *reloadablePolicySource) Get(context.Context, source.Hash) ([]byte, source.Hash, error) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	hash := sha256.Sum256([]byte(p.policy))
+	return []byte(p.policy), hash[:], nil
+}
+
+func (p *reloadablePolicySource) Set(policy string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.policy = policy
 }
 
 type dataSource string

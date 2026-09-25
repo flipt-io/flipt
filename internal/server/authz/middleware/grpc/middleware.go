@@ -81,6 +81,8 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			return handler(ctx, req)
 		}
 
+		ctx = authz.ContextWithAuthorizationRequired(ctx)
+
 		requester, ok := req.(flipt.Requester)
 		if !ok {
 			logger.Error("request must implement flipt.Requester", zap.String("method", info.FullMethod))
@@ -107,30 +109,45 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 
 			switch info.FullMethod {
 			case environments.EnvironmentsService_ListEnvironments_FullMethodName:
-				environments, err := policyVerifier.ViewableEnvironments(ctx, map[string]any{
+				viewableEnvironments, err := policyVerifier.ViewableEnvironments(ctx, map[string]any{
 					"request":        request,
 					"authentication": auth,
 				})
-				// if user has no access to `default` environment the api call to list environments
-				// will return unauthorized error even if user has access to other environments.
-				// This is a workaround to allow user to list environments in this case.
-				if err == nil && len(environments) > 0 {
-					ctx = context.WithValue(ctx, authz.EnvironmentsKey, environments)
+				if err != nil {
+					logger.Error("unauthorized", zap.Error(err))
+					return ctx, errUnauthorized
 				}
+
+				// A non-empty viewable scope authorizes a partial list even when the
+				// request itself is not allowed (there is no environment on a list
+				// request to evaluate). An empty scope is still passed to the handler
+				// so the endpoint can return an empty list rather than fail open.
+				// Policies that do not define the optional scope retain the historical
+				// unrestricted list behavior.
+				if viewableEnvironments == nil {
+					viewableEnvironments = []string{"*"}
+				}
+				ctx = context.WithValue(ctx, authz.EnvironmentsKey, viewableEnvironments)
 				continue
 			case environments.EnvironmentsService_ListNamespaces_FullMethodName:
-				namespaces, err := policyVerifier.ViewableNamespaces(ctx, *request.Environment, map[string]any{
+				viewableNamespaces, err := policyVerifier.ViewableNamespaces(ctx, *request.Environment, map[string]any{
 					"request":        request,
 					"authentication": auth,
 				})
-
-				logger.Debug("policy namespaces evaluation", zap.Any("namespaces", namespaces), zap.Error(err))
-				if err == nil && len(namespaces) > 0 {
-					// if user has no access to `default` namespace the api call to list namespaces
-					// will return unauthorized error even if user has access to other namespaces.
-					// This is a workaround to allow user to list namespaces in this case.
-					ctx = context.WithValue(ctx, authz.NamespacesKey, namespaces)
+				if err != nil {
+					logger.Error("unauthorized", zap.Error(err))
+					return ctx, errUnauthorized
 				}
+
+				logger.Debug("policy namespaces evaluation", zap.Any("namespaces", viewableNamespaces))
+				// As with environments, preserve partial access but always attach a
+				// scope, including an empty one, so the endpoint cannot fail open.
+				// Policies that do not define the optional scope retain the historical
+				// unrestricted list behavior.
+				if viewableNamespaces == nil {
+					viewableNamespaces = []string{"*"}
+				}
+				ctx = context.WithValue(ctx, authz.NamespacesKey, viewableNamespaces)
 				continue
 			}
 

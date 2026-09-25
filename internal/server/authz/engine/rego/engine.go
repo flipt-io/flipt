@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
@@ -36,11 +37,13 @@ type DataSource CachedSource[map[string]any]
 type Engine struct {
 	logger *zap.Logger
 
-	mu                sync.RWMutex
-	queryAllow        rego.PreparedEvalQuery
-	queryEnvironments *rego.PreparedEvalQuery
-	queryNamespaces   *rego.PreparedEvalQuery
-	store             storage.Store
+	mu                          sync.RWMutex
+	queryAllow                  rego.PreparedEvalQuery
+	queryEnvironments           *rego.PreparedEvalQuery
+	viewableEnvironmentsDefined bool
+	queryNamespaces             *rego.PreparedEvalQuery
+	viewableNamespacesDefined   bool
+	store                       storage.Store
 
 	policySource PolicySource
 	policyHash   source.Hash
@@ -170,9 +173,13 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 
 	e.logger.Debug("evaluating viewable environments", zap.Any("input", input))
 
-	if e.queryEnvironments == nil || *e.queryEnvironments == (rego.PreparedEvalQuery{}) {
-		e.logger.Debug("environments query not prepared, skipping evaluation")
+	if !e.viewableEnvironmentsDefined {
+		e.logger.Debug("viewable environments rule not defined, skipping evaluation")
 		return nil, nil
+	}
+
+	if e.queryEnvironments == nil || *e.queryEnvironments == (rego.PreparedEvalQuery{}) {
+		return []string{}, nil
 	}
 
 	results, err := e.queryEnvironments.Eval(ctx, rego.EvalInput(input))
@@ -181,7 +188,7 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 	}
 
 	if len(results) == 0 {
-		return nil, nil
+		return []string{}, nil
 	}
 
 	values, ok := results[0].Bindings["x"].([]any)
@@ -204,9 +211,13 @@ func (e *Engine) ViewableNamespaces(ctx context.Context, env string, input map[s
 		zap.String("environment", env),
 		zap.Any("input", input))
 
-	if e.queryNamespaces == nil || *e.queryNamespaces == (rego.PreparedEvalQuery{}) {
-		e.logger.Debug("namespaces query not prepared, skipping evaluation")
+	if !e.viewableNamespacesDefined {
+		e.logger.Debug("viewable namespaces rule not defined, skipping evaluation")
 		return nil, nil
+	}
+
+	if e.queryNamespaces == nil || *e.queryNamespaces == (rego.PreparedEvalQuery{}) {
+		return []string{}, nil
 	}
 
 	// Add environment to input for Rego evaluation
@@ -218,7 +229,7 @@ func (e *Engine) ViewableNamespaces(ctx context.Context, env string, input map[s
 	}
 
 	if len(results) == 0 {
-		return nil, nil
+		return []string{}, nil
 	}
 
 	// The result will be in the "x" variable from our query
@@ -271,6 +282,22 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		s = rego.Store(e.store)
 	)
 
+	parsedPolicy, err := ast.ParseModule("policy.rego", string(policy))
+	if err != nil {
+		e.failClosed(hash)
+		return fmt.Errorf("parsing policy: %w", err)
+	}
+
+	var viewableEnvironmentsDefined, viewableNamespacesDefined bool
+	for _, rule := range parsedPolicy.Rules {
+		switch rule.Path().String() {
+		case "data.flipt.authz.v2.viewable_environments":
+			viewableEnvironmentsDefined = true
+		case "data.flipt.authz.v2.viewable_namespaces":
+			viewableNamespacesDefined = true
+		}
+	}
+
 	// Prepare allow query
 	r := rego.New(
 		rego.Query("data.flipt.authz.v2.allow"),
@@ -280,6 +307,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 
 	queryAllow, err := r.PrepareForEval(ctx)
 	if err != nil {
+		e.failClosed(hash)
 		return fmt.Errorf("preparing policy allow: %w", err)
 	}
 
@@ -291,9 +319,11 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	)
 
 	queryEnvironments, err := r.PrepareForEval(ctx)
+	var queryEnvironmentsPtr *rego.PreparedEvalQuery
 	if err == nil {
-		// queryEnvironments is optional, so we dont error here
-		e.queryEnvironments = &queryEnvironments
+		queryEnvironmentsPtr = &queryEnvironments
+	} else {
+		e.logger.Warn("optional environments query could not be prepared", zap.Error(err))
 	}
 
 	// Prepare namespaces query
@@ -304,9 +334,11 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	)
 
 	queryNamespaces, err := r.PrepareForEval(ctx)
+	var queryNamespacesPtr *rego.PreparedEvalQuery
 	if err == nil {
-		// queryNamespaces is optional, so we dont error here
-		e.queryNamespaces = &queryNamespaces
+		queryNamespacesPtr = &queryNamespaces
+	} else {
+		e.logger.Warn("optional namespaces query could not be prepared", zap.Error(err))
 	}
 
 	if !bytes.Equal(e.policyHash, policyHash) {
@@ -314,10 +346,34 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		return nil
 	}
 
+	// Publish all queries together. Optional queries must be replaced with nil
+	// when the new policy cannot prepare them; otherwise a reload can retain a
+	// query compiled from the previous policy.
 	e.policyHash = hash
 	e.queryAllow = queryAllow
+	e.queryEnvironments = queryEnvironmentsPtr
+	e.viewableEnvironmentsDefined = viewableEnvironmentsDefined
+	e.queryNamespaces = queryNamespacesPtr
+	e.viewableNamespacesDefined = viewableNamespacesDefined
 
 	return nil
+}
+
+// failClosed replaces the current policy with one that denies every request
+// and exposes empty list scopes. It must be called with e.mu held.
+//
+// Never keep evaluating a previous policy after a changed policy fails to
+// parse or compile. Failing closed also prevents stale optional queries from
+// exposing scopes from the previous policy. The failed policy hash is
+// remembered so a later rollback to the last valid policy is not mistaken for
+// an unchanged policy.
+func (e *Engine) failClosed(hash source.Hash) {
+	e.policyHash = hash
+	e.queryAllow = rego.PreparedEvalQuery{}
+	e.queryEnvironments = nil
+	e.viewableEnvironmentsDefined = true
+	e.queryNamespaces = nil
+	e.viewableNamespacesDefined = true
 }
 
 func (e *Engine) updateData(ctx context.Context, op storage.PatchOp) (err error) {
