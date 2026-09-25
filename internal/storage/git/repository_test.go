@@ -15,6 +15,7 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 	"go.uber.org/zap"
 )
@@ -1303,4 +1304,81 @@ func TestUpdateAndPush_BranchAfterBaseAdvances_BareRepo_Shallows(t *testing.T) {
 	baseRef, err := remoteRepo.Reference(plumbing.NewBranchReferenceName(base), true)
 	require.NoError(t, err)
 	assert.Equal(t, baseHead, baseRef.Hash(), "base branch must be untouched")
+}
+
+// TestUpdateAndPush_NonFastForward_IfHeadMatches ensures that when the remote
+// has advanced past the revision the caller last observed, the update returns
+// a conflict instead of re-applying the change over commits it has not seen.
+func TestUpdateAndPush_NonFastForward_IfHeadMatches(t *testing.T) {
+	remoteDir := t.TempDir()
+	remoteRepo, err := git.PlainInit(
+		remoteDir, true,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+
+	localDir := t.TempDir()
+	localPlain, err := git.PlainInit(
+		localDir, false,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+	_, err = localPlain.CreateRemote(&config.RemoteConfig{Name: "origin", URLs: []string{remoteDir}})
+	require.NoError(t, err)
+	commitAndPush(t, localPlain, localDir, "flipt.txt", "original")
+
+	repo, _, err := newRepository(t.Context(), zap.NewNop(),
+		WithFilesystemStorage(localDir),
+		WithRemote("origin", remoteDir),
+		WithSignature("test", "test@test.com"),
+	)
+	require.NoError(t, err)
+
+	observed, err := repo.Resolve("main")
+	require.NoError(t, err)
+
+	// another writer pushes a change before this repository fetches
+	otherDir := t.TempDir()
+	otherRepo, err := git.PlainClone(otherDir, &git.CloneOptions{URL: remoteDir})
+	require.NoError(t, err)
+	otherHead := commitAndPush(t, otherRepo, otherDir, "flipt.txt", "other writer")
+
+	write := func(contents string) func(envsfs.Filesystem) (string, error) {
+		return func(fs envsfs.Filesystem) (string, error) {
+			fi, err := fs.OpenFile("flipt.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+			if err != nil {
+				return "", err
+			}
+			if _, err := fi.Write([]byte(contents)); err != nil {
+				return "", err
+			}
+			return "update flipt.txt", fi.Close()
+		}
+	}
+
+	_, err = repo.UpdateAndPush(t.Context(), "main", write("stale writer"), UpdateIfHeadMatches(&observed))
+	require.True(t, errors.AsMatch[errors.ErrConflict](err), "expected conflict, got %v", err)
+
+	// the other writer's change is left intact on the remote
+	remoteHead, err := remoteRepo.Reference(plumbing.NewBranchReferenceName("main"), true)
+	require.NoError(t, err)
+	assert.Equal(t, otherHead, remoteHead.Hash())
+
+	// the conflict leaves the repository tracking the new head, so retrying
+	// with the revision the caller now observes succeeds
+	current, err := repo.Resolve("main")
+	require.NoError(t, err)
+	assert.Equal(t, otherHead, current)
+
+	hash, err := repo.UpdateAndPush(t.Context(), "main", write("fresh writer"), UpdateIfHeadMatches(&current))
+	require.NoError(t, err)
+
+	commit, err := remoteRepo.CommitObject(hash)
+	require.NoError(t, err)
+	assert.Equal(t, []plumbing.Hash{otherHead}, commit.ParentHashes)
+	file, err := commit.File("flipt.txt")
+	require.NoError(t, err)
+	contents, err := file.Contents()
+	require.NoError(t, err)
+	assert.Equal(t, "fresh writer", contents)
 }

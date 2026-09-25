@@ -582,10 +582,18 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 						return err
 					}
 					for _, e := range result.NewBranches {
-						envStore.Add(e)
+						// branches are discovered from any ref pushed under the
+						// environment's branch prefix, so never let one replace
+						// an existing environment with the same key
+						if err := envStore.AddBranch(e); err != nil {
+							logger.Warn("ignoring branched environment",
+								zap.String("environment", env.Key()),
+								zap.String("branch", e.Key()),
+								zap.Error(err))
+						}
 					}
 					for _, key := range result.DeletedBranchKeys {
-						envStore.Remove(key)
+						envStore.RemoveBranch(env.Key(), key)
 					}
 					return nil
 				},

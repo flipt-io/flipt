@@ -174,6 +174,41 @@ func (e *EnvironmentStore) Remove(key string) {
 	delete(e.byKey, key)
 }
 
+// AddBranch adds a branched environment to the store. Branch keys share
+// the same namespace as static environments, so it refuses to replace an
+// existing environment with the same key (case-insensitive).
+func (e *EnvironmentStore) AddBranch(env Environment) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	for key, existing := range e.byKey {
+		if strings.EqualFold(key, env.Key()) && existing != env {
+			return errors.ErrAlreadyExistsf("environment: %q", env.Key())
+		}
+	}
+
+	e.byKey[env.Key()] = env
+
+	return nil
+}
+
+// RemoveBranch removes the environment identified by key, but only if it is
+// a branch of the base environment. It never removes a static environment or
+// a branch of another base environment which happens to share the key.
+func (e *EnvironmentStore) RemoveBranch(base, key string) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	if env, ok := e.byKey[key]; ok && isBranchOf(env, base) {
+		delete(e.byKey, key)
+	}
+}
+
+func isBranchOf(env Environment, base string) bool {
+	cfg := env.Configuration()
+	return cfg != nil && cfg.Base != nil && *cfg.Base == base
+}
+
 func (e *EnvironmentStore) DeleteBranch(ctx context.Context, base, branch string) error {
 	baseEnv, err := e.Get(ctx, base)
 	if err != nil {
@@ -184,9 +219,7 @@ func (e *EnvironmentStore) DeleteBranch(ctx context.Context, base, branch string
 		return err
 	}
 
-	e.mu.Lock()
-	delete(e.byKey, branch)
-	e.mu.Unlock()
+	e.RemoveBranch(base, branch)
 
 	return nil
 }
@@ -197,10 +230,8 @@ func (e *EnvironmentStore) Branch(ctx context.Context, base string, branch strin
 		return nil, err
 	}
 
-	for key := range e.byKey {
-		if strings.EqualFold(key, names.RefSlug(strings.TrimSpace(branch))) {
-			return nil, errors.ErrAlreadyExistsf("environment: %q", branch)
-		}
+	if e.hasKey(names.RefSlug(strings.TrimSpace(branch))) {
+		return nil, errors.ErrAlreadyExistsf("environment: %q", branch)
 	}
 
 	branchEnv, err := baseEnv.Branch(ctx, branch)
@@ -208,9 +239,25 @@ func (e *EnvironmentStore) Branch(ctx context.Context, base string, branch strin
 		return nil, err
 	}
 
-	e.Add(branchEnv)
+	if err := e.AddBranch(branchEnv); err != nil {
+		return nil, err
+	}
 
 	return branchEnv, nil
+}
+
+// hasKey reports whether an environment with the given key exists (case-insensitive).
+func (e *EnvironmentStore) hasKey(key string) bool {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	for k := range e.byKey {
+		if strings.EqualFold(k, key) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (e *EnvironmentStore) Propose(ctx context.Context, base string, branch string, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error) {
