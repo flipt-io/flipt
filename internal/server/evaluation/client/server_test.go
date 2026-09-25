@@ -6,6 +6,7 @@ import (
 	"net"
 	"sync"
 	"testing"
+	"testing/fstest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -14,6 +15,7 @@ import (
 	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
+	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
@@ -554,4 +556,39 @@ func TestServer_EvaluationSnapshotNamespaceStream(t *testing.T) {
 		err := s.EvaluationSnapshotNamespaceStream(req, stream)
 		require.Error(t, err)
 	})
+}
+
+func TestEvaluationSnapshotNamespaceStream_MultiDocumentDigest(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	src := fstest.MapFS{
+		"a/features.yaml": {Data: []byte("namespace:\n  key: default\nflags:\n- key: flag_a\n  name: A\n  type: BOOLEAN_FLAG_TYPE\n  enabled: true\n")},
+		"b/features.yaml": {Data: []byte("namespace:\n  key: default\nflags:\n- key: flag_b\n  name: B\n  type: BOOLEAN_FLAG_TYPE\n  enabled: true\n")},
+	}
+
+	snap, err := storagefs.SnapshotFromPaths(logger, src, []string{"a/features.yaml", "b/features.yaml"})
+	require.NoError(t, err)
+	nsSnap, err := snap.EvaluationNamespaceSnapshot(t.Context(), "default")
+	require.NoError(t, err)
+	require.Len(t, nsSnap.Flags, 2)
+	t.Logf("digest=%q len=%d", nsSnap.Digest, len(nsSnap.Digest))
+	require.Len(t, nsSnap.Digest, 40)
+
+	mockEnv := environments.NewMockEnvironment(t)
+	envStore := evaluation.NewMockEnvironmentStore(t)
+	mockEnv.On("Key").Return("env-key").Maybe()
+	envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil).Maybe()
+	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "default", mock.Anything).Return(&fakeCloser{}, nil).Run(func(args mock.Arguments) {
+		ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
+		go func() { ch <- nsSnap; close(ch) }()
+	}).Maybe()
+
+	stream := &mockStream{ctx: t.Context()}
+	stream.On("Send", mock.Anything).Return(nil).Maybe()
+	s := NewServer(logger, envStore)
+	d := nsSnap.Digest
+	err = s.EvaluationSnapshotNamespaceStream(&rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{
+		EnvironmentKey: "env-key", Key: "default", Digest: &d,
+	}, stream)
+	require.NoError(t, err)
+	assert.Empty(t, stream.sent)
 }
