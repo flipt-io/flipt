@@ -862,11 +862,11 @@ func TestEtagWithFewDocs(t *testing.T) {
 
 	nssnap, err := snapshot.getNamespace(ext.DefaultNamespace.GetKey())
 	require.NoError(t, err)
-	assert.Equal(t, "dc26c96ddf6430ed603862ffe5d3ac9a", nssnap.etag)
+	assert.Equal(t, "2f511b0b3d892501bab4f565d47eec6ec61ba73c", nssnap.etag)
 
 	evalSnap, err := snapshot.EvaluationNamespaceSnapshot(t.Context(), ext.DefaultNamespace.GetKey())
 	require.NoError(t, err)
-	assert.Equal(t, "dc26c96ddf6430ed603862ffe5d3ac9a", evalSnap.Digest)
+	assert.Equal(t, "2f511b0b3d892501bab4f565d47eec6ec61ba73c", evalSnap.Digest)
 }
 
 func TestSnapshot_IsOneOf(t *testing.T) {
