@@ -72,7 +72,7 @@ require (
 	github.com/twmb/franz-go/pkg/sr v1.8.0
 	github.com/twmb/franz-go/plugin/kzap v1.1.2
 	github.com/xeipuuv/gojsonschema v1.2.0
-	github.com/xo/dburl v0.26.1
+	github.com/xo/dburl v0.30.0
 	go.flipt.io/flipt/core v0.0.0-00010101000000-000000000000
 	go.flipt.io/flipt/errors v1.45.0
 	go.flipt.io/flipt/rpc/flipt v1.54.0
