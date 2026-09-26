@@ -168,7 +168,7 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 
 	var directory *string
 	if e.cfg.Directory != "" {
-		directory = &e.cfg.Directory
+		directory = new(e.cfg.Directory)
 	}
 
 	var scm *rpcenvironments.SCM
@@ -318,17 +318,17 @@ type branchEnvConfig struct {
 	branch string
 }
 
-func (e *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
+func (b *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
 	return iter.Seq[*branchEnvConfig](func(yield func(*branchEnvConfig) bool) {
-		e.err = e.refs.ForEach(func(r *plumbing.Reference) error {
+		b.err = b.refs.ForEach(func(r *plumbing.Reference) error {
 			branch := strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")
 
 			// if one of our branches that we created
-			if candidate, ok := strings.CutPrefix(branch, e.env.branchPrefix()); ok {
+			if candidate, ok := strings.CutPrefix(branch, b.env.branchPrefix()); ok {
 				// get the name of the environment from the branch name
 				// e.g. flipt/my-env/my-branch -> my-env
 				name, _, _ := strings.Cut(candidate, "/")
-				cfg := *e.env.cfg
+				cfg := *b.env.cfg
 				cfg.Name = name
 
 				if !yield(&branchEnvConfig{
@@ -344,8 +344,8 @@ func (e *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
 	})
 }
 
-func (e *branchEnvIterator) Err() error {
-	return e.err
+func (b *branchEnvIterator) Err() error {
+	return b.err
 }
 
 func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (*rpcenvironments.EnvironmentProposalDetails, error) {
@@ -803,19 +803,29 @@ func (e *Environment) updateSnapshot(ctx context.Context) error {
 		return err
 	}
 
-	if err := e.publisher.Publish(snap); err != nil {
-		e.logger.Error("publishing snapshot",
-			zap.Error(err),
-			zap.String("environment", e.cfg.Name))
-		return err
-	}
-
+	// Store the snapshot and advance head *before* publishing it.
+	//
+	// Publish only notifies stream/SSE subscribers, which respond by refetching
+	// through EvaluationNamespaceSnapshot, and that serves e.snap. Publishing
+	// first would let a subscriber that refetches immediately read the previous
+	// snapshot, or get "namespace not found" for a namespace that was just
+	// created. The stream has already recorded the new digest as sent at that
+	// point, so no further event follows and the client stays stale until the
+	// next change. Storing first also means a publish failure can no longer
+	// leave head un-advanced and the snapshot unswapped.
 	e.mu.Lock()
 	e.head = hash
 	e.snap.Store(snap)
 	reporter := e.readyReporter
 	envKey := e.cfg.Name
 	e.mu.Unlock()
+
+	if err := e.publisher.Publish(snap); err != nil {
+		e.logger.Error("publishing snapshot",
+			zap.Error(err),
+			zap.String("environment", e.cfg.Name))
+		return err
+	}
 
 	// Mark ready (sticky) and notify event-driven health aggregation.
 	// Done after releasing the lock: the reporter only touches its own
