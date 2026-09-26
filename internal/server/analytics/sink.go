@@ -3,6 +3,7 @@ package analytics
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"go.flipt.io/flipt/internal/server/tracing"
@@ -78,7 +79,11 @@ func transformSpanEventToEvaluationResponses(event sdktrace.Event) ([]*Evaluatio
 		case tracing.AttributeReason:
 			r.Reason = tracing.ReasonFromValue(v.Value.AsString()).String()
 		case tracing.AttributeVariant:
-			r.EvaluationValue = new(v.Value.AsString())
+			if v.Value.Type() == attribute.BOOL {
+				r.EvaluationValue = new(strconv.FormatBool(v.Value.AsBool()))
+			} else {
+				r.EvaluationValue = new(v.Value.AsString())
+			}
 		}
 	}
 	return []*EvaluationResponse{r}, nil

@@ -253,6 +253,7 @@ func TestOFREPEvaluationWithTracing(t *testing.T) {
 				assertAttributeValue(t, attrs, tracing.AttributeFlag, "test-flag")
 				assertAttributeValue(t, attrs, tracing.AttributeEntityID, "test-entity")
 				assertAttributeNotPresent(t, attrs, tracing.AttributeRequestID)
+				assertAttributeValue(t, attrs, tracing.AttributeMatch, false)
 				assertAttributeValue(t, attrs, tracing.AttributeVariant, true)
 				assertAttributeValue(t, attrs, tracing.AttributeReason, "default")
 				assertAttributeValue(t, attrs, tracing.AttributeFlagType, "boolean")

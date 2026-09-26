@@ -77,3 +77,52 @@ func TestSinkSpanExporter(t *testing.T) {
 		require.Fail(t, "message should have been sent on the channel")
 	}
 }
+
+func TestTransformSpanEvent_BooleanEvaluationValue(t *testing.T) {
+	const now = 1700000000
+
+	tests := []struct {
+		name     string
+		variant  attribute.KeyValue
+		expected string
+	}{
+		{
+			name:     "enabled",
+			variant:  tracing.AttributeVariant.Bool(true),
+			expected: "true",
+		},
+		{
+			name:     "disabled",
+			variant:  tracing.AttributeVariant.Bool(false),
+			expected: "false",
+		},
+		{
+			name:     "variant string unchanged",
+			variant:  tracing.AttributeVariant.String("variant-key"),
+			expected: "variant-key",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			event := sdktrace.Event{
+				Name: tracing.Event,
+				Time: time.Unix(now, 0),
+				Attributes: []attribute.KeyValue{
+					tracing.AttributeFlag.String("hello"),
+					tracing.AttributeFlagTypeBoolean,
+					tracing.AttributeNamespace.String("default"),
+					tracing.AttributeReason.String("match"),
+					tt.variant,
+				},
+			}
+
+			responses, err := transformSpanEventToEvaluationResponses(event)
+			require.NoError(t, err)
+			require.Len(t, responses, 1)
+
+			require.NotNil(t, responses[0].EvaluationValue)
+			assert.Equal(t, tt.expected, *responses[0].EvaluationValue)
+		})
+	}
+}
