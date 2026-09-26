@@ -2766,6 +2766,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 				assertAttributeValue(t, attrs, tracing.AttributeFlag, "test-flag")
 				assertAttributeValue(t, attrs, tracing.AttributeEntityID, "test-entity")
 				assertAttributeValue(t, attrs, tracing.AttributeRequestID, "test-request-id")
+				assertAttributeValue(t, attrs, tracing.AttributeMatch, true)
 				assertAttributeValue(t, attrs, tracing.AttributeVariant, true)
 				assertAttributeValue(t, attrs, tracing.AttributeReason, "match")
 				assertAttributeValue(t, attrs, tracing.AttributeFlagType, "boolean")
@@ -2887,6 +2888,7 @@ func TestEvaluationWithTracing(t *testing.T) {
 				assertAttributeValue(t, booleanAttrs, tracing.AttributeFlag, "boolean-flag")
 				assertAttributeValue(t, booleanAttrs, tracing.AttributeEntityID, "test-entity")
 				assertAttributeValue(t, booleanAttrs, tracing.AttributeRequestID, "request-1")
+				assertAttributeValue(t, booleanAttrs, tracing.AttributeMatch, true)
 				assertAttributeValue(t, booleanAttrs, tracing.AttributeVariant, true)
 				assertAttributeValue(t, booleanAttrs, tracing.AttributeFlagType, "boolean")
 
