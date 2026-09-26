@@ -578,24 +578,26 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 				},
 				notifyFn: func(ctx context.Context, refs map[string]string) error {
 					result, err := gitEnv.RefreshEnvironment(ctx, refs)
-					if err != nil {
-						return err
-					}
-					for _, e := range result.NewBranches {
-						// branches are discovered from any ref pushed under the
-						// environment's branch prefix, so never let one replace
-						// an existing environment with the same key
-						if err := envStore.AddBranch(e); err != nil {
-							logger.Warn("ignoring branched environment",
-								zap.String("environment", env.Key()),
-								zap.String("branch", e.Key()),
-								zap.Error(err))
+					// Apply successful branch additions and deletions even when
+					// another branch failed to snapshot. The refresh error is
+					// returned afterwards so repository logging and metrics still run.
+					if result != nil {
+						for _, e := range result.NewBranches {
+							// branches are discovered from any ref pushed under the
+							// environment's branch prefix, so never let one replace
+							// an existing environment with the same key
+							if err := envStore.AddBranch(e); err != nil {
+								logger.Warn("ignoring branched environment",
+									zap.String("environment", env.Key()),
+									zap.String("branch", e.Key()),
+									zap.Error(err))
+							}
+						}
+						for _, key := range result.DeletedBranchKeys {
+							envStore.RemoveBranch(env.Key(), key)
 						}
 					}
-					for _, key := range result.DeletedBranchKeys {
-						envStore.RemoveBranch(env.Key(), key)
-					}
-					return nil
+					return err
 				},
 			}
 		)

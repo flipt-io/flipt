@@ -2,6 +2,7 @@ package environments
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -9,11 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/license"
 	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/secrets"
+	"go.flipt.io/flipt/internal/storage"
 	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
 	"go.uber.org/zap/zaptest"
@@ -534,4 +537,181 @@ func Test_NewStore_DiscoveredBranchDoesNotReplaceEnvironment(t *testing.T) {
 	got, err = store.Get(ctx, "production")
 	require.NoError(t, err)
 	assert.Same(t, production, got, "pruned branch removed the production environment")
+}
+
+const invalidFeatureYAML = "version: \"1.6\"\nflags: \"not-a-list\"\n"
+
+func booleanFlagYAML(key, name string) string {
+	return fmt.Sprintf(`version: "1.6"
+namespace:
+  key: default
+  name: Default
+flags:
+  - key: %s
+    name: %s
+    type: BOOLEAN_FLAG_TYPE
+    enabled: true
+    variants: []
+    rules: []
+    rollouts: []
+segments: []
+`, key, name)
+}
+
+func pushFile(t *testing.T, repo *storagegit.Repository, branch, path, contents, message string) plumbing.Hash {
+	t.Helper()
+
+	hash, err := repo.UpdateAndPush(t.Context(), branch, func(fs envsfs.Filesystem) (string, error) {
+		fi, err := fs.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+		if err != nil {
+			return "", err
+		}
+		if _, err := fi.Write([]byte(contents)); err != nil {
+			_ = fi.Close()
+			return "", err
+		}
+		return message, fi.Close()
+	})
+	require.NoError(t, err)
+
+	return hash
+}
+
+type flagReader interface {
+	EvaluationStore() (storage.ReadOnlyStore, error)
+}
+
+func requireEnvironmentFlag(t *testing.T, env flagReader, key, name string) {
+	t.Helper()
+
+	eval, err := env.EvaluationStore()
+	require.NoError(t, err)
+
+	flag, err := eval.GetFlag(t.Context(), storage.NewResource("default", key))
+	require.NoError(t, err)
+	assert.Equal(t, name, flag.Name)
+}
+
+func Test_NewStore_MalformedBranchDoesNotBlockRecovery(t *testing.T) {
+	var (
+		ctx    = t.Context()
+		logger = zaptest.NewLogger(t)
+		cfg    = &config.Config{
+			Environments: map[string]*config.EnvironmentConfig{
+				"production": {
+					Name:    "production",
+					Storage: "default",
+					Default: true,
+				},
+			},
+			Storage: map[string]*config.StorageConfig{
+				"default": {
+					Backend: config.StorageBackendConfig{
+						Type: config.MemoryStorageBackendType,
+					},
+					Branch: "main",
+				},
+			},
+		}
+	)
+
+	store, err := NewStore(ctx, logger, cfg, &secrets.MockManager{}, &license.MockManager{})
+	require.NoError(t, err)
+
+	production, err := store.Get(ctx, "production")
+	require.NoError(t, err)
+
+	repo := production.(interface{ Repository() *storagegit.Repository }).Repository()
+
+	const (
+		broken    = "flipt/production/broken"
+		healthy   = "flipt/production/healthy"
+		temporary = "flipt/production/temporary"
+		features  = "default/features.yaml"
+	)
+
+	require.NoError(t, repo.CreateBranchIfNotExists(ctx, broken, storagegit.WithBase("main")))
+	pushFile(t, repo, broken, features, invalidFeatureYAML, "invalid features")
+
+	_, err = store.Get(ctx, "broken")
+	require.Error(t, err)
+	var notFound errors.ErrNotFound
+	require.ErrorAs(t, err, &notFound)
+
+	require.NoError(t, repo.CreateBranchIfNotExists(ctx, healthy, storagegit.WithBase("main")))
+	healthyHash := pushFile(t, repo, healthy, features, booleanFlagYAML("healthy_flag", "Healthy Flag"), "healthy features")
+
+	healthyEnv, err := store.Get(ctx, "healthy")
+	require.NoError(t, err)
+	requireEnvironmentFlag(t, healthyEnv, "healthy_flag", "Healthy Flag")
+	ns, err := healthyEnv.GetNamespace(ctx, "default")
+	require.NoError(t, err)
+	assert.Equal(t, healthyHash.String(), ns.Revision)
+	require.NotNil(t, healthyEnv.Configuration().Base)
+	assert.Equal(t, "production", *healthyEnv.Configuration().Base)
+
+	_, err = store.Get(ctx, "broken")
+	require.ErrorAs(t, err, &notFound)
+
+	require.NoError(t, repo.CreateBranchIfNotExists(ctx, temporary, storagegit.WithBase("main")))
+	pushFile(t, repo, temporary, features, booleanFlagYAML("temp_flag", "Temp Flag"), "temporary features")
+	_, err = store.Get(ctx, "temporary")
+	require.NoError(t, err)
+
+	// Deleting temporary while broken is still invalid must still prune it.
+	require.NoError(t, repo.DeleteBranch(ctx, temporary))
+	require.NoError(t, repo.Storer.RemoveReference(plumbing.NewRemoteReferenceName("origin", temporary)))
+	pushFile(t, repo, "main", "refresh.txt", "refresh", "trigger refresh")
+
+	_, err = store.Get(ctx, "temporary")
+	require.ErrorAs(t, err, &notFound)
+
+	healthyEnv, err = store.Get(ctx, "healthy")
+	require.NoError(t, err)
+	requireEnvironmentFlag(t, healthyEnv, "healthy_flag", "Healthy Flag")
+
+	_, err = store.Get(ctx, "broken")
+	require.ErrorAs(t, err, &notFound)
+
+	got, err := store.Get(ctx, "production")
+	require.NoError(t, err)
+	assert.Same(t, production, got)
+
+	brokenHash := pushFile(t, repo, broken, features, booleanFlagYAML("broken_flag", "Broken Flag"), "repair broken")
+
+	brokenEnv, err := store.Get(ctx, "broken")
+	require.NoError(t, err)
+	requireEnvironmentFlag(t, brokenEnv, "broken_flag", "Broken Flag")
+	ns, err = brokenEnv.GetNamespace(ctx, "default")
+	require.NoError(t, err)
+	assert.Equal(t, brokenHash.String(), ns.Revision)
+	require.NotNil(t, brokenEnv.Configuration().Base)
+	assert.Equal(t, "production", *brokenEnv.Configuration().Base)
+
+	healthyEnv, err = store.Get(ctx, "healthy")
+	require.NoError(t, err)
+	requireEnvironmentFlag(t, healthyEnv, "healthy_flag", "Healthy Flag")
+	ns, err = healthyEnv.GetNamespace(ctx, "default")
+	require.NoError(t, err)
+	assert.Equal(t, healthyHash.String(), ns.Revision)
+
+	healthyEval, err := healthyEnv.EvaluationStore()
+	require.NoError(t, err)
+	_, err = healthyEval.GetFlag(ctx, storage.NewResource("default", "broken_flag"))
+	require.Error(t, err)
+
+	brokenEval, err := brokenEnv.EvaluationStore()
+	require.NoError(t, err)
+	_, err = brokenEval.GetFlag(ctx, storage.NewResource("default", "healthy_flag"))
+	require.Error(t, err)
+
+	pushFile(t, repo, "main", "refresh.txt", "refresh again", "trigger unchanged refresh")
+
+	again, err := store.Get(ctx, "broken")
+	require.NoError(t, err)
+	assert.Same(t, brokenEnv, again)
+	requireEnvironmentFlag(t, again, "broken_flag", "Broken Flag")
+	ns, err = again.GetNamespace(ctx, "default")
+	require.NoError(t, err)
+	assert.Equal(t, brokenHash.String(), ns.Revision)
 }
