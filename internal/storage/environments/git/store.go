@@ -168,7 +168,7 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 
 	var directory *string
 	if e.cfg.Directory != "" {
-		directory = new(e.cfg.Directory)
+		directory = &e.cfg.Directory
 	}
 
 	var scm *rpcenvironments.SCM
@@ -318,17 +318,17 @@ type branchEnvConfig struct {
 	branch string
 }
 
-func (b *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
+func (e *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
 	return iter.Seq[*branchEnvConfig](func(yield func(*branchEnvConfig) bool) {
-		b.err = b.refs.ForEach(func(r *plumbing.Reference) error {
+		e.err = e.refs.ForEach(func(r *plumbing.Reference) error {
 			branch := strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")
 
 			// if one of our branches that we created
-			if candidate, ok := strings.CutPrefix(branch, b.env.branchPrefix()); ok {
+			if candidate, ok := strings.CutPrefix(branch, e.env.branchPrefix()); ok {
 				// get the name of the environment from the branch name
 				// e.g. flipt/my-env/my-branch -> my-env
 				name, _, _ := strings.Cut(candidate, "/")
-				cfg := *b.env.cfg
+				cfg := *e.env.cfg
 				cfg.Name = name
 
 				if !yield(&branchEnvConfig{
@@ -344,8 +344,8 @@ func (b *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
 	})
 }
 
-func (b *branchEnvIterator) Err() error {
-	return b.err
+func (e *branchEnvIterator) Err() error {
+	return e.err
 }
 
 func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (*rpcenvironments.EnvironmentProposalDetails, error) {
