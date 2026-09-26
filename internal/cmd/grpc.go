@@ -139,6 +139,16 @@ func (a *evaluationHealthAggregator) ReportSnapshotReady(envKey string) {
 	}
 }
 
+// serverSpansRequired reports whether gRPC server spans must be created.
+// Analytics consumes evaluation span events in-process via a span processor,
+// so ClickHouse analytics needs server spans even when tracing export is
+// disabled. Without the OTel server stats handler no span exists in the
+// request context and evaluation events are silently dropped (no ClickHouse
+// rows). See the v1 audit analogue in PR #6280.
+func serverSpansRequired(cfg *config.Config) bool {
+	return cfg.Tracing.Enabled || cfg.Analytics.Storage.Clickhouse.Enabled
+}
+
 // GRPCServer configures the dependencies associated with the Flipt GRPC Service.
 // It provides an entrypoint to start serving the gRPC stack (Run()).
 // Along with a teardown function (Shutdown(ctx)).
@@ -462,7 +472,7 @@ func NewGRPCServer(
 		}),
 	}
 
-	if cfg.Tracing.Enabled {
+	if serverSpansRequired(cfg) {
 		statsHandler := otelgrpc.NewServerHandler()
 		grpcOpts = append(grpcOpts, grpc.StatsHandler(statsHandler))
 		ipch = ipch.WithServerStatsHandler(statsHandler)

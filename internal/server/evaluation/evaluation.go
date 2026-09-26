@@ -341,6 +341,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	if s.tracingEnabled {
 		s.addEvaluationEvent(
 			ctx, env, r.NamespaceKey, r.FlagKey, r.EntityId, r.RequestId,
+			tracing.AttributeMatch.Bool(resp.Reason == rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON),
 			tracing.AttributeVariant.Bool(resp.Enabled),
 			tracing.AttributeReason.String(tracing.ReasonToValue(resp.Reason)),
 			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
@@ -561,6 +562,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 			if s.tracingEnabled {
 				s.addEvaluationEvent(
 					ctx, env, req.NamespaceKey, req.FlagKey, req.EntityId, req.RequestId,
+					tracing.AttributeMatch.Bool(res.Reason == rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON),
 					tracing.AttributeVariant.Bool(res.Enabled),
 					tracing.AttributeReason.String(tracing.ReasonToValue(res.Reason)),
 					tracing.AttributeSegments.StringSlice(res.SegmentKeys),
