@@ -29,7 +29,7 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.5
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/gobwas/glob v0.2.3
+	github.com/gobwas/glob v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.20.1
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.7.0
@@ -52,7 +52,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/moby/api v1.56.0
 	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20260716131114-90f7ca99ce60
-	github.com/open-policy-agent/opa v1.20.2
+	github.com/open-policy-agent/opa v1.21.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -202,7 +202,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/huandu/go-clone v1.7.3 // indirect
-	github.com/huandu/go-sqlbuilder v1.42.1 // indirect
+	github.com/huandu/go-sqlbuilder v1.43.0 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa // indirect
@@ -220,11 +220,11 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
-	github.com/lestrrat-go/dsig v1.3.0 // indirect
+	github.com/lestrrat-go/dsig v1.4.0 // indirect
 	github.com/lestrrat-go/dsig-secp256k1 v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc/v3 v3.0.6 // indirect
-	github.com/lestrrat-go/jwx/v3 v3.2.0 // indirect
+	github.com/lestrrat-go/jwx/v3 v3.3.0 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/lib/pq v1.12.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
@@ -253,7 +253,7 @@ require (
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
-	github.com/prometheus/client_model v0.6.2 // indirect
+	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/otlptranslator v1.0.0 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20260420112717-c39628bde8b5 // indirect
@@ -281,7 +281,7 @@ require (
 	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/twmb/franz-go/pkg/kmsg v1.14.0 // indirect
 	github.com/valyala/fastjson v1.6.10 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.36 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.37 // indirect
 	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -300,14 +300,13 @@ require (
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260908163034-4bcc4b2ee518 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	golang.org/x/time v0.15.0 // indirect
+	golang.org/x/time v0.16.0 // indirect
 	golang.org/x/tools v0.50.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.287.1 // indirect
@@ -316,7 +315,6 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.6.2 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
 replace (
