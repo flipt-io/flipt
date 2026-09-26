@@ -3,6 +3,7 @@ package git
 import (
 	"bytes"
 	"context"
+	stderrors "errors"
 	"fmt"
 	"io"
 	"iter"
@@ -650,52 +651,53 @@ type RefreshResult struct {
 }
 
 // RefreshEnvironment refreshes the environment from the remote repository
-// and updates the local environment with the new branches and namespaces
-// it returns a RefreshResult containing newly observed environments to be added to the store
-// and the keys of deleted branches to be removed from the store
+// and updates the local environment with the new branches and namespaces.
+// It returns a RefreshResult containing newly observed environments to be added to the store
+// and the keys of deleted branches to be removed from the store.
+// Snapshot failures are collected and returned with whatever succeeded: a new branch is
+// published only after its own snapshot builds, recorded refs advance only after a
+// successful snapshot, and branches are pruned only after a complete enumeration.
 func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]string) (*RefreshResult, error) {
 	result := &RefreshResult{
 		NewBranches:       []serverenvs.Environment{},
 		DeletedBranchKeys: []string{},
 	}
 
-	// Check if base environment needs updating
+	var refreshErrs []error
+
+	// Check if base environment needs updating. Advance the recorded ref only
+	// after the snapshot succeeds so a failed refresh stays eligible for retry
+	// and the last good snapshot remains in place.
 	e.mu.RLock()
-	needsUpdate := false
-	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash {
-		needsUpdate = true
-	}
+	baseHash, baseOK := refs[e.currentBranch]
+	baseRef := e.refs[e.currentBranch]
 	e.mu.RUnlock()
 
-	if needsUpdate {
-		if hash, ok := refs[e.currentBranch]; ok {
-			e.mu.RLock()
-			oldRef := e.refs[e.currentBranch]
-			e.mu.RUnlock()
+	if baseOK && baseRef != baseHash {
+		e.logger.Debug(
+			"updating base env snapshot",
+			zap.String("environment", e.cfg.Name),
+			zap.String("from", baseRef),
+			zap.String("to", baseHash),
+		)
 
-			e.logger.Debug(
-				"updating base env snapshot",
-				zap.String("environment", e.cfg.Name),
-				zap.String("from", oldRef),
-				zap.String("to", hash),
-			)
-
+		if err := e.updateSnapshot(ctx); err != nil {
+			refreshErrs = append(refreshErrs, fmt.Errorf("updating environment %q: %w", e.cfg.Name, err))
+		} else {
 			e.mu.Lock()
-			e.refs[e.currentBranch] = hash
+			e.refs[e.currentBranch] = baseHash
 			e.mu.Unlock()
-
-			if err := e.updateSnapshot(ctx); err != nil {
-				return nil, err
-			}
 		}
 	}
 
 	iterator, err := e.listBranchEnvs(ctx)
 	if err != nil {
-		return nil, err
+		refreshErrs = append(refreshErrs, fmt.Errorf("listing branches: %w", err))
+		return result, stderrors.Join(refreshErrs...)
 	}
 
-	// Track which branches still exist in Git
+	// Track which branches still exist in Git. A branch is recorded as soon as
+	// it is observed so a later snapshot failure cannot look like a deletion.
 	existingBranches := make(map[string]struct{})
 
 	for cfg := range iterator.All() {
@@ -717,19 +719,28 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				e.serverTemplates,
 			)
 			if err != nil {
-				return nil, err
+				refreshErrs = append(refreshErrs, fmt.Errorf("creating branch %q: %w", cfg.Name, err))
+				continue
 			}
 
-			e.mu.Lock()
-			e.branches[cfg.Name] = env
-			e.mu.Unlock()
-
+			// Point at the branch before building so a failure cannot publish the
+			// constructor's temporary snapshot of the base branch.
 			env.currentBranch = cfg.branch
 			env.base = e.Key()
-			result.NewBranches = append(result.NewBranches, env)
 			if err := env.updateSnapshot(ctx); err != nil {
-				return nil, err
+				refreshErrs = append(refreshErrs, fmt.Errorf("updating branch %q: %w", cfg.Name, err))
+				continue
 			}
+
+			// Copy the snapshotted hash before publishing env. After it is in the
+			// branch map another refresh may update it.
+			head := env.head
+			e.mu.Lock()
+			e.branches[cfg.Name] = env
+			e.recordBranchRef(cfg.branch, refs, head)
+			e.mu.Unlock()
+
+			result.NewBranches = append(result.NewBranches, env)
 			continue
 		}
 
@@ -738,26 +749,35 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 		oldRef := e.refs[cfg.branch]
 		e.mu.RUnlock()
 
-		if hash, ok := refs[cfg.branch]; ok && oldRef != hash {
-			e.logger.Debug(
-				"updating branch env snapshot",
-				zap.String("environment", cfg.Name),
-				zap.String("from", oldRef),
-				zap.String("to", hash),
-			)
-
-			e.mu.Lock()
-			e.refs[cfg.branch] = hash
-			e.mu.Unlock()
-
-			if err := env.updateSnapshot(ctx); err != nil {
-				return nil, err
-			}
+		hash, hashOK := refs[cfg.branch]
+		if !hashOK || oldRef == hash {
+			continue
 		}
+
+		e.logger.Debug(
+			"updating branch env snapshot",
+			zap.String("environment", cfg.Name),
+			zap.String("from", oldRef),
+			zap.String("to", hash),
+		)
+
+		if err := env.updateSnapshot(ctx); err != nil {
+			// Leave the recorded ref and snapshot untouched so the next poll retries.
+			refreshErrs = append(refreshErrs, fmt.Errorf("updating branch %q: %w", cfg.Name, err))
+			continue
+		}
+
+		e.mu.Lock()
+		e.refs[cfg.branch] = hash
+		e.mu.Unlock()
 	}
 
 	if err := iterator.Err(); err != nil {
-		return nil, err
+		// Keep additions from the refs that were observed. Pruning needs the
+		// complete branch list, so an incomplete enumeration must not remove
+		// anything still cached.
+		refreshErrs = append(refreshErrs, fmt.Errorf("listing branches: %w", err))
+		return result, stderrors.Join(refreshErrs...)
 	}
 
 	// Remove branches that no longer exist in Git
@@ -776,7 +796,19 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 	}
 	e.mu.Unlock()
 
-	return result, nil
+	return result, stderrors.Join(refreshErrs...)
+}
+
+// recordBranchRef stores the ref that was successfully snapshotted.
+// Caller must hold e.mu.
+func (e *Environment) recordBranchRef(branch string, refs map[string]string, head plumbing.Hash) {
+	if hash, ok := refs[branch]; ok {
+		e.refs[branch] = hash
+		return
+	}
+	if head != plumbing.ZeroHash {
+		e.refs[branch] = head.String()
+	}
 }
 
 func (e *Environment) updateSnapshot(ctx context.Context) error {

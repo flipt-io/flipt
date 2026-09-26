@@ -3,6 +3,7 @@ package git
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,12 +15,15 @@ import (
 	gitconfig "github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
+	"github.com/go-git/go-git/v6/plumbing/storer"
+	gitstorage "github.com/go-git/go-git/v6/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/environments"
+	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
@@ -280,6 +284,404 @@ func Test_Environment_RefreshEnvironment_DeletedBranches(t *testing.T) {
 
 	// Verify the branch is removed from the environment's branches map
 	assert.NotContains(t, env.branches, "testbranch")
+}
+
+const featuresPath = "default/features.yaml"
+
+const invalidFeatureYAML = "version: \"1.6\"\nflags: \"not-a-list\"\n"
+
+func booleanFlagYAML(key, name string) string {
+	return fmt.Sprintf(`version: "1.6"
+namespace:
+  key: default
+  name: Default
+flags:
+  - key: %s
+    name: %s
+    type: BOOLEAN_FLAG_TYPE
+    enabled: true
+    variants: []
+    rules: []
+    rollouts: []
+segments: []
+`, key, name)
+}
+
+func remoteRefs(t *testing.T, repo *storagegit.Repository) map[string]string {
+	t.Helper()
+
+	references, err := repo.References()
+	require.NoError(t, err)
+
+	refs := map[string]string{}
+	require.NoError(t, references.ForEach(func(r *plumbing.Reference) error {
+		if r.Name().IsRemote() {
+			refs[strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")] = r.Hash().String()
+		}
+		return nil
+	}))
+
+	return refs
+}
+
+func commitBranchFile(t *testing.T, repo *storagegit.Repository, branch, contents, message string) plumbing.Hash {
+	t.Helper()
+
+	hash, err := repo.UpdateAndPush(t.Context(), branch, func(filesystem fs.Filesystem) (string, error) {
+		fi, err := filesystem.OpenFile(featuresPath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+		if err != nil {
+			return "", err
+		}
+		if _, err := fi.Write([]byte(contents)); err != nil {
+			_ = fi.Close()
+			return "", err
+		}
+		return message, fi.Close()
+	})
+	require.NoError(t, err)
+
+	return hash
+}
+
+func branchKeys(envs []environments.Environment) []string {
+	keys := make([]string, 0, len(envs))
+	for _, env := range envs {
+		keys = append(keys, env.Key())
+	}
+	return keys
+}
+
+func requireFlagName(t *testing.T, env environments.Environment, key, name string) {
+	t.Helper()
+
+	eval, err := env.EvaluationStore()
+	require.NoError(t, err)
+
+	flag, err := eval.GetFlag(t.Context(), storage.NewResource("default", key))
+	require.NoError(t, err)
+	assert.Equal(t, name, flag.Name)
+}
+
+func Test_Environment_RefreshEnvironment_InvalidBranchRetriesUntilValid(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := t.Context()
+
+	const branch = "flipt/production/broken"
+	require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, branch, storagegit.WithBase(env.currentBranch)))
+	commitBranchFile(t, env.repo, branch, invalidFeatureYAML, "invalid features")
+
+	for range 4 {
+		result, err := env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+		require.Error(t, err)
+		require.ErrorContains(t, err, `"broken"`)
+		assert.NotContains(t, branchKeys(result.NewBranches), "broken")
+		assert.NotContains(t, env.branches, "broken")
+		_, recorded := env.refs[branch]
+		assert.False(t, recorded, "failed snapshot must not record a successful ref")
+	}
+
+	commitBranchFile(t, env.repo, branch, booleanFlagYAML("branch_flag", "Branch Flag"), "valid features")
+
+	result, err := env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.NoError(t, err)
+	assert.Equal(t, []string{"broken"}, branchKeys(result.NewBranches))
+	require.Contains(t, env.branches, "broken")
+	requireFlagName(t, result.NewBranches[0], "branch_flag", "Branch Flag")
+	assert.Equal(t, remoteRefs(t, env.repo)[branch], env.refs[branch])
+	assert.Equal(t, "production", result.NewBranches[0].(*Environment).base)
+
+	result, err = env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.NoError(t, err)
+	assert.Empty(t, result.NewBranches, "unchanged branch must not be delivered again")
+	assert.Empty(t, result.DeletedBranchKeys)
+	requireFlagName(t, env.branches["broken"], "branch_flag", "Branch Flag")
+}
+
+func Test_Environment_RefreshEnvironment_PartialSuccess(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := t.Context()
+
+	const (
+		existingBranch = "flipt/production/existing"
+		doomedBranch   = "flipt/production/doomed"
+		badBranch      = "flipt/production/bad"
+		goodBranch     = "flipt/production/good"
+	)
+
+	require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, existingBranch, storagegit.WithBase(env.currentBranch)))
+	commitBranchFile(t, env.repo, existingBranch, booleanFlagYAML("existing_flag", "Existing One"), "existing v1")
+	require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, doomedBranch, storagegit.WithBase(env.currentBranch)))
+	commitBranchFile(t, env.repo, doomedBranch, booleanFlagYAML("doomed_flag", "Doomed Flag"), "doomed features")
+
+	result, err := env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"existing", "doomed"}, branchKeys(result.NewBranches))
+
+	var existing environments.Environment
+	for _, branchEnv := range result.NewBranches {
+		if branchEnv.Key() == "existing" {
+			existing = branchEnv
+		}
+	}
+	require.NotNil(t, existing)
+	requireFlagName(t, existing, "existing_flag", "Existing One")
+
+	require.NoError(t, env.repo.DeleteBranch(ctx, doomedBranch))
+	require.NoError(t, env.repo.Storer.RemoveReference(plumbing.NewRemoteReferenceName("origin", doomedBranch)))
+
+	require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, badBranch, storagegit.WithBase(env.currentBranch)))
+	commitBranchFile(t, env.repo, badBranch, invalidFeatureYAML, "invalid features")
+	require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, goodBranch, storagegit.WithBase(env.currentBranch)))
+	commitBranchFile(t, env.repo, goodBranch, booleanFlagYAML("good_flag", "Good Flag"), "good features")
+	commitBranchFile(t, env.repo, existingBranch, booleanFlagYAML("existing_flag", "Existing Two"), "existing v2")
+
+	result, err = env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.Error(t, err)
+	require.ErrorContains(t, err, `"bad"`)
+	assert.ElementsMatch(t, []string{"good"}, branchKeys(result.NewBranches))
+	assert.ElementsMatch(t, []string{"doomed"}, result.DeletedBranchKeys)
+	assert.NotContains(t, env.branches, "bad")
+	assert.NotContains(t, env.branches, "doomed")
+	_, recorded := env.refs[badBranch]
+	assert.False(t, recorded)
+	assert.Contains(t, env.branches, "good")
+	assert.Contains(t, env.branches, "existing")
+	assert.Same(t, existing, env.branches["existing"])
+	requireFlagName(t, existing, "existing_flag", "Existing Two")
+	assert.Equal(t, remoteRefs(t, env.repo)[existingBranch], env.refs[existingBranch])
+	requireFlagName(t, env.branches["good"], "good_flag", "Good Flag")
+
+	baseEval, err := env.EvaluationStore()
+	require.NoError(t, err)
+	_, err = baseEval.GetFlag(ctx, storage.NewResource("default", "good_flag"))
+	require.Error(t, err, "branch snapshot must not replace the base environment")
+}
+
+func Test_Environment_RefreshEnvironment_ExistingBranchKeepsLastSnapshot(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := t.Context()
+
+	const branch = "flipt/production/feature"
+	require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, branch, storagegit.WithBase(env.currentBranch)))
+	commitBranchFile(t, env.repo, branch, booleanFlagYAML("feature_flag", "Version One"), "feature v1")
+
+	result, err := env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.NoError(t, err)
+	require.Equal(t, []string{"feature"}, branchKeys(result.NewBranches))
+	feature := result.NewBranches[0]
+	requireFlagName(t, feature, "feature_flag", "Version One")
+	goodRef := env.refs[branch]
+	require.NotEmpty(t, goodRef)
+
+	commitBranchFile(t, env.repo, branch, invalidFeatureYAML, "break feature")
+	badRefs := remoteRefs(t, env.repo)
+	require.NotEqual(t, goodRef, badRefs[branch])
+
+	for range 3 {
+		result, err = env.RefreshEnvironment(ctx, badRefs)
+		require.Error(t, err)
+		require.ErrorContains(t, err, `"feature"`)
+		assert.Empty(t, result.NewBranches)
+		assert.Equal(t, goodRef, env.refs[branch])
+		assert.Same(t, feature, env.branches["feature"])
+		requireFlagName(t, feature, "feature_flag", "Version One")
+	}
+
+	commitBranchFile(t, env.repo, branch, booleanFlagYAML("feature_flag", "Version Two"), "feature v2")
+
+	result, err = env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.NoError(t, err)
+	assert.Empty(t, result.NewBranches)
+	assert.Same(t, feature, env.branches["feature"])
+	assert.NotEqual(t, goodRef, env.refs[branch])
+	assert.Equal(t, remoteRefs(t, env.repo)[branch], env.refs[branch])
+	requireFlagName(t, feature, "feature_flag", "Version Two")
+}
+
+func Test_Environment_RefreshEnvironment_BaseFailurePreservesRef(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := t.Context()
+
+	commitBranchFile(t, env.repo, env.currentBranch, booleanFlagYAML("base_flag", "Base One"), "base v1")
+
+	result, err := env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.NoError(t, err)
+	assert.Empty(t, result.NewBranches)
+	goodRef := env.refs[env.currentBranch]
+	require.NotEmpty(t, goodRef)
+	requireFlagName(t, env, "base_flag", "Base One")
+
+	const branch = "flipt/production/unrelated"
+	require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, branch, storagegit.WithBase(env.currentBranch)))
+	commitBranchFile(t, env.repo, branch, booleanFlagYAML("other_flag", "Other Flag"), "unrelated features")
+	commitBranchFile(t, env.repo, env.currentBranch, invalidFeatureYAML, "break base")
+
+	badRefs := remoteRefs(t, env.repo)
+	result, err = env.RefreshEnvironment(ctx, badRefs)
+	require.Error(t, err)
+	require.ErrorContains(t, err, `"production"`)
+	assert.Equal(t, goodRef, env.refs[env.currentBranch])
+	requireFlagName(t, env, "base_flag", "Base One")
+	assert.ElementsMatch(t, []string{"unrelated"}, branchKeys(result.NewBranches))
+	requireFlagName(t, result.NewBranches[0], "other_flag", "Other Flag")
+
+	result, err = env.RefreshEnvironment(ctx, badRefs)
+	require.Error(t, err)
+	assert.Empty(t, result.NewBranches, "unrelated branch must not be delivered again")
+	assert.Equal(t, goodRef, env.refs[env.currentBranch])
+	requireFlagName(t, env, "base_flag", "Base One")
+
+	commitBranchFile(t, env.repo, env.currentBranch, booleanFlagYAML("base_flag", "Base Two"), "repair base")
+
+	result, err = env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.NoError(t, err)
+	assert.Empty(t, result.NewBranches)
+	assert.NotEqual(t, goodRef, env.refs[env.currentBranch])
+	assert.Equal(t, remoteRefs(t, env.repo)[env.currentBranch], env.refs[env.currentBranch])
+	requireFlagName(t, env, "base_flag", "Base Two")
+}
+
+func Test_Environment_RefreshEnvironment_JoinsBranchErrors(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := t.Context()
+
+	for _, name := range []string{"bad-a", "bad-b"} {
+		branch := "flipt/production/" + name
+		require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, branch, storagegit.WithBase(env.currentBranch)))
+		commitBranchFile(t, env.repo, branch, invalidFeatureYAML, "invalid features")
+	}
+
+	result, err := env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.Error(t, err)
+	require.ErrorContains(t, err, `"bad-a"`)
+	require.ErrorContains(t, err, `"bad-b"`)
+	assert.Empty(t, result.NewBranches)
+	assert.Empty(t, result.DeletedBranchKeys)
+	assert.NotContains(t, env.branches, "bad-a")
+	assert.NotContains(t, env.branches, "bad-b")
+}
+
+// errAtEndStorer yields every reference and then fails, so a refresh observes a
+// partial branch list without a production injection seam.
+type errAtEndStorer struct {
+	gitstorage.Storer
+	err error
+}
+
+type errAtEndIter struct {
+	storer.ReferenceIter
+	err error
+}
+
+func (s errAtEndStorer) IterReferences() (storer.ReferenceIter, error) {
+	iter, err := s.Storer.IterReferences()
+	if err != nil {
+		return nil, err
+	}
+	return errAtEndIter{ReferenceIter: iter, err: s.err}, nil
+}
+
+func (i errAtEndIter) Next() (*plumbing.Reference, error) {
+	ref, err := i.ReferenceIter.Next()
+	if errors.Is(err, io.EOF) {
+		return nil, i.err
+	}
+	return ref, err
+}
+
+// ForEach must be implemented on the wrapper. The embedded iterator's ForEach
+// calls its own Next and would never observe the error returned above.
+func (i errAtEndIter) ForEach(cb func(*plumbing.Reference) error) error {
+	defer i.Close()
+
+	for {
+		ref, err := i.Next()
+		if err != nil {
+			return err
+		}
+		if err := cb(ref); err != nil {
+			if errors.Is(err, storer.ErrStop) {
+				return nil
+			}
+			return err
+		}
+	}
+}
+
+// errIterStorer fails reference enumeration before any ref is yielded.
+type errIterStorer struct {
+	gitstorage.Storer
+	err error
+}
+
+func (s errIterStorer) IterReferences() (storer.ReferenceIter, error) {
+	return nil, s.err
+}
+
+func Test_Environment_RefreshEnvironment_ListErrorSkipsPrune(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+
+	env.branches["stale"] = &Environment{cfg: &config.EnvironmentConfig{Name: "stale"}}
+	env.refs[env.branchRef("stale")] = "stale-ref"
+
+	listErr := errors.New("references unavailable")
+	env.repo.Storer = errIterStorer{Storer: env.repo.Storer, err: listErr}
+	t.Cleanup(func() {
+		if wrapped, ok := env.repo.Storer.(errIterStorer); ok {
+			env.repo.Storer = wrapped.Storer
+		}
+	})
+
+	result, err := env.RefreshEnvironment(t.Context(), map[string]string{})
+	require.ErrorIs(t, err, listErr)
+	require.NotNil(t, result)
+	assert.Empty(t, result.NewBranches)
+	assert.Empty(t, result.DeletedBranchKeys)
+	assert.Contains(t, env.branches, "stale")
+	assert.Equal(t, "stale-ref", env.refs[env.branchRef("stale")])
+}
+
+func Test_Environment_RefreshEnvironment_IteratorErrorSkipsPrune(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := t.Context()
+
+	env.branches["stale"] = &Environment{cfg: &config.EnvironmentConfig{Name: "stale"}}
+	env.refs[env.branchRef("stale")] = "stale-ref"
+
+	const branch = "flipt/production/kept"
+	require.NoError(t, env.repo.CreateBranchIfNotExists(ctx, branch, storagegit.WithBase(env.currentBranch)))
+	commitBranchFile(t, env.repo, branch, booleanFlagYAML("kept_flag", "Kept Flag"), "kept features")
+
+	refs := remoteRefs(t, env.repo)
+	env.refs[env.currentBranch] = refs[env.currentBranch]
+
+	enumErr := errors.New("incomplete branch enumeration")
+	env.repo.Storer = errAtEndStorer{Storer: env.repo.Storer, err: enumErr}
+	t.Cleanup(func() {
+		if wrapped, ok := env.repo.Storer.(errAtEndStorer); ok {
+			env.repo.Storer = wrapped.Storer
+		}
+	})
+
+	result, err := env.RefreshEnvironment(ctx, refs)
+	require.ErrorIs(t, err, enumErr)
+	assert.ElementsMatch(t, []string{"kept"}, branchKeys(result.NewBranches))
+	assert.Empty(t, result.DeletedBranchKeys)
+	assert.Contains(t, env.branches, "kept")
+	assert.Contains(t, env.branches, "stale")
+	assert.Equal(t, "stale-ref", env.refs[env.branchRef("stale")])
+	requireFlagName(t, env.branches["kept"], "kept_flag", "Kept Flag")
+
+	env.repo.Storer = env.repo.Storer.(errAtEndStorer).Storer
+
+	result, err = env.RefreshEnvironment(ctx, remoteRefs(t, env.repo))
+	require.NoError(t, err)
+	assert.Empty(t, result.NewBranches)
+	assert.ElementsMatch(t, []string{"stale"}, result.DeletedBranchKeys)
+	assert.NotContains(t, env.branches, "stale")
+	assert.Contains(t, env.branches, "kept")
+	_, recorded := env.refs[env.branchRef("stale")]
+	assert.False(t, recorded)
 }
 
 func Test_Environment_GetAndListNamespaces(t *testing.T) {
@@ -908,6 +1310,12 @@ func newTestEnvironmentWithRemote(t *testing.T, envName string) (*Environment, *
 	require.NoError(t, err)
 	_, err = wt.Add("init.txt")
 	require.NoError(t, err)
+	// Local commit.gpgSign=false overrides a host config that would otherwise
+	// make go-git refuse this unsigned commit.
+	repoCfg, err := bootstrapRepo.Config()
+	require.NoError(t, err)
+	repoCfg.Commit.GpgSign = gitconfig.OptBoolFalse
+	require.NoError(t, bootstrapRepo.SetConfig(repoCfg))
 	_, err = wt.Commit("initial commit", &git.CommitOptions{
 		Author: &object.Signature{Name: "test", Email: "test@test.com", When: time.Now()},
 	})
