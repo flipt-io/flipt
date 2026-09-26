@@ -123,12 +123,14 @@ exit $?`,
 	{
 		container := container.WithLabel("name", "flipt (remote config)")
 		minio := container.
-			From("quay.io/minio/minio:latest").
+			From("rustfs/rustfs:1.0.0").
 			WithExposedPort(9009).
-			WithEnvVariable("MINIO_ROOT_USER", "user").
-			WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
-			WithEnvVariable("MINIO_BROWSER", "off").
-			WithDefaultArgs([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+			WithEnvVariable("RUSTFS_ACCESS_KEY", "user").
+			WithEnvVariable("RUSTFS_SECRET_KEY", "password").
+			WithEnvVariable("RUSTFS_ADDRESS", ":9009").
+			WithEnvVariable("RUSTFS_CONSOLE_ENABLE", "false").
+			WithEnvVariable("RUSTFS_VOLUMES", "/data").
+			WithDefaultArgs([]string{"/data"}).
 			AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})
 
 		if _, err := assertExec(ctx,
