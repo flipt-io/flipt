@@ -821,10 +821,12 @@ func (e *Environment) updateSnapshot(ctx context.Context) error {
 	e.mu.Unlock()
 
 	if err := e.publisher.Publish(snap); err != nil {
+		// Publish is best-effort notification: the snapshot is already stored
+		// and served via EvaluationNamespaceSnapshot. A slow or closed
+		// subscriber must not fail the update.
 		e.logger.Error("publishing snapshot",
 			zap.Error(err),
 			zap.String("environment", e.cfg.Name))
-		return err
 	}
 
 	// Mark ready (sticky) and notify event-driven health aggregation.

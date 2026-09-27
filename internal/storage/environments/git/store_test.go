@@ -1072,3 +1072,48 @@ func Test_Environment_SnapshotStoredBeforePublish(t *testing.T) {
 	require.NoError(t, o.getErr, "GET after publish should serve the published snapshot")
 	assert.Equal(t, o.published, o.served, "GET after publish served a stale snapshot")
 }
+
+type errPublisher struct {
+	evaluation.SnapshotPublisher
+	err error
+}
+
+func (p *errPublisher) Publish(*storagefs.Snapshot) error {
+	return p.err
+}
+
+func Test_Environment_updateSnapshot_PublishErrorIgnored(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	ctx := t.Context()
+	repo, err := storagegit.NewRepository(ctx, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = repo.Close() })
+
+	recorder := &snapshotReadyRecorder{}
+	env, err := NewEnvironmentFromRepo(ctx, logger,
+		&config.EnvironmentConfig{Name: "production"},
+		repo, fs.NewStorage(logger),
+		evaluation.NoopPublisher,
+		config.TemplatesConfig{},
+		WithSnapshotReadyReporter(recorder))
+	require.NoError(t, err)
+
+	const publishErr = "publish failed"
+	env.publisher = &errPublisher{err: errors.New(publishErr)}
+	env.snapshotReady.Store(false)
+
+	rev := ""
+	if resp, err := env.ListNamespaces(ctx); err == nil && resp != nil {
+		rev = resp.Revision
+	}
+	_, err = env.CreateNamespace(ctx, rev, &rpcenvironments.Namespace{Key: "team-a", Name: "Team A"})
+	require.NoError(t, err)
+
+	require.NoError(t, env.updateSnapshot(ctx))
+	assert.True(t, env.HasSnapshot())
+	assert.Contains(t, recorder.keys, "production")
+
+	got, err := env.EvaluationNamespaceSnapshot(ctx, "team-a")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+}
