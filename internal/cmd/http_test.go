@@ -95,23 +95,156 @@ func TestCORSExposedHeaders(t *testing.T) {
 	assert.Contains(t, exposed, "Link", "Access-Control-Expose-Headers must include Link")
 }
 
-func TestCrossOriginProtection(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	f := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "OK", http.StatusOK) })
-	h := crossOriginProtection(logger, []string{"https://labs.flipt.io"})(f)
-
+func TestCrossOriginExemptPatterns(t *testing.T) {
 	tests := []struct {
-		origin       string
-		expectedCode int
+		name         string
+		exclude      func(*config.Config)
+		wantPatterns []string
 	}{
-		{origin: "", expectedCode: http.StatusOK},
-		{origin: "https://labs.flipt.io", expectedCode: http.StatusOK},
-		{origin: "https://unknown.flipt.io", expectedCode: http.StatusForbidden},
+		{
+			name:         "no exclusions",
+			exclude:      func(_ *config.Config) {},
+			wantPatterns: nil,
+		},
+		{
+			name: "evaluation excluded",
+			exclude: func(cfg *config.Config) {
+				cfg.Authentication.Exclude.Evaluation = true
+			},
+			wantPatterns: []string{"POST /evaluate/v1/"},
+		},
+		{
+			name: "ofrep excluded",
+			exclude: func(cfg *config.Config) {
+				cfg.Authentication.Exclude.OFREP = true
+			},
+			wantPatterns: []string{"POST /ofrep/v1/"},
+		},
+		{
+			name: "evaluation and ofrep excluded",
+			exclude: func(cfg *config.Config) {
+				cfg.Authentication.Exclude.Evaluation = true
+				cfg.Authentication.Exclude.OFREP = true
+			},
+			wantPatterns: []string{"POST /evaluate/v1/", "POST /ofrep/v1/"},
+		},
 	}
 
-	for i, tt := range tests {
-		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "https://docs.flipt.io", nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &config.Config{}
+			tt.exclude(cfg)
+			assert.Equal(t, tt.wantPatterns, crossOriginExemptPatterns(cfg))
+		})
+	}
+}
+
+func TestCrossOriginProtection(t *testing.T) {
+	const trustedOrigin = "https://labs.flipt.io"
+
+	tests := []struct {
+		name           string
+		exemptPatterns []string
+		method         string
+		path           string
+		secFetchSite   string
+		origin         string
+		expectedCode   int
+	}{
+		{
+			name:         "no sec-fetch-site or origin allowed",
+			method:       http.MethodPut,
+			path:         "/api/v1/namespaces/default/flags",
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "trusted origin allowed",
+			method:       http.MethodPut,
+			path:         "/api/v1/namespaces/default/flags",
+			origin:       trustedOrigin,
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "untrusted origin rejected",
+			method:       http.MethodPut,
+			path:         "/api/v1/namespaces/default/flags",
+			origin:       "https://unknown.flipt.io",
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "same-origin allowed",
+			method:       http.MethodPost,
+			path:         "/evaluate/v1/boolean",
+			secFetchSite: "same-origin",
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "same-site evaluation rejected without bypass",
+			method:       http.MethodPost,
+			path:         "/evaluate/v1/boolean",
+			secFetchSite: "same-site",
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:           "same-site evaluation allowed with bypass",
+			exemptPatterns: []string{evaluationCrossOriginExemptPattern},
+			method:         http.MethodPost,
+			path:           "/evaluate/v1/boolean",
+			secFetchSite:   "same-site",
+			expectedCode:   http.StatusOK,
+		},
+		{
+			name:           "cross-site evaluation allowed with bypass",
+			exemptPatterns: []string{evaluationCrossOriginExemptPattern},
+			method:         http.MethodPost,
+			path:           "/evaluate/v1/variant",
+			secFetchSite:   "cross-site",
+			expectedCode:   http.StatusOK,
+		},
+		{
+			name:           "bypass does not leak to management routes",
+			exemptPatterns: []string{evaluationCrossOriginExemptPattern},
+			method:         http.MethodPost,
+			path:           "/api/v1/namespaces/default/flags",
+			secFetchSite:   "cross-site",
+			expectedCode:   http.StatusForbidden,
+		},
+		{
+			name:           "bypass does not leak to other evaluation versions",
+			exemptPatterns: []string{evaluationCrossOriginExemptPattern},
+			method:         http.MethodPost,
+			path:           "/other/v1/boolean",
+			secFetchSite:   "cross-site",
+			expectedCode:   http.StatusForbidden,
+		},
+		{
+			name:           "cross-site ofrep allowed with bypass",
+			exemptPatterns: []string{ofrepCrossOriginExemptPattern},
+			method:         http.MethodPost,
+			path:           "/ofrep/v1/evaluate/flags",
+			secFetchSite:   "cross-site",
+			expectedCode:   http.StatusOK,
+		},
+		{
+			name:           "evaluation bypass does not cover ofrep",
+			exemptPatterns: []string{evaluationCrossOriginExemptPattern},
+			method:         http.MethodPost,
+			path:           "/ofrep/v1/evaluate/flags",
+			secFetchSite:   "cross-site",
+			expectedCode:   http.StatusForbidden,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := zaptest.NewLogger(t)
+			f := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { http.Error(w, "OK", http.StatusOK) })
+			h := crossOriginProtection(logger, []string{trustedOrigin}, tt.exemptPatterns)(f)
+
+			req := httptest.NewRequestWithContext(t.Context(), tt.method, "https://docs.flipt.io"+tt.path, nil)
+			if tt.secFetchSite != "" {
+				req.Header.Set("Sec-Fetch-Site", tt.secFetchSite)
+			}
 			if tt.origin != "" {
 				req.Header.Set("Origin", tt.origin)
 			}

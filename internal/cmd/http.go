@@ -190,7 +190,7 @@ func NewHTTPServer(
 
 		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
 			logger.Debug("enabling CSRF prevention")
-			r.Use(crossOriginProtection(logger, cfg.Authentication.Session.CSRF.TrustedOrigins))
+			r.Use(crossOriginProtection(logger, cfg.Authentication.Session.CSRF.TrustedOrigins, crossOriginExemptPatterns(cfg)))
 		}
 
 		r.Mount("/api/v1", api)
@@ -286,13 +286,44 @@ func mountUI(r *chi.Mux, logger *zap.Logger) error {
 	return nil
 }
 
-func crossOriginProtection(logger *zap.Logger, trustedOrigins []string) func(http.Handler) http.Handler {
+const (
+	// evaluationCrossOriginExemptPattern exempts browser cross-origin POSTs to
+	// the v1 evaluation API from cross-origin protection. It only takes effect
+	// when authentication is explicitly excluded for evaluation, in which case
+	// the endpoints are already open to anonymous access.
+	evaluationCrossOriginExemptPattern = "POST /evaluate/v1/"
+	// ofrepCrossOriginExemptPattern exempts browser cross-origin POSTs to the
+	// OFREP API from cross-origin protection under the same conditions.
+	ofrepCrossOriginExemptPattern = "POST /ofrep/v1/"
+)
+
+// crossOriginExemptPatterns returns the cross-origin protection exempt
+// patterns for the APIs explicitly excluded from authentication.
+// Exempted endpoints carry no ambient authority beyond what any anonymous
+// client can do, so rejecting cross-origin browser requests to them provides
+// no CSRF benefit while breaking browser-based evaluation behind externally
+// managed origins.
+func crossOriginExemptPatterns(cfg *config.Config) []string {
+	var patterns []string
+	if cfg.Authentication.Exclude.Evaluation {
+		patterns = append(patterns, evaluationCrossOriginExemptPattern)
+	}
+	if cfg.Authentication.Exclude.OFREP {
+		patterns = append(patterns, ofrepCrossOriginExemptPattern)
+	}
+	return patterns
+}
+
+func crossOriginProtection(logger *zap.Logger, trustedOrigins []string, exemptPatterns []string) func(http.Handler) http.Handler {
 	csrf := http.NewCrossOriginProtection()
 	for _, origin := range trustedOrigins {
-		err := csrf.AddTrustedOrigin(origin)
-		if err != nil {
+		if err := csrf.AddTrustedOrigin(origin); err != nil {
 			logger.Error("failed to add trusted origin for CSRF", zap.String("origin", origin), zap.Error(err))
 		}
+	}
+	for _, pattern := range exemptPatterns {
+		csrf.AddInsecureBypassPattern(pattern)
+		logger.Debug("exempting path from cross-origin protection", zap.String("pattern", pattern))
 	}
 	return csrf.Handler
 }
