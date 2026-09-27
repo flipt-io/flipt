@@ -20,8 +20,8 @@ const (
 // FliptIndex is a set of glob include and exclude patterns
 // which can be used to filter a set of provided paths.
 type FliptIndex struct {
-	includes []glob.Glob
-	excludes []glob.Glob
+	includes []*glob.Pattern
+	excludes []*glob.Pattern
 }
 
 // DefaultFliptIndex returns the default value for the FliptIndex.
