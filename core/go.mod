@@ -7,7 +7,7 @@ toolchain go1.27.1
 require (
 	cuelang.org/go v0.17.1
 	github.com/go-git/go-billy/v5 v5.9.1
-	github.com/gobwas/glob v0.2.3
+	github.com/gobwas/glob v1.0.0
 	github.com/stretchr/testify v1.12.1
 	gopkg.in/yaml.v3 v3.0.1
 )
