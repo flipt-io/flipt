@@ -803,19 +803,31 @@ func (e *Environment) updateSnapshot(ctx context.Context) error {
 		return err
 	}
 
-	if err := e.publisher.Publish(snap); err != nil {
-		e.logger.Error("publishing snapshot",
-			zap.Error(err),
-			zap.String("environment", e.cfg.Name))
-		return err
-	}
-
+	// Store the snapshot and advance head *before* publishing it.
+	//
+	// Publish only notifies stream/SSE subscribers, which respond by refetching
+	// through EvaluationNamespaceSnapshot, and that serves e.snap. Publishing
+	// first would let a subscriber that refetches immediately read the previous
+	// snapshot, or get "namespace not found" for a namespace that was just
+	// created. The stream has already recorded the new digest as sent at that
+	// point, so no further event follows and the client stays stale until the
+	// next change. Storing first also means a publish failure can no longer
+	// leave head un-advanced and the snapshot unswapped.
 	e.mu.Lock()
 	e.head = hash
 	e.snap.Store(snap)
 	reporter := e.readyReporter
 	envKey := e.cfg.Name
 	e.mu.Unlock()
+
+	if err := e.publisher.Publish(snap); err != nil {
+		// Publish is best-effort notification: the snapshot is already stored
+		// and served via EvaluationNamespaceSnapshot. A slow or closed
+		// subscriber must not fail the update.
+		e.logger.Error("publishing snapshot",
+			zap.Error(err),
+			zap.String("environment", e.cfg.Name))
+	}
 
 	// Mark ready (sticky) and notify event-driven health aggregation.
 	// Done after releasing the lock: the reporter only touches its own
