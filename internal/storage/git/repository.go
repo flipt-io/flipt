@@ -154,9 +154,12 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 
 				// Check if repository has commits
 				head, err := r.Repository.Head()
-				if err != nil && errors.Is(err, plumbing.ErrReferenceNotFound) {
+				switch {
+				case errors.Is(err, plumbing.ErrReferenceNotFound):
 					empty = true
-				} else {
+				case err != nil:
+					return nil, empty, fmt.Errorf("resolving HEAD: %w", err)
+				default:
 					empty = false
 
 					// For normal repositories, ensure remote tracking reference exists

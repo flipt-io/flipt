@@ -134,6 +134,35 @@ func TestNewRepository_NormalGitRepository_NoCommits(t *testing.T) {
 	assert.True(t, repo.isNormalRepo, "should detect normal git repository")
 }
 
+func TestNewRepository_UnresolvableHEADDoesNotPanic(t *testing.T) {
+	cases := map[string]func(t *testing.T, gitDir string){
+		"HEAD outside refs": func(t *testing.T, gitDir string) {
+			require.NoError(t, os.WriteFile(filepath.Join(gitDir, "HEAD"), []byte("ref: foo/bar\n"), 0o600))
+		},
+		"bad packed-refs": func(t *testing.T, gitDir string) {
+			require.NoError(t, os.WriteFile(filepath.Join(gitDir, "packed-refs"), []byte("garbage-line-without-space\n"), 0o600))
+		},
+	}
+
+	for name, corrupt := range cases {
+		t.Run(name, func(t *testing.T) {
+			tempDir := t.TempDir()
+
+			_, err := git.PlainInit(tempDir, false)
+			require.NoError(t, err)
+			corrupt(t, filepath.Join(tempDir, ".git"))
+
+			var repo *Repository
+			require.NotPanics(t, func() {
+				repo, _, err = newRepository(t.Context(), zap.NewNop(), WithFilesystemStorage(tempDir))
+			})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "resolving HEAD")
+			assert.Nil(t, repo)
+		})
+	}
+}
+
 func TestNewRepository_BareGitRepository(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
