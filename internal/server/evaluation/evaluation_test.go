@@ -558,6 +558,7 @@ func TestBoolean_FlagDisabled_NoRollouts(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, flagKey, res.FlagKey)
 }
 
 func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {

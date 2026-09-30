@@ -360,6 +360,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 
 	var (
 		resp = &rpcevaluation.BooleanEvaluationResponse{
+			FlagKey:   flag.Key,
 			RequestId: r.RequestId,
 		}
 		lastRank int32
@@ -427,7 +428,6 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 			if normalizedValue < rollout.Threshold.Percentage {
 				resp.Enabled = rollout.Threshold.Value
 				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-				resp.FlagKey = flag.Key
 				s.logger.Debug("threshold based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "threshold"))
 				return resp, nil
 			}
@@ -469,7 +469,6 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 
 			resp.Enabled = rollout.Segment.Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-			resp.FlagKey = flag.Key
 			resp.SegmentKeys = segmentKeys
 
 			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.Strings("segments", segmentKeys))
@@ -480,7 +479,6 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 	// If we have exhausted all rollouts and we still don't have a match, return flag enabled value.
 	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
 	resp.Enabled = flag.Enabled
-	resp.FlagKey = flag.Key
 
 	s.logger.Debug("default rollout matched", zap.Bool("enabled", flag.Enabled))
 	return resp, nil

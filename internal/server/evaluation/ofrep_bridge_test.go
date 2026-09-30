@@ -558,7 +558,7 @@ func TestOFREPFlagEvaluationBulk(t *testing.T) {
 		},
 	}, nil)
 
-	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+	ctx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{
 		"x-flipt-environment": environmentKey,
 		"x-flipt-namespace":   namespaceKey,
 	}))
@@ -582,4 +582,98 @@ func TestOFREPFlagEvaluationBulk(t *testing.T) {
 	assert.Equal(t, "sse", stream.Type)
 	assert.NotNil(t, stream.Endpoint)
 	assert.Equal(t, "/ofrep/v1/_stream/test-environment/test-namespace/events", stream.Endpoint.GetRequestUri())
+}
+
+func TestOFREPFlagEvaluation_Boolean_DisabledNoRollouts(t *testing.T) {
+	var (
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
+		flag           = &core.Flag{
+			Key:     flagKey,
+			Enabled: false,
+			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+		}
+	)
+
+	environment.On("Key").Return(environmentKey)
+
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
+
+	ctx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{
+		"x-flipt-environment": environmentKey,
+		"x-flipt-namespace":   namespaceKey,
+	}))
+
+	output, err := s.OFREPFlagEvaluation(ctx, &ofrep.EvaluateFlagRequest{
+		Key: flagKey,
+		Context: map[string]string{
+			"targetingKey": "12345",
+		},
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, flagKey, output.Key)
+	assert.Equal(t, ofrep.EvaluateReason_DISABLED, output.Reason)
+	assert.Equal(t, "false", output.Variant)
+	assert.False(t, output.Value.GetBoolValue())
+}
+
+func TestOFREPFlagEvaluationBulk_BooleanDisabledNoRollouts(t *testing.T) {
+	var (
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
+		flag           = &core.Flag{
+			Key:     flagKey,
+			Enabled: false,
+			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+		}
+	)
+
+	environment.On("Key").Return(environmentKey)
+
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything).Return(flag, nil)
+
+	store.On("ListFlags", mock.Anything, mock.Anything).Return(storage.ResultSet[*core.Flag]{
+		Results: []*core.Flag{flag},
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, mock.Anything).Return([]*storage.EvaluationRollout{}, nil)
+
+	ctx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{
+		"x-flipt-environment": environmentKey,
+		"x-flipt-namespace":   namespaceKey,
+	}))
+
+	result, err := s.OFREPFlagEvaluationBulk(ctx, &ofrep.EvaluateBulkRequest{
+		Context: map[string]string{
+			"targetingKey": "12345",
+		},
+	})
+	require.NoError(t, err)
+
+	require.Len(t, result.Flags, 1)
+	evaluation := result.Flags[0]
+	assert.Equal(t, flagKey, evaluation.Key)
+	assert.Equal(t, ofrep.EvaluateReason_DISABLED, evaluation.Reason)
+	assert.Equal(t, "false", evaluation.Variant)
+	assert.False(t, evaluation.Value.GetBoolValue())
 }
