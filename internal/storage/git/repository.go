@@ -20,6 +20,7 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/cache"
 	"github.com/go-git/go-git/v6/plumbing/client"
 	"github.com/go-git/go-git/v6/plumbing/object"
+	"github.com/go-git/go-git/v6/plumbing/storer"
 	"github.com/go-git/go-git/v6/plumbing/transport"
 	"github.com/go-git/go-git/v6/storage"
 	gitfilesystem "github.com/go-git/go-git/v6/storage/filesystem"
@@ -716,6 +717,18 @@ func (r *Repository) UpdateAndPush(
 		r.logger.Info("non-fast-forward update, fetching and retrying",
 			zap.String("branch", branch))
 
+		// go-git v6 rejects a direct-child push with a false non-fast-forward
+		// error when two depth=1 shallow boundaries overlap (see #6478, fixed
+		// upstream in go-git#2373). When our corrected ancestry check
+		// says the commit is a fast-forward, push the same commit with shallow
+		// markers temporarily cleared instead of rebasing onto an unmoved head.
+		if ff, ferr := r.isFastForwardLocal(hash, commit.Hash); ferr == nil && ff {
+			if h, ok := r.pushSameCommitOnFalsePositive(ctx, branch, localRef, commit); ok {
+				return h, nil
+			}
+			// Otherwise fall through to the standard fetch-and-rebase retry below.
+		}
+
 		fetchRefSpec := config.RefSpec(
 			fmt.Sprintf(
 				"+%s:%s",
@@ -826,6 +839,138 @@ func (r *Repository) UpdateAndPush(
 		zap.Stringer("hash", commit.Hash))
 
 	return commit.Hash, nil
+}
+
+// isFastForwardLocal reports whether newHash is a descendant of old using only
+// locally stored commits. It replicates the corrected go-git behavior from
+// go-git#2373 (fixing go-git#2367, downstream flipt#6478): a
+// shallow boundary we hold stays reachable even when another boundary names it
+// as a parent, matching how git grafts boundaries parentless instead of
+// dropping them. It is used to classify a non-fast-forward push rejection as a
+// genuine conflict or a false positive of the bundled go-git release.
+// TODO: remove once go.mod bumps past upstream go-git#2373.
+func (r *Repository) isFastForwardLocal(old, newHash plumbing.Hash) (bool, error) {
+	c, err := object.GetCommit(r.Storer, newHash)
+	if err != nil {
+		return false, err
+	}
+
+	// Load the shallow commits we still hold, so the walk can both detect when
+	// it reaches a shallow boundary and tell a boundary apart from a commit
+	// that is genuinely absent.
+	shallowCommits := make(map[plumbing.Hash]*object.Commit)
+	if shallows, err := r.Storer.Shallow(); err != nil {
+		return false, err
+	} else {
+		for _, sh := range shallows {
+			shallowCommit, err := object.GetCommit(r.Storer, sh)
+			if err != nil {
+				if errors.Is(err, plumbing.ErrObjectNotFound) {
+					// Shallow marker may reference a commit we no longer have; skip.
+					continue
+				}
+				return false, err
+			}
+
+			shallowCommits[sh] = shallowCommit
+		}
+	}
+
+	// Mark parent hashes as boundaries so the walker never tries to load
+	// commits that are not stored locally, except for boundaries we hold: git
+	// truncates at a boundary by making it parentless rather than by dropping
+	// it, so a boundary we hold stays reachable.
+	parentsToIgnore := []plumbing.Hash{}
+	for _, shallowCommit := range shallowCommits {
+		for _, parent := range shallowCommit.ParentHashes {
+			if _, held := shallowCommits[parent]; held {
+				continue
+			}
+
+			parentsToIgnore = append(parentsToIgnore, parent)
+		}
+	}
+
+	found := false
+	boundedByShallow := false
+	iter := object.NewCommitPreorderIter(c, nil, parentsToIgnore)
+	if err := iter.ForEach(func(c *object.Commit) error {
+		if _, isShallow := shallowCommits[c.Hash]; isShallow {
+			// The walk reached a shallow commit; history is truncated here.
+			boundedByShallow = true
+		}
+		if c.Hash != old {
+			return nil
+		}
+
+		found = true
+		return storer.ErrStop
+	}); err != nil {
+		return false, err
+	}
+	if !found && boundedByShallow {
+		// The walk was bounded by shallow markers and could not reach old.
+		// Fast-forward cannot be disproven from local data alone, so allow it.
+		return true, nil
+	}
+	return found, nil
+}
+
+// pushSameCommitOnFalsePositive recovers from a false non-fast-forward push
+// rejection (see #6478) by pushing the already-built commit unchanged. The
+// commit is always a single-parent child of the branch head, so with shallow
+// markers temporarily cleared the bundled go-git client-side check walks
+// exactly the two present commits and sees the true ancestry. Markers are
+// restored afterwards; a failed push (e.g. the remote genuinely moved, which
+// the server rejects authoritatively) reports ok=false so the caller falls
+// back to the standard fetch-and-rebase retry.
+func (r *Repository) pushSameCommitOnFalsePositive(
+	ctx context.Context,
+	branch string,
+	localRef plumbing.ReferenceName,
+	commit *object.Commit,
+) (hash plumbing.Hash, ok bool) {
+	saved, err := r.Storer.Shallow()
+	if err != nil {
+		return plumbing.ZeroHash, false
+	}
+	if err := r.Storer.SetShallow(nil); err != nil {
+		return plumbing.ZeroHash, false
+	}
+
+	pushErr := r.PushContext(ctx, &git.PushOptions{
+		RemoteName:    r.remote.Name,
+		ClientOptions: r.gitClientOptions,
+		RefSpecs: []config.RefSpec{
+			config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", localRef)),
+		},
+	})
+
+	if rerr := r.Storer.SetShallow(saved); rerr != nil {
+		r.logger.Warn("restoring shallows after false-positive push",
+			zap.String("branch", branch),
+			zap.Error(rerr))
+	}
+	if pushErr != nil {
+		r.logger.Info("same-commit push failed, falling back to rebase retry",
+			zap.String("branch", branch),
+			zap.Error(pushErr))
+		return plumbing.ZeroHash, false
+	}
+
+	remoteRef := plumbing.NewHashReference(
+		plumbing.NewRemoteReferenceName(r.remote.Name, branch),
+		commit.Hash,
+	)
+	if err := r.Storer.SetReference(remoteRef); err != nil {
+		return plumbing.ZeroHash, false
+	}
+
+	r.logger.Info("pushed same commit after false non-fast-forward",
+		zap.String("branch", branch),
+		zap.Stringer("hash", commit.Hash))
+
+	return commit.Hash, true
 }
 
 func (r *Repository) updateSubs(ctx context.Context, refs map[string]plumbing.Hash) {
