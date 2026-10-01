@@ -337,8 +337,8 @@ func (v FeaturesValidator) ValidateFilesFromFS(src fs.FS) error {
 // fliptIndex is a set of glob include and exclude patterns
 // which can be used to filter a set of provided paths.
 type fliptIndex struct {
-	includes []glob.Glob
-	excludes []glob.Glob
+	includes []*glob.Pattern
+	excludes []*glob.Pattern
 }
 
 // fliptIndexSource represents the structure of a well-known file ".flipt.yml"

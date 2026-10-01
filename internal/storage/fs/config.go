@@ -47,7 +47,7 @@ updated multiple resources
 )
 
 type Config struct {
-	Matchers  []glob.Glob
+	Matchers  []*glob.Pattern
 	Templates ConfigTemplates
 }
 
@@ -68,7 +68,7 @@ type ConfigTemplates struct {
 // if validation was performed at startup).
 func DefaultFliptConfig(serverTemplates config.TemplatesConfig) *Config {
 	c := &Config{
-		Matchers: []glob.Glob{
+		Matchers: []*glob.Pattern{
 			// must end in either yaml, yml or json
 			// must be nested a single directory below the root
 			glob.MustCompile("*/features.yaml"),
