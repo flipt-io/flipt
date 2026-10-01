@@ -880,7 +880,7 @@ func TestSnapshot_IsOneOf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			snap, err := SnapshotFromFS(zaptest.NewLogger(t), &Config{Matchers: []glob.Glob{
+			snap, err := SnapshotFromFS(zaptest.NewLogger(t), &Config{Matchers: []*glob.Pattern{
 				glob.MustCompile("*/features_1_*.yaml"),
 			}}, testdata)
 			require.NoError(t, err)
