@@ -41,6 +41,14 @@ updates:
         patterns:
           - "github.com/go-git/go-git*"
           - "github.com/go-git/go-billy*"
+      go-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      # Catch-all for anything not matched by a named group above.
+      go-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -84,6 +92,14 @@ updates:
           - "@codemirror/*"
           - "@uiw/react-codemirror"
           - "@uiw/codemirror-theme-tokyo-night"
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      # Catch-all for anything not matched by a named group above.
+      npm-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
@@ -97,6 +113,9 @@ updates:
       - "github_actions"
       # kodiak `merge.automerge_label`
       - "automerge"
+    groups:
+      github-actions:
+        patterns: ["*"]
 
   - package-ecosystem: "docker"
     directory: "/build"
