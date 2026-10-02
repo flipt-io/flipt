@@ -5,9 +5,9 @@ description: Run the Flipt v2 stable release process, from changelog preparation
 
 # Release Flipt v2
 
-Use this skill for a stable Flipt v2 release. Ask for the version when it is
-not provided. The version must be semver without the `v` prefix, such as
-`2.12.0`.
+Use this skill for a stable Flipt v2 release. The version must be semver
+without the `v` prefix, such as `2.12.0`. When the user does not provide one,
+propose a version (see "Propose a version") instead of asking an open question.
 
 This process has confirmation checkpoints. Stop at each checkpoint and wait
 for the user.
@@ -23,7 +23,30 @@ Before making changes, verify all of the following:
 
 If a check fails, stop and tell the user what to fix.
 
-## 2. Create the release branch
+## 2. Propose a version
+
+Skip this step if the user gave a version. Otherwise, find the latest release
+and review what shipped since:
+
+```sh
+git fetch origin --tags
+git tag --sort=-v:refname | head -1
+git log --oneline v<latest>..HEAD
+```
+
+Pick the semver bump from the conventional commit types:
+
+- **Major**: any commit with a `!` or `BREAKING CHANGE`. Always flag this for
+  the user explicitly.
+- **Minor**: at least one `feat:` commit.
+- **Patch**: only `fix:`, `chore:`, `docs:`, `test:`, `refactor:`, or
+  dependency commits.
+
+Present the proposed version with a short rationale and the notable changes
+(features, fixes, security changes) grouped briefly. Stop and wait for the user
+to accept or choose another version before continuing.
+
+## 3. Create the release branch
 
 Create and check out `release/v<version>` from `v2`:
 
@@ -33,7 +56,7 @@ git switch -c release/v<version>
 
 Stop and ask the user to confirm before continuing.
 
-## 3. Prepare the changelog
+## 4. Prepare the changelog
 
 Find the newest version in `CHANGELOG.md`. Review commits between that release
 tag and `HEAD`:
@@ -57,7 +80,7 @@ Add a new entry at the top of `CHANGELOG.md`:
 Show the generated entry and ask the user to review it. Stop until the user
 confirms it is ready.
 
-## 4. Commit the release changes
+## 5. Commit the release changes
 
 Run a whitespace check, then stage only intended release files and create a
 signed-off commit:
@@ -70,7 +93,7 @@ git commit -s -m "chore: release v<version>"
 
 Show the commit details. Stop and ask the user to confirm before pushing.
 
-## 5. Push and open the pull request
+## 6. Push and open the pull request
 
 Push the branch and open a pull request targeting `v2`:
 
@@ -97,7 +120,7 @@ Share the pull request URL with the user.
 Tell the user to review and squash-merge the pull request. Stop and wait for
 confirmation that it was merged.
 
-## 6. Tag the merged commit
+## 7. Tag the merged commit
 
 The release pull request is squash-merged. The local release branch commit is
 not the merged commit. Always tag the squashed commit on `origin/v2`:
@@ -119,7 +142,7 @@ git show v<version>
 
 Show the tag details. Stop and ask the user to confirm before pushing the tag.
 
-## 7. Verify and push the tag
+## 8. Verify and push the tag
 
 Before pushing, verify that the tag is reachable from `origin/v2`:
 
@@ -138,7 +161,7 @@ git push origin v<version>
 Tell the user that CI should build and publish the release artifacts.
 
 If the reachability check fails, do not push. Delete the tag with
-`git tag -d v<version>`, sync `v2`, and repeat step 6.
+`git tag -d v<version>`, sync `v2`, and repeat step 7.
 
 ## Safety rules
 
