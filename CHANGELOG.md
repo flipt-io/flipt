@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.1](https://github.com/flipt-io/flipt/releases/tag/v2.13.1) - 2026-10-02
+
+### Fixed
+
+- **Management authorization**: Correct branch create, propose, and delete authorization actions, and make environment and namespace list filtering fail closed when authorization is enforced (#6567)
+- **Cross-origin protection**: Respect authentication exclusion for evaluation and OFREP POST routes, fixing 403s for browser-based evaluation (#6608)
+- **Evaluation**: Always return the flag key for boolean evaluations, including disabled flags without rollouts (#6622)
+- **Git push recovery**: Recover from false non-fast-forward push rejections (#6637)
+- **Git environments**: Guard branched environments from replacing static environments, harden stale-revision push retries, and recover branched environments after an initial snapshot failure (#6592, #6603)
+- **Git storage**: Store the evaluation snapshot before publishing it, and return an error when HEAD cannot be resolved (#6605, #6611)
+- **Analytics**: Store boolean evaluation values as `true`/`false` (#6604)
+- **Snapshots**: Keep the full SHA-1 digest for multi-doc namespaces so server-issued digests pass stream validation (#6593)
+- **UI OIDC login**: Restore the requested deep link after OIDC login (#6586)
+- **Auth**: Return decoded auth data and stop tickers on shutdown (#6561)
+
+### Dependencies
+
+- Updated various Go and UI dependencies, including gRPC, AWS SDK, Google APIs, go-github, CodeMirror, and Vite.
+
 ## [2.13.0](https://github.com/flipt-io/flipt/releases/tag/v2.13.0) - 2026-09-20
 
 ### Added
