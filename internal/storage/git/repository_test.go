@@ -13,6 +13,7 @@ import (
 	"github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
+	"github.com/go-git/go-git/v6/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
@@ -1239,14 +1240,12 @@ func commitAndPush(t *testing.T, repo *git.Repository, dir, file, message string
 //	    +----  flipt/main/target
 //
 // A commit D on top of B is a fast-forward of flipt/main/target and the push
-// must succeed. Older go-git releases rejected it with a false
+// must succeed. The bundled go-git release rejects it with a false
 // "non-fast-forward update" error because B was ignored during the ancestry
-// walk (go-git/go-git#2367).
+// walk (go-git#2367); UpdateAndPush detects that false positive with a
+// corrected local ancestry check and pushes the same commit instead of
+// rebasing (see #6478).
 func TestUpdateAndPush_BranchAfterBaseAdvances_BareRepo_Shallows(t *testing.T) {
-	// TODO: remove this skip once go-git includes the fix from
-	// https://github.com/go-git/go-git/pull/2373 (go-git/go-git#2367).
-	t.Skip("blocked on an upstream go-git fix, see https://github.com/flipt-io/flipt/issues/6478")
-
 	const (
 		base   = "main"
 		branch = "flipt/main/target"
@@ -1333,6 +1332,36 @@ func TestUpdateAndPush_BranchAfterBaseAdvances_BareRepo_Shallows(t *testing.T) {
 	baseRef, err := remoteRepo.Reference(plumbing.NewBranchReferenceName(base), true)
 	require.NoError(t, err)
 	assert.Equal(t, baseHead, baseRef.Hash(), "base branch must be untouched")
+}
+
+// TestIsFastForwardLocal_SkipsMissingShallowMarker pins the missing-marker
+// guard in isFastForwardLocal: a stale shallow marker naming a commit we no
+// longer hold must not make the walk fail with object not found (go-git#207).
+func TestIsFastForwardLocal_SkipsMissingShallowMarker(t *testing.T) {
+	st := memory.NewStorage()
+	repo, err := git.Init(st, git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")))
+	require.NoError(t, err)
+
+	missing := plumbing.NewHash("0000000000000000000000000000000000000001")
+
+	boundary := &object.Commit{ParentHashes: []plumbing.Hash{missing}}
+	encodedBoundary := st.NewEncodedObject()
+	require.NoError(t, boundary.Encode(encodedBoundary))
+	boundaryHash, err := st.SetEncodedObject(encodedBoundary)
+	require.NoError(t, err)
+
+	child := &object.Commit{ParentHashes: []plumbing.Hash{boundaryHash}}
+	encodedChild := st.NewEncodedObject()
+	require.NoError(t, child.Encode(encodedChild))
+	childHash, err := st.SetEncodedObject(encodedChild)
+	require.NoError(t, err)
+
+	require.NoError(t, st.SetShallow([]plumbing.Hash{boundaryHash, missing}))
+
+	r := &Repository{Repository: repo}
+	fastForward, err := r.isFastForwardLocal(missing, childHash)
+	require.NoError(t, err)
+	assert.True(t, fastForward)
 }
 
 // TestUpdateAndPush_NonFastForward_IfHeadMatches ensures that when the remote
