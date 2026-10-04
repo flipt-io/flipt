@@ -18,8 +18,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      go: ${{ steps.changes.outputs.go }}
+      ui: ${{ steps.changes.outputs.ui }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github
+      - id: changes
+        uses: ./.github/actions/changes
+
   discover-tests:
     name: Discover Integration Tests
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.go != 'false' }}
     runs-on: ubuntu-latest
     outputs:
       tests: ${{ steps.extract.outputs.tests }}
@@ -38,8 +56,12 @@ jobs:
 
   build-cache:
     name: Build and Cache Flipt Image
-    # Skip this job for PRs from forks since they can't push to GHCR
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    needs: changes
+    # Skip this job for docs-only changes, and for PRs from forks since they can't push to GHCR
+    if: |
+      !cancelled() &&
+      (needs.changes.outputs.go != 'false' || needs.changes.outputs.ui != 'false') &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -123,7 +145,7 @@ jobs:
       - discover-tests
       - build-cache
     if: |
-      always() && 
+      !cancelled() &&
       needs.discover-tests.result == 'success' &&
       (needs.build-cache.result == 'success' || needs.build-cache.result == 'skipped')
     strategy:
@@ -182,9 +204,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
+      - changes
       - build-cache
     if: |
-      always() && 
+      !cancelled() &&
+      (needs.changes.outputs.go != 'false' || needs.changes.outputs.ui != 'false') &&
       (needs.build-cache.result == 'success' || needs.build-cache.result == 'skipped')
 
     steps:
