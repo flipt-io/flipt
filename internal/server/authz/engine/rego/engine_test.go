@@ -12,10 +12,9 @@ import (
 	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
-
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap/zaptest"
 )
 
 func TestEngine_NewEngine(t *testing.T) {

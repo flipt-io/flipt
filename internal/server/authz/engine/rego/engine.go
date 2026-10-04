@@ -12,14 +12,13 @@ import (
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
-	"go.uber.org/zap"
-
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authz"
 	_ "go.flipt.io/flipt/internal/server/authz/engine/ext"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/filesystem"
+	"go.uber.org/zap"
 )
 
 var (
