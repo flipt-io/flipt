@@ -12,13 +12,14 @@ import (
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"go.uber.org/zap"
+
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authz"
 	_ "go.flipt.io/flipt/internal/server/authz/engine/ext"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/filesystem"
-	"go.uber.org/zap"
 )
 
 var (
@@ -174,8 +175,16 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 	e.logger.Debug("evaluating viewable environments", zap.Any("input", input))
 
 	if !e.viewableEnvironmentsDefined {
-		e.logger.Debug("viewable environments rule not defined, skipping evaluation")
-		return nil, nil
+		// A data document can define the scope without a policy rule. Check the
+		// current store so data reloads can add or remove the optional scope.
+		_, err := storage.ReadOne(ctx, e.store, storage.Path{"flipt", "authz", "v2", "viewable_environments"})
+		if storage.IsNotFound(err) {
+			e.logger.Debug("viewable environments scope not defined, skipping evaluation")
+			return nil, nil
+		}
+		if err != nil {
+			return nil, fmt.Errorf("reading viewable environments data: %w", err)
+		}
 	}
 
 	if e.queryEnvironments == nil || *e.queryEnvironments == (rego.PreparedEvalQuery{}) {

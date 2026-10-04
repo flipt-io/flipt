@@ -9,11 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.uber.org/zap/zaptest"
 )
 
 func TestEngine_NewEngine(t *testing.T) {
@@ -221,6 +223,154 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 			require.NoError(t, err)
 			assert.ElementsMatch(t, tt.expected, environments)
 			assert.NotNil(t, environments)
+		})
+	}
+}
+
+func TestEngine_ViewableEnvironmentsFromData(t *testing.T) {
+	tests := []struct {
+		name        string
+		data        string
+		expected    []string
+		shouldError bool
+	}{
+		{
+			name:     "restricted scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			expected: []string{"production"},
+		},
+		{
+			name:     "empty scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":[]}}}}`,
+			expected: []string{},
+		},
+		{
+			name:     "wildcard scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["*"]}}}}`,
+			expected: []string{"*"},
+		},
+		{
+			name: "undefined scope",
+			data: `{}`,
+		},
+		{
+			name:        "invalid scope type",
+			data:        `{"flipt":{"authz":{"v2":{"viewable_environments":"production"}}}}`,
+			shouldError: true,
+		},
+		{
+			name:        "null scope",
+			data:        `{"flipt":{"authz":{"v2":{"viewable_environments":null}}}}`,
+			shouldError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			engine, err := newEngine(ctx, zaptest.NewLogger(t),
+				withPolicySource(policySource(policyWithoutViewableScopes)),
+				withDataSource(dataSource(tt.data), time.Hour))
+			require.NoError(t, err)
+
+			environments, err := engine.ViewableEnvironments(ctx, nil)
+			if tt.shouldError {
+				require.ErrorContains(t, err, "unexpected result type")
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, environments)
+		})
+	}
+}
+
+func TestEngine_DataReloadUpdatesViewableEnvironments(t *testing.T) {
+	ctx := t.Context()
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource(policyWithoutViewableScopes)),
+		withDataSource(dataSource(`{}`), time.Hour))
+	require.NoError(t, err)
+
+	environments, err := engine.ViewableEnvironments(ctx, nil)
+	require.NoError(t, err)
+	assert.Nil(t, environments)
+
+	for _, tt := range []struct {
+		name     string
+		data     string
+		expected []string
+	}{
+		{
+			name:     "add scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			expected: []string{"production"},
+		},
+		{
+			name:     "replace scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["staging"]}}}}`,
+			expected: []string{"staging"},
+		},
+		{
+			name:     "empty scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":[]}}}}`,
+			expected: []string{},
+		},
+		{
+			name: "remove scope",
+			data: `{}`,
+		},
+		{
+			name:     "restore scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			expected: []string{"production"},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			engine.mu.Lock()
+			engine.dataSource = dataSource(tt.data)
+			engine.mu.Unlock()
+			require.NoError(t, engine.updateData(ctx, storage.ReplaceOp))
+
+			environments, err := engine.ViewableEnvironments(ctx, nil)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, environments)
+		})
+	}
+}
+
+func TestEngine_PolicyReloadWithDataScope(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		policy string
+	}{
+		{name: "parse failure", policy: policyInvalid},
+		{name: "compile failure", policy: policyUncompilable},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			policySource := &reloadablePolicySource{policy: policyWithoutViewableScopes}
+			engine, err := newEngine(ctx, zaptest.NewLogger(t),
+				withPolicySource(policySource),
+				withDataSource(dataSource(`{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`), time.Hour))
+			require.NoError(t, err)
+
+			environments, err := engine.ViewableEnvironments(ctx, nil)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"production"}, environments)
+
+			policySource.Set(tt.policy)
+			require.Error(t, engine.updatePolicy(ctx))
+
+			environments, err = engine.ViewableEnvironments(ctx, nil)
+			require.NoError(t, err)
+			assert.Equal(t, []string{}, environments)
+
+			policySource.Set(policyWithoutViewableScopes)
+			require.NoError(t, engine.updatePolicy(ctx))
+
+			environments, err = engine.ViewableEnvironments(ctx, nil)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"production"}, environments)
 		})
 	}
 }
