@@ -17,8 +17,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      go: ${{ steps.changes.outputs.go }}
+      ui: ${{ steps.changes.outputs.ui }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github
+      - id: changes
+        uses: ./.github/actions/changes
+
   test:
     name: "Tests (Go)"
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.go != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -41,6 +59,8 @@ jobs:
 
   test-darwin:
     name: "Tests (Go - Darwin)"
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.go != 'false' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
@@ -53,6 +73,8 @@ jobs:
 
   ui:
     name: "Tests (UI)"
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.ui != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
