@@ -16,7 +16,6 @@ import (
 	"go.flipt.io/flipt/internal/coss/webhook"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/product"
-	"go.flipt.io/flipt/internal/secrets"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
 	"go.uber.org/zap"
@@ -73,7 +72,7 @@ func TestNewWebhookReceiver(t *testing.T) {
 		cfg := webhookConfig(nil)
 		cfg.Environments["production"] = &config.EnvironmentConfig{Name: "production", SCM: &config.SCMConfig{Type: config.GitHubSCMType}}
 
-		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, nil, licenseFor(t, product.Pro))
+		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, licenseFor(t, product.Pro))
 		require.NoError(t, err)
 		assert.Nil(t, receiver)
 	})
@@ -83,7 +82,7 @@ func TestNewWebhookReceiver(t *testing.T) {
 
 		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: "s3cr3t"}})
 
-		receiver, err := newWebhookReceiver(t.Context(), zap.New(core), cfg, envs, nil, licenseFor(t, product.OSS))
+		receiver, err := newWebhookReceiver(t.Context(), zap.New(core), cfg, envs, licenseFor(t, product.OSS))
 		require.NoError(t, err)
 		assert.Nil(t, receiver)
 
@@ -95,67 +94,27 @@ func TestNewWebhookReceiver(t *testing.T) {
 	t.Run("plain secret", func(t *testing.T) {
 		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: "s3cr3t"}})
 
-		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, nil, licenseFor(t, product.Pro))
+		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, licenseFor(t, product.Pro))
 		require.NoError(t, err)
 		require.NotNil(t, receiver)
 		assert.Equal(t, []string{"production"}, receiver.Environments())
 	})
 
-	t.Run("secret_ref resolved through secrets manager", func(t *testing.T) {
-		ref := &config.SecretReference{Provider: "file", Path: "webhooks", Key: "gitlab"}
-		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {SecretRef: ref}})
+	t.Run("empty secret fails startup", func(t *testing.T) {
+		// e.g. a ${secret:...} or ${env:...} reference that resolved to ""
+		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: ""}})
 
-		sm := secrets.NewMockManager(t)
-		sm.EXPECT().GetSecretValue(mock.Anything, mock.MatchedBy(func(r secrets.Reference) bool {
-			return r.Provider == "file" && r.Path == "webhooks" && r.Key == "gitlab"
-		})).Return([]byte("s3cr3t"), nil).Once()
-
-		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, sm, licenseFor(t, product.Pro))
-		require.NoError(t, err)
-		require.NotNil(t, receiver)
-		sm.AssertExpectations(t)
-	})
-
-	t.Run("secret_ref with unconfigured provider fails startup", func(t *testing.T) {
-		ref := &config.SecretReference{Provider: "file", Path: "webhooks", Key: "gitlab"}
-		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {SecretRef: ref}})
-
-		// the file provider is disabled, so it is never registered
-		sm, err := secrets.NewManager(zaptest.NewLogger(t), &config.Config{})
-		require.NoError(t, err)
-
-		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, sm, licenseFor(t, product.Pro))
+		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, licenseFor(t, product.Pro))
 		require.Error(t, err)
 		assert.Nil(t, receiver)
-		assert.Contains(t, err.Error(), `environment "production"`)
-		assert.Contains(t, err.Error(), `provider "file" not found`)
-	})
-
-	t.Run("secret_ref without secrets manager fails startup", func(t *testing.T) {
-		ref := &config.SecretReference{Provider: "vault", Path: "webhooks", Key: "gitlab"}
-		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {SecretRef: ref}})
-
-		_, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, nil, licenseFor(t, product.Pro))
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), `provider "vault"`)
-	})
-
-	t.Run("secret_ref resolving to empty value fails startup", func(t *testing.T) {
-		ref := &config.SecretReference{Provider: "file", Path: "webhooks", Key: "gitlab"}
-		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {SecretRef: ref}})
-
-		sm := secrets.NewMockManager(t)
-		sm.EXPECT().GetSecretValue(mock.Anything, mock.Anything).Return(nil, nil).Once()
-
-		_, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, sm, licenseFor(t, product.Pro))
-		require.ErrorContains(t, err, "empty value")
+		assert.Equal(t, `environment "production": scm webhook secret is empty`, err.Error())
 	})
 
 	t.Run("non-git environment fails startup", func(t *testing.T) {
 		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: "s3cr3t"}})
 
 		_, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg,
-			fakeEnvironments{"production": serverenvironments.Environment(nil)}, nil, licenseFor(t, product.Pro))
+			fakeEnvironments{"production": serverenvironments.Environment(nil)}, licenseFor(t, product.Pro))
 		require.ErrorContains(t, err, "require git storage")
 	})
 }

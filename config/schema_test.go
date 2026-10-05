@@ -68,18 +68,15 @@ func Test_JSONSchema(t *testing.T) {
 }
 
 func Test_SchemaSCMWebhook(t *testing.T) {
-	secretRef := map[string]any{"provider": "file", "path": "webhooks", "key": "gitlab"}
-
 	tests := []struct {
 		name    string
 		webhook map[string]any
 		valid   bool
 	}{
 		{name: "secret", webhook: map[string]any{"secret": "s3cr3t"}, valid: true},
-		{name: "secret_ref", webhook: map[string]any{"secret_ref": secretRef}, valid: true},
-		{name: "neither", webhook: map[string]any{}},
-		{name: "both", webhook: map[string]any{"secret": "s3cr3t", "secret_ref": secretRef}},
-		{name: "incomplete secret_ref", webhook: map[string]any{"secret_ref": map[string]any{"provider": "file", "path": "webhooks"}}},
+		{name: "secret reference", webhook: map[string]any{"secret": "${secret:file:gitlab-webhook}"}, valid: true},
+		{name: "missing secret", webhook: map[string]any{}},
+		{name: "unknown field", webhook: map[string]any{"secret": "s3cr3t", "secret_ref": map[string]any{"provider": "file", "path": "webhooks", "key": "gitlab"}}},
 	}
 
 	jsonSchemaBytes, err := os.ReadFile("flipt.schema.json")

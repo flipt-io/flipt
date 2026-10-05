@@ -229,7 +229,7 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("initializing environment store: %w", err)
 	}
 
-	server.webhookReceiver, err = newWebhookReceiver(ctx, logger, cfg, environmentStore, secretsManager, licenseManager)
+	server.webhookReceiver, err = newWebhookReceiver(ctx, logger, cfg, environmentStore, licenseManager)
 	if err != nil {
 		return nil, fmt.Errorf("initializing webhook receiver: %w", err)
 	}

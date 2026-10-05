@@ -21,44 +21,13 @@ func TestSCMConfig_ValidateWebhook(t *testing.T) {
 			webhook: &IncomingWebhookConfig{Secret: "s3cr3t"},
 		},
 		{
-			name: "secret_ref",
-			webhook: &IncomingWebhookConfig{
-				SecretRef: &SecretReference{Provider: "file", Path: "webhooks", Key: "gitlab"},
-			},
+			name:    "secret reference",
+			webhook: &IncomingWebhookConfig{Secret: "${secret:file:gitlab-webhook}"},
 		},
 		{
-			name:    "neither secret nor secret_ref",
+			name:    "missing secret",
 			webhook: &IncomingWebhookConfig{},
-			wantErr: "environments: scm webhook: exactly one of secret or secret_ref is required",
-		},
-		{
-			name: "both secret and secret_ref",
-			webhook: &IncomingWebhookConfig{
-				Secret:    "s3cr3t",
-				SecretRef: &SecretReference{Provider: "file", Path: "webhooks", Key: "gitlab"},
-			},
-			wantErr: "environments: scm webhook: exactly one of secret or secret_ref is required",
-		},
-		{
-			name: "secret_ref missing provider",
-			webhook: &IncomingWebhookConfig{
-				SecretRef: &SecretReference{Path: "webhooks", Key: "gitlab"},
-			},
-			wantErr: "environments: scm webhook: secret_ref: secret_reference: provider non-empty value is required",
-		},
-		{
-			name: "secret_ref missing path",
-			webhook: &IncomingWebhookConfig{
-				SecretRef: &SecretReference{Provider: "file", Key: "gitlab"},
-			},
-			wantErr: "environments: scm webhook: secret_ref: secret_reference: path non-empty value is required",
-		},
-		{
-			name: "secret_ref missing key",
-			webhook: &IncomingWebhookConfig{
-				SecretRef: &SecretReference{Provider: "file", Path: "webhooks"},
-			},
-			wantErr: "environments: scm webhook: secret_ref: secret_reference: key non-empty value is required",
+			wantErr: "environments: scm webhook: secret is required",
 		},
 	}
 

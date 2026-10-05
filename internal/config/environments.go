@@ -128,21 +128,15 @@ type SCMConfig struct {
 }
 
 // IncomingWebhookConfig configures the receiver for push webhooks sent by the
-// environment's SCM. Exactly one of Secret or SecretRef must be set.
+// environment's SCM. Secret is required; it may be a ${secret:provider:key}
+// reference, which is resolved by the secrets manager at startup.
 type IncomingWebhookConfig struct {
-	Secret    string           `json:"-" mapstructure:"secret" yaml:"-"`
-	SecretRef *SecretReference `json:"secret_ref,omitempty" mapstructure:"secret_ref" yaml:"secret_ref,omitempty"`
+	Secret string `json:"-" mapstructure:"secret" yaml:"-"`
 }
 
 func (w *IncomingWebhookConfig) validate() error {
-	if (w.Secret == "") == (w.SecretRef == nil) {
-		return errors.New("exactly one of secret or secret_ref is required")
-	}
-
-	if w.SecretRef != nil {
-		if err := w.SecretRef.Validate(); err != nil {
-			return errFieldWrap("", "secret_ref", err)
-		}
+	if w.Secret == "" {
+		return errors.New("secret is required")
 	}
 
 	return nil

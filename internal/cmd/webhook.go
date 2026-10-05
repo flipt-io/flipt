@@ -10,7 +10,6 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/webhook"
 	"go.flipt.io/flipt/internal/product"
-	"go.flipt.io/flipt/internal/secrets"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
 )
@@ -31,14 +30,14 @@ type environmentGetter interface {
 // environment with scm.webhook configured. It returns nil when no
 // environment configures a webhook, or when the license isn't Pro.
 //
-// A webhook secret_ref that can't be resolved (for example because it names
-// an unconfigured or disabled secrets provider) fails startup.
+// Webhook secrets may be ${secret:provider:key} references; those are
+// resolved before this runs (see resolveSecretsInConfig in cmd/flipt). A
+// secret that is empty after resolution fails startup.
 func newWebhookReceiver(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
 	envs environmentGetter,
-	secretsManager secrets.Manager,
 	licenseManager interface{ Product() product.Product },
 ) (*webhook.Receiver, error) {
 	var names []string
@@ -65,9 +64,8 @@ func newWebhookReceiver(
 			continue
 		}
 
-		secret, err := resolveWebhookSecret(ctx, envConf.SCM.Webhook, secretsManager)
-		if err != nil {
-			return nil, fmt.Errorf("environment %q: resolving scm webhook secret: %w", envConf.Name, err)
+		if envConf.SCM.Webhook.Secret == "" {
+			return nil, fmt.Errorf("environment %q: scm webhook secret is empty", envConf.Name)
 		}
 
 		env, err := envs.Get(ctx, envConf.Name)
@@ -84,7 +82,7 @@ func newWebhookReceiver(
 
 		targets[envConf.Name] = webhook.Target{
 			SCM:        envConf.SCM.Type,
-			Secret:     secret,
+			Secret:     []byte(envConf.SCM.Webhook.Secret),
 			Repository: repoEnv.Repository(),
 		}
 	}
@@ -94,37 +92,4 @@ func newWebhookReceiver(
 	logger.Info("incoming scm webhook receiver enabled", zap.Strings("environments", receiver.Environments()))
 
 	return receiver, nil
-}
-
-// resolveWebhookSecret returns the configured plain secret, or resolves
-// secret_ref through the secrets manager.
-func resolveWebhookSecret(ctx context.Context, cfg *config.IncomingWebhookConfig, secretsManager secrets.Manager) ([]byte, error) {
-	if cfg.SecretRef == nil {
-		if cfg.Secret == "" {
-			return nil, fmt.Errorf("secret is empty")
-		}
-
-		return []byte(cfg.Secret), nil
-	}
-
-	ref := secrets.Reference{
-		Provider: cfg.SecretRef.Provider,
-		Path:     cfg.SecretRef.Path,
-		Key:      cfg.SecretRef.Key,
-	}
-
-	if secretsManager == nil {
-		return nil, fmt.Errorf("secret_ref provider %q: secrets manager not configured", ref.Provider)
-	}
-
-	value, err := secretsManager.GetSecretValue(ctx, ref)
-	if err != nil {
-		return nil, fmt.Errorf("secret_ref provider %q (is it configured and enabled?): %w", ref.Provider, err)
-	}
-
-	if len(value) == 0 {
-		return nil, fmt.Errorf("secret_ref provider %q path %q key %q resolved to an empty value", ref.Provider, ref.Path, ref.Key)
-	}
-
-	return value, nil
 }

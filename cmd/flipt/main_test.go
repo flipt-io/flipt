@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/secrets"
+	"go.uber.org/zap/zaptest"
 )
 
 // mockManager is a test mock for secrets.Manager
@@ -360,4 +364,41 @@ func TestWalkConfigForSecrets_AzureProviderInMap(t *testing.T) {
 	provider := cfg.MapField["provider1"]
 	assert.Equal(t, "azure-client-id", provider.ID)
 	assert.Equal(t, "azure-client-secret", provider.Secret)
+}
+
+// TestResolveSecretsInConfig_SCMWebhookSecret verifies that a
+// ${secret:file:<name>} reference in scm.webhook.secret is resolved to the
+// contents of that file by the file secrets provider.
+func TestResolveSecretsInConfig_SCMWebhookSecret(t *testing.T) {
+	secretsDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "gitlab-webhook"), []byte("s3cr3t-from-file\n"), 0o600))
+
+	configPath := filepath.Join(t.TempDir(), "config.yml")
+	require.NoError(t, os.WriteFile(configPath, []byte(`
+secrets:
+  providers:
+    file:
+      enabled: true
+      base_path: `+secretsDir+`
+environments:
+  default:
+    name: default
+    scm:
+      type: gitlab
+      webhook:
+        secret: ${secret:file:gitlab-webhook}
+`), 0o600))
+
+	res, err := config.Load(t.Context(), configPath)
+	require.NoError(t, err)
+
+	cfg := res.Config
+	require.Equal(t, "${secret:file:gitlab-webhook}", cfg.Environments["default"].SCM.Webhook.Secret)
+
+	manager, err := secrets.NewManager(zaptest.NewLogger(t), cfg)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = manager.Close() })
+
+	require.NoError(t, resolveSecretsInConfig(t.Context(), cfg, manager))
+	assert.Equal(t, "s3cr3t-from-file", cfg.Environments["default"].SCM.Webhook.Secret)
 }
