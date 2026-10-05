@@ -560,3 +560,133 @@ func TestReceiver_CollapsesBursts(t *testing.T) {
 	assert.Equal(t, int64(burst+1), counterValue(t, metricRequests, requestAttrs(environment, config.GitHubSCMType, resultAccepted)...))
 	assert.Equal(t, uint64(burst+1), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...))
 }
+
+// TestReceiver_CancelledContextSkipsFetch asserts that once the receiver's
+// context is cancelled (Flipt is shutting down) an authentic push responds
+// 503 without scheduling a fetch or counting an accepted request or a fetch
+// error.
+func TestReceiver_CancelledContextSkipsFetch(t *testing.T) {
+	const environment = "cancelled"
+
+	repo := NewMockRepository(t)
+	repo.EXPECT().Tracks("main").Return(true).Once()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	r := NewReceiver(ctx, zaptest.NewLogger(t), map[string]Target{
+		environment: {SCM: config.GitHubSCMType, Secret: []byte(testSecret), Repository: repo},
+	})
+
+	p := providers["github"]
+	rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
+	require.NoError(t, r.Shutdown(t.Context()))
+
+	assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+	repo.AssertNotCalled(t, "Fetch", mock.Anything)
+
+	assert.Equal(t, int64(0), counterValue(t, metricRequests, requestAttrs(environment, config.GitHubSCMType, resultAccepted)...))
+	assert.Equal(t, int64(0), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...))
+}
+
+// TestReceiver_ShutdownAbortedFetchIsNotAnError asserts that a fetch aborted
+// by cancelling the receiver's context is waited for by Shutdown and isn't
+// counted as a fetch error.
+func TestReceiver_ShutdownAbortedFetchIsNotAnError(t *testing.T) {
+	const environment = "shutdown-abort"
+
+	started := make(chan struct{})
+
+	repo := NewMockRepository(t)
+	repo.EXPECT().Tracks("main").Return(true).Once()
+	repo.EXPECT().Fetch(mock.Anything).RunAndReturn(func(ctx context.Context, _ ...string) error {
+		close(started)
+		<-ctx.Done()
+		return ctx.Err()
+	}).Once()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	r := NewReceiver(ctx, zaptest.NewLogger(t), map[string]Target{
+		environment: {SCM: config.GitHubSCMType, Secret: []byte(testSecret), Repository: repo},
+	})
+
+	p := providers["github"]
+	rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
+	assert.Equal(t, http.StatusAccepted, rec.Code)
+
+	select {
+	case <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("fetch never started")
+	}
+
+	cancel()
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(t.Context(), 5*time.Second)
+	defer shutdownCancel()
+	require.NoError(t, r.Shutdown(shutdownCtx))
+
+	repo.AssertExpectations(t)
+	assert.Equal(t, int64(0), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...))
+	assert.Equal(t, uint64(0), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...))
+}
+
+// TestReceiver_ShutdownWaitsForFetch asserts Shutdown waits for an in-flight
+// fetch to complete, and gives up with the context's error when the context
+// is done first.
+func TestReceiver_ShutdownWaitsForFetch(t *testing.T) {
+	const environment = "shutdown-wait"
+
+	var (
+		started = make(chan struct{})
+		release = make(chan struct{})
+	)
+
+	repo := NewMockRepository(t)
+	repo.EXPECT().Tracks("main").Return(true).Once()
+	repo.EXPECT().Fetch(mock.Anything).RunAndReturn(func(context.Context, ...string) error {
+		close(started)
+		<-release
+		return nil
+	}).Once()
+
+	r := newTestReceiver(t, environment, config.GitHubSCMType, repo)
+
+	p := providers["github"]
+	rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
+	assert.Equal(t, http.StatusAccepted, rec.Code)
+
+	select {
+	case <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("fetch never started")
+	}
+
+	// the fetch is still running, so a bounded Shutdown gives up
+	expired, expiredCancel := context.WithTimeout(t.Context(), 50*time.Millisecond)
+	defer expiredCancel()
+	require.ErrorIs(t, r.Shutdown(expired), context.DeadlineExceeded)
+
+	done := make(chan error, 1)
+	go func() { done <- r.Shutdown(t.Context()) }()
+
+	select {
+	case err := <-done:
+		t.Fatalf("Shutdown returned before the fetch completed: %v", err)
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	close(release)
+
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("Shutdown never returned after the fetch completed")
+	}
+
+	repo.AssertExpectations(t)
+	assert.Equal(t, uint64(1), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...))
+}

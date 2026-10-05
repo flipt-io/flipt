@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"go.flipt.io/flipt/internal/otel/metrics"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+
+	"go.flipt.io/flipt/internal/otel/metrics"
 )
 
 const (
