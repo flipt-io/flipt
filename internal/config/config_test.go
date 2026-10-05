@@ -795,6 +795,62 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "environments scm webhook with secret",
+			path: "./testdata/environments/webhook_secret.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Environments = EnvironmentsConfig{
+					"default": {
+						Name:    "default",
+						Storage: "default",
+						Default: true,
+						SCM: &SCMConfig{
+							Type: GitLabSCMType,
+							Webhook: &IncomingWebhookConfig{
+								Secret: "s3cr3t",
+							},
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "environments scm webhook with secret_ref",
+			path: "./testdata/environments/webhook_secret_ref.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Environments = EnvironmentsConfig{
+					"default": {
+						Name:    "default",
+						Storage: "default",
+						Default: true,
+						SCM: &SCMConfig{
+							Type: GitLabSCMType,
+							Webhook: &IncomingWebhookConfig{
+								SecretRef: &SecretReference{
+									Provider: "file",
+									Path:     "webhooks",
+									Key:      "gitlab",
+								},
+							},
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "environments scm webhook both secret and secret_ref",
+			path:    "./testdata/environments/webhook_both_secrets.yml",
+			wantErr: errors.New("environments: default environments: scm webhook: exactly one of secret or secret_ref is required"),
+		},
+		{
+			name:    "environments scm webhook incomplete secret_ref",
+			path:    "./testdata/environments/webhook_incomplete_secret_ref.yml",
+			wantErr: errors.New("environments: default environments: scm webhook: secret_ref: secret_reference: key non-empty value is required"),
+		},
+		{
 			name: "secrets config with file provider",
 			path: "./testdata/secrets/file_provider.yml",
 			expected: func() *Config {

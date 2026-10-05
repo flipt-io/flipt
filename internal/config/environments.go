@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -120,9 +121,31 @@ const (
 var _ validator = (*SCMConfig)(nil)
 
 type SCMConfig struct {
-	Type        SCMType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	Credentials *string `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
-	ApiURL      string  `json:"api_url,omitempty" mapstructure:"api_url" yaml:"api_url,omitempty"`
+	Type        SCMType                `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	Credentials *string                `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
+	ApiURL      string                 `json:"api_url,omitempty" mapstructure:"api_url" yaml:"api_url,omitempty"`
+	Webhook     *IncomingWebhookConfig `json:"webhook,omitempty" mapstructure:"webhook" yaml:"webhook,omitempty"`
+}
+
+// IncomingWebhookConfig configures the receiver for push webhooks sent by the
+// environment's SCM. Exactly one of Secret or SecretRef must be set.
+type IncomingWebhookConfig struct {
+	Secret    string           `json:"-" mapstructure:"secret" yaml:"-"`
+	SecretRef *SecretReference `json:"secret_ref,omitempty" mapstructure:"secret_ref" yaml:"secret_ref,omitempty"`
+}
+
+func (w *IncomingWebhookConfig) validate() error {
+	if (w.Secret == "") == (w.SecretRef == nil) {
+		return errors.New("exactly one of secret or secret_ref is required")
+	}
+
+	if w.SecretRef != nil {
+		if err := w.SecretRef.Validate(); err != nil {
+			return errFieldWrap("", "secret_ref", err)
+		}
+	}
+
+	return nil
 }
 
 func (s SCMConfig) validate() error {
@@ -138,6 +161,13 @@ func (s SCMConfig) validate() error {
 			return errFieldWrap("environments", "scm", fmt.Errorf("invalid api url: %w", err))
 		}
 	}
+
+	if s.Webhook != nil {
+		if err := s.Webhook.validate(); err != nil {
+			return errFieldWrap("environments", "scm", errFieldWrap("", "webhook", err))
+		}
+	}
+
 	return nil
 }
 
