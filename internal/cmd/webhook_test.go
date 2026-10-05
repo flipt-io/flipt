@@ -162,7 +162,7 @@ func TestNewWebhookReceiver(t *testing.T) {
 
 // TestWebhookRoute asserts the webhook route is registered only with a
 // receiver, sits outside Flipt authentication and bypasses cross-origin
-// protection.
+// protection without exempting other routes.
 func TestWebhookRoute(t *testing.T) {
 	const (
 		secret = "s3cr3t"
@@ -205,6 +205,18 @@ func TestWebhookRoute(t *testing.T) {
 
 		assert.Equal(t, http.StatusAccepted, res.Code, "body: %s", res.Body.String())
 		repo.AssertExpectations(t)
+
+		// the exemption covers only the webhook route: a cross-site POST to
+		// any other API path is still rejected.
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "http://localhost/api/v2/environments/production/namespaces", strings.NewReader(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Sec-Fetch-Site", "cross-site")
+		req.Header.Set("Origin", "https://evil.example")
+
+		res = httptest.NewRecorder()
+		server.Handler.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusForbidden, res.Code, "body: %s", res.Body.String())
 	})
 
 	t.Run("without receiver", func(t *testing.T) {
