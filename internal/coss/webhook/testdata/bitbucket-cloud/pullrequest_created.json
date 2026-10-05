@@ -1,0 +1,27 @@
+{
+  "pullrequest": {
+    "id": 7,
+    "title": "Disable checkout-v2",
+    "state": "OPEN",
+    "source": {
+      "branch": {
+        "name": "disable-checkout"
+      }
+    },
+    "destination": {
+      "branch": {
+        "name": "main"
+      }
+    }
+  },
+  "repository": {
+    "type": "repository",
+    "full_name": "acme/features",
+    "name": "features"
+  },
+  "actor": {
+    "type": "user",
+    "display_name": "Jane Doe",
+    "nickname": "jdoe"
+  }
+}

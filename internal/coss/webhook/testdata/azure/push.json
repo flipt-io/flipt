@@ -1,0 +1,66 @@
+{
+  "subscriptionId": "00000000-0000-0000-0000-000000000000",
+  "notificationId": 3,
+  "id": "03c164c2-8912-4d5e-8009-3707d5f83734",
+  "eventType": "git.push",
+  "publisherId": "tfs",
+  "message": {
+    "text": "Jane Doe pushed updates to features:main."
+  },
+  "detailedMessage": {
+    "text": "Jane Doe pushed a commit to features:main.\n - Disable checkout-v2 flag 33b55f7c"
+  },
+  "resource": {
+    "commits": [
+      {
+        "commitId": "33b55f7cb7e7e245323987634f960cf4a6e6bc74",
+        "author": {
+          "name": "Jane Doe",
+          "email": "jane@example.com",
+          "date": "2026-10-05T14:02:11Z"
+        },
+        "comment": "Disable checkout-v2 flag",
+        "url": "https://dev.azure.com/acme/_apis/git/repositories/278d5cd2-584d-4b63-824a-2ba458937249/commits/33b55f7cb7e7e245323987634f960cf4a6e6bc74"
+      }
+    ],
+    "refUpdates": [
+      {
+        "name": "refs/heads/main",
+        "oldObjectId": "aad331d8d3b131fa9ae03cf5e53965b51942618a",
+        "newObjectId": "33b55f7cb7e7e245323987634f960cf4a6e6bc74"
+      }
+    ],
+    "repository": {
+      "id": "278d5cd2-584d-4b63-824a-2ba458937249",
+      "name": "features",
+      "url": "https://dev.azure.com/acme/_apis/git/repositories/278d5cd2-584d-4b63-824a-2ba458937249",
+      "project": {
+        "id": "6ce954b1-ce1f-45d1-b94d-e6bf2464ba2c",
+        "name": "Acme",
+        "state": "wellFormed"
+      },
+      "defaultBranch": "refs/heads/main",
+      "remoteUrl": "https://dev.azure.com/acme/Acme/_git/features"
+    },
+    "pushedBy": {
+      "displayName": "Jane Doe",
+      "uniqueName": "jane@example.com"
+    },
+    "pushId": 14,
+    "date": "2026-10-05T14:02:11Z",
+    "url": "https://dev.azure.com/acme/_apis/git/repositories/278d5cd2-584d-4b63-824a-2ba458937249/pushes/14"
+  },
+  "resourceVersion": "1.0",
+  "resourceContainers": {
+    "collection": {
+      "id": "c12d0eb8-e382-443b-9f9c-c52cba5014c2"
+    },
+    "account": {
+      "id": "f844ec47-a9db-4511-8281-8b63f4eaf94e"
+    },
+    "project": {
+      "id": "6ce954b1-ce1f-45d1-b94d-e6bf2464ba2c"
+    }
+  },
+  "createdDate": "2026-10-05T14:02:12.123Z"
+}

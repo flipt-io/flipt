@@ -1,0 +1,23 @@
+{
+  "ref": "refs/tags/v1.2.0",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "59b20b8d5c6ff8d09518454d4dd8b7a30f095ab5",
+  "created": true,
+  "deleted": false,
+  "forced": false,
+  "base_ref": "refs/heads/main",
+  "commits": [],
+  "repository": {
+    "id": 186853002,
+    "name": "features",
+    "full_name": "acme/features"
+  },
+  "pusher": {
+    "name": "janedoe",
+    "email": "jane@example.com"
+  },
+  "sender": {
+    "login": "janedoe",
+    "id": 21031067
+  }
+}

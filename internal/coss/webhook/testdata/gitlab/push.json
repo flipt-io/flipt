@@ -1,0 +1,48 @@
+{
+  "object_kind": "push",
+  "event_name": "push",
+  "before": "95790bf891e76fee5e1747ab589903a6a1f80f22",
+  "after": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
+  "ref": "refs/heads/main",
+  "ref_protected": true,
+  "checkout_sha": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
+  "user_id": 4,
+  "user_name": "Jane Doe",
+  "user_username": "jdoe",
+  "user_email": "",
+  "project_id": 15,
+  "project": {
+    "id": 15,
+    "name": "features",
+    "web_url": "https://gitlab.example.com/acme/features",
+    "git_http_url": "https://gitlab.example.com/acme/features.git",
+    "namespace": "acme",
+    "path_with_namespace": "acme/features",
+    "default_branch": "main"
+  },
+  "commits": [
+    {
+      "id": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
+      "message": "Merge branch 'disable-checkout' into 'main'",
+      "title": "Merge branch 'disable-checkout' into 'main'",
+      "timestamp": "2026-10-05T14:02:11+00:00",
+      "url": "https://gitlab.example.com/acme/features/-/commit/da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
+      "author": {
+        "name": "Jane Doe",
+        "email": "jane@example.com"
+      },
+      "added": [],
+      "modified": [
+        "production/features.yaml"
+      ],
+      "removed": []
+    }
+  ],
+  "total_commits_count": 1,
+  "repository": {
+    "name": "features",
+    "url": "git@gitlab.example.com:acme/features.git",
+    "homepage": "https://gitlab.example.com/acme/features",
+    "git_http_url": "https://gitlab.example.com/acme/features.git"
+  }
+}

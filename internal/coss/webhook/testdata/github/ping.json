@@ -1,0 +1,27 @@
+{
+  "zen": "Keep it logically awesome.",
+  "hook_id": 30,
+  "hook": {
+    "type": "Repository",
+    "id": 30,
+    "name": "web",
+    "active": true,
+    "events": [
+      "push"
+    ],
+    "config": {
+      "content_type": "json",
+      "insecure_ssl": "0",
+      "url": "https://flipt.example.com/api/v2/webhooks/production"
+    }
+  },
+  "repository": {
+    "id": 186853002,
+    "name": "features",
+    "full_name": "acme/features"
+  },
+  "sender": {
+    "login": "janedoe",
+    "id": 21031067
+  }
+}
