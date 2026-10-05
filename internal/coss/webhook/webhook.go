@@ -12,8 +12,8 @@ package webhook
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
-	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -210,11 +210,25 @@ func verifyHMAC(secret, body []byte, signature string, prefixed bool) bool {
 	return hmac.Equal(got, mac.Sum(nil))
 }
 
+// compareKey keys the MACs in constantTimeEqual. It is random per process and
+// never leaves it.
+var compareKey = func() []byte {
+	key := make([]byte, sha256.Size)
+	_, _ = rand.Read(key) // never returns an error; it crashes the program on failure
+	return key
+}()
+
 // constantTimeEqual compares a and b in time independent of their contents.
-// Lengths are hashed first so the comparison doesn't leak the secret length.
+// Both are MACed with compareKey first, so the comparison works on equal-length
+// values and doesn't leak the secret's length.
 func constantTimeEqual(a, b []byte) bool {
-	ha, hb := sha256.Sum256(a), sha256.Sum256(b)
-	return subtle.ConstantTimeCompare(ha[:], hb[:]) == 1
+	return hmac.Equal(macOf(a), macOf(b))
+}
+
+func macOf(v []byte) []byte {
+	mac := hmac.New(sha256.New, compareKey)
+	mac.Write(v)
+	return mac.Sum(nil)
 }
 
 // Parse classifies an already-authenticated webhook and extracts the pushed
