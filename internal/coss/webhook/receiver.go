@@ -85,7 +85,8 @@ func (r *Receiver) Environments() []string {
 // ServeWebhook handles a webhook request addressed to the named environment.
 //
 // It responds 404 for an environment without a webhook configured, 401 when
-// the request fails authentication, 202 when a fetch was scheduled and 200
+// the request fails authentication, 413 for an oversized body, 400 for a
+// malformed or unsupported request, 202 when a fetch was scheduled and 200
 // for authentic events that need no fetch. Only the 202 path fetches.
 func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, environment string) {
 	var (
@@ -116,9 +117,11 @@ func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, enviro
 			logger.Info("webhook rejected", zap.String("reason", "authentication failed"), zap.Error(err))
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 		case errors.Is(err, ErrBodyTooLarge):
+			r.metrics.recordRequest(ctx, environment, scm, resultInvalid)
 			logger.Info("webhook rejected", zap.String("reason", "body too large"), zap.Error(err))
 			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
 		default:
+			r.metrics.recordRequest(ctx, environment, scm, resultInvalid)
 			logger.Info("webhook rejected", zap.String("reason", "invalid request"), zap.Error(err))
 			http.Error(w, "bad request", http.StatusBadRequest)
 		}

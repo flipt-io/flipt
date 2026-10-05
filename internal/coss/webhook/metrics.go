@@ -29,6 +29,9 @@ const (
 	resultIgnored      result = "ignored"
 	resultUnauthorized result = "unauthorized"
 	resultNotFound     result = "not_found"
+	// resultInvalid is a request for a configured environment rejected as
+	// malformed, unsupported or oversized (400 or 413).
+	resultInvalid result = "invalid"
 )
 
 // unknownLabel is the environment and scm label value for requests that don't

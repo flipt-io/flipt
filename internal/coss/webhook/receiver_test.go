@@ -291,6 +291,76 @@ func TestReceiver_UnknownEnvironmentNeverFetches(t *testing.T) {
 	assert.Equal(t, int64(0), counterValue(t, metricRequests, requestAttrs("staging", unknownLabel, resultNotFound)...))
 }
 
+// TestReceiver_InvalidNeverFetches asserts malformed, unsupported and
+// oversized requests for a configured environment are counted as invalid and
+// never fetch.
+func TestReceiver_InvalidNeverFetches(t *testing.T) {
+	tests := []struct {
+		name    string
+		scm     config.SCMType
+		body    []byte
+		headers map[string]string
+		auth    auth
+		code    int
+	}{
+		{
+			name:    "malformed authentic payload",
+			scm:     config.GitHubSCMType,
+			body:    []byte(`{"ref":`),
+			headers: map[string]string{headerGitHubEvent: "push"},
+			auth:    githubSig(testSecret),
+			code:    http.StatusBadRequest,
+		},
+		{
+			name: "unsupported scm",
+			scm:  config.SCMType("svn"),
+			body: []byte(`{}`),
+			auth: noAuth,
+			code: http.StatusBadRequest,
+		},
+		{
+			name: "body too large",
+			scm:  config.GitLabSCMType,
+			body: bytes.Repeat([]byte("a"), int(MaxBodySize)+1),
+			headers: map[string]string{
+				headerGitLabEvent: "Push Hook",
+			},
+			auth: gitlabToken(testSecret),
+			code: http.StatusRequestEntityTooLarge,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			const environment = "invalid"
+
+			// no expectations: any Tracks or Fetch call fails the test
+			repo := NewMockRepository(t)
+			r := newTestReceiver(t, environment, tt.scm, repo)
+
+			before := counterValue(t, metricRequests, requestAttrs(environment, tt.scm, resultInvalid)...)
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v2/webhooks/"+environment, bytes.NewReader(tt.body))
+			for k, v := range tt.headers {
+				req.Header.Set(k, v)
+			}
+			tt.auth(req, tt.body)
+
+			rec := serve(r, req, environment)
+			r.Wait()
+
+			assert.Equal(t, tt.code, rec.Code)
+			repo.AssertExpectations(t)
+			repo.AssertNotCalled(t, "Fetch", mock.Anything)
+
+			assert.Equal(t, int64(1), counterValue(t, metricRequests, requestAttrs(environment, tt.scm, resultInvalid)...)-before)
+			for _, res := range []result{resultAccepted, resultIgnored, resultUnauthorized} {
+				assert.Equal(t, int64(0), counterValue(t, metricRequests, requestAttrs(environment, tt.scm, res)...), res)
+			}
+		})
+	}
+}
+
 func TestReceiver_IgnoredEvents(t *testing.T) {
 	tests := []struct {
 		name    string
