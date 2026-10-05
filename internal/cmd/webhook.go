@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"slices"
 
+	"go.uber.org/zap"
+
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/webhook"
 	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/secrets"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
-	"go.uber.org/zap"
 )
 
 // webhookPathPattern is the route serving incoming SCM webhooks.

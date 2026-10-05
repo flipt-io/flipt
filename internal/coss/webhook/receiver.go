@@ -13,9 +13,10 @@ import (
 	"sync"
 	"time"
 
+	"go.uber.org/zap"
+
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
-	"go.uber.org/zap"
 )
 
 // Repository is the part of a storage git repository the receiver drives.
@@ -51,7 +52,8 @@ type Receiver struct {
 }
 
 // NewReceiver returns a Receiver for the given targets, keyed by environment
-// name. Fetches run under ctx, so cancelling it aborts in-flight fetches.
+// name. Fetches run under ctx, so cancelling it aborts in-flight fetches and
+// stops new ones from being scheduled.
 func NewReceiver(ctx context.Context, logger *zap.Logger, targets map[string]Target) *Receiver {
 	r := &Receiver{
 		ctx:     ctx,
@@ -88,6 +90,11 @@ func (r *Receiver) Environments() []string {
 // the request fails authentication, 413 for an oversized body, 400 for a
 // malformed or unsupported request, 202 when a fetch was scheduled and 200
 // for authentic events that need no fetch. Only the 202 path fetches.
+//
+// Once the receiver's context is cancelled (Flipt is shutting down), an
+// authentic push that would otherwise fetch gets 503 and isn't counted in
+// the requests metric, since no fetch was scheduled; the sender can retry
+// against the restarted server.
 func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, environment string) {
 	var (
 		ctx      = req.Context()
@@ -97,7 +104,7 @@ func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, enviro
 	target, ok := r.targets[environment]
 	if !ok {
 		r.metrics.recordRequest(ctx, unknownLabel, unknownLabel, resultNotFound)
-		r.logger.Info("webhook rejected",
+		r.logger.Debug("webhook rejected",
 			zap.String("environment", environment),
 			zap.String("reason", "no webhook configured for environment"))
 		http.Error(w, "not found", http.StatusNotFound)
@@ -114,15 +121,15 @@ func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, enviro
 		switch {
 		case errs.AsMatch[errs.ErrUnauthenticated](err):
 			r.metrics.recordRequest(ctx, environment, scm, resultUnauthorized)
-			logger.Info("webhook rejected", zap.String("reason", "authentication failed"), zap.Error(err))
+			logger.Debug("webhook rejected", zap.String("reason", "authentication failed"), zap.Error(err))
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 		case errors.Is(err, ErrBodyTooLarge):
 			r.metrics.recordRequest(ctx, environment, scm, resultInvalid)
-			logger.Info("webhook rejected", zap.String("reason", "body too large"), zap.Error(err))
+			logger.Debug("webhook rejected", zap.String("reason", "body too large"), zap.Error(err))
 			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
 		default:
 			r.metrics.recordRequest(ctx, environment, scm, resultInvalid)
-			logger.Info("webhook rejected", zap.String("reason", "invalid request"), zap.Error(err))
+			logger.Debug("webhook rejected", zap.String("reason", "invalid request"), zap.Error(err))
 			http.Error(w, "bad request", http.StatusBadRequest)
 		}
 		return
@@ -141,21 +148,25 @@ func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, enviro
 
 	if len(tracked) == 0 {
 		r.metrics.recordRequest(ctx, environment, scm, resultIgnored)
-		logger.Info("webhook ignored",
+		logger.Debug("webhook ignored",
 			zap.String("kind", string(event.Kind)),
 			zap.Strings("branches", event.Branches))
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	r.metrics.recordRequest(ctx, environment, scm, resultAccepted)
-	logger.Info("webhook accepted; scheduling fetch", zap.Strings("branches", tracked))
-
-	r.syncers[target.Repository].trigger(pendingSync{
+	if !r.syncers[target.Repository].trigger(pendingSync{
 		environment: environment,
 		scm:         scm,
 		received:    received,
-	})
+	}) {
+		logger.Debug("webhook rejected", zap.String("reason", "shutting down"))
+		http.Error(w, "shutting down", http.StatusServiceUnavailable)
+		return
+	}
+
+	r.metrics.recordRequest(ctx, environment, scm, resultAccepted)
+	logger.Debug("webhook accepted; fetch scheduled", zap.Strings("branches", tracked))
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -163,6 +174,25 @@ func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, enviro
 // Wait blocks until no webhook-triggered fetch is running or pending.
 func (r *Receiver) Wait() {
 	r.wg.Wait()
+}
+
+// Shutdown waits for webhook-triggered fetches to finish, or for ctx to be
+// done, in which case it returns ctx's error. It doesn't cancel fetches;
+// cancel the context given to NewReceiver for that. Once that context is
+// cancelled no new fetch is scheduled, so Shutdown can't race a trigger.
+func (r *Receiver) Shutdown(ctx context.Context) error {
+	done := make(chan struct{})
+	go func() {
+		r.wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 type pendingSync struct {
@@ -181,17 +211,27 @@ type syncer struct {
 	pending []pendingSync
 }
 
-func (s *syncer) trigger(p pendingSync) {
+// trigger schedules a fetch serving p. It reports false, scheduling nothing,
+// once the receiver's context is cancelled.
+func (s *syncer) trigger(p pendingSync) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// checked under mu so no fetch is started after cancellation, which
+	// keeps wg.Go from racing a Shutdown that began after cancellation
+	if s.receiver.ctx.Err() != nil {
+		return false
+	}
+
 	s.pending = append(s.pending, p)
 	if s.running {
-		return
+		return true
 	}
 
 	s.running = true
 	s.receiver.wg.Go(s.run)
+
+	return true
 }
 
 // run fetches until no triggers are pending. Each fetch serves every trigger
@@ -203,7 +243,7 @@ func (s *syncer) run() {
 		s.mu.Lock()
 		batch := s.pending
 		s.pending = nil
-		if len(batch) == 0 {
+		if len(batch) == 0 || r.ctx.Err() != nil {
 			s.running = false
 			s.mu.Unlock()
 			return
@@ -218,11 +258,17 @@ func (s *syncer) run() {
 		}
 
 		logger := r.logger.With(zap.Strings("environments", environments), zap.Int("webhooks", len(batch)))
-		logger.Info("webhook-triggered fetch started")
+		logger.Debug("webhook-triggered fetch started")
 
 		start := time.Now()
 		err := s.repo.Fetch(r.ctx)
 		completed := time.Now()
+
+		if err != nil && r.ctx.Err() != nil {
+			// aborted by shutdown rather than failed
+			logger.Debug("webhook-triggered fetch aborted", zap.Error(err))
+			continue
+		}
 
 		if err != nil {
 			logger.Error("webhook-triggered fetch failed", zap.Error(err))
@@ -241,7 +287,7 @@ func (s *syncer) run() {
 			continue
 		}
 
-		logger.Info("webhook-triggered fetch completed", zap.Duration("duration", completed.Sub(start)))
+		logger.Debug("webhook-triggered fetch completed", zap.Duration("duration", completed.Sub(start)))
 
 		for _, p := range batch {
 			r.metrics.recordSync(r.ctx, p.environment, p.scm, completed.Sub(p.received))
