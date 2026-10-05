@@ -526,14 +526,15 @@ func NewGRPCServer(
 		return nil
 	})
 
-	// wait for in-flight webhook-triggered fetches before the rest of the
-	// stack (including metrics and storage) shuts down. Registered last so it
-	// runs first; the HTTP server serving webhooks has already stopped.
+	// let in-flight and accepted webhook-triggered fetches complete before the
+	// rest of the stack (including metrics and storage) shuts down, cancelling
+	// them if the shutdown deadline passes first. Registered last so it runs
+	// first; the HTTP server serving webhooks has already stopped.
 	if server.webhookReceiver != nil {
 		server.onShutdown(func(ctx context.Context) error {
 			if err := server.webhookReceiver.Shutdown(ctx); err != nil {
 				// don't abort the remaining shutdown funcs
-				logger.Warn("webhook-triggered fetches still running at shutdown", zap.Error(err))
+				logger.Warn("webhook-triggered fetches cancelled at shutdown", zap.Error(err))
 			}
 			return nil
 		})

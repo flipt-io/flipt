@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -23,7 +24,10 @@ import (
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // OTel instrument names. The Prometheus exporter appends unit suffixes, so
@@ -264,6 +268,13 @@ func TestReceiver_AzurePush(t *testing.T) {
 
 	r := newTestReceiver(t, environment, config.AzureSCMType, repo)
 
+	// metrics are global, so assert deltas to stay correct under -count
+	var (
+		acceptedBefore = counterValue(t, metricRequests, requestAttrs(environment, config.AzureSCMType, resultAccepted)...)
+		syncBefore     = syncCount(t, syncAttrs(environment, config.AzureSCMType)...)
+		errorsBefore   = counterValue(t, metricFetchErrors, syncAttrs(environment, config.AzureSCMType)...)
+	)
+
 	req := newRequest(t, environment, "azure/push.json", nil, azureBasic(testSecret))
 	rec := serve(r, req, environment)
 	r.Wait()
@@ -272,9 +283,9 @@ func TestReceiver_AzurePush(t *testing.T) {
 	repo.AssertExpectations(t)
 	repo.AssertNumberOfCalls(t, "Fetch", 1)
 
-	assert.Equal(t, int64(1), counterValue(t, metricRequests, requestAttrs(environment, config.AzureSCMType, resultAccepted)...))
-	assert.Equal(t, uint64(1), syncCount(t, syncAttrs(environment, config.AzureSCMType)...))
-	assert.Equal(t, int64(0), counterValue(t, metricFetchErrors, syncAttrs(environment, config.AzureSCMType)...))
+	assert.Equal(t, int64(1), counterValue(t, metricRequests, requestAttrs(environment, config.AzureSCMType, resultAccepted)...)-acceptedBefore)
+	assert.Equal(t, uint64(1), syncCount(t, syncAttrs(environment, config.AzureSCMType)...)-syncBefore)
+	assert.Equal(t, int64(0), counterValue(t, metricFetchErrors, syncAttrs(environment, config.AzureSCMType)...)-errorsBefore)
 }
 
 func TestReceiver_ValidPushFetchesOnce(t *testing.T) {
@@ -288,6 +299,11 @@ func TestReceiver_ValidPushFetchesOnce(t *testing.T) {
 
 			r := newTestReceiver(t, environment, p.scm, repo)
 
+			var (
+				acceptedBefore = counterValue(t, metricRequests, requestAttrs(environment, p.scm, resultAccepted)...)
+				syncBefore     = syncCount(t, syncAttrs(environment, p.scm)...)
+			)
+
 			rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
 			r.Wait()
 
@@ -295,8 +311,8 @@ func TestReceiver_ValidPushFetchesOnce(t *testing.T) {
 			repo.AssertExpectations(t)
 			repo.AssertNumberOfCalls(t, "Fetch", 1)
 
-			assert.Equal(t, int64(1), counterValue(t, metricRequests, requestAttrs(environment, p.scm, resultAccepted)...))
-			assert.Equal(t, uint64(1), syncCount(t, syncAttrs(environment, p.scm)...))
+			assert.Equal(t, int64(1), counterValue(t, metricRequests, requestAttrs(environment, p.scm, resultAccepted)...)-acceptedBefore)
+			assert.Equal(t, uint64(1), syncCount(t, syncAttrs(environment, p.scm)...)-syncBefore)
 		})
 	}
 }
@@ -558,6 +574,11 @@ func TestReceiver_FetchError(t *testing.T) {
 
 	r := newTestReceiver(t, environment, config.GiteaSCMType, repo)
 
+	var (
+		errorsBefore = counterValue(t, metricFetchErrors, syncAttrs(environment, config.GiteaSCMType)...)
+		syncBefore   = syncCount(t, syncAttrs(environment, config.GiteaSCMType)...)
+	)
+
 	p := providers["gitea"]
 	rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
 	r.Wait()
@@ -565,8 +586,8 @@ func TestReceiver_FetchError(t *testing.T) {
 	assert.Equal(t, http.StatusAccepted, rec.Code)
 	repo.AssertExpectations(t)
 
-	assert.Equal(t, int64(1), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GiteaSCMType)...))
-	assert.Equal(t, uint64(0), syncCount(t, syncAttrs(environment, config.GiteaSCMType)...))
+	assert.Equal(t, int64(1), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GiteaSCMType)...)-errorsBefore)
+	assert.Equal(t, uint64(0), syncCount(t, syncAttrs(environment, config.GiteaSCMType)...)-syncBefore)
 }
 
 // TestReceiver_CollapsesBursts asserts webhooks arriving while a fetch runs
@@ -611,6 +632,11 @@ func TestReceiver_CollapsesBursts(t *testing.T) {
 	r := newTestReceiver(t, environment, config.GitHubSCMType, repo)
 	p := providers["github"]
 
+	var (
+		acceptedBefore = counterValue(t, metricRequests, requestAttrs(environment, config.GitHubSCMType, resultAccepted)...)
+		syncBefore     = syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)
+	)
+
 	// the first webhook starts a fetch which blocks until released
 	assert.Equal(t, http.StatusAccepted, serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment).Code)
 
@@ -636,8 +662,8 @@ func TestReceiver_CollapsesBursts(t *testing.T) {
 	repo.AssertNumberOfCalls(t, "Fetch", 2)
 	assert.Equal(t, 1, maxIn, "fetches must never run in parallel")
 
-	assert.Equal(t, int64(burst+1), counterValue(t, metricRequests, requestAttrs(environment, config.GitHubSCMType, resultAccepted)...))
-	assert.Equal(t, uint64(burst+1), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...))
+	assert.Equal(t, int64(burst+1), counterValue(t, metricRequests, requestAttrs(environment, config.GitHubSCMType, resultAccepted)...)-acceptedBefore)
+	assert.Equal(t, uint64(burst+1), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)-syncBefore)
 }
 
 // TestReceiver_CancelledContextSkipsFetch asserts that once the receiver's
@@ -668,21 +694,41 @@ func TestReceiver_CancelledContextSkipsFetch(t *testing.T) {
 	assert.Equal(t, int64(0), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...))
 }
 
-// TestReceiver_ShutdownAbortedFetchIsNotAnError asserts that a fetch aborted
-// by cancelling the receiver's context is waited for by Shutdown and isn't
-// counted as a fetch error.
-func TestReceiver_ShutdownAbortedFetchIsNotAnError(t *testing.T) {
-	const environment = "shutdown-abort"
+// awaitClosed fails the test unless ch is closed within 5s.
+func awaitClosed(t *testing.T, ch <-chan struct{}, what string) {
+	t.Helper()
 
-	started := make(chan struct{})
+	select {
+	case <-ch:
+	case <-time.After(5 * time.Second):
+		t.Fatal(what)
+	}
+}
+
+// TestReceiver_ShutdownCompletesInFlightFetch asserts that cancelling the
+// receiver's context neither aborts a running fetch nor drops a webhook
+// accepted while it runs: new webhooks get 503, and Shutdown waits for both
+// fetches to complete and record their sync durations.
+func TestReceiver_ShutdownCompletesInFlightFetch(t *testing.T) {
+	const environment = "shutdown-complete"
+
+	var (
+		started = make(chan struct{})
+		release = make(chan struct{})
+		calls   atomic.Int32
+	)
 
 	repo := NewMockRepository(t)
-	repo.EXPECT().Tracks("main").Return(true).Once()
+	repo.EXPECT().Tracks("main").Return(true).Times(3)
 	repo.EXPECT().Fetch(mock.Anything).RunAndReturn(func(ctx context.Context, _ ...string) error {
-		close(started)
-		<-ctx.Done()
+		if calls.Add(1) == 1 {
+			close(started)
+			<-release
+		}
+		// non-nil only if the fetch was cancelled, which would make it an
+		// aborted fetch recording no sync duration
 		return ctx.Err()
-	}).Once()
+	}).Twice()
 
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
@@ -691,62 +737,26 @@ func TestReceiver_ShutdownAbortedFetchIsNotAnError(t *testing.T) {
 		environment: {SCM: config.GitHubSCMType, Secret: []byte(testSecret), Repository: repo},
 	})
 
-	p := providers["github"]
-	rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
-	assert.Equal(t, http.StatusAccepted, rec.Code)
+	var (
+		acceptedBefore = counterValue(t, metricRequests, requestAttrs(environment, config.GitHubSCMType, resultAccepted)...)
+		errorsBefore   = counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...)
+		syncBefore     = syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)
+	)
 
-	select {
-	case <-started:
-	case <-time.After(5 * time.Second):
-		t.Fatal("fetch never started")
+	p := providers["github"]
+	send := func() int {
+		return serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment).Code
 	}
+
+	assert.Equal(t, http.StatusAccepted, send())
+	awaitClosed(t, started, "fetch never started")
+
+	// accepted while the first fetch runs, so still pending at shutdown
+	assert.Equal(t, http.StatusAccepted, send())
 
 	cancel()
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(t.Context(), 5*time.Second)
-	defer shutdownCancel()
-	require.NoError(t, r.Shutdown(shutdownCtx))
-
-	repo.AssertExpectations(t)
-	assert.Equal(t, int64(0), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...))
-	assert.Equal(t, uint64(0), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...))
-}
-
-// TestReceiver_ShutdownWaitsForFetch asserts Shutdown waits for an in-flight
-// fetch to complete, and gives up with the context's error when the context
-// is done first.
-func TestReceiver_ShutdownWaitsForFetch(t *testing.T) {
-	const environment = "shutdown-wait"
-
-	var (
-		started = make(chan struct{})
-		release = make(chan struct{})
-	)
-
-	repo := NewMockRepository(t)
-	repo.EXPECT().Tracks("main").Return(true).Once()
-	repo.EXPECT().Fetch(mock.Anything).RunAndReturn(func(context.Context, ...string) error {
-		close(started)
-		<-release
-		return nil
-	}).Once()
-
-	r := newTestReceiver(t, environment, config.GitHubSCMType, repo)
-
-	p := providers["github"]
-	rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
-	assert.Equal(t, http.StatusAccepted, rec.Code)
-
-	select {
-	case <-started:
-	case <-time.After(5 * time.Second):
-		t.Fatal("fetch never started")
-	}
-
-	// the fetch is still running, so a bounded Shutdown gives up
-	expired, expiredCancel := context.WithTimeout(t.Context(), 50*time.Millisecond)
-	defer expiredCancel()
-	require.ErrorIs(t, r.Shutdown(expired), context.DeadlineExceeded)
+	assert.Equal(t, http.StatusServiceUnavailable, send(), "new webhooks are refused once shutting down")
 
 	done := make(chan error, 1)
 	go func() { done <- r.Shutdown(t.Context()) }()
@@ -767,5 +777,123 @@ func TestReceiver_ShutdownWaitsForFetch(t *testing.T) {
 	}
 
 	repo.AssertExpectations(t)
-	assert.Equal(t, uint64(1), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...))
+	assert.Equal(t, int64(2), counterValue(t, metricRequests, requestAttrs(environment, config.GitHubSCMType, resultAccepted)...)-acceptedBefore)
+	assert.Equal(t, int64(0), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...)-errorsBefore)
+	assert.Equal(t, uint64(2), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)-syncBefore)
+}
+
+// TestReceiver_ShutdownFetchFailureIsAnError asserts that a fetch failing on
+// its own while Flipt shuts down is still logged and counted as a fetch error.
+func TestReceiver_ShutdownFetchFailureIsAnError(t *testing.T) {
+	const environment = "shutdown-failure"
+
+	var (
+		started = make(chan struct{})
+		release = make(chan struct{})
+	)
+
+	repo := NewMockRepository(t)
+	repo.EXPECT().Tracks("main").Return(true).Once()
+	repo.EXPECT().Fetch(mock.Anything).RunAndReturn(func(context.Context, ...string) error {
+		close(started)
+		<-release
+		return errors.New("connection refused")
+	}).Once()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	core, logs := observer.New(zapcore.DebugLevel)
+	r := NewReceiver(ctx, zap.New(core), map[string]Target{
+		environment: {SCM: config.GitHubSCMType, Secret: []byte(testSecret), Repository: repo},
+	})
+
+	var (
+		errorsBefore = counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...)
+		syncBefore   = syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)
+	)
+
+	p := providers["github"]
+	assert.Equal(t, http.StatusAccepted, serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment).Code)
+	awaitClosed(t, started, "fetch never started")
+
+	cancel()
+	close(release)
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(t.Context(), 5*time.Second)
+	defer shutdownCancel()
+	require.NoError(t, r.Shutdown(shutdownCtx))
+
+	repo.AssertExpectations(t)
+	assert.Equal(t, int64(1), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...)-errorsBefore)
+	assert.Equal(t, uint64(0), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)-syncBefore)
+	assert.Equal(t, 1, logs.FilterLevelExact(zapcore.ErrorLevel).FilterMessage("webhook-triggered fetch failed").Len())
+}
+
+// TestReceiver_ShutdownTimeoutCancelsFetch asserts that when Shutdown's
+// context expires first, it cancels the running fetch, drops the pending
+// webhook, waits for the fetch to unwind and returns the context's error.
+// The aborted fetch is logged at Debug and isn't counted as a fetch error.
+func TestReceiver_ShutdownTimeoutCancelsFetch(t *testing.T) {
+	const environment = "shutdown-timeout"
+
+	var (
+		started  = make(chan struct{})
+		unwound  = make(chan struct{})
+		fetchErr error
+	)
+
+	repo := NewMockRepository(t)
+	repo.EXPECT().Tracks("main").Return(true).Twice()
+	repo.EXPECT().Fetch(mock.Anything).RunAndReturn(func(ctx context.Context, _ ...string) error {
+		defer close(unwound)
+		close(started)
+		<-ctx.Done()
+		fetchErr = ctx.Err()
+		return fetchErr
+	}).Once()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	core, logs := observer.New(zapcore.DebugLevel)
+	r := NewReceiver(ctx, zap.New(core), map[string]Target{
+		environment: {SCM: config.GitHubSCMType, Secret: []byte(testSecret), Repository: repo},
+	})
+
+	var (
+		errorsBefore = counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...)
+		syncBefore   = syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)
+	)
+
+	p := providers["github"]
+	send := func() int {
+		return serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment).Code
+	}
+
+	assert.Equal(t, http.StatusAccepted, send())
+	awaitClosed(t, started, "fetch never started")
+
+	// pending behind the running fetch; dropped once it is cancelled
+	assert.Equal(t, http.StatusAccepted, send())
+
+	cancel()
+
+	expired, expiredCancel := context.WithTimeout(t.Context(), 50*time.Millisecond)
+	defer expiredCancel()
+	require.ErrorIs(t, r.Shutdown(expired), context.DeadlineExceeded)
+
+	// Shutdown returned only after the cancelled fetch unwound
+	select {
+	case <-unwound:
+	default:
+		t.Fatal("Shutdown returned before the cancelled fetch unwound")
+	}
+	require.ErrorIs(t, fetchErr, context.Canceled)
+
+	repo.AssertExpectations(t)
+	assert.Equal(t, int64(0), counterValue(t, metricFetchErrors, syncAttrs(environment, config.GitHubSCMType)...)-errorsBefore)
+	assert.Equal(t, uint64(0), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)-syncBefore)
+	assert.Equal(t, 0, logs.FilterLevelExact(zapcore.ErrorLevel).Len())
+	assert.Equal(t, 1, logs.FilterLevelExact(zapcore.DebugLevel).FilterMessage("webhook-triggered fetch aborted").Len())
 }

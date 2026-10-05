@@ -43,24 +43,32 @@ type Target struct {
 // Fetches are collapsed per repository: at most one runs at a time, and any
 // webhooks accepted while it runs are served by a single follow-up fetch.
 type Receiver struct {
-	ctx     context.Context
-	logger  *zap.Logger
-	targets map[string]Target
-	syncers map[Repository]*syncer
-	metrics receiverMetrics
-	wg      sync.WaitGroup
+	ctx context.Context
+	// fetchCtx outlives ctx so fetches already running or accepted when ctx
+	// is cancelled complete; Shutdown cancels it when its own ctx expires.
+	fetchCtx    context.Context
+	cancelFetch context.CancelFunc
+	logger      *zap.Logger
+	targets     map[string]Target
+	syncers     map[Repository]*syncer
+	metrics     receiverMetrics
+	wg          sync.WaitGroup
 }
 
 // NewReceiver returns a Receiver for the given targets, keyed by environment
-// name. Fetches run under ctx, so cancelling it aborts in-flight fetches and
-// stops new ones from being scheduled.
+// name. Cancelling ctx stops new fetches from being scheduled, but fetches
+// already running or accepted still complete; call Shutdown to wait for them.
 func NewReceiver(ctx context.Context, logger *zap.Logger, targets map[string]Target) *Receiver {
+	fetchCtx, cancelFetch := context.WithCancel(context.WithoutCancel(ctx))
+
 	r := &Receiver{
-		ctx:     ctx,
-		logger:  logger.With(zap.String("component", "webhook")),
-		targets: targets,
-		syncers: map[Repository]*syncer{},
-		metrics: newReceiverMetrics(),
+		ctx:         ctx,
+		fetchCtx:    fetchCtx,
+		cancelFetch: cancelFetch,
+		logger:      logger.With(zap.String("component", "webhook")),
+		targets:     targets,
+		syncers:     map[Repository]*syncer{},
+		metrics:     newReceiverMetrics(),
 	}
 
 	for _, t := range targets {
@@ -181,11 +189,13 @@ func (r *Receiver) Wait() {
 	r.wg.Wait()
 }
 
-// Shutdown waits for webhook-triggered fetches to finish, or for ctx to be
-// done, in which case it returns ctx's error. It doesn't cancel fetches;
-// cancel the context given to NewReceiver for that. Once that context is
-// cancelled no new fetch is scheduled, so Shutdown can't race a trigger.
+// Shutdown waits for webhook-triggered fetches, running or accepted and
+// pending, to finish. If ctx is done first, it cancels them, waits for them
+// to unwind and returns ctx's error. Call it after cancelling the context
+// given to NewReceiver, so no new fetch is scheduled while it waits.
 func (r *Receiver) Shutdown(ctx context.Context) error {
+	defer r.cancelFetch()
+
 	done := make(chan struct{})
 	go func() {
 		r.wg.Wait()
@@ -196,6 +206,8 @@ func (r *Receiver) Shutdown(ctx context.Context) error {
 	case <-done:
 		return nil
 	case <-ctx.Done():
+		r.cancelFetch()
+		<-done
 		return ctx.Err()
 	}
 }
@@ -240,7 +252,8 @@ func (s *syncer) trigger(p pendingSync) bool {
 }
 
 // run fetches until no triggers are pending. Each fetch serves every trigger
-// accepted before it started.
+// accepted before it started. Triggers still pending once Shutdown cancels
+// the fetch context are dropped.
 func (s *syncer) run() {
 	r := s.receiver
 
@@ -248,9 +261,12 @@ func (s *syncer) run() {
 		s.mu.Lock()
 		batch := s.pending
 		s.pending = nil
-		if len(batch) == 0 || r.ctx.Err() != nil {
+		if len(batch) == 0 || r.fetchCtx.Err() != nil {
 			s.running = false
 			s.mu.Unlock()
+			if len(batch) > 0 {
+				r.logger.Debug("webhook-triggered fetch dropped at shutdown", zap.Int("webhooks", len(batch)))
+			}
 			return
 		}
 		s.mu.Unlock()
@@ -266,11 +282,11 @@ func (s *syncer) run() {
 		logger.Debug("webhook-triggered fetch started")
 
 		start := time.Now()
-		err := s.repo.Fetch(r.ctx)
+		err := s.repo.Fetch(r.fetchCtx)
 		completed := time.Now()
 
-		if err != nil && r.ctx.Err() != nil {
-			// aborted by shutdown rather than failed
+		if err != nil && r.fetchCtx.Err() != nil {
+			// aborted by a Shutdown timeout rather than failed
 			logger.Debug("webhook-triggered fetch aborted", zap.Error(err))
 			continue
 		}
@@ -287,7 +303,7 @@ func (s *syncer) run() {
 					continue
 				}
 				seen[k] = struct{}{}
-				r.metrics.recordFetchError(r.ctx, p.environment, p.scm)
+				r.metrics.recordFetchError(r.fetchCtx, p.environment, p.scm)
 			}
 			continue
 		}
@@ -295,7 +311,7 @@ func (s *syncer) run() {
 		logger.Debug("webhook-triggered fetch completed", zap.Duration("duration", completed.Sub(start)))
 
 		for _, p := range batch {
-			r.metrics.recordSync(r.ctx, p.environment, p.scm, completed.Sub(p.received))
+			r.metrics.recordSync(r.fetchCtx, p.environment, p.scm, completed.Sub(p.received))
 		}
 	}
 }
