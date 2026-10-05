@@ -86,10 +86,15 @@ func (r *Receiver) Environments() []string {
 
 // ServeWebhook handles a webhook request addressed to the named environment.
 //
-// It responds 404 for an environment without a webhook configured, 401 when
-// the request fails authentication, 413 for an oversized body, 400 for a
-// malformed or unsupported request, 202 when a fetch was scheduled and 200
-// for authentic events that need no fetch. Only the 202 path fetches.
+// It responds 401 when the request fails authentication, 413 for an
+// oversized body, 400 for a malformed or unsupported request, 202 when a
+// fetch was scheduled and 200 for authentic events that need no fetch. Only
+// the 202 path fetches.
+//
+// An unknown environment, or one without a webhook configured, gets the same
+// 401 response as an authentication failure without its body being read, so
+// responses don't reveal which environments accept webhooks. It's still
+// counted as not_found in the requests metric.
 //
 // Once the receiver's context is cancelled (Flipt is shutting down), an
 // authentic push that would otherwise fetch gets 503 and isn't counted in
@@ -107,7 +112,7 @@ func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, enviro
 		r.logger.Debug("webhook rejected",
 			zap.String("environment", environment),
 			zap.String("reason", "no webhook configured for environment"))
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 

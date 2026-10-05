@@ -369,6 +369,9 @@ func TestReceiver_HeaderTokenUnauthenticatedSkipsBody(t *testing.T) {
 	}
 }
 
+// TestReceiver_UnknownEnvironmentNeverFetches asserts a request for an
+// environment without a webhook gets the same 401 as an authentication
+// failure, without its body being read, and is counted as not_found.
 func TestReceiver_UnknownEnvironmentNeverFetches(t *testing.T) {
 	repo := NewMockRepository(t)
 	r := newTestReceiver(t, "production", config.GitHubSCMType, repo)
@@ -377,10 +380,23 @@ func TestReceiver_UnknownEnvironmentNeverFetches(t *testing.T) {
 	before := counterValue(t, metricRequests, notFound...)
 
 	p := providers["github"]
-	rec := serve(r, newRequest(t, "staging", p.fixture, p.headers, p.auth(testSecret)), "staging")
+	body := &recordingReader{}
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v2/webhooks/staging", body)
+	for k, v := range p.headers {
+		req.Header.Set(k, v)
+	}
+
+	rec := serve(r, req, "staging")
 	r.Wait()
 
-	assert.Equal(t, http.StatusNotFound, rec.Code)
+	// indistinguishable from an authentication failure for a configured environment
+	unauthorized := serve(r, newRequest(t, "production", p.fixture, p.headers, p.auth("wrong")), "production")
+	r.Wait()
+
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+	assert.Equal(t, unauthorized.Code, rec.Code)
+	assert.Equal(t, unauthorized.Body.String(), rec.Body.String())
+	assert.False(t, body.read, "body was read for an unknown environment")
 	repo.AssertExpectations(t)
 	repo.AssertNotCalled(t, "Fetch", mock.Anything)
 

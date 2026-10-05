@@ -206,9 +206,18 @@ func TestWebhookRoute(t *testing.T) {
 		assert.Equal(t, http.StatusAccepted, res.Code, "body: %s", res.Body.String())
 		repo.AssertExpectations(t)
 
+		// an environment without a webhook looks like an authentication failure
+		req := newReq(t)
+		req.URL.Path = "/api/v2/webhooks/staging"
+
+		res = httptest.NewRecorder()
+		server.Handler.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusUnauthorized, res.Code, "body: %s", res.Body.String())
+
 		// the exemption covers only the webhook route: a cross-site POST to
 		// any other API path is still rejected.
-		req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "http://localhost/api/v2/environments/production/namespaces", strings.NewReader(`{}`))
+		req = httptest.NewRequestWithContext(t.Context(), http.MethodPost, "http://localhost/api/v2/environments/production/namespaces", strings.NewReader(`{}`))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Sec-Fetch-Site", "cross-site")
 		req.Header.Set("Origin", "https://evil.example")
