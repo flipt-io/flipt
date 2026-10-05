@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -333,6 +334,29 @@ func TestRepositoryWithCustomBranch(t *testing.T) {
 	require.NotNil(t, repo)
 
 	assert.Equal(t, "develop", repo.defaultBranch, "should use custom default branch")
+}
+
+type branchesSubscriber []string
+
+func (b branchesSubscriber) Branches() []string { return b }
+
+func (branchesSubscriber) Notify(context.Context, map[string]string) error { return nil }
+
+func TestRepositoryTracks(t *testing.T) {
+	repo, _, err := newRepository(t.Context(), zap.NewNop(),
+		WithFilesystemStorage(t.TempDir()),
+		WithDefaultBranch("develop"))
+	require.NoError(t, err)
+
+	assert.True(t, repo.Tracks("develop"), "default branch is always tracked")
+	assert.False(t, repo.Tracks("main"), "no subscriber tracks main yet")
+
+	repo.Subscribe(branchesSubscriber{"main", "flipt/production/*"})
+
+	assert.True(t, repo.Tracks("main"))
+	assert.True(t, repo.Tracks("flipt/production/feature"))
+	assert.False(t, repo.Tracks("flipt/staging/feature"))
+	assert.False(t, repo.Tracks("feature"))
 }
 
 func TestFetchPolicy_Strict(t *testing.T) {

@@ -464,7 +464,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	// starts grpc server
 	g.Go(grpcServer.Run)
 
-	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, info)
+	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, info, cmd.WithWebhookReceiver(grpcServer.WebhookReceiver()))
 	if err != nil {
 		return err
 	}

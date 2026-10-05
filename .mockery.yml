@@ -40,6 +40,9 @@ packages:
   go.flipt.io/flipt/internal/coss/license:
     interfaces:
       Manager: {}
+  go.flipt.io/flipt/internal/coss/webhook:
+    interfaces:
+      Repository: {}
   go.flipt.io/flipt/internal/secrets:
     interfaces:
       Provider: {}

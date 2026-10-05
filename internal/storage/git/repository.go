@@ -51,7 +51,10 @@ type Repository struct {
 	maxOpenDescriptors        int
 	isNormalRepo              bool // true if opened with PlainOpen, false if bare repository
 
-	subs []Subscriber
+	// subsMu guards subs for readers that must not wait on mu, which is
+	// held for the duration of a fetch.
+	subsMu sync.RWMutex
+	subs   []Subscriber
 
 	pollInterval time.Duration
 	cancel       func()
@@ -330,7 +333,32 @@ func (r *Repository) Subscribe(sub Subscriber) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	r.subsMu.Lock()
+	defer r.subsMu.Unlock()
+
 	r.subs = append(r.subs, sub)
+}
+
+// Tracks reports whether a fetch would update the given branch: it is the
+// default branch, or it matches a branch pattern of any subscriber.
+// It does not block on an in-flight fetch.
+func (r *Repository) Tracks(branch string) bool {
+	if branch == r.defaultBranch {
+		return true
+	}
+
+	r.subsMu.RLock()
+	defer r.subsMu.RUnlock()
+
+	for _, sub := range r.subs {
+		for _, pattern := range sub.Branches() {
+			if refMatch(branch, pattern) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func (r *Repository) fetchHeads() []string {

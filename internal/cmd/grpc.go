@@ -19,6 +19,7 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/coss/license"
+	"go.flipt.io/flipt/internal/coss/webhook"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/otel"
 	"go.flipt.io/flipt/internal/otel/metrics"
@@ -159,6 +160,8 @@ type GRPCServer struct {
 	cfg    *config.Config
 	ln     net.Listener
 
+	webhookReceiver *webhook.Receiver
+
 	shutdownFuncs []func(context.Context) error
 }
 
@@ -224,6 +227,11 @@ func NewGRPCServer(
 	environmentStore, err := environments.NewStore(ctx, logger, cfg, secretsManager, licenseManager, environments.WithStoreSnapshotReadyReporter(evalHealth))
 	if err != nil {
 		return nil, fmt.Errorf("initializing environment store: %w", err)
+	}
+
+	server.webhookReceiver, err = newWebhookReceiver(ctx, logger, cfg, environmentStore, secretsManager, licenseManager)
+	if err != nil {
+		return nil, fmt.Errorf("initializing webhook receiver: %w", err)
 	}
 
 	otelResource, err := otel.NewResource(ctx, info.Build.Version)
@@ -522,6 +530,12 @@ func NewGRPCServer(
 
 	server.Server = grpcServer
 	return server, nil
+}
+
+// WebhookReceiver returns the incoming SCM webhook receiver, or nil when
+// incoming webhooks are not enabled.
+func (s *GRPCServer) WebhookReceiver() *webhook.Receiver {
+	return s.webhookReceiver
 }
 
 // Run begins serving gRPC requests.
