@@ -163,7 +163,9 @@ func NewHTTPServer(
 		r.Mount("/debug", middleware.Profiler())
 	}
 
-	r.Mount("/metrics", promhttp.Handler())
+	if cfg.Metrics.Enabled && cfg.Metrics.Exporter == config.MetricsPrometheus {
+		r.Mount("/metrics", promhttp.Handler())
+	}
 
 	r.Group(func(r chi.Router) {
 		r.Use(removeTrailingSlash)

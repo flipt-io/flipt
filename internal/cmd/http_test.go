@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server/common"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -21,6 +22,76 @@ import (
 const (
 	tsoHeader = "trailing-slash-on"
 )
+
+// TestMetricsEndpointMounted asserts the /metrics scrape endpoint is only
+// mounted when metrics are both enabled and exported in the Prometheus format.
+//
+// When metrics are disabled the endpoint must not leak runtime internals, and
+// when the OTLP exporter is configured the Prometheus scrape handler is never
+// registered on the default registry, so mounting it would serve an empty
+// (or Go runtime-only) scrape page and misreport metrics as unavailable.
+func TestMetricsEndpointMounted(t *testing.T) {
+	tests := []struct {
+		name     string
+		metrics  config.MetricsConfig
+		expected int
+	}{
+		{
+			name:     "enabled with prometheus exporter",
+			metrics:  config.MetricsConfig{Enabled: true, Exporter: config.MetricsPrometheus},
+			expected: http.StatusOK,
+		},
+		{
+			name:     "disabled with prometheus exporter",
+			metrics:  config.MetricsConfig{Enabled: false, Exporter: config.MetricsPrometheus},
+			expected: http.StatusNotFound,
+		},
+		{
+			name:     "enabled with otlp exporter",
+			metrics:  config.MetricsConfig{Enabled: true, Exporter: config.MetricsOTLP},
+			expected: http.StatusNotFound,
+		},
+		{
+			name:     "disabled with otlp exporter",
+			metrics:  config.MetricsConfig{Enabled: false, Exporter: config.MetricsOTLP},
+			expected: http.StatusNotFound,
+		},
+		{
+			name:     "enabled with unset exporter",
+			metrics:  config.MetricsConfig{Enabled: true},
+			expected: http.StatusNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &config.Config{
+				Metrics: tt.metrics,
+				// No port is set because none is ever bound: NewHTTPServer only
+				// copies the address into http.Server and the requests below
+				// dispatch straight to server.Handler. Naming a real port would
+				// imply a listener that does not exist.
+				Server: config.ServerConfig{Host: "localhost"},
+			}
+
+			// The gateway handlers only wrap the connection, so nil is enough:
+			// no RPC is issued by the request below.
+			server, err := NewHTTPServer(t.Context(), zaptest.NewLogger(t), cfg, nil, info.Flipt{})
+			require.NoError(t, err)
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "http://localhost/metrics", nil)
+			res := httptest.NewRecorder()
+			server.Handler.ServeHTTP(res, req)
+
+			require.Equal(t, tt.expected, res.Code, "body: %s", res.Body.String())
+
+			if tt.expected == http.StatusOK {
+				assert.Contains(t, res.Header().Get("Content-Type"), "text/plain",
+					"mounted /metrics must serve a prometheus scrape response")
+			}
+		})
+	}
+}
 
 func TestTrailingSlashMiddleware(t *testing.T) {
 	r := chi.NewRouter()
