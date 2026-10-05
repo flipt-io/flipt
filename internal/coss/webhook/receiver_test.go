@@ -271,6 +271,41 @@ func TestReceiver_UnauthenticatedNeverFetches(t *testing.T) {
 	}
 }
 
+// TestReceiver_HeaderTokenUnauthenticatedSkipsBody asserts a GitLab or Azure
+// DevOps request failing authentication gets 401 without its body being read.
+func TestReceiver_HeaderTokenUnauthenticatedSkipsBody(t *testing.T) {
+	for _, name := range []string{"gitlab", "azure"} {
+		p := providers[name]
+
+		t.Run(name, func(t *testing.T) {
+			environment := "unread-" + name
+
+			// no expectations: any Tracks or Fetch call fails the test
+			repo := NewMockRepository(t)
+			r := newTestReceiver(t, environment, p.scm, repo)
+
+			before := counterValue(t, metricRequests, requestAttrs(environment, p.scm, resultUnauthorized)...)
+
+			body := &recordingReader{}
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v2/webhooks/"+environment, body)
+			for k, v := range p.headers {
+				req.Header.Set(k, v)
+			}
+			p.auth("wrong")(req, nil)
+
+			rec := serve(r, req, environment)
+			r.Wait()
+
+			assert.Equal(t, http.StatusUnauthorized, rec.Code)
+			assert.False(t, body.read, "body was read before authenticating")
+			repo.AssertNotCalled(t, "Fetch", mock.Anything)
+
+			assert.Equal(t, int64(1), counterValue(t, metricRequests, requestAttrs(environment, p.scm, resultUnauthorized)...)-before)
+			assert.Equal(t, int64(0), counterValue(t, metricRequests, requestAttrs(environment, p.scm, resultInvalid)...))
+		})
+	}
+}
+
 func TestReceiver_UnknownEnvironmentNeverFetches(t *testing.T) {
 	repo := NewMockRepository(t)
 	r := newTestReceiver(t, "production", config.GitHubSCMType, repo)
@@ -319,7 +354,17 @@ func TestReceiver_InvalidNeverFetches(t *testing.T) {
 			code: http.StatusBadRequest,
 		},
 		{
-			name: "body too large",
+			name: "hmac body too large",
+			scm:  config.GitHubSCMType,
+			body: bytes.Repeat([]byte("a"), int(MaxBodySize)+1),
+			headers: map[string]string{
+				headerGitHubEvent: "push",
+			},
+			auth: githubSig(testSecret),
+			code: http.StatusRequestEntityTooLarge,
+		},
+		{
+			name: "authenticated header-token body too large",
 			scm:  config.GitLabSCMType,
 			body: bytes.Repeat([]byte("a"), int(MaxBodySize)+1),
 			headers: map[string]string{

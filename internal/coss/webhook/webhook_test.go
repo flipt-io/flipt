@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -209,12 +210,79 @@ func TestHandle_UnsupportedSCM(t *testing.T) {
 }
 
 func TestHandle_BodyTooLarge(t *testing.T) {
-	body := bytes.Repeat([]byte("a"), int(MaxBodySize)+1)
-	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", bytes.NewReader(body))
-	req.Header.Set(headerGitLabToken, testSecret)
+	tests := []struct {
+		name string
+		scm  config.SCMType
+		auth auth
+	}{
+		{name: "github", scm: config.GitHubSCMType, auth: githubSig(testSecret)},
+		{name: "gitea", scm: config.GiteaSCMType, auth: giteaSig(testSecret)},
+		{name: "bitbucket", scm: config.BitBucketSCMType, auth: bitbucketSig(testSecret)},
+		{name: "authenticated gitlab", scm: config.GitLabSCMType, auth: gitlabToken(testSecret)},
+		{name: "authenticated azure", scm: config.AzureSCMType, auth: azureBasic(testSecret)},
+	}
 
-	_, err := Handle(config.GitLabSCMType, []byte(testSecret), req)
-	require.ErrorIs(t, err, ErrBodyTooLarge)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body := bytes.Repeat([]byte("a"), int(MaxBodySize)+1)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", bytes.NewReader(body))
+			tt.auth(req, body)
+
+			_, err := Handle(tt.scm, []byte(testSecret), req)
+			require.ErrorIs(t, err, ErrBodyTooLarge)
+
+			// a body of exactly MaxBodySize is read in full and reaches the
+			// parser, which rejects it as malformed rather than too large
+			body = body[:MaxBodySize]
+			req = httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", bytes.NewReader(body))
+			tt.auth(req, body)
+			// GitHub, Gitea and GitLab only decode push payloads
+			req.Header.Set(headerGitHubEvent, "push")
+			req.Header.Set(headerGiteaEvent, "push")
+			req.Header.Set(headerGitLabEvent, "Push Hook")
+			req.Header.Set(headerBitbucketEvent, "repo:push")
+
+			_, err = Handle(tt.scm, []byte(testSecret), req)
+			require.Error(t, err)
+			require.NotErrorIs(t, err, ErrBodyTooLarge)
+			assert.True(t, errs.AsMatch[errs.ErrInvalid](err), "expected ErrInvalid, got %T: %v", err, err)
+		})
+	}
+}
+
+// recordingReader records whether the request body was read.
+type recordingReader struct {
+	read bool
+}
+
+func (r *recordingReader) Read([]byte) (int, error) {
+	r.read = true
+	return 0, errors.New("body must not be read")
+}
+
+func TestHandle_HeaderTokenAuthFailureDoesNotReadBody(t *testing.T) {
+	tests := []struct {
+		name string
+		scm  config.SCMType
+		auth auth
+	}{
+		{name: "gitlab wrong token", scm: config.GitLabSCMType, auth: gitlabToken("wrong")},
+		{name: "gitlab missing token", scm: config.GitLabSCMType, auth: noAuth},
+		{name: "azure wrong password", scm: config.AzureSCMType, auth: azureBasic("wrong")},
+		{name: "azure missing authorization", scm: config.AzureSCMType, auth: noAuth},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body := &recordingReader{}
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", body)
+			tt.auth(req, nil)
+
+			_, err := Handle(tt.scm, []byte(testSecret), req)
+			unauthenticated(t, err)
+			assert.False(t, body.read, "body was read before authenticating")
+		})
+	}
 }
 
 func TestHandle_MalformedAuthenticPayload(t *testing.T) {

@@ -27,10 +27,16 @@ import (
 	"go.flipt.io/flipt/internal/config"
 )
 
-// MaxBodySize is the largest request body accepted. It matches GitHub's
-// documented webhook payload cap; larger payloads are rejected rather than
+// MaxBodySize is the largest request body accepted, for every SCM type.
+//
+// HMAC-signed bodies (GitHub, Gitea, Bitbucket) must be read in full before
+// they can be authenticated, so this bounds what an unauthenticated caller can
+// make Flipt buffer. Header-token requests (GitLab, Azure DevOps) are only
+// read after authenticating, but are held to the same cap. Only the updated
+// refs are parsed, and SCMs truncate the commit lists in push payloads, so
+// real push events sit far below it. Larger payloads are rejected rather than
 // truncated, since truncation would invalidate the signature anyway.
-const MaxBodySize int64 = 25 << 20
+const MaxBodySize int64 = 5 << 20
 
 // Request headers inspected by the verifiers.
 const (
@@ -80,23 +86,47 @@ type Event struct {
 	Branches []string
 }
 
-// Handle reads the request body (capped at MaxBodySize), authenticates the
-// request for the given SCM using secret, and parses the event.
+// Handle authenticates the request for the given SCM using secret, reads its
+// body (capped at MaxBodySize), and parses the event.
+//
+// Header-token schemes (GitLab, Azure DevOps) are authenticated before the
+// body is read, so a request failing authentication never has its body read.
+// HMAC schemes (GitHub, Gitea, Bitbucket) sign the body, so it is read first.
 //
 // Authentication failures return an errors.ErrUnauthenticated (map to 401).
 // An oversized body returns ErrBodyTooLarge. An unsupported SCM type or an
 // authentic but malformed payload returns an errors.ErrInvalid.
 func Handle(scm config.SCMType, secret []byte, r *http.Request) (Event, error) {
+	signed := signsBody(scm)
+	if !signed {
+		if err := Verify(scm, secret, r, nil); err != nil {
+			return Event{}, err
+		}
+	}
+
 	body, err := readBody(r.Body)
 	if err != nil {
 		return Event{}, err
 	}
 
-	if err := Verify(scm, secret, r, body); err != nil {
-		return Event{}, err
+	if signed {
+		if err := Verify(scm, secret, r, body); err != nil {
+			return Event{}, err
+		}
 	}
 
 	return Parse(scm, r.Header, body)
+}
+
+// signsBody reports whether the SCM authenticates webhooks with an HMAC of
+// the body, rather than a token in the request headers.
+func signsBody(scm config.SCMType) bool {
+	switch scm {
+	case config.GitHubSCMType, config.GiteaSCMType, config.BitBucketSCMType:
+		return true
+	default:
+		return false
+	}
 }
 
 func readBody(body io.Reader) ([]byte, error) {
@@ -125,6 +155,7 @@ func readBody(body io.Reader) ([]byte, error) {
 //   - gitlab: shared token in X-Gitlab-Token
 //   - azure: HTTP Basic auth with secret as the password (username ignored)
 //
+// The header-token schemes (gitlab, azure) ignore body, so it may be nil.
 // All comparisons are constant-time. An empty secret never authenticates.
 func Verify(scm config.SCMType, secret []byte, r *http.Request, body []byte) error {
 	switch scm {
