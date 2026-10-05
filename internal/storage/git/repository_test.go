@@ -6,6 +6,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"sync"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -357,6 +359,66 @@ func TestRepositoryTracks(t *testing.T) {
 	assert.True(t, repo.Tracks("flipt/production/feature"))
 	assert.False(t, repo.Tracks("flipt/staging/feature"))
 	assert.False(t, repo.Tracks("feature"))
+}
+
+// reentrantSubscriber calls back into the repository from Notify, the way an
+// environment reads the repository after being told about new refs.
+type reentrantSubscriber struct {
+	repo     *Repository
+	notified atomic.Int64
+}
+
+func (*reentrantSubscriber) Branches() []string { return []string{"main"} }
+
+func (s *reentrantSubscriber) Notify(_ context.Context, refs map[string]string) error {
+	_ = s.repo.GetDefaultBranch()
+	if _, ok := refs["main"]; ok {
+		s.notified.Add(1)
+	}
+	return nil
+}
+
+func TestRepository_SubscribeConcurrentWithFetch(t *testing.T) {
+	remoteDir := t.TempDir()
+	remote, err := git.PlainInit(remoteDir, false,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")))
+	require.NoError(t, err)
+
+	require.NoError(t, os.WriteFile(filepath.Join(remoteDir, "file.txt"), []byte("initial"), 0o600))
+	wt, err := remote.Worktree()
+	require.NoError(t, err)
+	_, err = wt.Add("file.txt")
+	require.NoError(t, err)
+	_, err = wt.Commit("initial", &git.CommitOptions{
+		Author: &object.Signature{Name: "test", Email: "test@test.com", When: time.Now()},
+	})
+	require.NoError(t, err)
+
+	repo, err := NewRepository(t.Context(), zap.NewNop(),
+		WithFilesystemStorage(t.TempDir()),
+		WithRemote("origin", remoteDir))
+	require.NoError(t, err)
+
+	const workers = 8
+
+	var (
+		wg   sync.WaitGroup
+		subs = make([]*reentrantSubscriber, workers)
+	)
+
+	for i := range workers {
+		subs[i] = &reentrantSubscriber{repo: repo}
+		wg.Go(func() { repo.Subscribe(subs[i]) })
+		wg.Go(func() { assert.NoError(t, repo.Fetch(t.Context())) })
+	}
+
+	wg.Wait()
+
+	// every subscriber is registered and sees a fetch made after it subscribed
+	require.NoError(t, repo.Fetch(t.Context()))
+	for i, sub := range subs {
+		assert.Positive(t, sub.notified.Load(), "subscriber %d was not notified", i)
+	}
 }
 
 func TestFetchPolicy_Strict(t *testing.T) {
