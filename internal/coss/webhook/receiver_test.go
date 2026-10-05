@@ -666,6 +666,162 @@ func TestReceiver_CollapsesBursts(t *testing.T) {
 	assert.Equal(t, uint64(burst+1), syncCount(t, syncAttrs(environment, config.GitHubSCMType)...)-syncBefore)
 }
 
+// TestReceiver_SharedRepositoryCollapsesBursts asserts that environments
+// backed by the same repository share one syncer: a burst of webhooks to
+// both while a fetch runs never fetches in parallel and is served by a single
+// follow-up fetch, while the requests and sync metrics are recorded for each
+// environment separately.
+func TestReceiver_SharedRepositoryCollapsesBursts(t *testing.T) {
+	const (
+		githubEnvironment = "shared-github"
+		gitlabEnvironment = "shared-gitlab"
+		burst             = 10
+	)
+
+	var (
+		started  = make(chan struct{})
+		release  = make(chan struct{})
+		mu       sync.Mutex
+		calls    int
+		inFlight int
+		maxIn    int
+	)
+
+	repo := NewMockRepository(t)
+	repo.EXPECT().Tracks("main").Return(true)
+	repo.EXPECT().Fetch(mock.Anything).RunAndReturn(func(context.Context, ...string) error {
+		mu.Lock()
+		calls++
+		inFlight++
+		maxIn = max(maxIn, inFlight)
+		first := calls == 1
+		mu.Unlock()
+
+		if first {
+			close(started)
+			<-release
+		}
+
+		mu.Lock()
+		inFlight--
+		mu.Unlock()
+
+		return nil
+	})
+
+	r := NewReceiver(t.Context(), zaptest.NewLogger(t), map[string]Target{
+		githubEnvironment: {SCM: config.GitHubSCMType, Secret: []byte(testSecret), Repository: repo},
+		gitlabEnvironment: {SCM: config.GitLabSCMType, Secret: []byte(testSecret), Repository: repo},
+	})
+	require.Len(t, r.syncers, 1, "environments sharing a repository must share a syncer")
+
+	var (
+		github = providers["github"]
+		gitlab = providers["gitlab"]
+
+		githubAcceptedBefore = counterValue(t, metricRequests, requestAttrs(githubEnvironment, config.GitHubSCMType, resultAccepted)...)
+		gitlabAcceptedBefore = counterValue(t, metricRequests, requestAttrs(gitlabEnvironment, config.GitLabSCMType, resultAccepted)...)
+		githubSyncBefore     = syncCount(t, syncAttrs(githubEnvironment, config.GitHubSCMType)...)
+		gitlabSyncBefore     = syncCount(t, syncAttrs(gitlabEnvironment, config.GitLabSCMType)...)
+	)
+
+	sendGitHub := func() int {
+		return serve(r, newRequest(t, githubEnvironment, github.fixture, github.headers, github.auth(testSecret)), githubEnvironment).Code
+	}
+	sendGitLab := func() int {
+		return serve(r, newRequest(t, gitlabEnvironment, gitlab.fixture, gitlab.headers, gitlab.auth(testSecret)), gitlabEnvironment).Code
+	}
+
+	// the first webhook starts a fetch which blocks until released
+	assert.Equal(t, http.StatusAccepted, sendGitHub())
+	awaitClosed(t, started, "first fetch never started")
+
+	// a burst to both environments arrives while the first fetch is running
+	var wg sync.WaitGroup
+	for range burst {
+		wg.Go(func() { assert.Equal(t, http.StatusAccepted, sendGitHub()) })
+		wg.Go(func() { assert.Equal(t, http.StatusAccepted, sendGitLab()) })
+	}
+	wg.Wait()
+
+	close(release)
+	r.Wait()
+
+	repo.AssertNumberOfCalls(t, "Fetch", 2)
+	assert.Equal(t, 1, maxIn, "fetches of a shared repository must never run in parallel")
+
+	assert.Equal(t, int64(burst+1), counterValue(t, metricRequests, requestAttrs(githubEnvironment, config.GitHubSCMType, resultAccepted)...)-githubAcceptedBefore)
+	assert.Equal(t, int64(burst), counterValue(t, metricRequests, requestAttrs(gitlabEnvironment, config.GitLabSCMType, resultAccepted)...)-gitlabAcceptedBefore)
+	assert.Equal(t, uint64(burst+1), syncCount(t, syncAttrs(githubEnvironment, config.GitHubSCMType)...)-githubSyncBefore)
+	assert.Equal(t, uint64(burst), syncCount(t, syncAttrs(gitlabEnvironment, config.GitLabSCMType)...)-gitlabSyncBefore)
+}
+
+// TestReceiver_BranchDeletionFetchesOnce asserts a push deleting a tracked
+// branch is checked with Tracks and schedules exactly one fetch of every
+// tracked branch (no branch list is passed to Fetch).
+func TestReceiver_BranchDeletionFetchesOnce(t *testing.T) {
+	tests := []struct {
+		name    string
+		scm     config.SCMType
+		body    string
+		headers map[string]string
+		auth    auth
+	}{
+		{
+			name:    "bitbucket cloud new null",
+			scm:     config.BitBucketSCMType,
+			body:    `{"push":{"changes":[{"old":{"type":"branch","name":"release"},"new":null}]}}`,
+			headers: map[string]string{headerBitbucketEvent: "repo:push"},
+			auth:    bitbucketSig(testSecret),
+		},
+		{
+			name:    "github deleted",
+			scm:     config.GitHubSCMType,
+			body:    `{"ref":"refs/heads/release","before":"6113728f27ae82c7b1a177c8d03f9e96e0adf246","after":"0000000000000000000000000000000000000000","created":false,"deleted":true}`,
+			headers: map[string]string{headerGitHubEvent: "push"},
+			auth:    githubSig(testSecret),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			const environment = "branch-deletion"
+
+			repo := NewMockRepository(t)
+			repo.EXPECT().Tracks("release").Return(true).Once()
+			repo.EXPECT().Fetch(mock.Anything).RunAndReturn(func(_ context.Context, heads ...string) error {
+				assert.Empty(t, heads, "a webhook-triggered fetch updates every tracked branch")
+				return nil
+			}).Once()
+
+			r := newTestReceiver(t, environment, tt.scm, repo)
+
+			var (
+				acceptedBefore = counterValue(t, metricRequests, requestAttrs(environment, tt.scm, resultAccepted)...)
+				syncBefore     = syncCount(t, syncAttrs(environment, tt.scm)...)
+			)
+
+			body := []byte(tt.body)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v2/webhooks/"+environment, bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			for k, v := range tt.headers {
+				req.Header.Set(k, v)
+			}
+			tt.auth(req, body)
+
+			rec := serve(r, req, environment)
+			r.Wait()
+
+			assert.Equal(t, http.StatusAccepted, rec.Code)
+			repo.AssertExpectations(t)
+			repo.AssertNumberOfCalls(t, "Fetch", 1)
+
+			assert.Equal(t, int64(1), counterValue(t, metricRequests, requestAttrs(environment, tt.scm, resultAccepted)...)-acceptedBefore)
+			assert.Equal(t, uint64(1), syncCount(t, syncAttrs(environment, tt.scm)...)-syncBefore)
+		})
+	}
+}
+
 // TestReceiver_CancelledContextSkipsFetch asserts that once the receiver's
 // context is cancelled (Flipt is shutting down) an authentic push responds
 // 503 without scheduling a fetch or counting an accepted request or a fetch
