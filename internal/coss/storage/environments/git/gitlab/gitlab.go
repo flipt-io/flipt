@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"iter"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -94,9 +95,17 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 		default:
 			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
 		}
-		if err != nil {
-			return nil, fmt.Errorf("failed to create gitlab client: %w", err)
-		}
+	} else {
+		// Create an unauthenticated client (for public repos). The gitlab client
+		// always sets the PRIVATE-TOKEN header, so strip it when empty.
+		clientOpts = append(clientOpts, gitlab.WithHTTPClient(&http.Client{
+			Transport: stripEmptyTokenTransport{base: http.DefaultTransport.(*http.Transport).Clone()},
+		}))
+		client, err = gitlab.NewClient("", clientOpts...)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gitlab client: %w", err)
 	}
 
 	// gitlab project ID can be a numeric ID or the repoOwner/repoName
@@ -108,6 +117,20 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 		mrs:       client.MergeRequests,
 		repos:     client.Repositories,
 	}, nil
+}
+
+// stripEmptyTokenTransport removes an empty PRIVATE-TOKEN header so that
+// unauthenticated requests carry no auth header at all.
+type stripEmptyTokenTransport struct {
+	base http.RoundTripper
+}
+
+func (t stripEmptyTokenTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if v, ok := req.Header[http.CanonicalHeaderKey(gitlab.AccessTokenHeaderName)]; ok && strings.Join(v, "") == "" {
+		req = req.Clone(req.Context())
+		req.Header.Del(gitlab.AccessTokenHeaderName)
+	}
+	return t.base.RoundTrip(req)
 }
 
 // Propose creates a new merge request with the given request.
