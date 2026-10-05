@@ -1,0 +1,32 @@
+name: Detect Changes
+description: Work out which parts of CI a pull request needs
+outputs:
+  go:
+    description: "false when no changed file can affect the Go jobs"
+    value: ${{ steps.detect.outputs.go }}
+  ui:
+    description: "false when no changed file can affect the UI lint and unit test jobs"
+    value: ${{ steps.detect.outputs.ui }}
+runs:
+  using: composite
+  steps:
+    - name: Detect changed areas
+      id: detect
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
+      run: |
+        # Pushes and manual runs have no pull request, so they test everything.
+        # So does a file list that fails to load or comes back incomplete.
+        files=""
+        if [ -n "$PR_NUMBER" ]; then
+          # One line per changed file: its path, a tab, and its old path if it was renamed.
+          if list=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --paginate \
+            --jq '.[] | [.filename, (.previous_filename // "")] | @tsv') &&
+            [ "$(printf '%s\n' "$list" | grep -c .)" = "$CHANGED_FILES" ]; then
+            files=$(printf '%s\n' "$list" | tr '\t' '\n')
+          fi
+        fi
+        printf '%s\n' "$files" | "$GITHUB_WORKSPACE/.github/scripts/detect-changes.sh" | tee -a "$GITHUB_OUTPUT"
