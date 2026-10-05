@@ -9,7 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/credentials"
 	serverenvsmock "go.flipt.io/flipt/internal/server/environments"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -288,4 +290,20 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	require.Len(t, result, 1)
 	assert.Equal(t, "http://example.com/pr-closed", result[branch].Url)
 	assert.Equal(t, rpcenv.ProposalState_PROPOSAL_STATE_CLOSED, result[branch].State)
+}
+
+func TestNewSCM_UnsupportedCredentialType(t *testing.T) {
+	creds := credentials.New(zap.NewNop(), config.CredentialsConfig{
+		"ssh": {Type: config.CredentialTypeSSH, SSH: &config.SSHAuthConfig{User: "git", Password: "pass"}},
+	})
+
+	cred, err := creds.Get("ssh")
+	require.NoError(t, err)
+
+	apiAuth, err := cred.APIAuthentication()
+	require.NoError(t, err)
+
+	scm, err := NewSCM(t.Context(), zap.NewNop(), "https://gitea.example.com", "owner", "repo", WithApiAuth(apiAuth))
+	require.EqualError(t, err, `unsupported credential type: "ssh"`)
+	assert.Nil(t, scm)
 }

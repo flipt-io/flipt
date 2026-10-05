@@ -93,7 +93,7 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 			// Use basic auth for API operations
 			client, err = gitlab.NewBasicAuthClient(apiAuth.Username, apiAuth.Password, clientOpts...)
 		default:
-			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
+			return nil, fmt.Errorf("unsupported credential type: %q", apiAuth.Type())
 		}
 	} else {
 		// Create an unauthenticated client (for public repos). The gitlab client

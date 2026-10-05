@@ -13,7 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/credentials"
 	serverenvsmock "go.flipt.io/flipt/internal/server/environments"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -399,4 +401,20 @@ func TestNewSCM_NoApiAuth_Propose(t *testing.T) {
 	default:
 		t.Fatal("api_url server received no request")
 	}
+}
+
+func TestNewSCM_UnsupportedCredentialType(t *testing.T) {
+	creds := credentials.New(zap.NewNop(), config.CredentialsConfig{
+		"ssh": {Type: config.CredentialTypeSSH, SSH: &config.SSHAuthConfig{User: "git", Password: "pass"}},
+	})
+
+	cred, err := creds.Get("ssh")
+	require.NoError(t, err)
+
+	apiAuth, err := cred.APIAuthentication()
+	require.NoError(t, err)
+
+	scm, err := NewSCM(t.Context(), zap.NewNop(), "owner", "repo", WithApiAuth(apiAuth))
+	require.EqualError(t, err, `unsupported credential type: "ssh"`)
+	assert.Nil(t, scm)
 }

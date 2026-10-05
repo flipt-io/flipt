@@ -69,7 +69,7 @@ func NewSCM(ctx context.Context, logger *zap.Logger, url, owner, repository stri
 			// Use basic auth for API operations
 			clientOpts = append(clientOpts, gitea.SetBasicAuth(apiAuth.Username, apiAuth.Password))
 		default:
-			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
+			return nil, fmt.Errorf("unsupported credential type: %q", apiAuth.Type())
 		}
 	}
 

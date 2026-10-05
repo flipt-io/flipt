@@ -13,7 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/credentials"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -499,4 +501,20 @@ func TestListProposalsWithMultiplePRs(t *testing.T) {
 
 	assert.Equal(t, environments.ProposalState_PROPOSAL_STATE_OPEN, result["flipt/production/feature-1"].State)
 	assert.Equal(t, environments.ProposalState_PROPOSAL_STATE_MERGED, result["flipt/production/feature-2"].State)
+}
+
+func TestNewSCM_UnsupportedCredentialType(t *testing.T) {
+	creds := credentials.New(zap.NewNop(), config.CredentialsConfig{
+		"ssh": {Type: config.CredentialTypeSSH, SSH: &config.SSHAuthConfig{User: "git", Password: "pass"}},
+	})
+
+	cred, err := creds.Get("ssh")
+	require.NoError(t, err)
+
+	apiAuth, err := cred.APIAuthentication()
+	require.NoError(t, err)
+
+	scm, err := NewSCM(t.Context(), zap.NewNop(), "owner", "repo", WithApiAuth(apiAuth))
+	require.EqualError(t, err, `unsupported credential type: "ssh"`)
+	assert.Nil(t, scm)
 }
