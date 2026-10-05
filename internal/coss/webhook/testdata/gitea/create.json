@@ -1,0 +1,15 @@
+{
+  "sha": "bffeb74224043ba2feb48d137756c8a9331c449a",
+  "ref": "feature-x",
+  "ref_type": "branch",
+  "repository": {
+    "id": 1,
+    "name": "features",
+    "full_name": "acme/features"
+  },
+  "sender": {
+    "id": 1,
+    "login": "jane",
+    "username": "jane"
+  }
+}

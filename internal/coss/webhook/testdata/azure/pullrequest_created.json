@@ -1,0 +1,16 @@
+{
+  "subscriptionId": "00000000-0000-0000-0000-000000000000",
+  "notificationId": 4,
+  "id": "2ab4e3d3-b7a6-425e-92b1-5a9982c1269e",
+  "eventType": "git.pullrequest.created",
+  "publisherId": "tfs",
+  "resource": {
+    "pullRequestId": 1,
+    "status": "active",
+    "title": "Disable checkout-v2",
+    "sourceRefName": "refs/heads/disable-checkout",
+    "targetRefName": "refs/heads/main"
+  },
+  "resourceVersion": "1.0",
+  "createdDate": "2026-10-05T14:02:12.123Z"
+}
