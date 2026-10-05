@@ -62,11 +62,10 @@ func newReceiverMetrics() receiverMetrics {
 			prometheus.BuildFQName(namespace, subsystem, "fetch_errors_total"),
 			metric.WithDescription("The total number of webhook-triggered fetches that failed"),
 		),
-		// No unit is set: the Prometheus exporter would otherwise append a
-		// _seconds suffix to the documented metric name.
 		syncDuration: metrics.MustFloat64().Histogram(
 			prometheus.BuildFQName(namespace, subsystem, "sync_duration"),
 			metric.WithDescription("The time from receiving an accepted webhook to its fetch completing in seconds"),
+			metric.WithUnit("s"),
 			metric.WithExplicitBucketBoundaries(0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60),
 		),
 	}

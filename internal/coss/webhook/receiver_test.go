@@ -7,33 +7,96 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap/zaptest"
 )
 
+// OTel instrument names. The Prometheus exporter appends unit suffixes, so
+// the sync histogram is exported as flipt_incoming_webhook_sync_duration_seconds
+// (see TestMetrics_PrometheusExportedNames).
 const (
 	metricRequests    = "flipt_incoming_webhook_requests_total"
 	metricFetchErrors = "flipt_incoming_webhook_fetch_errors_total"
 	metricSync        = "flipt_incoming_webhook_sync_duration"
 )
 
-var testMetricReader *sdkmetric.ManualReader
+var (
+	testMetricReader *sdkmetric.ManualReader
+	// testPromRegistry holds the same metrics as exported by the Prometheus
+	// exporter Flipt uses for metrics.exporter: prometheus.
+	testPromRegistry *prometheus.Registry
+)
 
 func TestMain(m *testing.M) {
 	testMetricReader = sdkmetric.NewManualReader()
-	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(testMetricReader)))
+	testPromRegistry = prometheus.NewRegistry()
+
+	promExporter, err := otelprom.New(otelprom.WithRegisterer(testPromRegistry))
+	if err != nil {
+		panic(err)
+	}
+
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(testMetricReader),
+		sdkmetric.WithReader(promExporter),
+	))
 	os.Exit(m.Run())
+}
+
+// TestMetrics_PrometheusExportedNames checks the series names operators see
+// when scraping /metrics through the Prometheus exporter.
+func TestMetrics_PrometheusExportedNames(t *testing.T) {
+	const environment = "prometheus-names"
+
+	m := newReceiverMetrics()
+	m.recordRequest(t.Context(), environment, string(config.GitHubSCMType), resultAccepted)
+	m.recordFetchError(t.Context(), environment, string(config.GitHubSCMType))
+	m.recordSync(t.Context(), environment, string(config.GitHubSCMType), 300*time.Millisecond)
+
+	families, err := testPromRegistry.Gather()
+	require.NoError(t, err)
+
+	var names []string
+	for _, f := range families {
+		if strings.HasPrefix(f.GetName(), "flipt_incoming_webhook_") {
+			names = append(names, f.GetName())
+		}
+	}
+
+	assert.ElementsMatch(t, []string{
+		"flipt_incoming_webhook_requests_total",
+		"flipt_incoming_webhook_fetch_errors_total",
+		"flipt_incoming_webhook_sync_duration_seconds",
+	}, names)
+
+	rec := httptest.NewRecorder()
+	promhttp.HandlerFor(testPromRegistry, promhttp.HandlerOpts{}).ServeHTTP(rec, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/metrics", nil))
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	body := rec.Body.String()
+	for _, series := range []string{
+		"flipt_incoming_webhook_sync_duration_seconds_bucket{",
+		"flipt_incoming_webhook_sync_duration_seconds_sum{",
+		"flipt_incoming_webhook_sync_duration_seconds_count{",
+	} {
+		assert.Contains(t, body, series)
+	}
+	assert.Contains(t, body, `flipt_incoming_webhook_sync_duration_seconds_bucket{environment="prometheus-names"`)
 }
 
 func collect(t *testing.T) metricdata.ResourceMetrics {
