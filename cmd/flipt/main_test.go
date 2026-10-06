@@ -411,8 +411,8 @@ func TestResolveLicenseSecrets(t *testing.T) {
 		err := resolveLicenseSecrets(t.Context(), zap.NewNop(), cfg)
 		require.EqualError(t, err, `license.key: secret reference "${secret:vault:license-key}" must use the file provider`)
 		assert.Equal(t, "${secret:vault:license-key}", cfg.License.Key)
-		// resolveLicenseSecrets builds a file-only config, so this guards against
-		// a regression that passes the full config with vault enabled
+		// resolveLicenseSecrets only builds the file provider, so this guards
+		// against a regression that sets up providers from the full config
 		assert.False(t, called, "vault factory must not be invoked to resolve the license")
 	})
 

@@ -35,6 +35,7 @@ import (
 	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/secrets"
+	"go.flipt.io/flipt/internal/secrets/file"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
 	"go.opentelemetry.io/otel/log/global"
@@ -516,28 +517,22 @@ func initMetaStateDir(cfg *config.Config) error {
 // The license decides whether Pro secrets providers may be used, so only the
 // file provider is available here.
 func resolveLicenseSecrets(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
-	fileOnly := &config.Config{
-		Secrets: config.SecretsConfig{
-			Providers: config.ProvidersConfig{File: cfg.Secrets.Providers.File},
-		},
-	}
+	var resolver fileSecretResolver
 
-	// only the file provider is configured, and a nil license manager would
-	// refuse any Pro provider anyway
-	secretsManager, err := secrets.NewManager(logger, fileOnly, nil)
-	if err != nil {
-		return err
-	}
+	if fileCfg := cfg.Secrets.Providers.File; fileCfg != nil && fileCfg.Enabled {
+		provider, err := file.NewProvider(fileCfg.BasePath, logger)
+		if err != nil {
+			return fmt.Errorf("initializing file secret provider: %w", err)
+		}
 
-	defer func() {
-		_ = secretsManager.Close()
-	}()
+		resolver.provider = provider
+	}
 
 	for sf, field := range reflect.ValueOf(&cfg.License).Elem().Fields() {
 		name := "license." + sf.Tag.Get("mapstructure")
 		ref := field.String()
 
-		if err := walkConfigForSecrets(ctx, field, fileOnlyManager{secretsManager}); err != nil {
+		if err := walkConfigForSecrets(ctx, field, resolver); err != nil {
 			switch {
 			case errors.Is(err, errNotFileProvider):
 				return fmt.Errorf("%s: secret reference %q must use the file provider", name, ref)
@@ -557,21 +552,37 @@ var (
 	errFileProviderDisabled = errors.New("file secrets provider is not enabled")
 )
 
-// fileOnlyManager refuses secret references to any provider other than file.
-type fileOnlyManager struct {
-	secrets.Manager
+// fileSecretResolver resolves secret references using only the file provider.
+// provider is nil when the file provider is not enabled.
+type fileSecretResolver struct {
+	provider secrets.Provider
 }
 
-func (m fileOnlyManager) GetSecretValue(ctx context.Context, ref secrets.Reference) ([]byte, error) {
+func (r fileSecretResolver) GetSecretValue(ctx context.Context, ref secrets.Reference) ([]byte, error) {
 	if ref.Provider != "file" {
 		return nil, errNotFileProvider
 	}
 
-	if _, err := m.GetProvider("file"); err != nil {
+	if r.provider == nil {
 		return nil, errFileProviderDisabled
 	}
 
-	return m.Manager.GetSecretValue(ctx, ref)
+	secret, err := r.provider.GetSecret(ctx, ref.Path)
+	if err != nil {
+		return nil, fmt.Errorf("getting secret from file: %w", err)
+	}
+
+	value, ok := secret.GetValue(ref.Key)
+	if !ok {
+		return nil, fmt.Errorf("key %q not found in secret at path %q", ref.Key, ref.Path)
+	}
+
+	return value, nil
+}
+
+// secretResolver resolves a single secret reference.
+type secretResolver interface {
+	GetSecretValue(ctx context.Context, ref secrets.Reference) ([]byte, error)
 }
 
 // resolveSecretsInConfig walks the config structure and resolves any secret references in-place.
@@ -592,7 +603,7 @@ func resolveSecretsInConfig(ctx context.Context, cfg *config.Config, secretsMana
 }
 
 // walkConfigForSecrets recursively walks the config struct and resolves secret references
-func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager secrets.Manager) error {
+func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager secretResolver) error {
 	switch v.Kind() {
 	case reflect.String:
 		if v.CanSet() {
