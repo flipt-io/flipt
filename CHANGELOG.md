@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Breaking
+
+- **Secrets providers**: The `vault`, `aws`, `gcp`, and `azure` secrets providers now require a Pro license. Without one, enabling any of them fails startup with `<provider> secrets provider requires a paid license` (for example, `aws secrets provider requires a paid license`), and the provider is never set up or contacted. Secret references in `license.*` may only use the `file` provider. OSS users of these providers should move their secrets to the `file` provider.
+
 ## [2.13.1](https://github.com/flipt-io/flipt/releases/tag/v2.13.1) - 2026-10-02
 
 ### Fixed
