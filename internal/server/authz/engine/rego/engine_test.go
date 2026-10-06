@@ -364,6 +364,20 @@ func TestEngine_PolicyReloadWithDataScope(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, []string{}, environments)
 
+			for _, data := range []string{
+				`{}`,
+				`{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			} {
+				engine.mu.Lock()
+				engine.dataSource = dataSource(data)
+				engine.mu.Unlock()
+				require.NoError(t, engine.updateData(ctx, storage.ReplaceOp))
+
+				environments, err = engine.ViewableEnvironments(ctx, nil)
+				require.NoError(t, err)
+				assert.Equal(t, []string{}, environments)
+			}
+
 			policySource.Set(policyWithoutViewableScopes)
 			require.NoError(t, engine.updatePolicy(ctx))
 
@@ -379,7 +393,9 @@ func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
 	t.Cleanup(cancel)
 
 	policySource := &reloadablePolicySource{policy: policyWithViewableScopes}
-	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource))
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource),
+		withDataSource(dataSource(`{}`), time.Hour))
 	require.NoError(t, err)
 
 	input := map[string]any{"authentication": map[string]any{}}
@@ -390,6 +406,11 @@ func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
 	namespaces, err := engine.ViewableNamespaces(ctx, "production", input)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"analytics"}, namespaces)
+
+	require.NoError(t, engine.updateData(ctx, storage.ReplaceOp))
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"production"}, environments)
 
 	policySource.Set(policyInvalid)
 	require.Error(t, engine.updatePolicy(ctx))

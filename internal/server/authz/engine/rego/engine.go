@@ -41,6 +41,7 @@ type Engine struct {
 	queryAllow                  rego.PreparedEvalQuery
 	queryEnvironments           *rego.PreparedEvalQuery
 	viewableEnvironmentsDefined bool
+	viewableEnvironmentsInData  bool
 	queryNamespaces             *rego.PreparedEvalQuery
 	viewableNamespacesDefined   bool
 	store                       storage.Store
@@ -173,17 +174,9 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 
 	e.logger.Debug("evaluating viewable environments", zap.Any("input", input))
 
-	if !e.viewableEnvironmentsDefined {
-		// A data document can define the scope without a policy rule. Check the
-		// current store so data reloads can add or remove the optional scope.
-		_, err := storage.ReadOne(ctx, e.store, storage.Path{"flipt", "authz", "v2", "viewable_environments"})
-		if storage.IsNotFound(err) {
-			e.logger.Debug("viewable environments scope not defined, skipping evaluation")
-			return nil, nil
-		}
-		if err != nil {
-			return nil, fmt.Errorf("reading viewable environments data: %w", err)
-		}
+	if !e.viewableEnvironmentsDefined && !e.viewableEnvironmentsInData {
+		e.logger.Debug("viewable environments scope not defined, skipping evaluation")
+		return nil, nil
 	}
 
 	if e.queryEnvironments == nil || *e.queryEnvironments == (rego.PreparedEvalQuery{}) {
@@ -306,6 +299,13 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		}
 	}
 
+	_, err = storage.ReadOne(ctx, e.store, storage.Path{"flipt", "authz", "v2", "viewable_environments"})
+	if err != nil && !storage.IsNotFound(err) {
+		e.failClosed(hash)
+		return fmt.Errorf("reading viewable environments data: %w", err)
+	}
+	viewableEnvironmentsInData := err == nil
+
 	// Prepare allow query
 	r := rego.New(
 		rego.Query("data.flipt.authz.v2.allow"),
@@ -361,6 +361,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	e.queryAllow = queryAllow
 	e.queryEnvironments = queryEnvironmentsPtr
 	e.viewableEnvironmentsDefined = viewableEnvironmentsDefined
+	e.viewableEnvironmentsInData = viewableEnvironmentsInData
 	e.queryNamespaces = queryNamespacesPtr
 	e.viewableNamespacesDefined = viewableNamespacesDefined
 
@@ -401,16 +402,30 @@ func (e *Engine) updateData(ctx context.Context, op storage.PatchOp) (err error)
 		return fmt.Errorf("getting data for policy evaluation: %w", err)
 	}
 
-	e.dataHash = hash
-
 	txn, err := e.store.NewTransaction(ctx, storage.WriteParams)
 	if err != nil {
 		return err
 	}
 
 	if err := e.store.Write(ctx, txn, op, storage.Path{}, data); err != nil {
+		e.store.Abort(ctx, txn)
 		return err
 	}
 
-	return e.store.Commit(ctx, txn)
+	// Data can reload independently of the policy, so refresh the cached
+	// scope presence in the same transaction as the data update.
+	_, err = e.store.Read(ctx, txn, storage.Path{"flipt", "authz", "v2", "viewable_environments"})
+	if err != nil && !storage.IsNotFound(err) {
+		e.store.Abort(ctx, txn)
+		return fmt.Errorf("reading viewable environments data: %w", err)
+	}
+	viewableEnvironmentsInData := err == nil
+
+	if err := e.store.Commit(ctx, txn); err != nil {
+		return err
+	}
+
+	e.dataHash = hash
+	e.viewableEnvironmentsInData = viewableEnvironmentsInData
+	return nil
 }
