@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/secrets"
+	"go.uber.org/zap"
 )
 
 // mockManager is a test mock for secrets.Manager
@@ -360,4 +364,53 @@ func TestWalkConfigForSecrets_AzureProviderInMap(t *testing.T) {
 	provider := cfg.MapField["provider1"]
 	assert.Equal(t, "azure-client-id", provider.ID)
 	assert.Equal(t, "azure-client-secret", provider.Secret)
+}
+
+func TestResolveLicenseSecrets(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "license-key"), []byte("file-license-key\n"), 0o600))
+
+	t.Run("resolves file provider references", func(t *testing.T) {
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					File: &config.FileProviderConfig{Enabled: true, BasePath: dir},
+				},
+			},
+			License: config.LicenseConfig{Key: "${secret:file:license-key}"},
+		}
+		cfg.Meta.StateDirectory = "${secret:file:license-key}"
+
+		require.NoError(t, resolveLicenseSecrets(t.Context(), zap.NewNop(), cfg))
+		assert.Equal(t, "file-license-key", cfg.License.Key)
+		// only license.* is resolved before the license is known
+		assert.Equal(t, "${secret:file:license-key}", cfg.Meta.StateDirectory)
+	})
+
+	t.Run("does not use pro providers", func(t *testing.T) {
+		original, ok := secrets.GetProviderFactory("vault")
+		require.True(t, ok)
+
+		called := false
+		secrets.RegisterProviderFactory("vault", func(*config.Config, *zap.Logger) (secrets.Provider, error) {
+			called = true
+			return nil, nil
+		})
+		t.Cleanup(func() { secrets.RegisterProviderFactory("vault", original) })
+
+		cfg := &config.Config{
+			Secrets: config.SecretsConfig{
+				Providers: config.ProvidersConfig{
+					File:  &config.FileProviderConfig{Enabled: true, BasePath: dir},
+					Vault: &config.VaultProviderConfig{Enabled: true},
+				},
+			},
+			License: config.LicenseConfig{Key: "${secret:vault:license-key}"},
+		}
+
+		err := resolveLicenseSecrets(t.Context(), zap.NewNop(), cfg)
+		require.EqualError(t, err, `license.key: secret reference "${secret:vault:license-key}" must use the file provider`)
+		assert.Equal(t, "${secret:vault:license-key}", cfg.License.Key)
+		assert.False(t, called, "vault factory must not be invoked to resolve the license")
+	})
 }

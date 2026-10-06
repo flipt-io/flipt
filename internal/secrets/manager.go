@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/license"
+	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap"
 )
 
@@ -71,7 +73,8 @@ func GetProviderFactory(name string) (ProviderFactory, bool) {
 }
 
 // NewManager creates a new secret manager and initializes providers based on configuration.
-func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
+// Pro providers are only initialized when licenseManager reports a Pro license.
+func NewManager(logger *zap.Logger, cfg *config.Config, licenseManager license.Manager) (*ManagerImpl, error) {
 	manager := &ManagerImpl{
 		providers: make(map[string]Provider),
 		factories: make(map[string]ProviderFactory),
@@ -103,6 +106,10 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 
 	// Initialize GCP provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.GCP != nil && cfg.Secrets.Providers.GCP.Enabled {
+		if licenseManager.Product() != product.Pro {
+			return nil, fmt.Errorf("gcp secrets provider requires a paid license")
+		}
+
 		if factory, exists := manager.factories["gcp"]; exists {
 			provider, err := factory(cfg, logger)
 			if err != nil {
@@ -122,6 +129,10 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 
 	// Initialize AWS provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.AWS != nil && cfg.Secrets.Providers.AWS.Enabled {
+		if licenseManager.Product() != product.Pro {
+			return nil, fmt.Errorf("aws secrets provider requires a paid license")
+		}
+
 		if factory, exists := manager.factories["aws"]; exists {
 			provider, err := factory(cfg, logger)
 			if err != nil {
@@ -140,6 +151,10 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 
 	// Initialize Azure provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.Azure != nil && cfg.Secrets.Providers.Azure.Enabled {
+		if licenseManager.Product() != product.Pro {
+			return nil, fmt.Errorf("azure secrets provider requires a paid license")
+		}
+
 		if factory, exists := manager.factories["azure"]; exists {
 			provider, err := factory(cfg, logger)
 			if err != nil {
@@ -159,6 +174,10 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 
 	// Initialize Vault provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
+		if licenseManager.Product() != product.Pro {
+			return nil, fmt.Errorf("vault secrets provider requires a paid license")
+		}
+
 		if factory, exists := manager.factories["vault"]; exists {
 			provider, err := factory(cfg, logger)
 			if err != nil {

@@ -377,24 +377,10 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 	}
 
-	// initialize secrets manager and resolve secrets in config before creating any components
-	secretsManager, err := secrets.NewManager(logger, cfg)
-	if err != nil {
-		return fmt.Errorf("initializing secrets manager: %w", err)
+	// resolve secrets in the license config before the license is known
+	if err := resolveLicenseSecrets(ctx, logger, cfg); err != nil {
+		return fmt.Errorf("resolving secrets in license config: %w", err)
 	}
-
-	defer func() {
-		if secretsManager != nil {
-			_ = secretsManager.Close()
-		}
-	}()
-
-	// resolve secrets in the config if any secret references exist
-	if err := resolveSecretsInConfig(ctx, cfg, secretsManager); err != nil {
-		return fmt.Errorf("resolving secrets in config: %w", err)
-	}
-
-	logger.Debug("secrets manager initialized and config processed")
 
 	licenseManagerOpts := []license.LicenseManagerOption{}
 
@@ -416,12 +402,24 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		cancel()
 	}()
 
-	// Validate license requirements for secrets providers
-	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
-		if licenseManager.Product() == product.OSS {
-			return fmt.Errorf("vault secrets provider requires a paid license")
-		}
+	// initialize secrets manager and resolve secrets in config before creating any components
+	secretsManager, err := secrets.NewManager(logger, cfg, licenseManager)
+	if err != nil {
+		return fmt.Errorf("initializing secrets manager: %w", err)
 	}
+
+	defer func() {
+		if secretsManager != nil {
+			_ = secretsManager.Close()
+		}
+	}()
+
+	// resolve secrets in the config if any secret references exist
+	if err := resolveSecretsInConfig(ctx, cfg, secretsManager); err != nil {
+		return fmt.Errorf("resolving secrets in config: %w", err)
+	}
+
+	logger.Debug("secrets manager initialized and config processed")
 
 	info := info.New(
 		info.WithBuild(commit, date, goVersion, version, isRelease),
@@ -512,6 +510,64 @@ func initMetaStateDir(cfg *config.Config) error {
 	}
 
 	return ensureDir(cfg.Meta.StateDirectory)
+}
+
+// resolveLicenseSecrets resolves secret references in the license config.
+// The license decides whether Pro secrets providers may be used, so only the
+// file provider is available here.
+func resolveLicenseSecrets(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
+	fileOnly := &config.Config{
+		Secrets: config.SecretsConfig{
+			Providers: config.ProvidersConfig{File: cfg.Secrets.Providers.File},
+		},
+	}
+
+	// no Pro providers are enabled, so no license manager is needed
+	secretsManager, err := secrets.NewManager(logger, fileOnly, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = secretsManager.Close()
+	}()
+
+	fields := []struct {
+		name  string
+		value *string
+	}{
+		{"license.key", &cfg.License.Key},
+		{"license.file", &cfg.License.File},
+		{"license.machine_id", &cfg.License.MachineID},
+	}
+
+	for _, field := range fields {
+		ref := *field.value
+		if err := walkConfigForSecrets(ctx, reflect.ValueOf(field.value).Elem(), fileOnlyManager{secretsManager}); err != nil {
+			if errors.Is(err, errNotFileProvider) {
+				return fmt.Errorf("%s: secret reference %q must use the file provider", field.name, ref)
+			}
+
+			return fmt.Errorf("%s: %w", field.name, err)
+		}
+	}
+
+	return nil
+}
+
+var errNotFileProvider = errors.New("secret reference must use the file provider")
+
+// fileOnlyManager refuses secret references to any provider other than file.
+type fileOnlyManager struct {
+	secrets.Manager
+}
+
+func (m fileOnlyManager) GetSecretValue(ctx context.Context, ref secrets.Reference) ([]byte, error) {
+	if ref.Provider != "file" {
+		return nil, errNotFileProvider
+	}
+
+	return m.Manager.GetSecretValue(ctx, ref)
 }
 
 // resolveSecretsInConfig walks the config structure and resolves any secret references in-place
