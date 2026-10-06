@@ -44,6 +44,7 @@ type Engine struct {
 	viewableEnvironmentsInData  bool
 	queryNamespaces             *rego.PreparedEvalQuery
 	viewableNamespacesDefined   bool
+	viewableNamespacesInData    bool
 	store                       storage.Store
 
 	policySource PolicySource
@@ -212,8 +213,8 @@ func (e *Engine) ViewableNamespaces(ctx context.Context, env string, input map[s
 		zap.String("environment", env),
 		zap.Any("input", input))
 
-	if !e.viewableNamespacesDefined {
-		e.logger.Debug("viewable namespaces rule not defined, skipping evaluation")
+	if !e.viewableNamespacesDefined && !e.viewableNamespacesInData {
+		e.logger.Debug("viewable namespaces scope not defined, skipping evaluation")
 		return nil, nil
 	}
 
@@ -306,6 +307,13 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	}
 	viewableEnvironmentsInData := err == nil
 
+	_, err = storage.ReadOne(ctx, e.store, storage.Path{"flipt", "authz", "v2", "viewable_namespaces"})
+	if err != nil && !storage.IsNotFound(err) {
+		e.failClosed(hash)
+		return fmt.Errorf("reading viewable namespaces data: %w", err)
+	}
+	viewableNamespacesInData := err == nil
+
 	// Prepare allow query
 	r := rego.New(
 		rego.Query("data.flipt.authz.v2.allow"),
@@ -364,6 +372,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	e.viewableEnvironmentsInData = viewableEnvironmentsInData
 	e.queryNamespaces = queryNamespacesPtr
 	e.viewableNamespacesDefined = viewableNamespacesDefined
+	e.viewableNamespacesInData = viewableNamespacesInData
 
 	return nil
 }
@@ -421,11 +430,19 @@ func (e *Engine) updateData(ctx context.Context, op storage.PatchOp) (err error)
 	}
 	viewableEnvironmentsInData := err == nil
 
+	_, err = e.store.Read(ctx, txn, storage.Path{"flipt", "authz", "v2", "viewable_namespaces"})
+	if err != nil && !storage.IsNotFound(err) {
+		e.store.Abort(ctx, txn)
+		return fmt.Errorf("reading viewable namespaces data: %w", err)
+	}
+	viewableNamespacesInData := err == nil
+
 	if err := e.store.Commit(ctx, txn); err != nil {
 		return err
 	}
 
 	e.dataHash = hash
 	e.viewableEnvironmentsInData = viewableEnvironmentsInData
+	e.viewableNamespacesInData = viewableNamespacesInData
 	return nil
 }
