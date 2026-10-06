@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
@@ -225,12 +226,176 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 	}
 }
 
+func TestEngine_ViewableEnvironmentsFromData(t *testing.T) {
+	tests := []struct {
+		name        string
+		data        string
+		expected    []string
+		shouldError bool
+	}{
+		{
+			name:     "restricted scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			expected: []string{"production"},
+		},
+		{
+			name:     "empty scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":[]}}}}`,
+			expected: []string{},
+		},
+		{
+			name:     "wildcard scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["*"]}}}}`,
+			expected: []string{"*"},
+		},
+		{
+			name: "undefined scope",
+			data: `{}`,
+		},
+		{
+			name:        "invalid scope type",
+			data:        `{"flipt":{"authz":{"v2":{"viewable_environments":"production"}}}}`,
+			shouldError: true,
+		},
+		{
+			name:        "null scope",
+			data:        `{"flipt":{"authz":{"v2":{"viewable_environments":null}}}}`,
+			shouldError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			engine, err := newEngine(ctx, zaptest.NewLogger(t),
+				withPolicySource(policySource(policyWithoutViewableScopes)),
+				withDataSource(dataSource(tt.data), time.Hour))
+			require.NoError(t, err)
+
+			environments, err := engine.ViewableEnvironments(ctx, nil)
+			if tt.shouldError {
+				require.ErrorContains(t, err, "unexpected result type")
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, environments)
+		})
+	}
+}
+
+func TestEngine_DataReloadUpdatesViewableEnvironments(t *testing.T) {
+	ctx := t.Context()
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource(policyWithoutViewableScopes)),
+		withDataSource(dataSource(`{}`), time.Hour))
+	require.NoError(t, err)
+
+	environments, err := engine.ViewableEnvironments(ctx, nil)
+	require.NoError(t, err)
+	assert.Nil(t, environments)
+
+	for _, tt := range []struct {
+		name     string
+		data     string
+		expected []string
+	}{
+		{
+			name:     "add scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			expected: []string{"production"},
+		},
+		{
+			name:     "replace scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["staging"]}}}}`,
+			expected: []string{"staging"},
+		},
+		{
+			name:     "empty scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":[]}}}}`,
+			expected: []string{},
+		},
+		{
+			name: "remove scope",
+			data: `{}`,
+		},
+		{
+			name:     "restore scope",
+			data:     `{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			expected: []string{"production"},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			engine.mu.Lock()
+			engine.dataSource = dataSource(tt.data)
+			engine.mu.Unlock()
+			require.NoError(t, engine.updateData(ctx, storage.ReplaceOp))
+
+			environments, err := engine.ViewableEnvironments(ctx, nil)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, environments)
+		})
+	}
+}
+
+func TestEngine_PolicyReloadWithDataScope(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		policy string
+	}{
+		{name: "parse failure", policy: policyInvalid},
+		{name: "compile failure", policy: policyUncompilable},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			policySource := &reloadablePolicySource{policy: policyWithoutViewableScopes}
+			engine, err := newEngine(ctx, zaptest.NewLogger(t),
+				withPolicySource(policySource),
+				withDataSource(dataSource(`{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`), time.Hour))
+			require.NoError(t, err)
+
+			environments, err := engine.ViewableEnvironments(ctx, nil)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"production"}, environments)
+
+			policySource.Set(tt.policy)
+			require.Error(t, engine.updatePolicy(ctx))
+
+			environments, err = engine.ViewableEnvironments(ctx, nil)
+			require.NoError(t, err)
+			assert.Equal(t, []string{}, environments)
+
+			for _, data := range []string{
+				`{}`,
+				`{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			} {
+				engine.mu.Lock()
+				engine.dataSource = dataSource(data)
+				engine.mu.Unlock()
+				require.NoError(t, engine.updateData(ctx, storage.ReplaceOp))
+
+				environments, err = engine.ViewableEnvironments(ctx, nil)
+				require.NoError(t, err)
+				assert.Equal(t, []string{}, environments)
+			}
+
+			policySource.Set(policyWithoutViewableScopes)
+			require.NoError(t, engine.updatePolicy(ctx))
+
+			environments, err = engine.ViewableEnvironments(ctx, nil)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"production"}, environments)
+		})
+	}
+}
+
 func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 
 	policySource := &reloadablePolicySource{policy: policyWithViewableScopes}
-	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource))
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource),
+		withDataSource(dataSource(`{}`), time.Hour))
 	require.NoError(t, err)
 
 	input := map[string]any{"authentication": map[string]any{}}
@@ -241,6 +406,11 @@ func TestEngine_PolicyReloadReplacesOptionalQueries(t *testing.T) {
 	namespaces, err := engine.ViewableNamespaces(ctx, "production", input)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"analytics"}, namespaces)
+
+	require.NoError(t, engine.updateData(ctx, storage.ReplaceOp))
+	environments, err = engine.ViewableEnvironments(ctx, input)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"production"}, environments)
 
 	policySource.Set(policyInvalid)
 	require.Error(t, engine.updatePolicy(ctx))
@@ -390,6 +560,121 @@ func TestEngine_ViewableNamespaces(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.ElementsMatch(t, tt.expected, namespaces)
+		})
+	}
+}
+
+func TestEngine_ViewableNamespacesFromData(t *testing.T) {
+	const env = "production"
+
+	tests := []struct {
+		name      string
+		data      string
+		expectNil bool
+	}{
+		{
+			name:      "data-only scope is restricted, not unrestricted",
+			data:      `{"flipt":{"authz":{"v2":{"viewable_namespaces":{"production":["analytics"]}}}}}`,
+			expectNil: false,
+		},
+		{
+			name:      "data-only empty scope stays restricted",
+			data:      `{"flipt":{"authz":{"v2":{"viewable_namespaces":{"production":[]}}}}}`,
+			expectNil: false,
+		},
+		{
+			name:      "undefined scope stays unrestricted",
+			data:      `{}`,
+			expectNil: true,
+		},
+		{
+			name:      "environments-only data leaves namespaces unrestricted",
+			data:      `{"flipt":{"authz":{"v2":{"viewable_environments":["production"]}}}}`,
+			expectNil: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			engine, err := newEngine(ctx, zaptest.NewLogger(t),
+				withPolicySource(policySource(policyWithoutViewableScopes)),
+				withDataSource(dataSource(tt.data), time.Hour))
+			require.NoError(t, err)
+
+			namespaces, err := engine.ViewableNamespaces(ctx, env, map[string]any{})
+			require.NoError(t, err)
+			if tt.expectNil {
+				assert.Nil(t, namespaces)
+				return
+			}
+			// Without a policy rule defining the namespaces function the
+			// query cannot be prepared, so a data-only scope must fail
+			// closed to an empty scope rather than nil (unrestricted).
+			assert.NotNil(t, namespaces)
+			assert.Empty(t, namespaces)
+		})
+	}
+}
+
+func TestEngine_DataReloadUpdatesViewableNamespaces(t *testing.T) {
+	const env = "production"
+
+	ctx := t.Context()
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource(policyWithoutViewableScopes)),
+		withDataSource(dataSource(`{}`), time.Hour))
+	require.NoError(t, err)
+
+	namespaces, err := engine.ViewableNamespaces(ctx, env, map[string]any{})
+	require.NoError(t, err)
+	assert.Nil(t, namespaces)
+
+	for _, tt := range []struct {
+		name      string
+		data      string
+		expectNil bool
+	}{
+		{
+			name:      "add scope",
+			data:      `{"flipt":{"authz":{"v2":{"viewable_namespaces":{"production":["analytics"]}}}}}`,
+			expectNil: false,
+		},
+		{
+			name:      "replace scope",
+			data:      `{"flipt":{"authz":{"v2":{"viewable_namespaces":{"staging":["analytics"]}}}}}`,
+			expectNil: false,
+		},
+		{
+			name:      "empty scope",
+			data:      `{"flipt":{"authz":{"v2":{"viewable_namespaces":{"production":[]}}}}}`,
+			expectNil: false,
+		},
+		{
+			name:      "remove scope",
+			data:      `{}`,
+			expectNil: true,
+		},
+		{
+			name:      "restore scope",
+			data:      `{"flipt":{"authz":{"v2":{"viewable_namespaces":{"production":["analytics"]}}}}}`,
+			expectNil: false,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			engine.mu.Lock()
+			engine.dataSource = dataSource(tt.data)
+			engine.mu.Unlock()
+			require.NoError(t, engine.updateData(ctx, storage.ReplaceOp))
+
+			namespaces, err := engine.ViewableNamespaces(ctx, env, map[string]any{})
+			require.NoError(t, err)
+			if tt.expectNil {
+				assert.Nil(t, namespaces)
+				return
+			}
+			assert.NotNil(t, namespaces)
+			assert.Empty(t, namespaces)
 		})
 	}
 }
