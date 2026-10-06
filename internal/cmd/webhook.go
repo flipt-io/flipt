@@ -40,30 +40,30 @@ func newWebhookReceiver(
 	envs environmentGetter,
 	licenseManager interface{ Product() product.Product },
 ) (*webhook.Receiver, error) {
-	var names []string
+	var envConfs []*config.EnvironmentConfig
 	for _, envConf := range cfg.Environments {
 		if envConf.SCM != nil && envConf.SCM.Webhook != nil {
-			names = append(names, envConf.Name)
+			envConfs = append(envConfs, envConf)
 		}
 	}
 
-	if len(names) == 0 {
+	if len(envConfs) == 0 {
 		return nil, nil
 	}
 
-	slices.Sort(names)
-
 	if licenseManager == nil || licenseManager.Product() != product.Pro {
+		names := make([]string, 0, len(envConfs))
+		for _, envConf := range envConfs {
+			names = append(names, envConf.Name)
+		}
+		slices.Sort(names)
+
 		logger.Warn("incoming scm webhooks require a paid license; webhook receiver disabled.", zap.Strings("environments", names))
 		return nil, nil
 	}
 
-	targets := make(map[string]webhook.Target, len(names))
-	for _, envConf := range cfg.Environments {
-		if envConf.SCM == nil || envConf.SCM.Webhook == nil {
-			continue
-		}
-
+	targets := make(map[string]webhook.Target, len(envConfs))
+	for _, envConf := range envConfs {
 		if envConf.SCM.Webhook.Secret == "" {
 			return nil, fmt.Errorf("environment %q: scm webhook secret is empty", envConf.Name)
 		}

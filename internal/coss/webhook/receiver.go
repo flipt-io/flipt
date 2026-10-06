@@ -129,7 +129,7 @@ func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, enviro
 		logger = r.logger.With(zap.String("environment", environment), zap.String("scm", scm))
 	)
 
-	event, err := Handle(target.SCM, target.Secret, req)
+	event, err := handle(target.SCM, target.Secret, req)
 	if err != nil {
 		switch {
 		case errs.AsMatch[errs.ErrUnauthenticated](err):
@@ -182,11 +182,6 @@ func (r *Receiver) ServeWebhook(w http.ResponseWriter, req *http.Request, enviro
 	logger.Debug("webhook accepted; fetch scheduled", zap.Strings("branches", tracked))
 
 	w.WriteHeader(http.StatusAccepted)
-}
-
-// Wait blocks until no webhook-triggered fetch is running or pending.
-func (r *Receiver) Wait() {
-	r.wg.Wait()
 }
 
 // Shutdown waits for webhook-triggered fetches, running or accepted and

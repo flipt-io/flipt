@@ -526,20 +526,6 @@ func NewGRPCServer(
 		return nil
 	})
 
-	// let in-flight and accepted webhook-triggered fetches complete before the
-	// rest of the stack (including metrics and storage) shuts down, cancelling
-	// them if the shutdown deadline passes first. Registered last so it runs
-	// first; the HTTP server serving webhooks has already stopped.
-	if server.webhookReceiver != nil {
-		server.onShutdown(func(ctx context.Context) error {
-			if err := server.webhookReceiver.Shutdown(ctx); err != nil {
-				// don't abort the remaining shutdown funcs
-				logger.Warn("webhook-triggered fetches cancelled at shutdown", zap.Error(err))
-			}
-			return nil
-		})
-	}
-
 	reflection.Register(grpcServer)
 
 	server.Server = grpcServer
@@ -547,7 +533,9 @@ func NewGRPCServer(
 }
 
 // WebhookReceiver returns the incoming SCM webhook receiver, or nil when
-// incoming webhooks are not enabled.
+// incoming webhooks are not enabled. It is built here because it needs the
+// environment store, but it is served and shut down by the HTTP server (see
+// WithWebhookReceiver).
 func (s *GRPCServer) WebhookReceiver() *webhook.Receiver {
 	return s.webhookReceiver
 }

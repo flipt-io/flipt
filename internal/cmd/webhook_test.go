@@ -160,7 +160,8 @@ func TestWebhookRoute(t *testing.T) {
 
 		res := httptest.NewRecorder()
 		server.Handler.ServeHTTP(res, newReq(t))
-		receiver.Wait()
+		// waits for the triggered fetch
+		require.NoError(t, server.Shutdown(t.Context()))
 
 		assert.Equal(t, http.StatusAccepted, res.Code, "body: %s", res.Body.String())
 		repo.AssertExpectations(t)
@@ -187,14 +188,18 @@ func TestWebhookRoute(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, res.Code, "body: %s", res.Body.String())
 	})
 
+	// a nil receiver (e.g. no Pro license) must not register the route or the
+	// cross-origin exemption; a typed nil handler would panic when served.
 	t.Run("without receiver", func(t *testing.T) {
 		server, err := NewHTTPServer(t.Context(), zaptest.NewLogger(t), newCfg(), nil, info.Flipt{}, WithWebhookReceiver(nil))
 		require.NoError(t, err)
 
+		// a registered route would answer 202, or 500 from a recovered panic
 		res := httptest.NewRecorder()
 		server.Handler.ServeHTTP(res, newReq(t))
 
-		assert.NotEqual(t, http.StatusAccepted, res.Code)
-		assert.GreaterOrEqual(t, res.Code, http.StatusBadRequest)
+		assert.Equal(t, http.StatusNotFound, res.Code, "body: %s", res.Body.String())
+
+		require.NoError(t, server.Shutdown(t.Context()))
 	})
 }

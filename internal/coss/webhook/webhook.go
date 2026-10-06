@@ -86,7 +86,7 @@ type Event struct {
 	Branches []string
 }
 
-// Handle authenticates the request for the given SCM using secret, reads its
+// handle authenticates the request for the given SCM using secret, reads its
 // body (capped at MaxBodySize), and parses the event.
 //
 // Header-token schemes (GitLab, Azure DevOps) are authenticated before the
@@ -96,10 +96,10 @@ type Event struct {
 // Authentication failures return an errors.ErrUnauthenticated (map to 401).
 // An oversized body returns ErrBodyTooLarge. An unsupported SCM type or an
 // authentic but malformed payload returns an errors.ErrInvalid.
-func Handle(scm config.SCMType, secret []byte, r *http.Request) (Event, error) {
+func handle(scm config.SCMType, secret []byte, r *http.Request) (Event, error) {
 	signed := signsBody(scm)
 	if !signed {
-		if err := Verify(scm, secret, r, nil); err != nil {
+		if err := verify(scm, secret, r, nil); err != nil {
 			return Event{}, err
 		}
 	}
@@ -110,12 +110,12 @@ func Handle(scm config.SCMType, secret []byte, r *http.Request) (Event, error) {
 	}
 
 	if signed {
-		if err := Verify(scm, secret, r, body); err != nil {
+		if err := verify(scm, secret, r, body); err != nil {
 			return Event{}, err
 		}
 	}
 
-	return Parse(scm, r.Header, body)
+	return parse(scm, r.Header, body)
 }
 
 // signsBody reports whether the SCM authenticates webhooks with an HMAC of
@@ -146,7 +146,7 @@ func readBody(body io.Reader) ([]byte, error) {
 	return b, nil
 }
 
-// Verify authenticates a webhook request for the given SCM type:
+// verify authenticates a webhook request for the given SCM type:
 //
 //   - github: HMAC-SHA256 of body in X-Hub-Signature-256 ("sha256=<hex>")
 //   - gitea: HMAC-SHA256 of body in X-Gitea-Signature (bare hex)
@@ -157,7 +157,7 @@ func readBody(body io.Reader) ([]byte, error) {
 //
 // The header-token schemes (gitlab, azure) ignore body, so it may be nil.
 // All comparisons are constant-time. An empty secret never authenticates.
-func Verify(scm config.SCMType, secret []byte, r *http.Request, body []byte) error {
+func verify(scm config.SCMType, secret []byte, r *http.Request, body []byte) error {
 	switch scm {
 	case config.GitHubSCMType, config.GiteaSCMType, config.GitLabSCMType,
 		config.BitBucketSCMType, config.AzureSCMType:
@@ -231,9 +231,9 @@ func macOf(v []byte) []byte {
 	return mac.Sum(nil)
 }
 
-// Parse classifies an already-authenticated webhook and extracts the pushed
+// parse classifies an already-authenticated webhook and extracts the pushed
 // branches. Non-push events return KindPing or KindOther with no branches.
-func Parse(scm config.SCMType, header http.Header, body []byte) (Event, error) {
+func parse(scm config.SCMType, header http.Header, body []byte) (Event, error) {
 	switch scm {
 	case config.GitHubSCMType:
 		return parseRefEvent(header.Get(headerGitHubEvent), "push", "ping", body)

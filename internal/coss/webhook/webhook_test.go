@@ -98,7 +98,7 @@ func runCases(t *testing.T, cases []testCase) {
 			}
 			tc.auth(req, body)
 
-			ev, err := Handle(tc.scm, []byte(testSecret), req)
+			ev, err := handle(tc.scm, []byte(testSecret), req)
 			if tc.wantErr != nil {
 				tc.wantErr(t, err)
 				assert.Equal(t, Event{}, ev)
@@ -189,7 +189,7 @@ func TestHandle_EmptySecretNeverAuthenticates(t *testing.T) {
 	req.Header.Set(headerGitLabEvent, "Push Hook")
 	req.Header.Set(headerGitLabToken, "")
 
-	_, err := Handle(config.GitLabSCMType, nil, req)
+	_, err := handle(config.GitLabSCMType, nil, req)
 	unauthenticated(t, err)
 
 	// An HMAC keyed with an empty secret is forgeable, so it must be rejected too.
@@ -197,14 +197,14 @@ func TestHandle_EmptySecretNeverAuthenticates(t *testing.T) {
 	req.Header.Set(headerGitHubEvent, "push")
 	req.Header.Set(headerGitHubSignature, "sha256="+sign("", body))
 
-	_, err = Handle(config.GitHubSCMType, []byte{}, req)
+	_, err = handle(config.GitHubSCMType, []byte{}, req)
 	unauthenticated(t, err)
 }
 
 func TestHandle_UnsupportedSCM(t *testing.T) {
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", strings.NewReader("{}"))
 
-	_, err := Handle(config.SCMType("svn"), []byte(testSecret), req)
+	_, err := handle(config.SCMType("svn"), []byte(testSecret), req)
 	require.Error(t, err)
 	assert.True(t, errs.AsMatch[errs.ErrInvalid](err))
 }
@@ -228,7 +228,7 @@ func TestHandle_BodyTooLarge(t *testing.T) {
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", bytes.NewReader(body))
 			tt.auth(req, body)
 
-			_, err := Handle(tt.scm, []byte(testSecret), req)
+			_, err := handle(tt.scm, []byte(testSecret), req)
 			require.ErrorIs(t, err, ErrBodyTooLarge)
 
 			// a body of exactly MaxBodySize is read in full and reaches the
@@ -242,7 +242,7 @@ func TestHandle_BodyTooLarge(t *testing.T) {
 			req.Header.Set(headerGitLabEvent, "Push Hook")
 			req.Header.Set(headerBitbucketEvent, "repo:push")
 
-			_, err = Handle(tt.scm, []byte(testSecret), req)
+			_, err = handle(tt.scm, []byte(testSecret), req)
 			require.Error(t, err)
 			require.NotErrorIs(t, err, ErrBodyTooLarge)
 			assert.True(t, errs.AsMatch[errs.ErrInvalid](err), "expected ErrInvalid, got %T: %v", err, err)
@@ -278,7 +278,7 @@ func TestHandle_HeaderTokenAuthFailureDoesNotReadBody(t *testing.T) {
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", body)
 			tt.auth(req, nil)
 
-			_, err := Handle(tt.scm, []byte(testSecret), req)
+			_, err := handle(tt.scm, []byte(testSecret), req)
 			unauthenticated(t, err)
 			assert.False(t, body.read, "body was read before authenticating")
 		})
@@ -291,7 +291,7 @@ func TestHandle_MalformedAuthenticPayload(t *testing.T) {
 	req.Header.Set(headerGitHubEvent, "push")
 	req.Header.Set(headerGitHubSignature, "sha256="+sign(testSecret, body))
 
-	_, err := Handle(config.GitHubSCMType, []byte(testSecret), req)
+	_, err := handle(config.GitHubSCMType, []byte(testSecret), req)
 	require.Error(t, err)
 	assert.True(t, errs.AsMatch[errs.ErrInvalid](err))
 }
@@ -299,7 +299,7 @@ func TestHandle_MalformedAuthenticPayload(t *testing.T) {
 func TestParse_BitbucketCloudBranchDeletion(t *testing.T) {
 	body := []byte(`{"push":{"changes":[{"old":{"type":"branch","name":"release"},"new":null}]}}`)
 
-	ev, err := Parse(config.BitBucketSCMType, http.Header{headerBitbucketEvent: {"repo:push"}}, body)
+	ev, err := parse(config.BitBucketSCMType, http.Header{headerBitbucketEvent: {"repo:push"}}, body)
 	require.NoError(t, err)
 	assert.Equal(t, Event{Kind: KindPush, Name: "repo:push", Branches: []string{"release"}}, ev)
 }
@@ -308,7 +308,7 @@ func TestParse_AzureMultipleRefsDeduplicated(t *testing.T) {
 	body := []byte(`{"eventType":"git.push","resource":{"refUpdates":[
 		{"name":"refs/heads/main"},{"name":"refs/tags/v1"},{"name":"refs/heads/feature/x"},{"name":"refs/heads/main"}]}}`)
 
-	ev, err := Parse(config.AzureSCMType, http.Header{}, body)
+	ev, err := parse(config.AzureSCMType, http.Header{}, body)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"main", "feature/x"}, ev.Branches)
 }

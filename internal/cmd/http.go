@@ -47,6 +47,9 @@ type HTTPServer struct {
 
 	logger *zap.Logger
 
+	// webhooks serves incoming SCM webhooks; nil when they are disabled.
+	webhooks webhookHandler
+
 	listenAndServe func() error
 }
 
@@ -62,9 +65,11 @@ func newCORSHandler(cfg *config.Config) func(http.Handler) http.Handler {
 	}).Handler
 }
 
-// webhookHandler serves incoming SCM webhooks for an environment.
+// webhookHandler serves incoming SCM webhooks for an environment. Shutdown
+// waits for the fetches those webhooks triggered.
 type webhookHandler interface {
 	ServeWebhook(w http.ResponseWriter, r *http.Request, environment string)
+	Shutdown(ctx context.Context) error
 }
 
 // HTTPServerOption configures NewHTTPServer.
@@ -75,8 +80,8 @@ type httpServerOptions struct {
 }
 
 // WithWebhookReceiver serves incoming SCM webhooks at
-// POST /api/v2/webhooks/{environment}. A nil receiver leaves the route
-// unregistered.
+// POST /api/v2/webhooks/{environment}, and shuts the receiver down with the
+// server. A nil receiver leaves the route unregistered.
 func WithWebhookReceiver(receiver *webhook.Receiver) HTTPServerOption {
 	return func(o *httpServerOptions) {
 		if receiver != nil {
@@ -105,7 +110,8 @@ func NewHTTPServer(
 
 	var (
 		server = &HTTPServer{
-			logger: logger,
+			logger:   logger,
+			webhooks: options.webhooks,
 		}
 
 		r   = chi.NewRouter()
@@ -387,7 +393,19 @@ func (h *HTTPServer) Run() error {
 func (h *HTTPServer) Shutdown(ctx context.Context) error {
 	h.logger.Info("shutting down HTTP server...")
 
-	return h.Server.Shutdown(ctx)
+	err := h.Server.Shutdown(ctx)
+
+	// no webhook is being served now, so no new fetch can be scheduled: let
+	// the fetches already running or accepted complete, cancelling them if
+	// ctx expires first. This runs before the gRPC server shuts down the
+	// storage they fetch into.
+	if h.webhooks != nil {
+		if err := h.webhooks.Shutdown(ctx); err != nil {
+			h.logger.Warn("webhook-triggered fetches cancelled at shutdown", zap.Error(err))
+		}
+	}
+
+	return err
 }
 
 func removeTrailingSlash(h http.Handler) http.Handler {

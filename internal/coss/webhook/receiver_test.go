@@ -277,7 +277,7 @@ func TestReceiver_AzurePush(t *testing.T) {
 
 	req := newRequest(t, environment, "azure/push.json", nil, azureBasic(testSecret))
 	rec := serve(r, req, environment)
-	r.Wait()
+	r.wg.Wait()
 
 	assert.Equal(t, http.StatusAccepted, rec.Code)
 	repo.AssertExpectations(t)
@@ -305,7 +305,7 @@ func TestReceiver_ValidPushFetchesOnce(t *testing.T) {
 			)
 
 			rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
-			r.Wait()
+			r.wg.Wait()
 
 			assert.Equal(t, http.StatusAccepted, rec.Code)
 			repo.AssertExpectations(t)
@@ -336,7 +336,7 @@ func TestReceiver_UnauthenticatedNeverFetches(t *testing.T) {
 				before := counterValue(t, metricRequests, requestAttrs(environment, p.scm, resultUnauthorized)...)
 
 				rec := serve(r, newRequest(t, environment, p.fixture, p.headers, tc.auth), environment)
-				r.Wait()
+				r.wg.Wait()
 
 				assert.Equal(t, http.StatusUnauthorized, rec.Code)
 				repo.AssertExpectations(t)
@@ -373,7 +373,7 @@ func TestReceiver_HeaderTokenUnauthenticatedSkipsBody(t *testing.T) {
 			p.auth("wrong")(req, nil)
 
 			rec := serve(r, req, environment)
-			r.Wait()
+			r.wg.Wait()
 
 			assert.Equal(t, http.StatusUnauthorized, rec.Code)
 			assert.False(t, body.read, "body was read before authenticating")
@@ -403,11 +403,11 @@ func TestReceiver_UnknownEnvironmentNeverFetches(t *testing.T) {
 	}
 
 	rec := serve(r, req, "staging")
-	r.Wait()
+	r.wg.Wait()
 
 	// indistinguishable from an authentication failure for a configured environment
 	unauthorized := serve(r, newRequest(t, "production", p.fixture, p.headers, p.auth("wrong")), "production")
-	r.Wait()
+	r.wg.Wait()
 
 	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 	assert.Equal(t, unauthorized.Code, rec.Code)
@@ -487,7 +487,7 @@ func TestReceiver_InvalidNeverFetches(t *testing.T) {
 			tt.auth(req, tt.body)
 
 			rec := serve(r, req, environment)
-			r.Wait()
+			r.wg.Wait()
 
 			assert.Equal(t, tt.code, rec.Code)
 			repo.AssertExpectations(t)
@@ -554,7 +554,7 @@ func TestReceiver_IgnoredEvents(t *testing.T) {
 			before := counterValue(t, metricRequests, requestAttrs(environment, tt.scm, resultIgnored)...)
 
 			rec := serve(r, newRequest(t, environment, tt.fixture, tt.headers, tt.auth), environment)
-			r.Wait()
+			r.wg.Wait()
 
 			assert.Equal(t, http.StatusOK, rec.Code)
 			repo.AssertExpectations(t)
@@ -581,7 +581,7 @@ func TestReceiver_FetchError(t *testing.T) {
 
 	p := providers["gitea"]
 	rec := serve(r, newRequest(t, environment, p.fixture, p.headers, p.auth(testSecret)), environment)
-	r.Wait()
+	r.wg.Wait()
 
 	assert.Equal(t, http.StatusAccepted, rec.Code)
 	repo.AssertExpectations(t)
@@ -657,7 +657,7 @@ func TestReceiver_CollapsesBursts(t *testing.T) {
 	wg.Wait()
 
 	close(release)
-	r.Wait()
+	r.wg.Wait()
 
 	repo.AssertNumberOfCalls(t, "Fetch", 2)
 	assert.Equal(t, 1, maxIn, "fetches must never run in parallel")
@@ -745,7 +745,7 @@ func TestReceiver_SharedRepositoryCollapsesBursts(t *testing.T) {
 	wg.Wait()
 
 	close(release)
-	r.Wait()
+	r.wg.Wait()
 
 	repo.AssertNumberOfCalls(t, "Fetch", 2)
 	assert.Equal(t, 1, maxIn, "fetches of a shared repository must never run in parallel")
@@ -810,7 +810,7 @@ func TestReceiver_BranchDeletionFetchesOnce(t *testing.T) {
 			tt.auth(req, body)
 
 			rec := serve(r, req, environment)
-			r.Wait()
+			r.wg.Wait()
 
 			assert.Equal(t, http.StatusAccepted, rec.Code)
 			repo.AssertExpectations(t)
