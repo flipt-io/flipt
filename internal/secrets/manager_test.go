@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/license"
+	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap"
 )
 
@@ -97,7 +99,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.NotNil(t, manager)
@@ -147,7 +149,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.NotNil(t, manager)
@@ -187,7 +189,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.NotNil(t, manager)
@@ -224,7 +226,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.NotNil(t, manager)
@@ -262,7 +264,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.NotNil(t, manager)
@@ -330,7 +332,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.NotNil(t, manager)
@@ -369,7 +371,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		_, err := NewManager(logger, cfg)
+		_, err := NewManager(logger, cfg, proLicense(t))
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "file provider factory not registered")
@@ -403,7 +405,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		_, err := NewManager(logger, cfg)
+		_, err := NewManager(logger, cfg, proLicense(t))
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "vault provider factory not registered")
@@ -433,7 +435,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		_, err := NewManager(logger, cfg)
+		_, err := NewManager(logger, cfg, proLicense(t))
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "gcp provider factory not registered")
@@ -462,7 +464,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		_, err := NewManager(logger, cfg)
+		_, err := NewManager(logger, cfg, proLicense(t))
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "aws provider factory not registered")
@@ -492,7 +494,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		_, err := NewManager(logger, cfg)
+		_, err := NewManager(logger, cfg, proLicense(t))
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "azure provider factory not registered")
@@ -521,7 +523,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.Empty(t, manager.ListProviders())
@@ -551,7 +553,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.Empty(t, manager.ListProviders())
@@ -581,7 +583,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg)
+		manager, err := NewManager(logger, cfg, proLicense(t))
 
 		require.NoError(t, err)
 		assert.Empty(t, manager.ListProviders())
@@ -998,4 +1000,73 @@ func TestManagerImpl_ThreadSafety(t *testing.T) {
 		providers := manager.ListProviders()
 		assert.Len(t, providers, 10)
 	})
+}
+
+func licenseFor(t *testing.T, p product.Product) license.Manager {
+	t.Helper()
+
+	m := license.NewMockManager(t)
+	m.EXPECT().Product().Return(p).Maybe()
+
+	return m
+}
+
+func proLicense(t *testing.T) license.Manager {
+	return licenseFor(t, product.Pro)
+}
+
+func TestNewManager_ProProvidersRequireLicense(t *testing.T) {
+	logger := zap.NewNop()
+
+	proConfigs := map[string]config.ProvidersConfig{
+		"vault": {Vault: &config.VaultProviderConfig{Enabled: true}},
+		"aws":   {AWS: &config.AWSProviderConfig{Enabled: true}},
+		"gcp":   {GCP: &config.GCPProviderConfig{Enabled: true}},
+		"azure": {Azure: &config.AzureProviderConfig{Enabled: true}},
+	}
+
+	for name, providers := range proConfigs {
+		t.Run(name, func(t *testing.T) {
+			factoryMu.Lock()
+			originalFactories := maps.Clone(providerFactories)
+			calls := 0
+			provider := NewMockProvider(t)
+			provider.EXPECT().GetSecret(mock.Anything, "api-key").Return(&Secret{
+				Path: "api-key",
+				Data: map[string][]byte{"api-key": []byte(name + "-value")},
+			}, nil).Once()
+			providerFactories = map[string]ProviderFactory{
+				name: func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
+					calls++
+					return provider, nil
+				},
+			}
+			factoryMu.Unlock()
+
+			t.Cleanup(func() {
+				factoryMu.Lock()
+				providerFactories = originalFactories
+				factoryMu.Unlock()
+			})
+
+			cfg := &config.Config{Secrets: config.SecretsConfig{Providers: providers}}
+
+			_, err := NewManager(logger, cfg, licenseFor(t, product.OSS))
+			require.EqualError(t, err, name+" secrets provider requires a paid license")
+			assert.Equal(t, 0, calls, "factory must not be invoked without a Pro license")
+
+			_, err = NewManager(logger, cfg, nil)
+			require.EqualError(t, err, name+" secrets provider requires a paid license")
+			assert.Equal(t, 0, calls, "factory must not be invoked without a license manager")
+
+			manager, err := NewManager(logger, cfg, licenseFor(t, product.Pro))
+			require.NoError(t, err)
+			assert.Equal(t, 1, calls)
+			assert.Equal(t, []string{name}, manager.ListProviders())
+
+			value, err := manager.GetSecretValue(t.Context(), Reference{Provider: name, Path: "api-key", Key: "api-key"})
+			require.NoError(t, err)
+			assert.Equal(t, name+"-value", string(value))
+		})
+	}
 }
