@@ -849,8 +849,7 @@
               "type": "object",
               "additionalProperties": false,
               "required": [
-                "type",
-                "credentials"
+                "type"
               ],
               "properties": {
                 "type": {

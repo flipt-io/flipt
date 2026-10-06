@@ -198,7 +198,7 @@ JsonPath: string
 
 	#scm: {
 		type:        *"github" | "gitea" | "gitlab" | "azure" | "bitbucket"
-		credentials: string
+		credentials?: string
 		api_url?:    string
 		webhook?: {
 			secret: string

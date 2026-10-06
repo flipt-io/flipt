@@ -67,6 +67,67 @@ func Test_JSONSchema(t *testing.T) {
 	}
 }
 
+// Test_SchemaSCMCredentialsOptional asserts both schemas accept an SCM block
+// with or without credentials, matching the Go config.
+func Test_SchemaSCMCredentialsOptional(t *testing.T) {
+	tests := []struct {
+		name string
+		scm  map[string]any
+	}{
+		{name: "with credentials", scm: map[string]any{"type": "gitlab", "credentials": "gitlab"}},
+		{name: "without credentials", scm: map[string]any{"type": "gitlab"}},
+	}
+
+	jsonSchemaBytes, err := os.ReadFile("flipt.schema.json")
+	require.NoError(t, err)
+
+	cueSchemaBytes, err := os.ReadFile("flipt.schema.cue")
+	require.NoError(t, err)
+
+	ctx := cuecontext.New()
+	spec := ctx.CompileBytes(cueSchemaBytes).LookupPath(cue.MakePath(cue.Def("#FliptSpec")))
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			conf := defaultConfig(t)
+			conf["environments"] = map[string]any{
+				"default": map[string]any{
+					"name":      "default",
+					"default":   true,
+					"storage":   "default",
+					"directory": "",
+					"scm":       tt.scm,
+				},
+			}
+
+			res, err := gojsonschema.Validate(gojsonschema.NewBytesLoader(jsonSchemaBytes), gojsonschema.NewGoLoader(conf))
+			require.NoError(t, err)
+			assert.True(t, res.Valid(), "JSON schema: %v", res.Errors())
+
+			assert.NoError(t, spec.Unify(ctx.Encode(conf)).Validate(cue.Concrete(true)), "CUE schema")
+		})
+	}
+}
+
+func defaultConfig(t *testing.T) (conf map[string]any) {
+	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(config.DecodeHooks...),
+		Result:     &conf,
+	})
+	config := config.Default()
+	// hack to get around validation not being able to handle types that map[string]*struct
+	config.Storage["default"].PollInterval = 0
+	config.Authentication.Session.Storage.Redis.Mode = "single"
+	require.NoError(t, err)
+	require.NoError(t, dec.Decode(config))
+
+	// adapt converts instances of time.Duration to their
+	// string representation, which CUE is going to validate
+	adapt(conf)
+
+	return conf
+}
+
 func Test_SchemaSCMWebhook(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -117,23 +178,4 @@ func Test_SchemaSCMWebhook(t *testing.T) {
 			}
 		})
 	}
-}
-
-func defaultConfig(t *testing.T) (conf map[string]any) {
-	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		DecodeHook: mapstructure.ComposeDecodeHookFunc(config.DecodeHooks...),
-		Result:     &conf,
-	})
-	config := config.Default()
-	// hack to get around validation not being able to handle types that map[string]*struct
-	config.Storage["default"].PollInterval = 0
-	config.Authentication.Session.Storage.Redis.Mode = "single"
-	require.NoError(t, err)
-	require.NoError(t, dec.Decode(config))
-
-	// adapt converts instances of time.Duration to their
-	// string representation, which CUE is going to validate
-	adapt(conf)
-
-	return conf
 }
