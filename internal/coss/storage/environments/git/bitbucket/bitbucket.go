@@ -96,7 +96,7 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, o
 				return nil, err
 			}
 		default:
-			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
+			return nil, fmt.Errorf("unsupported credential type: %q", apiAuth.Type())
 		}
 	} else {
 		// Create an unauthenticated client (for public repos)

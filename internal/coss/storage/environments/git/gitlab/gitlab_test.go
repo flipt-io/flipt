@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -11,7 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/credentials"
 	serverenvsmock "go.flipt.io/flipt/internal/server/environments"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -341,4 +345,76 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	assert.Len(t, result, 1)
 	assert.Equal(t, "http://example.com/mr-closed", result[branch].Url)
 	assert.Equal(t, rpcenv.ProposalState_PROPOSAL_STATE_CLOSED, result[branch].State)
+}
+
+func TestNewSCM_NoApiAuth(t *testing.T) {
+	scm, err := NewSCM(t.Context(), zap.NewNop(), "owner", "repo")
+	require.NoError(t, err)
+	require.NotNil(t, scm)
+	assert.Equal(t, "owner/repo", scm.projectID)
+	assert.NotNil(t, scm.mrs)
+	assert.NotNil(t, scm.repos)
+}
+
+func TestNewSCM_NoApiAuth_Propose(t *testing.T) {
+	type received struct {
+		path        string
+		privateTok  []string
+		authHeaders []string
+	}
+
+	reqs := make(chan received, 10)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqs <- received{
+			path:        r.URL.EscapedPath(),
+			privateTok:  r.Header.Values("PRIVATE-TOKEN"),
+			authHeaders: r.Header.Values("Authorization"),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = w.Write([]byte(`{"message":"401 Unauthorized"}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	apiURL, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+
+	scm, err := NewSCM(t.Context(), zap.NewNop(), "owner", "repo", WithApiURL(apiURL))
+	require.NoError(t, err)
+	require.NotNil(t, scm)
+
+	result, err := scm.Propose(t.Context(), git.ProposalRequest{
+		Base:  "main",
+		Head:  "feature",
+		Title: "Test MR",
+		Body:  "This is a test",
+	})
+	require.Error(t, err)
+	assert.Nil(t, result)
+	assert.Contains(t, err.Error(), "401")
+
+	select {
+	case got := <-reqs:
+		assert.Equal(t, "/api/v4/projects/owner%2Frepo/merge_requests", got.path)
+		assert.Empty(t, got.privateTok, "unexpected PRIVATE-TOKEN header")
+		assert.Empty(t, got.authHeaders, "unexpected Authorization header")
+	default:
+		t.Fatal("api_url server received no request")
+	}
+}
+
+func TestNewSCM_UnsupportedCredentialType(t *testing.T) {
+	creds := credentials.New(zap.NewNop(), config.CredentialsConfig{
+		"ssh": {Type: config.CredentialTypeSSH, SSH: &config.SSHAuthConfig{User: "git", Password: "pass"}},
+	})
+
+	cred, err := creds.Get("ssh")
+	require.NoError(t, err)
+
+	apiAuth, err := cred.APIAuthentication()
+	require.NoError(t, err)
+
+	scm, err := NewSCM(t.Context(), zap.NewNop(), "owner", "repo", WithApiAuth(apiAuth))
+	require.EqualError(t, err, `unsupported credential type: "ssh"`)
+	assert.Nil(t, scm)
 }
