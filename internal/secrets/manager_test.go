@@ -1055,6 +1055,10 @@ func TestNewManager_ProProvidersRequireLicense(t *testing.T) {
 			require.EqualError(t, err, name+" secrets provider requires a paid license")
 			assert.Equal(t, 0, calls, "factory must not be invoked without a Pro license")
 
+			_, err = NewManager(logger, cfg, nil)
+			require.EqualError(t, err, name+" secrets provider requires a paid license")
+			assert.Equal(t, 0, calls, "factory must not be invoked without a license manager")
+
 			manager, err := NewManager(logger, cfg, licenseFor(t, product.Pro))
 			require.NoError(t, err)
 			assert.Equal(t, 1, calls)

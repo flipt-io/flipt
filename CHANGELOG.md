@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking
 
-- **Secrets providers**: The `vault`, `aws`, `gcp`, and `azure` secrets providers now require a Pro license. Without one, enabling any of them fails startup with `<provider> secrets provider requires a paid license` (for example, `aws secrets provider requires a paid license`), and the provider is never set up or contacted. Secret references in `license.*` may only use the `file` provider. OSS users of these providers should move their secrets to the `file` provider.
+- **Secrets providers**: The `aws`, `gcp`, and `azure` secrets providers now require a Pro license, as `vault` already did. Without one, enabling any of them fails startup with `<provider> secrets provider requires a paid license` (for example, `aws secrets provider requires a paid license`), and the provider is never set up or contacted. OSS users of these providers should move their secrets to the `file` provider.
+- **License secrets**: Secret references in `license.key`, `license.file`, and `license.machine_id` may now only use the `file` provider, because the license is determined before any Pro secrets provider is set up. Pro users who load these values from `vault`, `aws`, `gcp`, or `azure` must switch to the `file` provider or set the value directly (for example, `FLIPT_LICENSE_KEY`).
 
 ## [2.13.1](https://github.com/flipt-io/flipt/releases/tag/v2.13.1) - 2026-10-02
 

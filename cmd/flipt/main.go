@@ -522,7 +522,8 @@ func resolveLicenseSecrets(ctx context.Context, logger *zap.Logger, cfg *config.
 		},
 	}
 
-	// no Pro providers are enabled, so no license manager is needed
+	// only the file provider is configured, and a nil license manager would
+	// refuse any Pro provider anyway
 	secretsManager, err := secrets.NewManager(logger, fileOnly, nil)
 	if err != nil {
 		return err
@@ -532,30 +533,29 @@ func resolveLicenseSecrets(ctx context.Context, logger *zap.Logger, cfg *config.
 		_ = secretsManager.Close()
 	}()
 
-	fields := []struct {
-		name  string
-		value *string
-	}{
-		{"license.key", &cfg.License.Key},
-		{"license.file", &cfg.License.File},
-		{"license.machine_id", &cfg.License.MachineID},
-	}
+	for sf, field := range reflect.ValueOf(&cfg.License).Elem().Fields() {
+		name := "license." + sf.Tag.Get("mapstructure")
+		ref := field.String()
 
-	for _, field := range fields {
-		ref := *field.value
-		if err := walkConfigForSecrets(ctx, reflect.ValueOf(field.value).Elem(), fileOnlyManager{secretsManager}); err != nil {
-			if errors.Is(err, errNotFileProvider) {
-				return fmt.Errorf("%s: secret reference %q must use the file provider", field.name, ref)
+		if err := walkConfigForSecrets(ctx, field, fileOnlyManager{secretsManager}); err != nil {
+			switch {
+			case errors.Is(err, errNotFileProvider):
+				return fmt.Errorf("%s: secret reference %q must use the file provider", name, ref)
+			case errors.Is(err, errFileProviderDisabled):
+				return fmt.Errorf("%s: secret reference %q requires the file secrets provider to be enabled (secrets.providers.file.enabled)", name, ref)
 			}
 
-			return fmt.Errorf("%s: %w", field.name, err)
+			return fmt.Errorf("%s: %w", name, err)
 		}
 	}
 
 	return nil
 }
 
-var errNotFileProvider = errors.New("secret reference must use the file provider")
+var (
+	errNotFileProvider      = errors.New("secret reference must use the file provider")
+	errFileProviderDisabled = errors.New("file secrets provider is not enabled")
+)
 
 // fileOnlyManager refuses secret references to any provider other than file.
 type fileOnlyManager struct {
@@ -567,12 +567,28 @@ func (m fileOnlyManager) GetSecretValue(ctx context.Context, ref secrets.Referen
 		return nil, errNotFileProvider
 	}
 
+	if _, err := m.GetProvider("file"); err != nil {
+		return nil, errFileProviderDisabled
+	}
+
 	return m.Manager.GetSecretValue(ctx, ref)
 }
 
-// resolveSecretsInConfig walks the config structure and resolves any secret references in-place
+// resolveSecretsInConfig walks the config structure and resolves any secret references in-place.
+// license.* is skipped: resolveLicenseSecrets has already resolved it, and a
+// resolved value must not be resolved again through a Pro provider.
 func resolveSecretsInConfig(ctx context.Context, cfg *config.Config, secretsManager secrets.Manager) error {
-	return walkConfigForSecrets(ctx, reflect.ValueOf(cfg).Elem(), secretsManager)
+	for sf, field := range reflect.ValueOf(cfg).Elem().Fields() {
+		if sf.Name == "License" {
+			continue
+		}
+
+		if err := walkConfigForSecrets(ctx, field, secretsManager); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // walkConfigForSecrets recursively walks the config struct and resolves secret references
@@ -592,9 +608,9 @@ func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager s
 				var secretRef secrets.Reference
 				switch {
 				case len(parts) == 1:
-					// Simple format: "key-name" - use default provider
+					// Simple format: "key-name" - no provider, so Reference.Validate rejects it
 					secretRef = secrets.Reference{
-						Provider: "", // Use default provider
+						Provider: "",
 						Path:     parts[0],
 						Key:      parts[0],
 					}
