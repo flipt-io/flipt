@@ -35,6 +35,7 @@ import (
 	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/secrets"
+	"go.flipt.io/flipt/internal/secrets/file"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
 	"go.opentelemetry.io/otel/log/global"
@@ -377,24 +378,10 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 	}
 
-	// initialize secrets manager and resolve secrets in config before creating any components
-	secretsManager, err := secrets.NewManager(logger, cfg)
-	if err != nil {
-		return fmt.Errorf("initializing secrets manager: %w", err)
+	// resolve secrets in the license config before the license is known
+	if err := resolveLicenseSecrets(ctx, logger, cfg); err != nil {
+		return fmt.Errorf("resolving secrets in license config: %w", err)
 	}
-
-	defer func() {
-		if secretsManager != nil {
-			_ = secretsManager.Close()
-		}
-	}()
-
-	// resolve secrets in the config if any secret references exist
-	if err := resolveSecretsInConfig(ctx, cfg, secretsManager); err != nil {
-		return fmt.Errorf("resolving secrets in config: %w", err)
-	}
-
-	logger.Debug("secrets manager initialized and config processed")
 
 	licenseManagerOpts := []license.LicenseManagerOption{}
 
@@ -416,12 +403,24 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		cancel()
 	}()
 
-	// Validate license requirements for secrets providers
-	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
-		if licenseManager.Product() == product.OSS {
-			return fmt.Errorf("vault secrets provider requires a paid license")
-		}
+	// initialize secrets manager and resolve secrets in config before creating any components
+	secretsManager, err := secrets.NewManager(logger, cfg, licenseManager)
+	if err != nil {
+		return fmt.Errorf("initializing secrets manager: %w", err)
 	}
+
+	defer func() {
+		if secretsManager != nil {
+			_ = secretsManager.Close()
+		}
+	}()
+
+	// resolve secrets in the config if any secret references exist
+	if err := resolveSecretsInConfig(ctx, cfg, secretsManager); err != nil {
+		return fmt.Errorf("resolving secrets in config: %w", err)
+	}
+
+	logger.Debug("secrets manager initialized and config processed")
 
 	info := info.New(
 		info.WithBuild(commit, date, goVersion, version, isRelease),
@@ -514,13 +513,97 @@ func initMetaStateDir(cfg *config.Config) error {
 	return ensureDir(cfg.Meta.StateDirectory)
 }
 
-// resolveSecretsInConfig walks the config structure and resolves any secret references in-place
+// resolveLicenseSecrets resolves secret references in the license config.
+// The license decides whether Pro secrets providers may be used, so only the
+// file provider is available here.
+func resolveLicenseSecrets(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
+	var resolver fileSecretResolver
+
+	if fileCfg := cfg.Secrets.Providers.File; fileCfg != nil && fileCfg.Enabled {
+		provider, err := file.NewProvider(fileCfg.BasePath, logger)
+		if err != nil {
+			return fmt.Errorf("initializing file secret provider: %w", err)
+		}
+
+		resolver.provider = provider
+	}
+
+	for sf, field := range reflect.ValueOf(&cfg.License).Elem().Fields() {
+		name := "license." + sf.Tag.Get("mapstructure")
+		ref := field.String()
+
+		if err := walkConfigForSecrets(ctx, field, resolver); err != nil {
+			switch {
+			case errors.Is(err, errNotFileProvider):
+				return fmt.Errorf("%s: secret reference %q must use the file provider", name, ref)
+			case errors.Is(err, errFileProviderDisabled):
+				return fmt.Errorf("%s: secret reference %q requires the file secrets provider to be enabled (secrets.providers.file.enabled)", name, ref)
+			}
+
+			return fmt.Errorf("%s: %w", name, err)
+		}
+	}
+
+	return nil
+}
+
+var (
+	errNotFileProvider      = errors.New("secret reference must use the file provider")
+	errFileProviderDisabled = errors.New("file secrets provider is not enabled")
+)
+
+// fileSecretResolver resolves secret references using only the file provider.
+// provider is nil when the file provider is not enabled.
+type fileSecretResolver struct {
+	provider secrets.Provider
+}
+
+func (r fileSecretResolver) GetSecretValue(ctx context.Context, ref secrets.Reference) ([]byte, error) {
+	if ref.Provider != "file" {
+		return nil, errNotFileProvider
+	}
+
+	if r.provider == nil {
+		return nil, errFileProviderDisabled
+	}
+
+	secret, err := r.provider.GetSecret(ctx, ref.Path)
+	if err != nil {
+		return nil, fmt.Errorf("getting secret from file: %w", err)
+	}
+
+	value, ok := secret.GetValue(ref.Key)
+	if !ok {
+		return nil, fmt.Errorf("key %q not found in secret at path %q", ref.Key, ref.Path)
+	}
+
+	return value, nil
+}
+
+// secretResolver resolves a single secret reference.
+type secretResolver interface {
+	GetSecretValue(ctx context.Context, ref secrets.Reference) ([]byte, error)
+}
+
+// resolveSecretsInConfig walks the config structure and resolves any secret references in-place.
+// license.* is skipped: resolveLicenseSecrets has already resolved it, and a
+// resolved value must not be resolved again through a Pro provider.
 func resolveSecretsInConfig(ctx context.Context, cfg *config.Config, secretsManager secrets.Manager) error {
-	return walkConfigForSecrets(ctx, reflect.ValueOf(cfg).Elem(), secretsManager)
+	for sf, field := range reflect.ValueOf(cfg).Elem().Fields() {
+		if sf.Name == "License" {
+			continue
+		}
+
+		if err := walkConfigForSecrets(ctx, field, secretsManager); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // walkConfigForSecrets recursively walks the config struct and resolves secret references
-func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager secrets.Manager) error {
+func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager secretResolver) error {
 	switch v.Kind() {
 	case reflect.String:
 		if v.CanSet() {
@@ -536,9 +619,9 @@ func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager s
 				var secretRef secrets.Reference
 				switch {
 				case len(parts) == 1:
-					// Simple format: "key-name" - use default provider
+					// Simple format: "key-name" - no provider, so Reference.Validate rejects it
 					secretRef = secrets.Reference{
-						Provider: "", // Use default provider
+						Provider: "",
 						Path:     parts[0],
 						Key:      parts[0],
 					}
