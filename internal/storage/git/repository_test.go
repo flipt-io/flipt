@@ -1526,3 +1526,144 @@ func TestUpdateAndPush_NonFastForward_IfHeadMatches(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "fresh writer", contents)
 }
+
+// TestUpdateAndPush_IfHeadMatches_CallerAheadOfLocal ensures that when the
+// caller observed a head pushed by another instance sharing the remote, which
+// this repository has not fetched yet, the update fetches the branch and
+// succeeds rather than returning a false conflict.
+func TestUpdateAndPush_IfHeadMatches_CallerAheadOfLocal(t *testing.T) {
+	remoteDir := t.TempDir()
+	remoteRepo, err := git.PlainInit(
+		remoteDir, true,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+
+	bootstrapDir := t.TempDir()
+	bootstrapRepo, err := git.PlainInit(
+		bootstrapDir, false,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+	_, err = bootstrapRepo.CreateRemote(&config.RemoteConfig{Name: "origin", URLs: []string{remoteDir}})
+	require.NoError(t, err)
+	initial := commitAndPush(t, bootstrapRepo, bootstrapDir, "flipt.txt", "original")
+
+	// two instances, each with its own bare clone of the same remote
+	newInstance := func() *Repository {
+		repo, _, err := newRepository(t.Context(), zap.NewNop(),
+			WithFilesystemStorage(t.TempDir()),
+			WithRemote("origin", remoteDir),
+			WithSignature("test", "test@test.com"),
+		)
+		require.NoError(t, err)
+		return repo
+	}
+	instanceA, instanceB := newInstance(), newInstance()
+
+	write := func(contents string) func(envsfs.Filesystem) (string, error) {
+		return func(fs envsfs.Filesystem) (string, error) {
+			fi, err := fs.OpenFile("flipt.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+			if err != nil {
+				return "", err
+			}
+			if _, err := fi.Write([]byte(contents)); err != nil {
+				return "", err
+			}
+			return "update flipt.txt", fi.Close()
+		}
+	}
+
+	// the caller writes through instance A and observes the new head
+	observed, err := instanceA.UpdateAndPush(t.Context(), "main", write("via A"), UpdateIfHeadMatches(&initial))
+	require.NoError(t, err)
+
+	// instance B has not fetched since and still tracks the initial commit
+	stale, err := instanceB.Resolve("main")
+	require.NoError(t, err)
+	require.Equal(t, initial, stale)
+
+	sub := &recordingSubscriber{branches: []string{"main"}}
+	instanceB.Subscribe(sub)
+
+	// the caller's next write lands on instance B
+	hash, err := instanceB.UpdateAndPush(t.Context(), "main", write("via B"), UpdateIfHeadMatches(&observed))
+	require.NoError(t, err, "a caller ahead of the local repository must not get a conflict")
+
+	commit, err := remoteRepo.CommitObject(hash)
+	require.NoError(t, err)
+	assert.Equal(t, []plumbing.Hash{observed}, commit.ParentHashes, "B's commit must build on A's")
+	file, err := commit.File("flipt.txt")
+	require.NoError(t, err)
+	contents, err := file.Contents()
+	require.NoError(t, err)
+	assert.Equal(t, "via B", contents)
+
+	remoteHead, err := remoteRepo.Reference(plumbing.NewBranchReferenceName("main"), true)
+	require.NoError(t, err)
+	assert.Equal(t, hash, remoteHead.Hash())
+
+	assert.Equal(t, []map[string]string{{"main": hash.String()}}, sub.notified)
+}
+
+// TestUpdateAndPush_IfHeadMatches_CallerBehindAfterFetch ensures that fetching
+// to recheck the expected head still returns a conflict when the caller is
+// genuinely behind, and leaves the repository tracking the fetched head.
+func TestUpdateAndPush_IfHeadMatches_CallerBehindAfterFetch(t *testing.T) {
+	remoteDir := t.TempDir()
+	_, err := git.PlainInit(
+		remoteDir, true,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+
+	otherDir := t.TempDir()
+	otherRepo, err := git.PlainInit(
+		otherDir, false,
+		git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+	)
+	require.NoError(t, err)
+	_, err = otherRepo.CreateRemote(&config.RemoteConfig{Name: "origin", URLs: []string{remoteDir}})
+	require.NoError(t, err)
+	commitAndPush(t, otherRepo, otherDir, "flipt.txt", "original")
+
+	repo, _, err := newRepository(t.Context(), zap.NewNop(),
+		WithFilesystemStorage(t.TempDir()),
+		WithRemote("origin", remoteDir),
+		WithSignature("test", "test@test.com"),
+	)
+	require.NoError(t, err)
+
+	// the caller observed a head that is neither local nor on the remote
+	unknown := plumbing.NewHash("0000000000000000000000000000000000000001")
+
+	// meanwhile another writer advances the remote
+	otherHead := commitAndPush(t, otherRepo, otherDir, "flipt.txt", "other writer")
+
+	sub := &recordingSubscriber{branches: []string{"main"}}
+	repo.Subscribe(sub)
+
+	_, err = repo.UpdateAndPush(t.Context(), "main", func(envsfs.Filesystem) (string, error) {
+		t.Fatal("fn must not run on conflict")
+		return "", nil
+	}, UpdateIfHeadMatches(&unknown))
+	require.True(t, errors.AsMatch[errors.ErrConflict](err), "expected conflict, got %v", err)
+	assert.Contains(t, err.Error(), otherHead.String(), "conflict must report the fetched head")
+
+	current, err := repo.Resolve("main")
+	require.NoError(t, err)
+	assert.Equal(t, otherHead, current)
+	assert.Equal(t, []map[string]string{{"main": otherHead.String()}}, sub.notified)
+}
+
+type recordingSubscriber struct {
+	branches []string
+	notified []map[string]string
+}
+
+func (s *recordingSubscriber) Branches() []string { return s.branches }
+
+func (s *recordingSubscriber) Notify(_ context.Context, refs map[string]string) error {
+	s.notified = append(s.notified, refs)
+	return nil
+}
