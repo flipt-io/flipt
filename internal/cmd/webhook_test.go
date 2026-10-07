@@ -66,7 +66,7 @@ func webhookConfig(webhooks map[string]*config.IncomingWebhookConfig) *config.Co
 }
 
 func TestNewWebhookReceiver(t *testing.T) {
-	envs := fakeEnvironments{"production": gitEnvironment{}}
+	envs := fakeEnvironments{"production": gitEnvironment{repo: &storagegit.Repository{}}}
 
 	t.Run("no webhooks configured", func(t *testing.T) {
 		cfg := webhookConfig(nil)
@@ -116,6 +116,16 @@ func TestNewWebhookReceiver(t *testing.T) {
 		_, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg,
 			fakeEnvironments{"production": serverenvironments.Environment(nil)}, licenseFor(t, product.Pro))
 		require.ErrorContains(t, err, "require git storage")
+	})
+
+	t.Run("nil repository fails startup", func(t *testing.T) {
+		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: "s3cr3t"}})
+
+		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg,
+			fakeEnvironments{"production": gitEnvironment{}}, licenseFor(t, product.Pro))
+		require.Error(t, err)
+		assert.Nil(t, receiver)
+		assert.Equal(t, `environment "production": scm webhooks require a git repository`, err.Error())
 	})
 }
 

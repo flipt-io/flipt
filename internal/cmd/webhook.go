@@ -19,8 +19,9 @@ const webhookPathPattern = "/api/v2/webhooks/{environment}"
 
 // webhookCrossOriginExemptPattern exempts incoming webhooks from cross-origin
 // protection. Webhooks are authenticated by their own signature or token and
-// carry no ambient (cookie) authority.
-const webhookCrossOriginExemptPattern = "POST /api/v2/webhooks/"
+// carry no ambient (cookie) authority. It matches only the webhook route, not
+// the /api/v2/webhooks/ subtree.
+const webhookCrossOriginExemptPattern = "POST " + webhookPathPattern
 
 type environmentGetter interface {
 	Get(ctx context.Context, key string) (serverenvironments.Environment, error)
@@ -80,10 +81,17 @@ func newWebhookReceiver(
 			return nil, fmt.Errorf("environment %q: scm webhooks require git storage", envConf.Name)
 		}
 
+		// a nil *Repository would become a non-nil webhook.Repository and
+		// panic on the first webhook, so fail at startup instead
+		repo := repoEnv.Repository()
+		if repo == nil {
+			return nil, fmt.Errorf("environment %q: scm webhooks require a git repository", envConf.Name)
+		}
+
 		targets[envConf.Name] = webhook.Target{
 			SCM:        envConf.SCM.Type,
 			Secret:     []byte(envConf.SCM.Webhook.Secret),
-			Repository: repoEnv.Repository(),
+			Repository: repo,
 		}
 	}
 
