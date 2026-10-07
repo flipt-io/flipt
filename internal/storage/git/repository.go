@@ -423,6 +423,13 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		heads = r.fetchHeads()
 	}
 
+	return r.fetch(ctx, heads, updatedRefs)
+}
+
+// fetch fetches heads from the configured remote and records each updated
+// branch head in updatedRefs, so the caller can notify subscribers about them.
+// The caller must hold r.mu and must ensure a remote is configured.
+func (r *Repository) fetch(ctx context.Context, heads []string, updatedRefs map[string]plumbing.Hash) error {
 	refSpecs := []config.RefSpec{}
 
 	for _, head := range heads {
@@ -615,10 +622,16 @@ func UpdateIfHeadMatches(hash *plumbing.Hash) containers.Option[UpdateAndPushOpt
 	}
 }
 
+// headMatches reports whether hash satisfies the expected head revision, if
+// the caller supplied one.
+func (o UpdateAndPushOptions) headMatches(hash plumbing.Hash) bool {
+	return o.ifHeadMatches == nil || o.ifHeadMatches.IsZero() || *o.ifHeadMatches == hash
+}
+
 // checkHead returns a conflict error if the caller supplied an expected head
 // revision which does not match hash.
 func (o UpdateAndPushOptions) checkHead(logger *zap.Logger, hash plumbing.Hash) error {
-	if o.ifHeadMatches == nil || o.ifHeadMatches.IsZero() || *o.ifHeadMatches == hash {
+	if o.headMatches(hash) {
 		return nil
 	}
 
@@ -645,6 +658,9 @@ func (r *Repository) UpdateAndPush(
 		finished = r.metrics.recordUpdate(ctx, branch)
 		options  UpdateAndPushOptions
 		commit   *object.Commit
+		// refs fetched while checking the expected head, which subscribers
+		// must hear about even when the update itself fails
+		fetchedRefs = map[string]plumbing.Hash{}
 	)
 
 	containers.ApplyAll(&options, opts...)
@@ -658,8 +674,11 @@ func (r *Repository) UpdateAndPush(
 	defer func() {
 		r.mu.Unlock()
 		if commit != nil {
+			fetchedRefs[branch] = commit.Hash
+		}
+		if len(fetchedRefs) > 0 {
 			// update references
-			r.updateSubs(ctx, map[string]plumbing.Hash{branch: commit.Hash})
+			r.updateSubs(ctx, fetchedRefs)
 		}
 		finished(err)
 	}()
@@ -674,6 +693,25 @@ func (r *Repository) UpdateAndPush(
 		r.logger.Debug("resolved current head",
 			zap.String("branch", branch),
 			zap.Stringer("hash", hash))
+
+		// The caller may have observed a newer head than this repository has
+		// fetched, e.g. one pushed by another instance sharing the remote.
+		// Fetch the branch once so that a stale local view doesn't produce a
+		// false conflict.
+		if !options.headMatches(hash) && r.remote != nil {
+			r.logger.Debug("expected head revision differs, fetching branch",
+				zap.String("branch", branch),
+				zap.Stringer("expected", *options.ifHeadMatches),
+				zap.Stringer("actual", hash))
+
+			if ferr := r.fetch(ctx, []string{branch}, fetchedRefs); ferr != nil {
+				r.logger.Warn("fetching branch to recheck head revision",
+					zap.String("branch", branch),
+					zap.Error(ferr))
+			} else if hash, err = r.Resolve(branch); err != nil {
+				return plumbing.ZeroHash, err
+			}
+		}
 	}
 
 	if err := options.checkHead(r.logger, hash); err != nil {
