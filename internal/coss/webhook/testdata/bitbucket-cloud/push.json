@@ -1,0 +1,75 @@
+{
+  "push": {
+    "changes": [
+      {
+        "old": {
+          "type": "branch",
+          "name": "main",
+          "target": {
+            "type": "commit",
+            "hash": "1e65c05c1d5171631d92438a13901ca7dae9618c"
+          }
+        },
+        "new": {
+          "type": "branch",
+          "name": "main",
+          "target": {
+            "type": "commit",
+            "hash": "c4b2b7914156a878aa7c9da452a09fb50c2091f2",
+            "message": "Disable checkout-v2 flag\n",
+            "date": "2026-10-05T14:02:11+00:00",
+            "author": {
+              "raw": "Jane Doe <jane@example.com>"
+            }
+          }
+        },
+        "created": false,
+        "forced": false,
+        "closed": false,
+        "truncated": false,
+        "links": {
+          "html": {
+            "href": "https://bitbucket.org/acme/features/branches/compare/c4b2b7914156..1e65c05c1d51"
+          }
+        },
+        "commits": [
+          {
+            "type": "commit",
+            "hash": "c4b2b7914156a878aa7c9da452a09fb50c2091f2",
+            "message": "Disable checkout-v2 flag\n"
+          }
+        ]
+      },
+      {
+        "old": null,
+        "new": {
+          "type": "tag",
+          "name": "v1.2.0",
+          "target": {
+            "type": "commit",
+            "hash": "c4b2b7914156a878aa7c9da452a09fb50c2091f2"
+          }
+        },
+        "created": true,
+        "forced": false,
+        "closed": false,
+        "truncated": false,
+        "commits": []
+      }
+    ]
+  },
+  "repository": {
+    "type": "repository",
+    "full_name": "acme/features",
+    "name": "features",
+    "uuid": "{b7f3c2a1-1e8d-4c6b-9d3a-6c2e5f1a7b90}",
+    "is_private": true,
+    "scm": "git"
+  },
+  "actor": {
+    "type": "user",
+    "display_name": "Jane Doe",
+    "uuid": "{4e2f7b6a-0c1d-4f3e-8a9b-1c2d3e4f5a6b}",
+    "nickname": "jdoe"
+  }
+}

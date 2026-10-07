@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -120,9 +121,25 @@ const (
 var _ validator = (*SCMConfig)(nil)
 
 type SCMConfig struct {
-	Type        SCMType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	Credentials *string `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
-	ApiURL      string  `json:"api_url,omitempty" mapstructure:"api_url" yaml:"api_url,omitempty"`
+	Type        SCMType                `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	Credentials *string                `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
+	ApiURL      string                 `json:"api_url,omitempty" mapstructure:"api_url" yaml:"api_url,omitempty"`
+	Webhook     *IncomingWebhookConfig `json:"webhook,omitempty" mapstructure:"webhook" yaml:"webhook,omitempty"`
+}
+
+// IncomingWebhookConfig configures the receiver for push webhooks sent by the
+// environment's SCM. Secret is required; it may be a ${secret:provider:key}
+// reference, which is resolved by the secrets manager at startup.
+type IncomingWebhookConfig struct {
+	Secret string `json:"-" mapstructure:"secret" yaml:"-"`
+}
+
+func (w *IncomingWebhookConfig) validate() error {
+	if w.Secret == "" {
+		return errors.New("secret is required")
+	}
+
+	return nil
 }
 
 func (s SCMConfig) validate() error {
@@ -138,6 +155,13 @@ func (s SCMConfig) validate() error {
 			return errFieldWrap("environments", "scm", fmt.Errorf("invalid api url: %w", err))
 		}
 	}
+
+	if s.Webhook != nil {
+		if err := s.Webhook.validate(); err != nil {
+			return errFieldWrap("environments", "scm", errFieldWrap("", "webhook", err))
+		}
+	}
+
 	return nil
 }
 

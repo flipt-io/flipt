@@ -17,6 +17,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/webhook"
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server/authn/method"
@@ -46,6 +47,9 @@ type HTTPServer struct {
 
 	logger *zap.Logger
 
+	// webhooks serves incoming SCM webhooks; nil when they are disabled.
+	webhooks webhookHandler
+
 	listenAndServe func() error
 }
 
@@ -61,6 +65,31 @@ func newCORSHandler(cfg *config.Config) func(http.Handler) http.Handler {
 	}).Handler
 }
 
+// webhookHandler serves incoming SCM webhooks for an environment. Shutdown
+// waits for the fetches those webhooks triggered.
+type webhookHandler interface {
+	ServeWebhook(w http.ResponseWriter, r *http.Request, environment string)
+	Shutdown(ctx context.Context) error
+}
+
+// HTTPServerOption configures NewHTTPServer.
+type HTTPServerOption func(*httpServerOptions)
+
+type httpServerOptions struct {
+	webhooks webhookHandler
+}
+
+// WithWebhookReceiver serves incoming SCM webhooks at
+// POST /api/v2/webhooks/{environment}, and shuts the receiver down with the
+// server. A nil receiver leaves the route unregistered.
+func WithWebhookReceiver(receiver *webhook.Receiver) HTTPServerOption {
+	return func(o *httpServerOptions) {
+		if receiver != nil {
+			o.webhooks = receiver
+		}
+	}
+}
+
 // NewHTTPServer constructs and configures the HTTPServer instance.
 // The HTTPServer depends upon a running gRPC server instance which is why
 // it explicitly requires and established gRPC connection as an argument.
@@ -70,12 +99,19 @@ func NewHTTPServer(
 	cfg *config.Config,
 	conn grpc.ClientConnInterface,
 	info info.Flipt,
+	opts ...HTTPServerOption,
 ) (*HTTPServer, error) {
 	logger = logger.With(zap.Stringer("server", cfg.Server.Protocol))
 
+	var options httpServerOptions
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	var (
 		server = &HTTPServer{
-			logger: logger,
+			logger:   logger,
+			webhooks: options.webhooks,
 		}
 
 		r   = chi.NewRouter()
@@ -192,7 +228,20 @@ func NewHTTPServer(
 
 		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
 			logger.Debug("enabling CSRF prevention")
-			r.Use(crossOriginProtection(logger, cfg.Authentication.Session.CSRF.TrustedOrigins, crossOriginExemptPatterns(cfg)))
+			exempt := crossOriginExemptPatterns(cfg)
+			if options.webhooks != nil {
+				exempt = append(exempt, webhookCrossOriginExemptPattern)
+			}
+			r.Use(crossOriginProtection(logger, cfg.Authentication.Session.CSRF.TrustedOrigins, exempt))
+		}
+
+		// incoming SCM webhooks are plain HTTP handlers outside Flipt
+		// authentication: each request is authenticated by its SCM signature
+		// or token against the environment's configured webhook secret.
+		if options.webhooks != nil {
+			r.Post(webhookPathPattern, func(w http.ResponseWriter, r *http.Request) {
+				options.webhooks.ServeWebhook(w, r, chi.URLParam(r, "environment"))
+			})
 		}
 
 		r.Mount("/api/v1", api)
@@ -344,7 +393,19 @@ func (h *HTTPServer) Run() error {
 func (h *HTTPServer) Shutdown(ctx context.Context) error {
 	h.logger.Info("shutting down HTTP server...")
 
-	return h.Server.Shutdown(ctx)
+	err := h.Server.Shutdown(ctx)
+
+	// no webhook is being served now, so no new fetch can be scheduled: let
+	// the fetches already running or accepted complete, cancelling them if
+	// ctx expires first. This runs before the gRPC server shuts down the
+	// storage they fetch into.
+	if h.webhooks != nil {
+		if err := h.webhooks.Shutdown(ctx); err != nil {
+			h.logger.Warn("webhook-triggered fetches cancelled at shutdown", zap.Error(err))
+		}
+	}
+
+	return err
 }
 
 func removeTrailingSlash(h http.Handler) http.Handler {

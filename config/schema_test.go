@@ -127,3 +127,55 @@ func defaultConfig(t *testing.T) (conf map[string]any) {
 
 	return conf
 }
+
+func Test_SchemaSCMWebhook(t *testing.T) {
+	tests := []struct {
+		name    string
+		webhook map[string]any
+		valid   bool
+	}{
+		{name: "secret", webhook: map[string]any{"secret": "s3cr3t"}, valid: true},
+		{name: "secret reference", webhook: map[string]any{"secret": "${secret:file:gitlab-webhook}"}, valid: true},
+		{name: "missing secret", webhook: map[string]any{}},
+		{name: "unknown field", webhook: map[string]any{"secret": "s3cr3t", "secret_ref": map[string]any{"provider": "file", "path": "webhooks", "key": "gitlab"}}},
+	}
+
+	jsonSchemaBytes, err := os.ReadFile("flipt.schema.json")
+	require.NoError(t, err)
+
+	cueSchemaBytes, err := os.ReadFile("flipt.schema.cue")
+	require.NoError(t, err)
+
+	ctx := cuecontext.New()
+	spec := ctx.CompileBytes(cueSchemaBytes).LookupPath(cue.MakePath(cue.Def("#FliptSpec")))
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			conf := defaultConfig(t)
+			conf["environments"] = map[string]any{
+				"default": map[string]any{
+					"name":      "default",
+					"default":   true,
+					"storage":   "default",
+					"directory": "",
+					"scm": map[string]any{
+						"type":        "gitlab",
+						"credentials": "git",
+						"webhook":     tt.webhook,
+					},
+				},
+			}
+
+			res, err := gojsonschema.Validate(gojsonschema.NewBytesLoader(jsonSchemaBytes), gojsonschema.NewGoLoader(conf))
+			require.NoError(t, err)
+			assert.Equal(t, tt.valid, res.Valid(), "JSON schema: %v", res.Errors())
+
+			cueErr := spec.Unify(ctx.Encode(conf)).Validate(cue.Concrete(true))
+			if tt.valid {
+				assert.NoError(t, cueErr, "CUE schema")
+			} else {
+				assert.Error(t, cueErr, "CUE schema")
+			}
+		})
+	}
+}

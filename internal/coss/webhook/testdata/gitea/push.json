@@ -1,0 +1,58 @@
+{
+  "ref": "refs/heads/main",
+  "before": "28e1879d029cb852e4844d9c718537df08844e03",
+  "after": "bffeb74224043ba2feb48d137756c8a9331c449a",
+  "compare_url": "http://localhost:3000/acme/features/compare/28e1879d029c...bffeb7422404",
+  "commits": [
+    {
+      "id": "bffeb74224043ba2feb48d137756c8a9331c449a",
+      "message": "Disable checkout-v2 flag\n",
+      "url": "http://localhost:3000/acme/features/commit/bffeb74224043ba2feb48d137756c8a9331c449a",
+      "author": {
+        "name": "Jane Doe",
+        "email": "jane@example.com",
+        "username": "jane"
+      },
+      "committer": {
+        "name": "Jane Doe",
+        "email": "jane@example.com",
+        "username": "jane"
+      },
+      "timestamp": "2026-10-05T14:02:11Z",
+      "added": [],
+      "removed": [],
+      "modified": [
+        "production/features.yaml"
+      ]
+    }
+  ],
+  "total_commits": 1,
+  "head_commit": {
+    "id": "bffeb74224043ba2feb48d137756c8a9331c449a",
+    "message": "Disable checkout-v2 flag\n"
+  },
+  "repository": {
+    "id": 1,
+    "owner": {
+      "id": 1,
+      "login": "acme",
+      "username": "acme"
+    },
+    "name": "features",
+    "full_name": "acme/features",
+    "private": false,
+    "html_url": "http://localhost:3000/acme/features",
+    "clone_url": "http://localhost:3000/acme/features.git",
+    "default_branch": "main"
+  },
+  "pusher": {
+    "id": 1,
+    "login": "jane",
+    "username": "jane"
+  },
+  "sender": {
+    "id": 1,
+    "login": "jane",
+    "username": "jane"
+  }
+}

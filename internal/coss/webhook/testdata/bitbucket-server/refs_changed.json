@@ -1,0 +1,52 @@
+{
+  "eventKey": "repo:refs_changed",
+  "date": "2026-10-05T14:02:11+0000",
+  "actor": {
+    "name": "jdoe",
+    "emailAddress": "jane@example.com",
+    "id": 1,
+    "displayName": "Jane Doe",
+    "active": true,
+    "slug": "jdoe",
+    "type": "NORMAL"
+  },
+  "repository": {
+    "slug": "features",
+    "id": 84,
+    "name": "features",
+    "scmId": "git",
+    "state": "AVAILABLE",
+    "forkable": true,
+    "public": false,
+    "project": {
+      "key": "ACME",
+      "id": 84,
+      "name": "Acme",
+      "type": "NORMAL"
+    }
+  },
+  "changes": [
+    {
+      "ref": {
+        "id": "refs/heads/main",
+        "displayId": "main",
+        "type": "BRANCH"
+      },
+      "refId": "refs/heads/main",
+      "fromHash": "ecddabb624f6f5ba43816f5926e580a5f680a932",
+      "toHash": "178864a7d521b6f5e720b386b2c2b0ef8563e0dc",
+      "type": "UPDATE"
+    },
+    {
+      "ref": {
+        "id": "refs/tags/v1.2.0",
+        "displayId": "v1.2.0",
+        "type": "TAG"
+      },
+      "refId": "refs/tags/v1.2.0",
+      "fromHash": "0000000000000000000000000000000000000000",
+      "toHash": "178864a7d521b6f5e720b386b2c2b0ef8563e0dc",
+      "type": "ADD"
+    }
+  ]
+}

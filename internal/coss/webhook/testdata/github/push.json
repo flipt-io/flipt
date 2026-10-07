@@ -1,0 +1,62 @@
+{
+  "ref": "refs/heads/main",
+  "before": "6113728f27ae82c7b1a177c8d03f9e96e0adf246",
+  "after": "59b20b8d5c6ff8d09518454d4dd8b7a30f095ab5",
+  "created": false,
+  "deleted": false,
+  "forced": false,
+  "base_ref": null,
+  "compare": "https://github.com/acme/features/compare/6113728f27ae...59b20b8d5c6f",
+  "commits": [
+    {
+      "id": "59b20b8d5c6ff8d09518454d4dd8b7a30f095ab5",
+      "tree_id": "f9d2a07e9488b91af2641b26b9407fe22a451433",
+      "distinct": true,
+      "message": "Disable checkout-v2 flag",
+      "timestamp": "2026-10-05T14:02:11Z",
+      "url": "https://github.com/acme/features/commit/59b20b8d5c6ff8d09518454d4dd8b7a30f095ab5",
+      "author": {
+        "name": "Jane Doe",
+        "email": "jane@example.com",
+        "username": "janedoe"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "username": "web-flow"
+      },
+      "added": [],
+      "removed": [],
+      "modified": [
+        "production/features.yaml"
+      ]
+    }
+  ],
+  "head_commit": {
+    "id": "59b20b8d5c6ff8d09518454d4dd8b7a30f095ab5",
+    "message": "Disable checkout-v2 flag",
+    "timestamp": "2026-10-05T14:02:11Z"
+  },
+  "repository": {
+    "id": 186853002,
+    "node_id": "MDEwOlJlcG9zaXRvcnkxODY4NTMwMDI=",
+    "name": "features",
+    "full_name": "acme/features",
+    "private": true,
+    "owner": {
+      "login": "acme",
+      "id": 21031067
+    },
+    "html_url": "https://github.com/acme/features",
+    "default_branch": "main"
+  },
+  "pusher": {
+    "name": "janedoe",
+    "email": "jane@example.com"
+  },
+  "sender": {
+    "login": "janedoe",
+    "id": 21031067,
+    "type": "User"
+  }
+}

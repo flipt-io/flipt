@@ -868,6 +868,18 @@
                 },
                 "api_url": {
                   "type": "string"
+                },
+                "webhook": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "secret"
+                  ],
+                  "properties": {
+                    "secret": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }

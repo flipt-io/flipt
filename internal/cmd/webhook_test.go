@@ -1,0 +1,215 @@
+package cmd
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/license"
+	"go.flipt.io/flipt/internal/coss/webhook"
+	"go.flipt.io/flipt/internal/info"
+	"go.flipt.io/flipt/internal/product"
+	serverenvironments "go.flipt.io/flipt/internal/server/environments"
+	storagegit "go.flipt.io/flipt/internal/storage/git"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap/zaptest/observer"
+)
+
+// gitEnvironment is an environment backed by a storage git repository.
+type gitEnvironment struct {
+	serverenvironments.Environment
+	repo *storagegit.Repository
+}
+
+func (e gitEnvironment) Repository() *storagegit.Repository { return e.repo }
+
+type fakeEnvironments map[string]serverenvironments.Environment
+
+func (f fakeEnvironments) Get(_ context.Context, key string) (serverenvironments.Environment, error) {
+	env, ok := f[key]
+	if !ok {
+		return nil, errors.New("not found")
+	}
+
+	return env, nil
+}
+
+func licenseFor(t *testing.T, p product.Product) license.Manager {
+	t.Helper()
+
+	lm := license.NewMockManager(t)
+	lm.EXPECT().Product().Return(p).Maybe()
+
+	return lm
+}
+
+func webhookConfig(webhooks map[string]*config.IncomingWebhookConfig) *config.Config {
+	cfg := &config.Config{Environments: config.EnvironmentsConfig{}}
+	for name, wh := range webhooks {
+		cfg.Environments[name] = &config.EnvironmentConfig{
+			Name:    name,
+			Storage: "default",
+			SCM:     &config.SCMConfig{Type: config.GitLabSCMType, Webhook: wh},
+		}
+	}
+
+	return cfg
+}
+
+func TestNewWebhookReceiver(t *testing.T) {
+	envs := fakeEnvironments{"production": gitEnvironment{repo: &storagegit.Repository{}}}
+
+	t.Run("no webhooks configured", func(t *testing.T) {
+		cfg := webhookConfig(nil)
+		cfg.Environments["production"] = &config.EnvironmentConfig{Name: "production", SCM: &config.SCMConfig{Type: config.GitHubSCMType}}
+
+		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, licenseFor(t, product.Pro))
+		require.NoError(t, err)
+		assert.Nil(t, receiver)
+	})
+
+	t.Run("without pro license warns and disables", func(t *testing.T) {
+		core, logs := observer.New(zapcore.DebugLevel)
+
+		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: "s3cr3t"}})
+
+		receiver, err := newWebhookReceiver(t.Context(), zap.New(core), cfg, envs, licenseFor(t, product.OSS))
+		require.NoError(t, err)
+		assert.Nil(t, receiver)
+
+		warnings := logs.FilterMessageSnippet("require a paid license").All()
+		require.Len(t, warnings, 1)
+		assert.Equal(t, zapcore.WarnLevel, warnings[0].Level)
+	})
+
+	t.Run("plain secret", func(t *testing.T) {
+		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: "s3cr3t"}})
+
+		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, licenseFor(t, product.Pro))
+		require.NoError(t, err)
+		require.NotNil(t, receiver)
+		assert.Equal(t, []string{"production"}, receiver.Environments())
+	})
+
+	t.Run("empty secret fails startup", func(t *testing.T) {
+		// e.g. a ${secret:...} or ${env:...} reference that resolved to ""
+		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: ""}})
+
+		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg, envs, licenseFor(t, product.Pro))
+		require.Error(t, err)
+		assert.Nil(t, receiver)
+		assert.Equal(t, `environment "production": scm webhook secret is empty`, err.Error())
+	})
+
+	t.Run("non-git environment fails startup", func(t *testing.T) {
+		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: "s3cr3t"}})
+
+		_, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg,
+			fakeEnvironments{"production": serverenvironments.Environment(nil)}, licenseFor(t, product.Pro))
+		require.ErrorContains(t, err, "require git storage")
+	})
+
+	t.Run("nil repository fails startup", func(t *testing.T) {
+		cfg := webhookConfig(map[string]*config.IncomingWebhookConfig{"production": {Secret: "s3cr3t"}})
+
+		receiver, err := newWebhookReceiver(t.Context(), zaptest.NewLogger(t), cfg,
+			fakeEnvironments{"production": gitEnvironment{}}, licenseFor(t, product.Pro))
+		require.Error(t, err)
+		assert.Nil(t, receiver)
+		assert.Equal(t, `environment "production": scm webhooks require a git repository`, err.Error())
+	})
+}
+
+// TestWebhookRoute asserts the webhook route is registered only with a
+// receiver, sits outside Flipt authentication and bypasses cross-origin
+// protection without exempting other routes.
+func TestWebhookRoute(t *testing.T) {
+	const (
+		secret = "s3cr3t"
+		body   = `{"ref":"refs/heads/main"}`
+	)
+
+	newCfg := func() *config.Config {
+		cfg := &config.Config{Server: config.ServerConfig{Host: "localhost"}}
+		// enables cross-origin protection
+		cfg.Authentication.Session.CSRF.Key = "abcdefghijklmnopqrstuvwxyz123456"
+		cfg.Authentication.Required = true
+		return cfg
+	}
+
+	newReq := func(t *testing.T) *http.Request {
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "http://localhost/api/v2/webhooks/production", strings.NewReader(body))
+		req.Header.Set("X-Gitlab-Event", "Push Hook")
+		req.Header.Set("X-Gitlab-Token", secret)
+		// what a browser would send for a cross-site request
+		req.Header.Set("Sec-Fetch-Site", "cross-site")
+		req.Header.Set("Origin", "https://evil.example")
+		return req
+	}
+
+	t.Run("with receiver", func(t *testing.T) {
+		repo := webhook.NewMockRepository(t)
+		repo.EXPECT().Tracks("main").Return(true).Once()
+		repo.EXPECT().Fetch(mock.Anything).Return(nil).Once()
+
+		receiver := webhook.NewReceiver(t.Context(), zaptest.NewLogger(t), map[string]webhook.Target{
+			"production": {SCM: config.GitLabSCMType, Secret: []byte(secret), Repository: repo},
+		})
+
+		server, err := NewHTTPServer(t.Context(), zaptest.NewLogger(t), newCfg(), nil, info.Flipt{}, WithWebhookReceiver(receiver))
+		require.NoError(t, err)
+
+		res := httptest.NewRecorder()
+		server.Handler.ServeHTTP(res, newReq(t))
+		// waits for the triggered fetch
+		require.NoError(t, server.Shutdown(t.Context()))
+
+		assert.Equal(t, http.StatusAccepted, res.Code, "body: %s", res.Body.String())
+		repo.AssertExpectations(t)
+
+		// an environment without a webhook looks like an authentication failure
+		req := newReq(t)
+		req.URL.Path = "/api/v2/webhooks/staging"
+
+		res = httptest.NewRecorder()
+		server.Handler.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusUnauthorized, res.Code, "body: %s", res.Body.String())
+
+		// the exemption covers only the webhook route: a cross-site POST to
+		// any other API path is still rejected.
+		req = httptest.NewRequestWithContext(t.Context(), http.MethodPost, "http://localhost/api/v2/environments/production/namespaces", strings.NewReader(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Sec-Fetch-Site", "cross-site")
+		req.Header.Set("Origin", "https://evil.example")
+
+		res = httptest.NewRecorder()
+		server.Handler.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusForbidden, res.Code, "body: %s", res.Body.String())
+	})
+
+	// a nil receiver (e.g. no Pro license) must not register the route or the
+	// cross-origin exemption; a typed nil handler would panic when served.
+	t.Run("without receiver", func(t *testing.T) {
+		server, err := NewHTTPServer(t.Context(), zaptest.NewLogger(t), newCfg(), nil, info.Flipt{}, WithWebhookReceiver(nil))
+		require.NoError(t, err)
+
+		// a registered route would answer 202, or 500 from a recovered panic
+		res := httptest.NewRecorder()
+		server.Handler.ServeHTTP(res, newReq(t))
+
+		assert.Equal(t, http.StatusNotFound, res.Code, "body: %s", res.Body.String())
+
+		require.NoError(t, server.Shutdown(t.Context()))
+	})
+}

@@ -795,6 +795,49 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "environments scm webhook with secret",
+			path: "./testdata/environments/webhook_secret.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Environments = EnvironmentsConfig{
+					"default": {
+						Name:    "default",
+						Storage: "default",
+						Default: true,
+						SCM: &SCMConfig{
+							Type: GitLabSCMType,
+							Webhook: &IncomingWebhookConfig{
+								Secret: "s3cr3t",
+							},
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "environments scm webhook with secret reference",
+			path: "./testdata/environments/webhook_secret_reference.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Environments = EnvironmentsConfig{
+					"default": {
+						Name:    "default",
+						Storage: "default",
+						Default: true,
+						SCM: &SCMConfig{
+							Type: GitLabSCMType,
+							Webhook: &IncomingWebhookConfig{
+								// ${secret:...} references are resolved by cmd/flipt after Load.
+								Secret: "${secret:file:gitlab-webhook}",
+							},
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
 			name: "secrets config with file provider",
 			path: "./testdata/secrets/file_provider.yml",
 			expected: func() *Config {

@@ -200,6 +200,9 @@ JsonPath: string
 		type:        *"github" | "gitea" | "gitlab" | "azure" | "bitbucket"
 		credentials?: string
 		api_url?:    string
+		webhook?: {
+			secret: string
+		}
 	}
 
 	#evaluation: {
