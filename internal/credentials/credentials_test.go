@@ -156,6 +156,8 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				mux := http.NewServeMux()
 				mux.HandleFunc("GET /info/refs", func(w http.ResponseWriter, r *http.Request) {
 					s.Store(r.Header.Get("Authorization"))
+					w.Header().Set("Content-Type", "application/x-git-upload-pack-advertisement")
+					_, _ = w.Write([]byte("001e# service=git-upload-pack\n0000000eversion 2\n0000"))
 				})
 				ts := httptest.NewServer(mux)
 				t.Cleanup(ts.Close)
@@ -164,7 +166,8 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				turl, err := url.Parse(ts.URL)
 				require.NoError(t, err)
 				_, err = gtc.Handshake(t.Context(), &transport.Request{
-					URL: turl,
+					URL:     turl,
+					Command: transport.UploadPackService,
 				})
 				require.NoError(t, err)
 				assert.Equal(t, tt.wantAuth, s.Load())
