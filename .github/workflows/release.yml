@@ -37,7 +37,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Install mise
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
 
       - name: Prep Build
         run: mise run prep
@@ -76,7 +76,7 @@ jobs:
           ref: ${{ github.ref_name }}
 
       - name: Install mise
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
 
       - uses: docker/setup-qemu-action@v4
 
