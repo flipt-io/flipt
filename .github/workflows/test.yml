@@ -106,9 +106,9 @@ jobs:
           chmod +x ./install.sh
           ./install.sh
 
-  # Single required status check for this workflow. Jobs skipped by change
-  # detection (including the whole integration test matrix) never report under
-  # their own names, so branch protection requires this job instead.
+  # Single required status check for this workflow, so branch protection
+  # doesn't track each test job by name. Fails if any Go, UI, or install
+  # script job failed; jobs skipped by change detection pass.
   result:
     name: "Unit Tests Result"
     if: always()

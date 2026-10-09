@@ -85,9 +85,9 @@ jobs:
       - name: Ensure clean git state.
         run: git diff-index HEAD -- || (echo "Please run 'go mod tidy' and commit changes." && exit 1)
 
-  # Single required status check for this workflow. Jobs skipped by change
-  # detection (including the whole integration test matrix) never report under
-  # their own names, so branch protection requires this job instead.
+  # Single required status check for this workflow, so branch protection
+  # doesn't track each lint job by name. Fails if any Go, UI, shellcheck, or
+  # go mod tidy job failed; jobs skipped by change detection pass.
   result:
     name: "Lint Result"
     if: always()
