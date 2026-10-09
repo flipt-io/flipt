@@ -1,0 +1,15 @@
+authentication:
+  required: true
+  methods:
+    token:
+      enabled: true
+
+authorization:
+  required: true
+  backend: local
+  local:
+    policy:
+      path: "/path/to/policy.rego"
+  exclude:
+    evaluation: false
+    ofrep: false

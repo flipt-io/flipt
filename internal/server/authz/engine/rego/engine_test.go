@@ -9,11 +9,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
 	"go.flipt.io/flipt/rpc/flipt"
+	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -752,4 +756,126 @@ type dataSource string
 
 func (d dataSource) Get(context.Context, source.Hash) (data map[string]any, _ source.Hash, _ error) {
 	return data, nil, json.Unmarshal([]byte(d), &data)
+}
+
+const benchAllowPolicy = `package flipt.authz.v2
+
+import rego.v1
+
+default allow := false
+
+allow if {
+	input.request.action == "evaluate"
+	input.authentication.metadata["io.flipt.auth.role"] == "admin"
+}
+`
+
+// benchAuth returns a static-token shaped authentication, mirroring what the
+// middleware attaches to the request context in production.
+func benchAuth() *authrpc.Authentication {
+	return &authrpc.Authentication{
+		Id:     "some-id",
+		Method: authrpc.Method_METHOD_TOKEN,
+		Metadata: map[string]string{
+			"io.flipt.auth.role": "admin",
+		},
+	}
+}
+
+func benchEvaluateRequest() flipt.Request {
+	return flipt.NewRequest(flipt.ScopeNamespace, flipt.ActionEvaluate,
+		flipt.WithEnvironment("production"),
+		flipt.WithNamespace("default"))
+}
+
+func newBenchEngine(b *testing.B) *Engine {
+	b.Helper()
+
+	// Nop logger keeps benchmark output (and timings) free of per-eval logs.
+	engine, err := newEngine(b.Context(), zap.NewNop(),
+		withPolicySource(policySource(benchAllowPolicy)),
+		withDataSource(dataSource(`{}`), time.Hour))
+	require.NoError(b, err)
+
+	return engine
+}
+
+func BenchmarkEngine_IsAllowed_StructInput(b *testing.B) {
+	engine := newBenchEngine(b)
+	input := map[string]any{
+		"request":        benchEvaluateRequest(),
+		"authentication": benchAuth(),
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		allowed, err := engine.IsAllowed(b.Context(), input)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if !allowed {
+			b.Fatal("expected request to be allowed")
+		}
+	}
+}
+
+func BenchmarkEngine_IsAllowed_ConvertedInput(b *testing.B) {
+	engine := newBenchEngine(b)
+	input := authz.Input(benchEvaluateRequest(), benchAuth())
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		allowed, err := engine.IsAllowed(b.Context(), input)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if !allowed {
+			b.Fatal("expected request to be allowed")
+		}
+	}
+}
+
+func BenchmarkEngine_IsAllowed_Parallel(b *testing.B) {
+	engine := newBenchEngine(b)
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		input := authz.Input(benchEvaluateRequest(), benchAuth())
+		for pb.Next() {
+			allowed, err := engine.IsAllowed(b.Context(), input)
+			if err != nil {
+				b.Error(err)
+				return
+			}
+			if !allowed {
+				b.Error("expected request to be allowed")
+				return
+			}
+		}
+	})
+}
+
+func BenchmarkInterfaceToValue_StructInput(b *testing.B) {
+	input := map[string]any{
+		"request":        benchEvaluateRequest(),
+		"authentication": benchAuth(),
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, err := ast.InterfaceToValue(input); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkInterfaceToValue_PlainMapInput(b *testing.B) {
+	input := authz.Input(benchEvaluateRequest(), benchAuth())
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, err := ast.InterfaceToValue(input); err != nil {
+			b.Fatal(err)
+		}
+	}
 }

@@ -355,6 +355,10 @@ func TestLoad(t *testing.T) {
 							PollInterval: 5 * time.Minute,
 						},
 					},
+					Exclude: AuthorizationExcludeConfig{
+						Evaluation: true,
+						OFREP:      true,
+					},
 				}
 
 				cfg.Authentication = AuthenticationConfig{
@@ -413,6 +417,57 @@ func TestLoad(t *testing.T) {
 							},
 							Enabled: true,
 						},
+					},
+				}
+
+				return cfg
+			},
+		},
+		{
+			name: "authorization with evaluation not excluded",
+			path: "./testdata/authorization/exclude_evaluation.yml",
+			expected: func() *Config {
+				cfg := Default()
+
+				cfg.Authentication = AuthenticationConfig{
+					Required: true,
+					Session: AuthenticationSessionConfig{
+						TokenLifetime: 24 * time.Hour,
+						StateLifetime: 10 * time.Minute,
+						CSRF: AuthenticationSessionCSRFConfig{
+							Secure: true,
+						},
+						Storage: AuthenticationSessionStorageConfig{
+							Type: AuthenticationSessionStorageTypeMemory,
+							Cleanup: AuthenticationSessionStorageCleanupConfig{
+								GracePeriod: 30 * time.Minute,
+							},
+						},
+					},
+					Methods: AuthenticationMethodsConfig{
+						Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
+							Enabled: true,
+							Method: AuthenticationMethodTokenConfig{
+								Storage: AuthenticationMethodTokenStorage{
+									Type: AuthenticationMethodTokenStorageTypeStatic,
+								},
+							},
+						},
+					},
+				}
+
+				cfg.Authorization = AuthorizationConfig{
+					Required: true,
+					Backend:  AuthorizationBackendLocal,
+					Local: &AuthorizationLocalConfig{
+						Policy: &AuthorizationSourceLocalConfig{
+							Path:         "/path/to/policy.rego",
+							PollInterval: 5 * time.Minute,
+						},
+					},
+					Exclude: AuthorizationExcludeConfig{
+						Evaluation: false,
+						OFREP:      false,
 					},
 				}
 
@@ -557,6 +612,10 @@ func TestLoad(t *testing.T) {
 							Path:         "/path/to/policy/data.json",
 							PollInterval: time.Minute,
 						},
+					},
+					Exclude: AuthorizationExcludeConfig{
+						Evaluation: true,
+						OFREP:      true,
 					},
 				}
 
