@@ -105,3 +105,19 @@ jobs:
         run: |
           chmod +x ./install.sh
           ./install.sh
+
+  # Single required status check for this workflow. Jobs skipped by change
+  # detection (including the whole integration test matrix) never report under
+  # their own names, so branch protection requires this job instead.
+  result:
+    name: "Unit Tests Result"
+    if: always()
+    needs: [changes, test, test-darwin, ui, install]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success" or .result == "skipped")' > /dev/null

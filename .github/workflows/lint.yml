@@ -84,3 +84,19 @@ jobs:
 
       - name: Ensure clean git state.
         run: git diff-index HEAD -- || (echo "Please run 'go mod tidy' and commit changes." && exit 1)
+
+  # Single required status check for this workflow. Jobs skipped by change
+  # detection (including the whole integration test matrix) never report under
+  # their own names, so branch protection requires this job instead.
+  result:
+    name: "Lint Result"
+    if: always()
+    needs: [changes, go-lint, ui-lint, shellcheck, go-mod-tidy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success" or .result == "skipped")' > /dev/null
