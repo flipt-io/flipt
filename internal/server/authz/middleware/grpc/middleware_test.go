@@ -7,11 +7,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	cctx "go.flipt.io/flipt/internal/common"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.flipt.io/flipt/rpc/v2/environments"
+	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -121,7 +125,7 @@ func TestAuthorizationActionForCreateAndUpdateMethods(t *testing.T) {
 			})
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.want, policyVerifier.input["request"])
+			assert.Equal(t, authz.RequestInput(tt.want), policyVerifier.input["request"])
 		})
 	}
 }
@@ -297,6 +301,257 @@ func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 	}
 }
 
+func TestAuthorizationRequiredInterceptor_EvaluationRequests(t *testing.T) {
+	tests := []struct {
+		name string
+		ctx  func(context.Context) context.Context
+		req  any
+		want []map[string]any
+	}{
+		{
+			name: "evaluation request",
+			ctx:  func(ctx context.Context) context.Context { return ctx },
+			req: &rpcevaluation.EvaluationRequest{
+				EnvironmentKey: "production",
+				NamespaceKey:   "team-a",
+			},
+			want: []map[string]any{
+				{
+					"scope":       "namespace",
+					"environment": "production",
+					"namespace":   "team-a",
+					"action":      "evaluate",
+				},
+			},
+		},
+		{
+			name: "batch evaluation requests",
+			ctx:  func(ctx context.Context) context.Context { return ctx },
+			req: &rpcevaluation.BatchEvaluationRequest{
+				Requests: []*rpcevaluation.EvaluationRequest{
+					{EnvironmentKey: "production", NamespaceKey: "team-a"},
+					{EnvironmentKey: "production", NamespaceKey: "team-b"},
+				},
+			},
+			want: []map[string]any{
+				{
+					"scope":       "namespace",
+					"environment": "production",
+					"namespace":   "team-a",
+					"action":      "evaluate",
+				},
+				{
+					"scope":       "namespace",
+					"environment": "production",
+					"namespace":   "team-b",
+					"action":      "evaluate",
+				},
+			},
+		},
+		{
+			name: "snapshot request",
+			ctx:  func(ctx context.Context) context.Context { return ctx },
+			req: &rpcevaluationv2.EvaluationNamespaceSnapshotRequest{
+				Key:            "team-a",
+				EnvironmentKey: "production",
+			},
+			want: []map[string]any{
+				{
+					"scope":       "namespace",
+					"environment": "production",
+					"namespace":   "team-a",
+					"action":      "evaluate",
+				},
+			},
+		},
+		{
+			name: "snapshot stream request",
+			ctx:  func(ctx context.Context) context.Context { return ctx },
+			req: &rpcevaluationv2.EvaluationNamespaceSnapshotStreamRequest{
+				Key:            "team-a",
+				EnvironmentKey: "production",
+			},
+			want: []map[string]any{
+				{
+					"scope":       "namespace",
+					"environment": "production",
+					"namespace":   "team-a",
+					"action":      "evaluate",
+				},
+			},
+		},
+		{
+			name: "ofrep flag request from headers",
+			ctx: func(ctx context.Context) context.Context {
+				ctx = cctx.WithFliptEnvironment(ctx, "production")
+				return cctx.WithFliptNamespace(ctx, "team-a")
+			},
+			req: &ofrep.EvaluateFlagRequest{Key: "flag"},
+			want: []map[string]any{
+				{
+					"scope":       "namespace",
+					"environment": "production",
+					"namespace":   "team-a",
+					"action":      "evaluate",
+				},
+			},
+		},
+		{
+			name: "ofrep bulk request defaults",
+			ctx:  func(ctx context.Context) context.Context { return ctx },
+			req:  &ofrep.EvaluateBulkRequest{},
+			want: []map[string]any{
+				{
+					"scope":       "namespace",
+					"environment": "default",
+					"namespace":   "default",
+					"action":      "evaluate",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got []map[string]any
+			// capture each request via a verifier that records inputs
+			recording := &recordingVerifier{allow: true, requests: &got}
+			ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), adminAuth)
+			ctx = tt.ctx(ctx)
+			info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: "/test.Service/Method"}
+
+			called := false
+			_, err := AuthorizationRequiredInterceptor(zap.NewNop(), recording)(ctx, tt.req, info, func(ctx context.Context, _ any) (any, error) {
+				called = true
+				require.True(t, authz.IsAuthorizationRequired(ctx))
+				return nil, nil
+			})
+
+			require.NoError(t, err)
+			require.True(t, called)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+type recordingVerifier struct {
+	mockPolicyVerifier
+	allow    bool
+	requests *[]map[string]any
+}
+
+func (v *recordingVerifier) IsAllowed(_ context.Context, input map[string]any) (bool, error) {
+	*v.requests = append(*v.requests, input["request"].(map[string]any))
+	return v.allow, nil
+}
+
+type stubServerStream struct {
+	grpc.ServerStream
+	ctx    context.Context
+	onRecv func(m any) error
+}
+
+func (s *stubServerStream) Context() context.Context {
+	return s.ctx
+}
+
+func (s *stubServerStream) RecvMsg(m any) error {
+	return s.onRecv(m)
+}
+
+func TestAuthorizationRequiredStreamInterceptor(t *testing.T) {
+	newStreamCtx := func() context.Context {
+		return authmiddlewaregrpc.ContextWithAuthentication(t.Context(), adminAuth)
+	}
+
+	t.Run("allowed", func(t *testing.T) {
+		want := &rpcevaluationv2.EvaluationNamespaceSnapshotStreamRequest{
+			Key:            "team-a",
+			EnvironmentKey: "production",
+		}
+
+		stream := &stubServerStream{
+			ctx: newStreamCtx(),
+			onRecv: func(m any) error {
+				dst, ok := m.(*rpcevaluationv2.EvaluationNamespaceSnapshotStreamRequest)
+				require.True(t, ok)
+				dst.Key = want.Key
+				dst.EnvironmentKey = want.EnvironmentKey
+				if want.Digest != nil {
+					dst.Digest = want.Digest
+				}
+				return nil
+			},
+		}
+		info := &grpc.StreamServerInfo{FullMethod: "/evaluation.ClientEvaluationService/EvaluationSnapshotNamespaceStream"}
+
+		verifier := &mockPolicyVerifier{isAllowed: true}
+		called := false
+		err := AuthorizationRequiredStreamInterceptor(zap.NewNop(), verifier)(&mockServer{}, stream, info, func(_ any, stream grpc.ServerStream) error {
+			called = true
+
+			var got rpcevaluationv2.EvaluationNamespaceSnapshotStreamRequest
+			require.NoError(t, stream.RecvMsg(&got))
+			assert.True(t, authz.IsAuthorizationRequired(stream.Context()))
+			assert.Equal(t, want, &got)
+			return nil
+		})
+
+		require.NoError(t, err)
+		assert.True(t, called)
+		assert.Equal(t, map[string]any{
+			"scope":       "namespace",
+			"environment": "production",
+			"namespace":   "team-a",
+			"action":      "evaluate",
+		}, verifier.input["request"])
+	})
+
+	t.Run("denied", func(t *testing.T) {
+		stream := &stubServerStream{
+			ctx: newStreamCtx(),
+			onRecv: func(m any) error {
+				dst, ok := m.(*rpcevaluationv2.EvaluationNamespaceSnapshotStreamRequest)
+				require.True(t, ok)
+				dst.Key = "team-b"
+				dst.EnvironmentKey = "production"
+				return nil
+			},
+		}
+		info := &grpc.StreamServerInfo{FullMethod: "/evaluation.ClientEvaluationService/EvaluationSnapshotNamespaceStream"}
+
+		called := false
+		err := AuthorizationRequiredStreamInterceptor(zap.NewNop(), &mockPolicyVerifier{})(&mockServer{}, stream, info, func(_ any, stream grpc.ServerStream) error {
+			called = true
+			var got rpcevaluationv2.EvaluationNamespaceSnapshotStreamRequest
+			return stream.RecvMsg(&got)
+		})
+
+		require.Error(t, err)
+		assert.True(t, called)
+	})
+
+	t.Run("skips authorization", func(t *testing.T) {
+		stream := &stubServerStream{
+			ctx: t.Context(),
+			onRecv: func(_ any) error {
+				t.Error("RecvMsg should not be called when authorization is skipped")
+				return nil
+			},
+		}
+		info := &grpc.StreamServerInfo{FullMethod: "/evaluation.ClientEvaluationService/EvaluationSnapshotNamespaceStream"}
+
+		called := false
+		err := AuthorizationRequiredStreamInterceptor(zap.NewNop(), &mockPolicyVerifier{})(&mockServer{skipsAuthz: true}, stream, info, func(_ any, _ grpc.ServerStream) error {
+			called = true
+			return nil
+		})
+
+		require.NoError(t, err)
+		assert.True(t, called)
+	})
+}
+
 func TestAuthorizationRequiredInterceptor(t *testing.T) {
 	tests := []struct {
 		name                             string
@@ -326,13 +581,19 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			validatorAllowed: true,
 			wantAllowed:      true,
 			authzInput: map[string]any{
-				"request": flipt.Request{
-					Scope:       flipt.ScopeNamespace,
-					Environment: new("default"),
-					Namespace:   new("default"),
-					Action:      flipt.ActionUpdate,
+				"request": map[string]any{
+					"scope":       "namespace",
+					"environment": "default",
+					"namespace":   "default",
+					"action":      "update",
 				},
-				"authentication": adminAuth,
+				"authentication": map[string]any{
+					"id":     "",
+					"method": 0,
+					"metadata": map[string]string{
+						"io.flipt.auth.role": "admin",
+					},
+				},
 			},
 		},
 		{
@@ -381,12 +642,18 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			viewableNamespacesForEnvironment: map[string][]string{"default": {"default"}},
 			serverFullMethod:                 "/environments.EnvironmentsService/ListNamespaces",
 			authzInput: map[string]any{
-				"request": flipt.Request{
-					Scope:       flipt.ScopeEnvironment,
-					Environment: new("default"),
-					Action:      flipt.ActionRead,
+				"request": map[string]any{
+					"scope":       "environment",
+					"environment": "default",
+					"action":      "read",
 				},
-				"authentication": adminAuth,
+				"authentication": map[string]any{
+					"id":     "",
+					"method": 0,
+					"metadata": map[string]string{
+						"io.flipt.auth.role": "admin",
+					},
+				},
 			},
 		},
 	}
@@ -430,4 +697,108 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
+}
+
+func TestAuthorizationRequiredInterceptor_SkippedServers(t *testing.T) {
+	// skippedSrv stands in for a server excluded from authentication (e.g. the
+	// evaluation server when authentication.exclude.evaluation is true). Such
+	// requests carry no authentication, so authorization must skip them instead
+	// of denying every request.
+	skippedSrv := &mockServer{}
+
+	newInterceptor := func(verifier *mockPolicyVerifier) grpc.UnaryServerInterceptor {
+		return AuthorizationRequiredInterceptor(zap.NewNop(), verifier, WithServerSkipsAuthorization(skippedSrv))
+	}
+
+	newRequest := func() *rpcevaluation.EvaluationRequest {
+		return &rpcevaluation.EvaluationRequest{
+			EnvironmentKey: "production",
+			NamespaceKey:   "default",
+		}
+	}
+
+	t.Run("skipped server without authentication", func(t *testing.T) {
+		verifier := &mockPolicyVerifier{}
+		info := &grpc.UnaryServerInfo{Server: skippedSrv, FullMethod: "/flipt.evaluation.EvaluationService/Evaluate"}
+
+		called := false
+		_, err := newInterceptor(verifier)(t.Context(), newRequest(), info, func(context.Context, any) (any, error) {
+			called = true
+			return nil, nil
+		})
+
+		require.NoError(t, err)
+		assert.True(t, called)
+		assert.Nil(t, verifier.input, "policy verifier must not be consulted for skipped servers")
+	})
+
+	t.Run("other servers without authentication are denied", func(t *testing.T) {
+		verifier := &mockPolicyVerifier{}
+		info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: "/flipt.evaluation.EvaluationService/Evaluate"}
+
+		called := false
+		_, err := newInterceptor(verifier)(t.Context(), newRequest(), info, func(context.Context, any) (any, error) {
+			called = true
+			return nil, nil
+		})
+
+		require.Error(t, err)
+		assert.False(t, called)
+	})
+}
+
+func TestAuthorizationRequiredStreamInterceptor_SkippedServers(t *testing.T) {
+	// skippedSrv stands in for a server excluded from authentication (e.g. the
+	// client evaluation server when authentication.exclude.evaluation is true).
+	skippedSrv := &mockServer{}
+
+	newInterceptor := func(verifier *mockPolicyVerifier) grpc.StreamServerInterceptor {
+		return AuthorizationRequiredStreamInterceptor(zap.NewNop(), verifier, WithServerSkipsAuthorization(skippedSrv))
+	}
+
+	const fullMethod = "/evaluation.ClientEvaluationService/EvaluationSnapshotNamespaceStream"
+
+	t.Run("skipped server without authentication", func(t *testing.T) {
+		stream := &stubServerStream{
+			ctx: t.Context(),
+			onRecv: func(_ any) error {
+				t.Error("RecvMsg should not be called when authorization is skipped")
+				return nil
+			},
+		}
+		info := &grpc.StreamServerInfo{FullMethod: fullMethod}
+
+		called := false
+		err := newInterceptor(&mockPolicyVerifier{})(skippedSrv, stream, info, func(_ any, _ grpc.ServerStream) error {
+			called = true
+			return nil
+		})
+
+		require.NoError(t, err)
+		assert.True(t, called)
+	})
+
+	t.Run("other servers without authentication are denied", func(t *testing.T) {
+		stream := &stubServerStream{
+			ctx: t.Context(),
+			onRecv: func(m any) error {
+				dst, ok := m.(*rpcevaluationv2.EvaluationNamespaceSnapshotStreamRequest)
+				require.True(t, ok)
+				dst.Key = "team-a"
+				dst.EnvironmentKey = "production"
+				return nil
+			},
+		}
+		info := &grpc.StreamServerInfo{FullMethod: fullMethod}
+
+		called := false
+		err := newInterceptor(&mockPolicyVerifier{})(&mockServer{}, stream, info, func(_ any, stream grpc.ServerStream) error {
+			called = true
+			var got rpcevaluationv2.EvaluationNamespaceSnapshotStreamRequest
+			return stream.RecvMsg(&got)
+		})
+
+		require.Error(t, err)
+		assert.True(t, called)
+	})
 }

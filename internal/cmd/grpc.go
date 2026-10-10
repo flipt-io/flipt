@@ -337,9 +337,9 @@ func NewGRPCServer(
 	var (
 		// legacy services
 		metasrv    = metadata.New(cfg, info)
-		evalsrv    = evaluation.New(logger, environmentStore, evaluation.WithTracing(cfg.Tracing.Enabled || cfg.Analytics.Storage.Clickhouse.Enabled), evaluation.WithMetrics(cfg.Metrics.Enabled))
+		evalsrv    = evaluation.New(logger, environmentStore, evaluation.WithTracing(cfg.Tracing.Enabled || cfg.Analytics.Storage.Clickhouse.Enabled), evaluation.WithMetrics(cfg.Metrics.Enabled), evaluation.WithAuthorizationEnabled(cfg.Authorization.Required && !cfg.Authorization.Exclude.Evaluation))
 		fliptv1srv = serverfliptv1.New(logger, environmentStore, serverfliptv1.WithFlagMetadata(cfg.Evaluation.IncludeFlagMetadata))
-		ofrepsrv   = ofrep.New(logger, evalsrv, environmentStore)
+		ofrepsrv   = ofrep.New(logger, evalsrv, environmentStore, ofrep.WithAuthorizationEnabled(cfg.Authorization.Required && !cfg.Authorization.Exclude.OFREP))
 	)
 
 	envsrv, err := serverenvironments.NewServer(logger, environmentStore)
@@ -347,7 +347,7 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("building environments server: %w", err)
 	}
 
-	clientevalsrv := serverclientevaluation.NewServer(logger, environmentStore, serverclientevaluation.WithSkipOFREPAuthn(cfg.Authentication.Exclude.OFREP))
+	clientevalsrv := serverclientevaluation.NewServer(logger, environmentStore, serverclientevaluation.WithSkipOFREPAuthn(cfg.Authentication.Exclude.OFREP), serverclientevaluation.WithAuthorizationEnabled(cfg.Authorization.Required && !cfg.Authorization.Exclude.Evaluation))
 
 	var (
 		// authnOpts is a slice of options that will be passed to the authentication service.
@@ -448,6 +448,23 @@ func NewGRPCServer(
 			authzmiddlewaregrpc.WithServerSkipsAuthorization(healthsrv),
 		}
 
+		// Authorization requires an authentication to evaluate policy against.
+		// Sections of the API excluded from authentication carry none, so they
+		// must also skip authorization. Otherwise every request to them would
+		// be denied, even when authorization is opted in for those sections.
+		if cfg.Authentication.Exclude.Evaluation {
+			authzOpts = append(authzOpts,
+				authzmiddlewaregrpc.WithServerSkipsAuthorization(evalsrv),
+				authzmiddlewaregrpc.WithServerSkipsAuthorization(clientevalsrv),
+			)
+		}
+
+		if cfg.Authentication.Exclude.OFREP {
+			authzOpts = append(authzOpts,
+				authzmiddlewaregrpc.WithServerSkipsAuthorization(ofrepsrv),
+			)
+		}
+
 		var (
 			authzEngine   authz.Verifier
 			authzShutdown errFunc
@@ -461,8 +478,10 @@ func NewGRPCServer(
 
 		server.onShutdown(authzShutdown)
 
-		// authz only applies to the unary interceptors for now
+		// authz only applies to unary interceptors except for the client
+		// evaluation snapshot stream, which has its own stream interceptor
 		unaryInterceptors = append(unaryInterceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, authzEngine, authzOpts...))
+		streamInterceptors = append(streamInterceptors, authzmiddlewaregrpc.AuthorizationRequiredStreamInterceptor(logger, authzEngine, authzOpts...))
 
 		logger.Info("authorization middleware enabled")
 	}

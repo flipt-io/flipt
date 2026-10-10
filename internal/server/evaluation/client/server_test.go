@@ -48,6 +48,9 @@ func TestNewServerAndSkipsAuthorization(t *testing.T) {
 
 	assert.NotNil(t, s)
 	assert.True(t, s.SkipsAuthorization(t.Context()))
+
+	s = NewServer(logger, store, WithAuthorizationEnabled(true))
+	assert.False(t, s.SkipsAuthorization(t.Context()))
 }
 
 type testInprocAddr struct{}

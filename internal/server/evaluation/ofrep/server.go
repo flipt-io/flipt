@@ -24,16 +24,34 @@ type Server struct {
 	logger *zap.Logger
 	bridge Bridge
 	envs   *environments.EnvironmentStore
+	// authzEnabled opts into authorization for OFREP endpoints.
+	authzEnabled bool
 	ofrep.UnimplementedOFREPServiceServer
 }
 
+// Option is a functional option for configuring the Server.
+type Option func(*Server)
+
+// WithAuthorizationEnabled opts into authorization for OFREP endpoints.
+func WithAuthorizationEnabled(enabled bool) Option {
+	return func(s *Server) {
+		s.authzEnabled = enabled
+	}
+}
+
 // New constructs a new Server.
-func New(logger *zap.Logger, bridge Bridge, envs *environments.EnvironmentStore) *Server {
-	return &Server{
+func New(logger *zap.Logger, bridge Bridge, envs *environments.EnvironmentStore, opts ...Option) *Server {
+	s := &Server{
 		logger: logger,
 		bridge: bridge,
 		envs:   envs,
 	}
+
+	for _, o := range opts {
+		o(s)
+	}
+
+	return s
 }
 
 // RegisterGRPC registers the EvaluateServer onto the provided gRPC Server.
@@ -42,7 +60,7 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 }
 
 func (s *Server) SkipsAuthorization(ctx context.Context) bool {
-	return true
+	return !s.authzEnabled
 }
 
 func (s *Server) EvaluateFlag(ctx context.Context, r *ofrep.EvaluateFlagRequest) (*ofrep.EvaluationResponse, error) {

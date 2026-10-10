@@ -689,6 +689,20 @@
           ],
           "default": ""
         },
+        "exclude": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "evaluation": {
+              "type": "boolean",
+              "default": true
+            },
+            "ofrep": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
         "local": {
           "type": [
             "object",

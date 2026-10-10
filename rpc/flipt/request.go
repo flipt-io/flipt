@@ -30,6 +30,9 @@ const (
 	ActionRead   Action = "read"
 	ActionUpdate Action = "update"
 	ActionDelete Action = "delete"
+	// ActionEvaluate is the action for evaluating flags. It is separate from
+	// read so policies can grant evaluation without granting management reads.
+	ActionEvaluate Action = "evaluate"
 )
 
 // Request represents an authorization request
