@@ -197,7 +197,7 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 
 	requests, ok := requestsFor(ctx, req)
 	if !ok {
-		logger.Error("request must implement flipt.Requester", zap.String("method", fullMethod))
+		logger.Error("unsupported request type for authorization", zap.String("method", fullMethod))
 		return ctx, errUnauthorized
 	}
 
