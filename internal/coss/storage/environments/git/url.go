@@ -53,11 +53,11 @@ func parseSSHRepo(rawURL string) (*sshURL, error) {
 	// Handle SSH-style URL: git@gitea.example.com:owner/repo.git
 	if strings.Contains(rawURL, ":") && strings.Contains(rawURL, "@") && !strings.HasPrefix(rawURL, "http") {
 		// Example: git@gitea.example.com:owner/repo.git or git@gitea.example:2022:owner/repo
-		lastColonIdx := strings.LastIndex(rawURL, ":")
-		if lastColonIdx == -1 {
+		_, path, found := strings.CutLast(rawURL, ":")
+		if !found {
 			return nil, errors.New("invalid SSH URL format")
 		}
-		path := strings.TrimSuffix(rawURL[lastColonIdx+1:], ".git")
+		path = strings.TrimSuffix(path, ".git")
 		subParts := strings.SplitN(path, "/", 2)
 		if len(subParts) != 2 {
 			return nil, errors.New("invalid SSH repo path")

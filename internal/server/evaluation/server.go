@@ -21,6 +21,10 @@ type Server struct {
 	store          EnvironmentStore
 	tracingEnabled bool
 	metricsEnabled bool
+	// authzEnabled opts into authorization for evaluation endpoints.
+	// It mirrors !AuthorizationConfig.Exclude.Evaluation and defaults to false
+	// to preserve the historical skip-authorization behavior.
+	authzEnabled bool
 	evaluation.UnimplementedEvaluationServiceServer
 }
 
@@ -38,6 +42,13 @@ func WithTracing(enabled bool) Option {
 func WithMetrics(enabled bool) Option {
 	return func(s *Server) {
 		s.metricsEnabled = enabled
+	}
+}
+
+// WithAuthorizationEnabled opts into authorization for evaluation endpoints.
+func WithAuthorizationEnabled(enabled bool) Option {
+	return func(s *Server) {
+		s.authzEnabled = enabled
 	}
 }
 
@@ -61,5 +72,5 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 }
 
 func (s *Server) SkipsAuthorization(ctx context.Context) bool {
-	return true
+	return !s.authzEnabled
 }

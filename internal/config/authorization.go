@@ -15,9 +15,24 @@ var (
 type AuthorizationConfig struct {
 	// Required designates whether authorization credentials are validated.
 	// If required == true, then authorization is required for all API endpoints.
-	Required bool                      `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
-	Backend  AuthorizationBackend      `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
-	Local    *AuthorizationLocalConfig `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
+	Required bool                       `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
+	Backend  AuthorizationBackend       `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
+	Local    *AuthorizationLocalConfig  `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
+	Exclude  AuthorizationExcludeConfig `json:"exclude,omitempty" mapstructure:"exclude" yaml:"exclude,omitempty"`
+}
+
+// AuthorizationExcludeConfig configures which evaluation sections of the API
+// are excluded from authorization. It mirrors AuthenticationConfig.Exclude:
+// excluded means skip authorization, otherwise authorization is enforced.
+//
+// Sections of the API excluded from authentication always skip authorization
+// as well, since there is no authentication to evaluate policy against.
+type AuthorizationExcludeConfig struct {
+	// Evaluation refers to the section of the API with the prefix /evaluation/v1
+	// as well as the client snapshot/streaming API (/client/v2).
+	Evaluation bool `json:"evaluation,omitempty" mapstructure:"evaluation" yaml:"evaluation,omitempty"`
+	// OFREP refers to the section of the API with the prefix /ofrep.
+	OFREP bool `json:"ofrep,omitempty" mapstructure:"ofrep" yaml:"ofrep,omitempty"`
 }
 
 // IsZero returns true if the authorization config is not enabled.
@@ -29,6 +44,8 @@ func (c AuthorizationConfig) IsZero() bool {
 func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("authorization.required", false)
 	v.SetDefault("authorization.backend", AuthorizationBackendLocal)
+	v.SetDefault("authorization.exclude.evaluation", true)
+	v.SetDefault("authorization.exclude.ofrep", true)
 	v.SetDefault("authorization.local.policy.poll_interval", 5*time.Minute)
 	if v.GetString("authorization.local.data.path") != "" {
 		v.SetDefault("authorization.local.data.poll_interval", 30*time.Second)

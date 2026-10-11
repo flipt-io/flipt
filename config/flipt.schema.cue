@@ -160,6 +160,10 @@ JsonPath: string
 	#authorization: {
 		required?: bool | *false
 		backend:   "local" | "bundle" | *""
+		exclude?: {
+			evaluation: bool | *true
+			ofrep:      bool | *true
+		}
 		local?: {
 			policy?: {
 				poll_interval: =~#duration | *"5m"

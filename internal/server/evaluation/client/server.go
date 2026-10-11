@@ -42,6 +42,8 @@ type Server struct {
 	rpcevaluation.UnimplementedClientEvaluationServiceServer
 
 	skipOFREPAuthn bool
+	// authzEnabled opts into authorization for snapshot endpoints.
+	authzEnabled bool
 }
 
 type Option func(*Server)
@@ -49,6 +51,13 @@ type Option func(*Server)
 func WithSkipOFREPAuthn(skip bool) Option {
 	return func(s *Server) {
 		s.skipOFREPAuthn = skip
+	}
+}
+
+// WithAuthorizationEnabled opts into authorization for snapshot endpoints.
+func WithAuthorizationEnabled(enabled bool) Option {
+	return func(s *Server) {
+		s.authzEnabled = enabled
 	}
 }
 
@@ -195,7 +204,7 @@ func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNa
 }
 
 func (s *Server) SkipsAuthorization(ctx context.Context) bool {
-	return true
+	return !s.authzEnabled
 }
 
 func (s *Server) SkipsAuthentication(ctx context.Context) bool {

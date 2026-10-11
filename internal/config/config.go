@@ -671,6 +671,10 @@ func Default() *Config {
 
 		Authorization: AuthorizationConfig{
 			Backend: AuthorizationBackendLocal,
+			Exclude: AuthorizationExcludeConfig{
+				Evaluation: true,
+				OFREP:      true,
+			},
 			Local: &AuthorizationLocalConfig{
 				Policy: &AuthorizationSourceLocalConfig{
 					PollInterval: 5 * time.Minute,
