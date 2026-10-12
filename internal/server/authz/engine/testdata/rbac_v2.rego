@@ -114,7 +114,9 @@ has_permission(scope_type, env, ns, action) if {
 	perm in {"*", action}
 }
 
-# Get list of viewable environments
+# Get list of viewable environments. Define this rule so ListEnvironments can
+# scope results to the caller: an undefined rule falls back to the allow
+# decision on the list request itself instead of an unrestricted list.
 viewable_environments := ["*"] if {
 	# If global access, return wildcard
 	has_global_access
@@ -131,7 +133,10 @@ viewable_environments := ["*"] if {
 	}
 }
 
-# Get list of viewable namespaces for a specific environment
+# Get list of viewable namespaces for a specific environment. Define this rule
+# alongside viewable_environments so ListNamespaces stays scoped to both: the
+# requested environment must be viewable, and an undefined rule falls back to
+# the allow decision on the list request itself.
 viewable_namespaces(env) := ["*"] if {
 	# If wildcard access for this environment, return wildcard
 	has_wildcard_access(env)
