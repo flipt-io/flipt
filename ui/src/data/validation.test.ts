@@ -1,7 +1,8 @@
 import {
   contextValidation,
   keyValidation,
-  keyWithDotValidation
+  keyWithDotValidation,
+  variantKeyValidation
 } from './validations';
 
 describe('contextValidation', () => {
@@ -46,5 +47,20 @@ describe('keyWithDotValidation', () => {
   it('should reject keys with punctuation', () => {
     const result = keyValidation.isValidSync('key@value');
     expect(result).toEqual(false);
+  });
+});
+
+describe('variantKeyValidation', () => {
+  it('should accept the empty key', () => {
+    expect(variantKeyValidation.isValidSync('')).toEqual(true);
+  });
+  it('should accept keys with dots', () => {
+    expect(variantKeyValidation.isValidSync('2.0')).toEqual(true);
+  });
+  it('should reject keys with invalid values', () => {
+    expect(variantKeyValidation.isValidSync('key]')).toEqual(false);
+  });
+  it('should still reject empty keys where required', () => {
+    expect(keyWithDotValidation.isValidSync('')).toEqual(false);
   });
 });

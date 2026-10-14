@@ -50,7 +50,7 @@ type Flag struct {
 
 type Variant struct {
 	Default     bool   `yaml:"default,omitempty" json:"default,omitempty"`
-	Key         string `yaml:"key,omitempty" json:"key,omitempty"`
+	Key         string `yaml:"key" json:"key"`
 	Name        string `yaml:"name,omitempty" json:"name,omitempty"`
 	Description string `yaml:"description,omitempty" json:"description,omitempty"`
 	Attachment  any    `yaml:"attachment,omitempty" json:"attachment,omitempty"`
@@ -63,7 +63,7 @@ type Rule struct {
 }
 
 type Distribution struct {
-	VariantKey string  `yaml:"variant,omitempty" json:"variant,omitempty"`
+	VariantKey string  `yaml:"variant" json:"variant"`
 	Rollout    float32 `yaml:"rollout" json:"rollout"`
 }
 

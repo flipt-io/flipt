@@ -14,10 +14,10 @@ import { JsonTextArea } from '~/components/forms/JsonTextArea';
 import { IVariant } from '~/types/Variant';
 
 import { useError } from '~/data/hooks/error';
-import { keyWithDotValidation } from '~/data/validations';
+import { variantKeyValidation } from '~/data/validations';
 
 const validationSchema = Yup.object({
-  key: keyWithDotValidation
+  key: variantKeyValidation
 });
 
 type VariantFormProps = {

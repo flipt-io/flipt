@@ -44,7 +44,7 @@ close({
 }
 
 #Variant: {
-	key:          string & =~"^.+$"
+	key:          string & =~"^.*$"
 	name?:        string & =~"^.+$"
 	description?: string | null
 	attachment: {...} | [...] | *null
@@ -65,7 +65,7 @@ close({
 }
 
 #Distribution: {
-	variant: string & =~"^.+$"
+	variant: string & =~"^.*$"
 	rollout: >=0 & <=100
 }
 
