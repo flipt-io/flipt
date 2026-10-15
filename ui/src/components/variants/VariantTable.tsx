@@ -31,11 +31,14 @@ export default function VariantTable({
   const columns = [
     columnHelper.accessor('key', {
       header: 'Key',
-      cell: (info) => (
-        <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-          {info.getValue()}
-        </code>
-      ),
+      cell: (info) =>
+        info.getValue() ? (
+          <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            {info.getValue()}
+          </code>
+        ) : (
+          <span className="text-gray-400 dark:text-gray-500">(empty)</span>
+        ),
       meta: {
         className: 'px-3 py-4 whitespace-nowrap text-sm'
       }

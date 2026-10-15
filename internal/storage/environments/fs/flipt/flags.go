@@ -163,6 +163,17 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 		}
 	}
 
+	// Variant keys must be unique within the flag. The empty key is a valid
+	// variant key like any other, so it participates in the check instead of
+	// being treated as absent.
+	seen := make(map[string]struct{}, len(flag.Variants))
+	for _, variant := range flag.Variants {
+		if _, ok := seen[variant.Key]; ok {
+			return errors.ErrInvalidf("flag %s/%s has duplicate variant key %q", rs.NamespaceKey, flag.Key, variant.Key)
+		}
+		seen[variant.Key] = struct{}{}
+	}
+
 	var found bool
 	for i, f := range docs[idx].Flags {
 		// replace the flag if located

@@ -14,6 +14,15 @@ export const keyWithDotValidation = Yup.string()
     'Only letters, numbers, hypens, dots and underscores allowed'
   );
 
+// variantKeyValidation mirrors keyWithDotValidation but allows the empty
+// string: Flipt accepts empty variant keys (the Go zero value), so unlike
+// flag/segment/namespace keys a variant key is optional. The charset is
+// unchanged.
+export const variantKeyValidation = Yup.string().matches(
+  /^[-_,A-Za-z0-9.]*$/,
+  'Only letters, numbers, hypens, dots and underscores allowed'
+);
+
 export const requiredValidation = Yup.string().required('Required');
 
 export const jsonValidation = Yup.string()

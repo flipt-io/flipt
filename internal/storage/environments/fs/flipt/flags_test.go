@@ -501,6 +501,131 @@ segments:
 		require.NoError(t, err)
 		assert.Equal(t, flag.Key, resource.Key)
 	})
+
+	t.Run("reject flag with duplicate variant keys", func(t *testing.T) {
+		fs := fstesting.NewFilesystem(
+			t,
+			fstesting.WithDirectory(
+				"default",
+				fstesting.WithFile("features.yaml", emptyNamespaceContents),
+			),
+		)
+
+		flag := &core.Flag{
+			Key:     "new_flag",
+			Name:    "New Flag",
+			Type:    core.FlagType_VARIANT_FLAG_TYPE,
+			Enabled: true,
+			Variants: []*core.Variant{
+				{
+					Key:  "variant1",
+					Name: "Variant 1",
+				},
+				{
+					Key:  "variant1",
+					Name: "Variant 1 duplicate",
+				},
+			},
+		}
+
+		any, err := newAny(flag)
+		require.NoError(t, err)
+
+		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          flag.Key,
+			Payload:      any,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "has duplicate variant key \"variant1\"")
+	})
+
+	t.Run("reject flag with duplicate empty variant keys", func(t *testing.T) {
+		fs := fstesting.NewFilesystem(
+			t,
+			fstesting.WithDirectory(
+				"default",
+				fstesting.WithFile("features.yaml", emptyNamespaceContents),
+			),
+		)
+
+		flag := &core.Flag{
+			Key:     "new_flag",
+			Name:    "New Flag",
+			Type:    core.FlagType_VARIANT_FLAG_TYPE,
+			Enabled: true,
+			Variants: []*core.Variant{
+				{
+					Key:  "",
+					Name: "First empty",
+				},
+				{
+					Key:  "",
+					Name: "Second empty",
+				},
+			},
+		}
+
+		any, err := newAny(flag)
+		require.NoError(t, err)
+
+		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          flag.Key,
+			Payload:      any,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "has duplicate variant key \"\"")
+	})
+
+	t.Run("accept flag with a single empty variant key", func(t *testing.T) {
+		fs := fstesting.NewFilesystem(
+			t,
+			fstesting.WithDirectory(
+				"default",
+				fstesting.WithFile("features.yaml", emptyNamespaceContents),
+			),
+		)
+
+		empty := ""
+		flag := &core.Flag{
+			Key:            "new_flag",
+			Name:           "New Flag",
+			Type:           core.FlagType_VARIANT_FLAG_TYPE,
+			Enabled:        true,
+			DefaultVariant: &empty,
+			Variants: []*core.Variant{
+				{
+					Key:  "",
+					Name: "Empty",
+				},
+				{
+					Key:  "variant1",
+					Name: "Variant 1",
+				},
+			},
+		}
+
+		any, err := newAny(flag)
+		require.NoError(t, err)
+
+		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          flag.Key,
+			Payload:      any,
+		})
+		require.NoError(t, err)
+
+		// verify the empty default round-trips as present, not absent
+		resource, err := storage.GetResource(ctx, fs, "default", flag.Key)
+		require.NoError(t, err)
+
+		var created core.Flag
+		err = resource.Payload.UnmarshalTo(&created)
+		require.NoError(t, err)
+		require.NotNil(t, created.DefaultVariant)
+		assert.Empty(t, created.GetDefaultVariant())
+	})
 }
 
 func TestFlagStorage_DeleteResource(t *testing.T) {

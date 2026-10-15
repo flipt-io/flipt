@@ -53,7 +53,7 @@ export function DefaultVariant(props: RulesProps) {
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
-      if (!flag.defaultVariant) return null;
+      if (flag.defaultVariant == null) return null;
 
       const variant = variants?.find((v) => v.key === flag.defaultVariant);
       if (!variant) return null;
@@ -68,7 +68,7 @@ export function DefaultVariant(props: RulesProps) {
     (variant: FilterableVariant | null) => {
       setSelectedVariant(variant);
 
-      updateFlag({ defaultVariant: variant?.key || null });
+      updateFlag({ defaultVariant: variant?.key ?? null });
     },
     [updateFlag]
   );
