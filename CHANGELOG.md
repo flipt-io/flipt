@@ -3,12 +3,30 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [2.14.0](https://github.com/flipt-io/flipt/releases/tag/v2.14.0) - 2026-10-15
 
 ### Breaking
 
 - **Secrets providers**: The `aws`, `gcp`, and `azure` secrets providers now require a Pro license, as `vault` already did. Without one, enabling any of them fails startup with `<provider> secrets provider requires a paid license` (for example, `aws secrets provider requires a paid license`), and the provider is never set up or contacted. OSS users of these providers should move their secrets to the `file` provider.
 - **License secrets**: Secret references in `license.key`, `license.file`, and `license.machine_id` may now only use the `file` provider, because the license is determined before any Pro secrets provider is set up. Pro users who load these values from `vault`, `aws`, `gcp`, or `azure` must switch to the `file` provider or set the value directly (for example, `FLIPT_LICENSE_KEY`).
+
+### Added
+
+- **SCM webhooks (Pro)**: Receive incoming push webhooks from your SCM provider to sync environments right away, without waiting for the next poll (#6643)
+- **Evaluation authorization**: Opt in to policy checks on the evaluation, snapshot, and OFREP APIs with `authorization.exclude.evaluation` and `authorization.exclude.ofrep` (both default to `true`). A new `evaluate` action lets namespace-scoped tokens evaluate flags without management read access (#6661)
+
+### Fixed
+
+- **Authorization (security)**: Close a scope bypass on list endpoints. `ListNamespaces` now hides environments excluded by `viewable_environments`, and undefined list scopes fall back to the allow decision instead of returning an unrestricted list (#6662)
+- **Authorization**: Honor environment scopes defined in policy data (#6639)
+- **Variants**: Allow empty variant keys and reject duplicate variant keys within a flag (#6666)
+- **Git storage**: Refetch the branch before reporting a head revision conflict, fixing false conflicts in multi-instance deployments (#6646)
+- **GitLab SCM**: Support GitLab without credentials, and make `scm.credentials` optional in the config schemas (#6644)
+- **Metrics**: Stop serving `/metrics` when metrics are disabled (#6642)
+
+### Dependencies
+
+- Updated various Go and UI dependencies, including OpenTelemetry, AWS SDK, Azure SDK, go-git, Prometheus, Redis, and CodeMirror.
 
 ## [2.13.1](https://github.com/flipt-io/flipt/releases/tag/v2.13.1) - 2026-10-02
 
