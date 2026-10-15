@@ -53,6 +53,19 @@ type mockServer struct {
 	skipsAuthz bool
 }
 
+// nilEnvironmentRequester returns a request with a nil environment to exercise
+// the defensive deny guard in the ListNamespaces authorization path.
+type nilEnvironmentRequester struct{}
+
+func (nilEnvironmentRequester) Request() []flipt.Request {
+	return []flipt.Request{
+		{
+			Scope:  flipt.ScopeEnvironment,
+			Action: flipt.ActionRead,
+		},
+	}
+}
+
 func (s *mockServer) SkipsAuthorization(ctx context.Context) bool {
 	return s.skipsAuthz
 }
@@ -177,16 +190,18 @@ func TestReadOnlyPrincipalsCannotMutateBranches(t *testing.T) {
 
 func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 	tests := []struct {
-		name              string
-		fullMethod        string
-		req               flipt.Requester
-		viewable          []string
-		viewableErr       error
-		wantScopeKey      any
-		wantScopeValue    []string
-		validatorAllowed  bool
-		wantHandlerCalled bool
-		wantError         bool
+		name                    string
+		fullMethod              string
+		req                     flipt.Requester
+		viewable                []string
+		viewableErr             error
+		viewableEnvironments    []string
+		viewableEnvironmentsErr error
+		wantScopeKey            any
+		wantScopeValue          []string
+		validatorAllowed        bool
+		wantHandlerCalled       bool
+		wantError               bool
 	}{
 		{
 			name:              "partial environments remain visible",
@@ -198,9 +213,17 @@ func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 			wantHandlerCalled: true,
 		},
 		{
-			name:              "undefined environments scope remains unrestricted",
+			name:              "undefined environments scope denied without allow",
 			fullMethod:        environments.EnvironmentsService_ListEnvironments_FullMethodName,
 			req:               &environments.ListEnvironmentsRequest{},
+			wantError:         true,
+			wantHandlerCalled: false,
+		},
+		{
+			name:              "undefined environments scope allowed with allow",
+			fullMethod:        environments.EnvironmentsService_ListEnvironments_FullMethodName,
+			req:               &environments.ListEnvironmentsRequest{},
+			validatorAllowed:  true,
 			wantScopeKey:      authz.EnvironmentsKey,
 			wantScopeValue:    []string{"*"},
 			wantHandlerCalled: true,
@@ -241,12 +264,85 @@ func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 			wantHandlerCalled: true,
 		},
 		{
-			name:              "undefined namespaces scope remains unrestricted",
+			name:              "undefined namespaces scope denied without allow",
 			fullMethod:        environments.EnvironmentsService_ListNamespaces_FullMethodName,
 			req:               &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			wantError:         true,
+			wantHandlerCalled: false,
+		},
+		{
+			name:              "undefined namespaces scope allowed with allow",
+			fullMethod:        environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:               &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			validatorAllowed:  true,
 			wantScopeKey:      authz.NamespacesKey,
 			wantScopeValue:    []string{"*"},
 			wantHandlerCalled: true,
+		},
+		{
+			name:                 "undefined namespaces scope denied despite visible environment",
+			fullMethod:           environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                  &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewableEnvironments: []string{"production"},
+			wantError:            true,
+			wantHandlerCalled:    false,
+		},
+		{
+			name:                 "undefined namespaces scope allowed in visible environment with allow",
+			fullMethod:           environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                  &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewableEnvironments: []string{"production"},
+			validatorAllowed:     true,
+			wantScopeKey:         authz.NamespacesKey,
+			wantScopeValue:       []string{"*"},
+			wantHandlerCalled:    true,
+		},
+		{
+			name:                 "namespaces in hidden environment denied",
+			fullMethod:           environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                  &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewable:             []string{"*"},
+			viewableEnvironments: []string{"staging"},
+			wantError:            true,
+			wantHandlerCalled:    false,
+		},
+		{
+			name:                 "namespaces in hidden environment denied despite namespace scope",
+			fullMethod:           environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                  &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewable:             []string{"analytics"},
+			viewableEnvironments: []string{"staging"},
+			wantError:            true,
+			wantHandlerCalled:    false,
+		},
+		{
+			name:                 "namespaces in visible environment allowed",
+			fullMethod:           environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                  &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewable:             []string{"analytics"},
+			viewableEnvironments: []string{"production"},
+			wantScopeKey:         authz.NamespacesKey,
+			wantScopeValue:       []string{"analytics"},
+			wantHandlerCalled:    true,
+		},
+		{
+			name:                 "namespaces with wildcard environments allowed",
+			fullMethod:           environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                  &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewable:             []string{"analytics"},
+			viewableEnvironments: []string{"*"},
+			wantScopeKey:         authz.NamespacesKey,
+			wantScopeValue:       []string{"analytics"},
+			wantHandlerCalled:    true,
+		},
+		{
+			name:                 "namespaces with empty environments scope denied",
+			fullMethod:           environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                  &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewable:             []string{"analytics"},
+			viewableEnvironments: []string{},
+			wantError:            true,
+			wantHandlerCalled:    false,
 		},
 		{
 			name:              "empty namespaces are not unrestricted",
@@ -266,6 +362,40 @@ func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 			wantScopeValue:    []string{"*"},
 			wantHandlerCalled: true,
 		},
+		{
+			name:              "namespace query failure denies",
+			fullMethod:        environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:               &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewableErr:       errors.New("query failed"),
+			wantError:         true,
+			wantHandlerCalled: false,
+		},
+		{
+			name:                    "environment scope query failure denies namespaces",
+			fullMethod:              environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                     &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewable:                []string{"analytics"},
+			viewableEnvironmentsErr: errors.New("query failed"),
+			wantError:               true,
+			wantHandlerCalled:       false,
+		},
+		{
+			name:                    "environment scope query failure denies namespaces despite allow",
+			fullMethod:              environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:                     &environments.ListNamespacesRequest{EnvironmentKey: "production"},
+			viewable:                []string{"analytics"},
+			viewableEnvironmentsErr: errors.New("query failed"),
+			validatorAllowed:        true,
+			wantError:               true,
+			wantHandlerCalled:       false,
+		},
+		{
+			name:              "nil environment denied without panic",
+			fullMethod:        environments.EnvironmentsService_ListNamespaces_FullMethodName,
+			req:               nilEnvironmentRequester{},
+			wantError:         true,
+			wantHandlerCalled: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -278,6 +408,8 @@ func TestAuthorizationRequiredInterceptorListScopesFailClosed(t *testing.T) {
 				verifier.viewableEnvironments = tt.viewable
 				verifier.viewableEnvironmentsErr = tt.viewableErr
 			} else {
+				verifier.viewableEnvironments = tt.viewableEnvironments
+				verifier.viewableEnvironmentsErr = tt.viewableEnvironmentsErr
 				verifier.viewableNamespacesForEnvironment = map[string][]string{"production": tt.viewable}
 				verifier.viewableNamespacesErr = tt.viewableErr
 			}

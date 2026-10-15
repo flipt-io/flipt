@@ -233,14 +233,38 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 			// request itself is not allowed (there is no environment on a list
 			// request to evaluate). An empty scope is still passed to the handler
 			// so the endpoint can return an empty list rather than fail open.
-			// Policies that do not define the optional scope retain the historical
-			// unrestricted list behavior.
+			// Policies that do not define the optional scope must explicitly
+			// allow the list request itself; otherwise any authenticated caller
+			// could list every environment regardless of allow.
 			if viewableEnvironments == nil {
+				if !allowed {
+					logger.Error("unauthorized", zap.String("reason", "permission denied"))
+					return ctx, errUnauthorized
+				}
 				viewableEnvironments = []string{"*"}
 			}
 			ctx = context.WithValue(ctx, authz.EnvironmentsKey, viewableEnvironments)
 			continue
 		case environments.EnvironmentsService_ListNamespaces_FullMethodName:
+			if request.Environment == nil {
+				logger.Error("unauthorized", zap.String("reason", "permission denied"))
+				return ctx, errUnauthorized
+			}
+
+			viewableEnvironments, err := policyVerifier.ViewableEnvironments(ctx, input)
+			if err != nil {
+				logger.Error("unauthorized", zap.Error(err))
+				return ctx, errUnauthorized
+			}
+
+			// A namespace list must not expose an environment hidden by the
+			// environment scope, even when the namespace scope is undefined
+			// or wildcard.
+			if viewableEnvironments != nil && !slices.Contains(viewableEnvironments, "*") && !slices.Contains(viewableEnvironments, *request.Environment) {
+				logger.Error("unauthorized", zap.String("reason", "permission denied"))
+				return ctx, errUnauthorized
+			}
+
 			viewableNamespaces, err := policyVerifier.ViewableNamespaces(ctx, *request.Environment, input)
 			if err != nil {
 				logger.Error("unauthorized", zap.Error(err))
@@ -250,9 +274,14 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 			logger.Debug("policy namespaces evaluation", zap.Any("namespaces", viewableNamespaces))
 			// As with environments, preserve partial access but always attach a
 			// scope, including an empty one, so the endpoint cannot fail open.
-			// Policies that do not define the optional scope retain the historical
-			// unrestricted list behavior.
+			// Policies that do not define the optional scope must explicitly
+			// allow the list request itself instead of falling back to an
+			// unrestricted list.
 			if viewableNamespaces == nil {
+				if !allowed {
+					logger.Error("unauthorized", zap.String("reason", "permission denied"))
+					return ctx, errUnauthorized
+				}
 				viewableNamespaces = []string{"*"}
 			}
 			ctx = context.WithValue(ctx, authz.NamespacesKey, viewableNamespaces)
