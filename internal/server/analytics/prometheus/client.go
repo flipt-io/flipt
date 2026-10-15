@@ -20,7 +20,7 @@ import (
 )
 
 type PrometheusClient interface {
-	QueryRange(ctx context.Context, query string, r promapi.Range, opts ...promapi.Option) (model.Value, promapi.Warnings, error)
+	QueryRange(ctx context.Context, query string, r promapi.Range, opts ...promapi.Option) (model.Value, promapi.Warnings, promapi.Infos, error)
 }
 
 type client struct {
@@ -79,7 +79,7 @@ func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.Fl
 		End:   req.To.Add(time.Duration(req.StepMinutes) * time.Minute).UTC(),
 		Step:  time.Duration(req.StepMinutes) * time.Minute,
 	}
-	data, warnings, err := c.promClient.QueryRange(ctx, query, r)
+	data, warnings, _, err := c.promClient.QueryRange(ctx, query, r)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -139,7 +139,7 @@ func (c *client) GetBatchFlagEvaluationsCount(ctx context.Context, req *panalyti
 		Step:  time.Duration(req.StepMinutes) * time.Minute,
 	}
 
-	data, warnings, err := c.promClient.QueryRange(ctx, query, r)
+	data, warnings, _, err := c.promClient.QueryRange(ctx, query, r)
 	if err != nil {
 		return nil, err
 	}
