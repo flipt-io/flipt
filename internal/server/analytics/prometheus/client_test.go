@@ -115,7 +115,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
-		).Return(data, promapi.Warnings{"test Warnings"}, nil)
+		).Return(data, promapi.Warnings{"test Warnings"}, nil, nil)
 
 		client := &client{
 			logger:     logger,
@@ -161,7 +161,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
-		).Return(data, promapi.Warnings{"test Warnings"}, nil)
+		).Return(data, promapi.Warnings{"test Warnings"}, nil, nil)
 
 		client := &client{
 			logger:     logger,
@@ -192,7 +192,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
-		).Return(&model.Scalar{}, nil, nil)
+		).Return(&model.Scalar{}, nil, nil, nil)
 
 		client := &client{
 			logger:     logger,
@@ -220,7 +220,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
-		).Return(&model.Matrix{}, nil, nil)
+		).Return(&model.Matrix{}, nil, nil, nil)
 
 		client := &client{
 			logger:     logger,
@@ -248,7 +248,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(5 * time.Minute),
 				Step:  5 * time.Minute,
 			},
-		).Return(nil, nil, errors.New("failed to query"))
+		).Return(nil, nil, nil, errors.New("failed to query"))
 
 		client := &client{
 			logger:     logger,
@@ -292,7 +292,7 @@ func TestGetBatchFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
-		).Return(data, promapi.Warnings{"test Warnings"}, nil)
+		).Return(data, promapi.Warnings{"test Warnings"}, nil, nil)
 
 		client := &client{
 			logger:     logger,
@@ -343,7 +343,7 @@ func TestGetBatchFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
-		).Return(data, promapi.Warnings{"test Warnings"}, nil)
+		).Return(data, promapi.Warnings{"test Warnings"}, nil, nil)
 
 		client := &client{
 			logger:     logger,
@@ -387,7 +387,7 @@ func TestGetBatchFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
-		).Return(&model.Scalar{}, nil, nil)
+		).Return(&model.Scalar{}, nil, nil, nil)
 
 		client := &client{
 			logger:     logger,
@@ -415,7 +415,7 @@ func TestGetBatchFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
-		).Return(&model.Matrix{}, nil, nil)
+		).Return(&model.Matrix{}, nil, nil, nil)
 
 		client := &client{
 			logger:     logger,
@@ -443,7 +443,7 @@ func TestGetBatchFlagEvaluationsCount(t *testing.T) {
 				End:   to.Add(5 * time.Minute),
 				Step:  5 * time.Minute,
 			},
-		).Return(nil, nil, errors.New("failed to query"))
+		).Return(nil, nil, nil, errors.New("failed to query"))
 
 		client := &client{
 			logger:     logger,

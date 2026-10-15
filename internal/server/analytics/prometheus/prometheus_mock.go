@@ -49,7 +49,7 @@ func (_m *MockPrometheusClient) EXPECT() *MockPrometheusClient_Expecter {
 }
 
 // QueryRange provides a mock function for the type MockPrometheusClient
-func (_mock *MockPrometheusClient) QueryRange(ctx context.Context, query string, r v1.Range, opts ...v1.Option) (model.Value, v1.Warnings, error) {
+func (_mock *MockPrometheusClient) QueryRange(ctx context.Context, query string, r v1.Range, opts ...v1.Option) (model.Value, v1.Warnings, v1.Infos, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
 		tmpRet = _mock.Called(ctx, query, r, opts)
@@ -64,8 +64,9 @@ func (_mock *MockPrometheusClient) QueryRange(ctx context.Context, query string,
 
 	var r0 model.Value
 	var r1 v1.Warnings
-	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, v1.Range, ...v1.Option) (model.Value, v1.Warnings, error)); ok {
+	var r2 v1.Infos
+	var r3 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, v1.Range, ...v1.Option) (model.Value, v1.Warnings, v1.Infos, error)); ok {
 		return returnFunc(ctx, query, r, opts...)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string, v1.Range, ...v1.Option) model.Value); ok {
@@ -82,12 +83,19 @@ func (_mock *MockPrometheusClient) QueryRange(ctx context.Context, query string,
 			r1 = ret.Get(1).(v1.Warnings)
 		}
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, v1.Range, ...v1.Option) error); ok {
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, v1.Range, ...v1.Option) v1.Infos); ok {
 		r2 = returnFunc(ctx, query, r, opts...)
 	} else {
-		r2 = ret.Error(2)
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(v1.Infos)
+		}
 	}
-	return r0, r1, r2
+	if returnFunc, ok := ret.Get(3).(func(context.Context, string, v1.Range, ...v1.Option) error); ok {
+		r3 = returnFunc(ctx, query, r, opts...)
+	} else {
+		r3 = ret.Error(3)
+	}
+	return r0, r1, r2, r3
 }
 
 // MockPrometheusClient_QueryRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'QueryRange'
@@ -135,12 +143,12 @@ func (_c *MockPrometheusClient_QueryRange_Call) Run(run func(ctx context.Context
 	return _c
 }
 
-func (_c *MockPrometheusClient_QueryRange_Call) Return(value model.Value, warnings v1.Warnings, err error) *MockPrometheusClient_QueryRange_Call {
-	_c.Call.Return(value, warnings, err)
+func (_c *MockPrometheusClient_QueryRange_Call) Return(value model.Value, warnings v1.Warnings, infos v1.Infos, err error) *MockPrometheusClient_QueryRange_Call {
+	_c.Call.Return(value, warnings, infos, err)
 	return _c
 }
 
-func (_c *MockPrometheusClient_QueryRange_Call) RunAndReturn(run func(ctx context.Context, query string, r v1.Range, opts ...v1.Option) (model.Value, v1.Warnings, error)) *MockPrometheusClient_QueryRange_Call {
+func (_c *MockPrometheusClient_QueryRange_Call) RunAndReturn(run func(ctx context.Context, query string, r v1.Range, opts ...v1.Option) (model.Value, v1.Warnings, v1.Infos, error)) *MockPrometheusClient_QueryRange_Call {
 	_c.Call.Return(run)
 	return _c
 }
