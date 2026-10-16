@@ -203,7 +203,15 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 
 	auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx)
 	if auth == nil {
-		logger.Error("unauthorized", zap.String("reason", "authentication required"))
+		var env, ns *string
+		if len(requests) == 1 {
+			env = requests[0].Environment
+			ns = requests[0].Namespace
+		}
+		logger.Warn("unauthorized",
+			zap.String("reason", "authentication required"),
+			zap.Stringp("environment", env),
+			zap.Stringp("namespace", ns))
 		return ctx, errUnauthorized
 	}
 
@@ -238,7 +246,12 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 			// could list every environment regardless of allow.
 			if viewableEnvironments == nil {
 				if !allowed {
-					logger.Error("unauthorized", zap.String("reason", "permission denied"))
+					logger.Warn("unauthorized",
+						zap.String("reason", "permission denied"),
+						zap.Stringp("environment", request.Environment),
+						zap.Stringp("namespace", request.Namespace),
+						zap.String("auth_id", auth.GetId()),
+						zap.String("auth_method", auth.GetMethod().String()))
 					return ctx, errUnauthorized
 				}
 				viewableEnvironments = []string{"*"}
@@ -247,7 +260,12 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 			continue
 		case environments.EnvironmentsService_ListNamespaces_FullMethodName:
 			if request.Environment == nil {
-				logger.Error("unauthorized", zap.String("reason", "permission denied"))
+				logger.Warn("unauthorized",
+					zap.String("reason", "permission denied"),
+					zap.Stringp("environment", request.Environment),
+					zap.Stringp("namespace", request.Namespace),
+					zap.String("auth_id", auth.GetId()),
+					zap.String("auth_method", auth.GetMethod().String()))
 				return ctx, errUnauthorized
 			}
 
@@ -261,7 +279,12 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 			// environment scope, even when the namespace scope is undefined
 			// or wildcard.
 			if viewableEnvironments != nil && !slices.Contains(viewableEnvironments, "*") && !slices.Contains(viewableEnvironments, *request.Environment) {
-				logger.Error("unauthorized", zap.String("reason", "permission denied"))
+				logger.Warn("unauthorized",
+					zap.String("reason", "permission denied"),
+					zap.Stringp("environment", request.Environment),
+					zap.Stringp("namespace", request.Namespace),
+					zap.String("auth_id", auth.GetId()),
+					zap.String("auth_method", auth.GetMethod().String()))
 				return ctx, errUnauthorized
 			}
 
@@ -279,7 +302,12 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 			// unrestricted list.
 			if viewableNamespaces == nil {
 				if !allowed {
-					logger.Error("unauthorized", zap.String("reason", "permission denied"))
+					logger.Warn("unauthorized",
+						zap.String("reason", "permission denied"),
+						zap.Stringp("environment", request.Environment),
+						zap.Stringp("namespace", request.Namespace),
+						zap.String("auth_id", auth.GetId()),
+						zap.String("auth_method", auth.GetMethod().String()))
 					return ctx, errUnauthorized
 				}
 				viewableNamespaces = []string{"*"}
@@ -289,7 +317,12 @@ func authorize(ctx context.Context, logger *zap.Logger, policyVerifier authz.Ver
 		}
 
 		if !allowed {
-			logger.Error("unauthorized", zap.String("reason", "permission denied"))
+			logger.Warn("unauthorized",
+				zap.String("reason", "permission denied"),
+				zap.Stringp("environment", request.Environment),
+				zap.Stringp("namespace", request.Namespace),
+				zap.String("auth_id", auth.GetId()),
+				zap.String("auth_method", auth.GetMethod().String()))
 			return ctx, errUnauthorized
 		}
 	}
