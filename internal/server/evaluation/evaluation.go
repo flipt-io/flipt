@@ -2,12 +2,15 @@ package evaluation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Masterminds/semver/v3"
 
 	errs "go.flipt.io/flipt/errors"
 	environments "go.flipt.io/flipt/internal/server/environments"
@@ -657,6 +660,8 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 			match, err = matchesDateTime(c, v)
 		case core.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
 			match, err = matchesString(c, entityId)
+		case core.ComparisonType_SEMVER_COMPARISON_TYPE:
+			match, err = matchesSemver(c, v)
 		default:
 			return false, reason, errs.ErrInvalid("unknown constraint type")
 		}
@@ -892,6 +897,100 @@ func tryParseDateTime(v string) (time.Time, error) {
 	}
 
 	return time.Time{}, errs.ErrInvalidf("parsing datetime from %q", v)
+}
+
+func matchesSemver(c storage.EvaluationConstraint, v string) (bool, error) {
+	switch c.Operator {
+	case flipt.OpNotPresent:
+		return len(strings.TrimSpace(v)) == 0, nil
+	case flipt.OpPresent:
+		return len(strings.TrimSpace(v)) != 0, nil
+	}
+
+	// can't parse an empty string
+	if v == "" {
+		return false, nil
+	}
+
+	d, err := semver.NewVersion(strings.TrimSpace(v))
+	if err != nil {
+		return false, errs.ErrInvalidf("parsing semver from %q", v)
+	}
+
+	switch c.Operator {
+	case flipt.OpIsOneOf:
+		if c.SemverList != nil {
+			for _, target := range c.SemverList {
+				if d.Equal(target) {
+					return true, nil
+				}
+			}
+			return false, nil
+		}
+		var values []string
+		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+			return false, errs.ErrInvalidf("invalid value for constraint %q", c.Value)
+		}
+		for _, val := range values {
+			target, err := semver.NewVersion(strings.TrimSpace(val))
+			if err != nil {
+				return false, errs.ErrInvalidf("parsing semver from %q", val)
+			}
+			if d.Equal(target) {
+				return true, nil
+			}
+		}
+		return false, nil
+	case flipt.OpIsNotOneOf:
+		if c.SemverList != nil {
+			for _, target := range c.SemverList {
+				if d.Equal(target) {
+					return false, nil
+				}
+			}
+			return true, nil
+		}
+		var values []string
+		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+			return false, errs.ErrInvalidf("invalid value for constraint %q", c.Value)
+		}
+		for _, val := range values {
+			target, err := semver.NewVersion(strings.TrimSpace(val))
+			if err != nil {
+				return false, errs.ErrInvalidf("parsing semver from %q", val)
+			}
+			if d.Equal(target) {
+				return false, nil
+			}
+		}
+		return true, nil
+	}
+
+	value := c.Semver
+	if value == nil {
+		var err error
+		value, err = semver.NewVersion(strings.TrimSpace(c.Value))
+		if err != nil {
+			return false, errs.ErrInvalidf("parsing semver from %q", c.Value)
+		}
+	}
+
+	switch c.Operator {
+	case flipt.OpEQ:
+		return d.Equal(value), nil
+	case flipt.OpNEQ:
+		return !d.Equal(value), nil
+	case flipt.OpLT:
+		return d.LessThan(value), nil
+	case flipt.OpLTE:
+		return d.LessThan(value) || d.Equal(value), nil
+	case flipt.OpGT:
+		return d.GreaterThan(value), nil
+	case flipt.OpGTE:
+		return d.GreaterThan(value) || d.Equal(value), nil
+	}
+
+	return false, nil
 }
 
 func getVariant(key string, variants ...*core.Variant) (*core.Variant, bool) {

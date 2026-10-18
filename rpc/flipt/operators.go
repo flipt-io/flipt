@@ -88,4 +88,16 @@ var (
 		OpContains:    {},
 		OpNotContains: {},
 	}
+	SemverOperators = map[string]struct{}{
+		OpEQ:         {},
+		OpNEQ:        {},
+		OpLT:         {},
+		OpLTE:        {},
+		OpGT:         {},
+		OpGTE:        {},
+		OpPresent:    {},
+		OpNotPresent: {},
+		OpIsOneOf:    {},
+		OpIsNotOneOf: {},
+	}
 )
