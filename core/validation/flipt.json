@@ -507,6 +507,106 @@
         }
       ]
     },
+    "semverComparisonOperator": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "SEMVER_COMPARISON_TYPE"
+              }
+            },
+            "required": [
+              "operator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "operator": {
+                "enum": [
+                  "eq",
+                  "neq",
+                  "present",
+                  "notpresent",
+                  "lt",
+                  "lte",
+                  "gt",
+                  "gte",
+                  "isoneof",
+                  "isnotoneof"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "SEMVER_COMPARISON_TYPE"
+              },
+              "operator": {
+                "not": {
+                  "enum": [
+                    "isoneof",
+                    "isnotoneof"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "SEMVER_COMPARISON_TYPE"
+              },
+              "operator": {
+                "enum": [
+                  "isoneof",
+                  "isnotoneof"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "operator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        }
+      ]
+    },
     "constraint": {
       "required": [
         "type",
@@ -520,7 +620,8 @@
             "NUMBER_COMPARISON_TYPE",
             "BOOLEAN_COMPARISON_TYPE",
             "DATETIME_COMPARISON_TYPE",
-            "ENTITY_ID_COMPARISON_TYPE"
+            "ENTITY_ID_COMPARISON_TYPE",
+            "SEMVER_COMPARISON_TYPE"
           ]
         },
         "property": {
@@ -564,6 +665,9 @@
         },
         {
           "$ref": "#/$defs/entityIdComparisonOperator"
+        },
+        {
+          "$ref": "#/$defs/semverComparisonOperator"
         }
       ]
     },
@@ -601,6 +705,20 @@
           "if": {
             "properties": {
               "type": { "const": "ENTITY_ID_COMPARISON_TYPE" },
+              "operator": { "enum": ["isoneof", "isnotoneof"] }
+            },
+            "required": ["type", "operator"]
+          },
+          "then": {
+            "properties": {
+              "value": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "SEMVER_COMPARISON_TYPE" },
               "operator": { "enum": ["isoneof", "isnotoneof"] }
             },
             "required": ["type", "operator"]

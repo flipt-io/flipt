@@ -218,6 +218,7 @@ const (
 	ComparisonType_BOOLEAN_COMPARISON_TYPE   ComparisonType = 3
 	ComparisonType_DATETIME_COMPARISON_TYPE  ComparisonType = 4
 	ComparisonType_ENTITY_ID_COMPARISON_TYPE ComparisonType = 5
+	ComparisonType_SEMVER_COMPARISON_TYPE    ComparisonType = 6
 )
 
 // Enum value maps for ComparisonType.
@@ -229,6 +230,7 @@ var (
 		3: "BOOLEAN_COMPARISON_TYPE",
 		4: "DATETIME_COMPARISON_TYPE",
 		5: "ENTITY_ID_COMPARISON_TYPE",
+		6: "SEMVER_COMPARISON_TYPE",
 	}
 	ComparisonType_value = map[string]int32{
 		"UNKNOWN_COMPARISON_TYPE":   0,
@@ -237,6 +239,7 @@ var (
 		"BOOLEAN_COMPARISON_TYPE":   3,
 		"DATETIME_COMPARISON_TYPE":  4,
 		"ENTITY_ID_COMPARISON_TYPE": 5,
+		"SEMVER_COMPARISON_TYPE":    6,
 	}
 )
 
