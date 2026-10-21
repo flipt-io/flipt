@@ -1,8 +1,9 @@
 package oidc
 
 import (
-	"cmp"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -35,10 +36,24 @@ const (
 // was not configured
 var errProviderNotFound = errors.ErrNotFound("provider not found")
 
-// PCKEVerifier is a code verifier used for a PKCE flow during OIDC authentication.
-// This value is declared outside the scope of the function because of consistency throughout
-// the authenciation legs of OIDC.
-var PKCEVerifier, _ = capoidc.NewCodeVerifier()
+// PKCEVerifierFor returns the PKCE code verifier for the login bound to the
+// supplied secret (see method.VerifierCookieKey).
+func PKCEVerifierFor(secret string) (*capoidc.S256Verifier, error) {
+	return capoidc.NewCodeVerifier(capoidc.WithVerifier(deriveFlowValue("pkce", secret)))
+}
+
+// NonceFor returns the nonce for the login bound to the supplied secret
+// (see method.VerifierCookieKey).
+func NonceFor(secret string) string {
+	return deriveFlowValue("nonce", secret)
+}
+
+// deriveFlowValue derives a separate value for each use of a login secret, so
+// the nonce, which is visible in the id_token, never reveals the PKCE verifier.
+func deriveFlowValue(label, secret string) string {
+	sum := sha256.Sum256([]byte(label + ":" + secret))
+	return base64.RawURLEncoding.EncodeToString(sum[:])
+}
 
 // Server is the core OIDC server implementation for Flipt.
 // It supports two primary operations:
@@ -68,6 +83,12 @@ func NewServer(
 	store storageauth.Store,
 	config config.AuthenticationConfig,
 ) *Server {
+	for name, provider := range config.Methods.OIDC.Method.Providers {
+		if provider.Nonce != "" {
+			logger.Warn("oidc provider nonce is deprecated and ignored: a random nonce is used for every login", zap.String("provider", name))
+		}
+	}
+
 	return &Server{
 		logger: logger,
 		store:  store,
@@ -89,7 +110,12 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 // The operation is configured to return a URL which ultimately redirects to the
 // callback operation below.
 func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	provider, oidcRequest, err := s.providerFor(req.Provider, req.State)
+	verifier, err := method.FlowVerifier(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("authorize: %w", err)
+	}
+
+	provider, oidcRequest, err := s.providerFor(req.Provider, req.State, verifier)
 	if err != nil {
 		return nil, fmt.Errorf("authorize: %w", err)
 	}
@@ -106,9 +132,10 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 }
 
 // Callback attempts to authenticate a callback request from a delegated authorization service.
-// Given the request includes a "state" parameter then the requests metadata is interrogated
-// for the "flipt_client_state" metadata key.
+// The requests metadata is interrogated for the "flipt_client_state" metadata key.
 // This entry must exist and the value match the request state.
+// The "flipt_client_verifier" metadata key must also exist; the PKCE verifier and nonce
+// for the login are derived from it.
 // The provided code is exchanged with the associated authorization service provider for an "id_token".
 // We verify the retrieved "id_token" is valid and for our client.
 // Once verified we extract the users associated email address.
@@ -121,13 +148,16 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		}
 	}()
 
-	if req.State != "" {
-		if err := method.CallbackValidateState(ctx, req.State); err != nil {
-			return nil, err
-		}
+	if err := method.CallbackValidateState(ctx, req.State); err != nil {
+		return nil, err
 	}
 
-	provider, oidcRequest, err := s.providerFor(req.Provider, req.State)
+	verifier, err := method.FlowVerifier(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	provider, oidcRequest, err := s.providerFor(req.Provider, req.State, verifier)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +225,7 @@ func (s *Server) configFor(provider string) (config.AuthenticationMethodOIDCProv
 	return providerCfg, nil
 }
 
-func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, *capoidc.Req, error) {
+func (s *Server) providerFor(provider, state, verifier string) (*capoidc.Provider, *capoidc.Req, error) {
 	var (
 		config   *capoidc.Config
 		callback string
@@ -227,11 +257,17 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 	var oidcOpts = []capoidc.Option{
 		capoidc.WithState(state),
 		capoidc.WithScopes(providerCfg.Scopes...),
-		capoidc.WithNonce(cmp.Or(providerCfg.Nonce, "static")),
+		capoidc.WithNonce(NonceFor(verifier)),
 	}
 
 	if providerCfg.UsePKCE {
-		oidcOpts = append(oidcOpts, capoidc.WithPKCE(PKCEVerifier))
+		pkceVerifier, err := PKCEVerifierFor(verifier)
+		if err != nil {
+			p.Done()
+			return nil, nil, err
+		}
+
+		oidcOpts = append(oidcOpts, capoidc.WithPKCE(pkceVerifier))
 	}
 
 	req, err := capoidc.NewRequest(2*time.Minute, callback,

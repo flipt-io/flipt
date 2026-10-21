@@ -17,9 +17,13 @@ import (
 )
 
 const (
-	githubPrefix       = "/auth/v1/method/github"
-	oidcPrefix         = "/auth/v1/method/oidc/"
-	stateCookieKey     = "flipt_client_state"
+	githubPrefix   = "/auth/v1/method/github"
+	oidcPrefix     = "/auth/v1/method/oidc/"
+	stateCookieKey = "flipt_client_state"
+	// VerifierCookieKey holds a random secret for a single OIDC login. The
+	// PKCE verifier and nonce for the login are derived from it, so a code
+	// redeemed with another browser's cookies fails the exchange.
+	VerifierCookieKey  = "flipt_client_verifier"
 	tokenCookieKey     = "flipt_client_token"
 	ForwardedPrefixKey = "x-forwarded-prefix"
 	xForwardedPrefix   = "X-Forwarded-Prefix"
@@ -41,15 +45,23 @@ func NewHTTPMiddleware(config config.AuthenticationSession) Middleware {
 	}
 }
 
-// ForwardCookies parses particular http cookies (Flipts state and client token) and
+type verifierContextKey struct{}
+
+// ForwardCookies parses particular http cookies (Flipts state, verifier and client token) and
 // forwards them as grpc metadata entries. This allows us to abstract away http
 // constructs from the internal gRPC implementation.
 func ForwardCookies(ctx context.Context, req *http.Request) metadata.MD {
 	md := metadata.MD{}
-	for _, key := range []string{stateCookieKey, tokenCookieKey} {
+	for _, key := range []string{stateCookieKey, VerifierCookieKey, tokenCookieKey} {
 		if cookie, err := req.Cookie(key); err == nil {
 			md[key] = []string{cookie.Value}
 		}
+	}
+
+	// the verifier generated for an authorize request is only set as a cookie
+	// on the response, so forward it from the request context instead
+	if verifier, ok := req.Context().Value(verifierContextKey{}).(string); ok {
+		md[VerifierCookieKey] = []string{verifier}
 	}
 
 	return md
@@ -118,6 +130,7 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 		}
 
 		if method == "authorize" {
+			oidc := strings.HasPrefix(prefix, oidcPrefix)
 			prefix = path.Join(path.Join(r.Header.Values(xForwardedPrefix)...), prefix)
 			query := r.URL.Query()
 			// create a random security token and bind it to
@@ -165,6 +178,17 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 			}
 
 			http.SetCookie(w, cookie)
+
+			if oidc {
+				// bind a random secret for this login to the callback, with
+				// the same lifetime and scope as the state cookie
+				verifier := *cookie
+				verifier.Name = VerifierCookieKey
+				verifier.Value = generateSecurityToken()
+				http.SetCookie(w, &verifier)
+
+				r = r.WithContext(context.WithValue(r.Context(), verifierContextKey{}, verifier.Value))
+			}
 		}
 
 		// run decorated handler
