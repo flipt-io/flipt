@@ -122,6 +122,10 @@ func (s *NamespaceStorage) ListNamespaces(ctx context.Context, fs Filesystem) (i
 }
 
 func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *rpcenvironments.Namespace) error {
+	if err := rpcenvironments.ValidateNamespaceKey(ns.Key); err != nil {
+		return err
+	}
+
 	if err := fs.MkdirAll(ns.Key, 0o755); err != nil {
 		return fmt.Errorf("creating directory %q: %w", ns.Key, err)
 	}
@@ -194,6 +198,10 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 func (s *NamespaceStorage) DeleteNamespace(ctx context.Context, fs Filesystem, key string) error {
 	if key == defaultKey {
 		return errors.ErrInvalid(`namespace "default" is protected`)
+	}
+
+	if err := rpcenvironments.ValidateNamespaceKey(key); err != nil {
+		return err
 	}
 
 	filename, err := FindFeaturesFilename(fs, key)
