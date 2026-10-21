@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/analytics"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
+	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
@@ -66,6 +67,8 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 		authzInput         map[string]any
 		viewableNamespaces []string
 		serverFullMethod   string
+		// wantNamespaces is the namespace filter passed to the handler
+		wantNamespaces []string
 	}{
 		{
 			name:  "allowed",
@@ -139,6 +142,55 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			wantAllowed:        true,
 			viewableNamespaces: []string{"special"},
 			serverFullMethod:   "/flipt.Flipt/ListNamespaces",
+			wantNamespaces:     []string{"special"},
+			authzInput: map[string]any{
+				"request": flipt.Request{
+					Resource: flipt.ResourceNamespace,
+					Action:   flipt.ActionRead,
+					Status:   flipt.StatusSuccess,
+				},
+				"authentication": adminAuth,
+			},
+		},
+		{
+			name:               "list namespaces denied without viewable namespaces",
+			authn:              adminAuth,
+			req:                &flipt.ListNamespaceRequest{},
+			viewableNamespaces: []string{},
+			serverFullMethod:   "/flipt.Flipt/ListNamespaces",
+			wantAllowed:        false,
+		},
+		{
+			name:             "list namespaces denied when viewable namespaces undefined",
+			authn:            adminAuth,
+			req:              &flipt.ListNamespaceRequest{},
+			serverFullMethod: "/flipt.Flipt/ListNamespaces",
+			wantAllowed:      false,
+		},
+		{
+			name:               "list namespaces allowed without viewable namespaces",
+			authn:              adminAuth,
+			req:                &flipt.ListNamespaceRequest{},
+			validatorAllowed:   true,
+			viewableNamespaces: []string{},
+			serverFullMethod:   "/flipt.Flipt/ListNamespaces",
+			wantAllowed:        true,
+			authzInput: map[string]any{
+				"request": flipt.Request{
+					Resource: flipt.ResourceNamespace,
+					Action:   flipt.ActionRead,
+					Status:   flipt.StatusSuccess,
+				},
+				"authentication": adminAuth,
+			},
+		},
+		{
+			name:             "list namespaces allowed when viewable namespaces undefined",
+			authn:            adminAuth,
+			req:              &flipt.ListNamespaceRequest{},
+			validatorAllowed: true,
+			serverFullMethod: "/flipt.Flipt/ListNamespaces",
+			wantAllowed:      true,
 			authzInput: map[string]any{
 				"request": flipt.Request{
 					Resource: flipt.ResourceNamespace,
@@ -188,9 +240,11 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				logger  = zap.NewNop()
 				allowed = false
 
-				ctx     = authmiddlewaregrpc.ContextWithAuthentication(context.Background(), tt.authn)
-				handler = func(ctx context.Context, req any) (any, error) {
+				ctx        = authmiddlewaregrpc.ContextWithAuthentication(context.Background(), tt.authn)
+				namespaces []string
+				handler    = func(ctx context.Context, req any) (any, error) {
 					allowed = true
+					namespaces, _ = ctx.Value(authz.NamespacesKey).([]string)
 					return nil, nil
 				}
 
@@ -214,6 +268,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			if tt.wantAllowed {
 				require.NoError(t, err)
 				assert.Equal(t, tt.authzInput, policyVerfier.input)
+				assert.Equal(t, tt.wantNamespaces, namespaces)
 				return
 			}
 
