@@ -72,6 +72,7 @@ import "list"
 				discovery_url:              string
 				ca_path:                    string
 				service_account_token_path: string
+				audiences?: [...string]
 				cleanup?:                   #authentication.#authentication_cleanup
 			}
 

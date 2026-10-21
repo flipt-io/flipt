@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -26,7 +27,7 @@ import (
 type kubernetesOIDCVerifier struct {
 	logger   *zap.Logger
 	config   config.AuthenticationMethodKubernetesConfig
-	provider *oidc.Provider
+	verifier *oidc.IDTokenVerifier
 }
 
 func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationMethodKubernetesConfig) (*kubernetesOIDCVerifier, error) {
@@ -107,21 +108,29 @@ func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationM
 		return nil, err
 	}
 
+	if len(config.Audiences) == 0 {
+		logger.Warn("kubernetes authentication accepts service account tokens issued for any audience; set audiences to accept only tokens minted for Flipt")
+	}
+
 	return &kubernetesOIDCVerifier{
-		logger:   logger,
-		config:   config,
-		provider: provider,
+		logger: logger,
+		config: config,
+		// go-oidc checks a single client ID, so audiences are checked in verify
+		verifier: provider.Verifier(&oidc.Config{SkipClientIDCheck: true}),
 	}, nil
 }
 
 func (k *kubernetesOIDCVerifier) verify(ctx context.Context, jwt string) (c claims, err error) {
-	token, err := k.provider.Verifier(&oidc.Config{
-		// we're not interested in the OIDC client ID
-		// as we're not doing a real OAuth 2 flow.
-		SkipClientIDCheck: true,
-	}).Verify(ctx, jwt)
+	token, err := k.verifier.Verify(ctx, jwt)
 	if err != nil {
 		return c, err
+	}
+
+	// without configured audiences, accept any token the cluster issued
+	if len(k.config.Audiences) > 0 && !slices.ContainsFunc(token.Audience, func(aud string) bool {
+		return slices.Contains(k.config.Audiences, aud)
+	}) {
+		return c, fmt.Errorf("service account token audience %q is not accepted", token.Audience)
 	}
 
 	c.Expiration = token.Expiry.Unix()
