@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Authorization (security)**: `ListFlags` now authorizes the environment it serves. Previously, a request whose `X-Flipt-Environment` header named a different environment from its `environment_key` was authorized against `environment_key` but listed the flags of the header's environment. The header still takes precedence
 - **Authorization (security)**: Batch evaluation now authorizes the environment it serves. A batch item with a blank `environment_key` was authorized as `default` but evaluated against the `X-Flipt-Environment` header's environment. Blank keys on batch items are now filled from the `X-Flipt-Environment` and `X-Flipt-Namespace` headers before authorization, as they already were for single evaluations
+- **Authorization (security)**: When authorization is required, evaluation and client snapshot requests whose `environment_key` names an environment that does not exist now fail with not found. Previously they were authorized against the requested key but served the `X-Flipt-Environment` header's environment or the default environment. Without authorization, unknown keys still fall back as before, and a blank key falls back in both cases
 
 ## [2.14.0](https://github.com/flipt-io/flipt/releases/tag/v2.14.0) - 2026-10-15
 

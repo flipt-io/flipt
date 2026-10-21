@@ -3,11 +3,37 @@ package evaluation
 import (
 	"context"
 
+	"go.flipt.io/flipt/internal/common"
+	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
+
+// ResolveEnvironment returns the environment identified by key.
+//
+// When the key is blank or unknown, it falls back to the environment from the
+// X-Flipt-Environment header, or the default environment when there is no
+// header, for backwards compatibility with v1 clients which don't set an
+// environment key.
+//
+// When authorization is required, an unknown key is not found instead.
+// Authorization checked the requested key, so serving the header or default
+// environment would serve an environment that was never authorized. The
+// "default" key still resolves to the default environment.
+func ResolveEnvironment(ctx context.Context, store EnvironmentStore, key string) (environments.Environment, error) {
+	env, err := store.Get(ctx, key)
+	if err == nil {
+		return env, nil
+	}
+
+	if key != "" && authz.IsAuthorizationRequired(ctx) {
+		return store.GetFromContext(common.WithFliptEnvironment(ctx, key))
+	}
+
+	return store.GetFromContext(ctx)
+}
 
 // EnvironmentStore is the minimal abstraction for interacting with the storage layer for evaluation.
 type EnvironmentStore interface {

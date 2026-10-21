@@ -56,18 +56,9 @@ func (s *Server) addEvaluationEvent(ctx context.Context, env environments.Enviro
 
 // Variant evaluates a request for a multi-variate flag and entity.
 func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	env, err := s.store.Get(ctx, r.EnvironmentKey)
+	env, err := ResolveEnvironment(ctx, s.store, r.EnvironmentKey)
 	if err != nil {
-		// fall back to the environment from the X-Flipt-Environment header, or the
-		// default environment when there is no header. This is for backwards
-		// compatibility with v1 clients which don't set environment_key.
-		// Note: the fallback applies to any lookup failure, so an unknown
-		// environment_key (e.g. a typo) is evaluated against the header or default
-		// environment rather than returning an error.
-		env, err = s.store.GetFromContext(ctx)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	store, err := env.EvaluationStore()
@@ -305,18 +296,9 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 
 // Boolean evaluates a request for a boolean flag and entity.
 func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	env, err := s.store.Get(ctx, r.EnvironmentKey)
+	env, err := ResolveEnvironment(ctx, s.store, r.EnvironmentKey)
 	if err != nil {
-		// fall back to the environment from the X-Flipt-Environment header, or the
-		// default environment when there is no header. This is for backwards
-		// compatibility with v1 clients which don't set environment_key.
-		// Note: the fallback applies to any lookup failure, so an unknown
-		// environment_key (e.g. a typo) is evaluated against the header or default
-		// environment rather than returning an error.
-		env, err = s.store.GetFromContext(ctx)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	store, err := env.EvaluationStore()
@@ -494,18 +476,9 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 		// this is not ideal as it could lead to a lot of swapping the environment store if requests are coming in for different environments
 		// we will need to document that while you CAN use different environments in the same request, it is not recommended and could have a performance impact
 		// but since we are using an in-memory map it's probably not that bad
-		env, err := s.store.Get(ctx, req.EnvironmentKey)
+		env, err := ResolveEnvironment(ctx, s.store, req.EnvironmentKey)
 		if err != nil {
-			// fall back to the environment from the X-Flipt-Environment header, or the
-			// default environment when there is no header. This is for backwards
-			// compatibility with v1 clients which don't set environment_key.
-			// Note: the fallback applies to any lookup failure, so an unknown
-			// environment_key (e.g. a typo) is evaluated against the header or default
-			// environment rather than returning an error.
-			env, err = s.store.GetFromContext(ctx)
-			if err != nil {
-				return nil, err
-			}
+			return nil, err
 		}
 
 		store, err := env.EvaluationStore()
