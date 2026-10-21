@@ -13,8 +13,9 @@ type Requester interface {
 type ScopeType string
 
 const (
-	ScopeEnvironment ScopeType = "environment" // Operations within an environment
-	ScopeNamespace   ScopeType = "namespace"   // Operations within a namespace
+	ScopeEnvironment    ScopeType = "environment"    // Operations within an environment
+	ScopeNamespace      ScopeType = "namespace"      // Operations within a namespace
+	ScopeAuthentication ScopeType = "authentication" // Managing authentications; not bound to an environment or namespace
 )
 
 // Resource represents what resource or parent resource is being acted on.

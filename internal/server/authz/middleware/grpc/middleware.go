@@ -10,6 +10,7 @@ import (
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/flipt"
+	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -27,7 +28,12 @@ type InterceptorOptions struct {
 }
 
 // methods which should always skip authorization
-var skippedMethods = map[string]any{}
+var skippedMethods = map[string]any{
+	// callers can always inspect, expire and revoke their own authentication
+	authrpc.AuthenticationService_GetAuthenticationSelf_FullMethodName:    struct{}{},
+	authrpc.AuthenticationService_ExpireAuthenticationSelf_FullMethodName: struct{}{},
+	authrpc.AuthenticationService_RevokeAuthenticationSelf_FullMethodName: struct{}{},
+}
 
 func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptions) bool {
 	if skippedServer(ctx, info.Server) {

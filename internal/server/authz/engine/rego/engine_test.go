@@ -139,6 +139,36 @@ func TestEngine_IsAllowed(t *testing.T) {
 			},
 			expected: false,
 		},
+		{
+			name: "admin can delete authentications",
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
+						"io.flipt.auth.user": "admin@company.com",
+					},
+				},
+				"request": flipt.Request{
+					Scope:  flipt.ScopeAuthentication,
+					Action: flipt.ActionDelete,
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "namespace_admin cannot read authentications",
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
+						"io.flipt.auth.groups": []string{"platform-team"},
+					},
+				},
+				"request": flipt.Request{
+					Scope:  flipt.ScopeAuthentication,
+					Action: flipt.ActionRead,
+				},
+			},
+			expected: false,
+		},
 	}
 
 	for _, tt := range tests {

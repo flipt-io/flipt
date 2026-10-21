@@ -3,6 +3,7 @@ package grpc_middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +19,9 @@ import (
 	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type mockPolicyVerifier struct {
@@ -932,5 +935,125 @@ func TestAuthorizationRequiredStreamInterceptor_SkippedServers(t *testing.T) {
 
 		require.Error(t, err)
 		assert.True(t, called)
+	})
+}
+
+func TestAuthorizationRequiredInterceptor_AuthenticationService(t *testing.T) {
+	principal := &authrpc.Authentication{Id: "caller"}
+
+	t.Run("management methods are authorized against the authentication scope", func(t *testing.T) {
+		tests := []struct {
+			name       string
+			fullMethod string
+			req        any
+			action     flipt.Action
+		}{
+			{
+				name:       "list authentications",
+				fullMethod: authrpc.AuthenticationService_ListAuthentications_FullMethodName,
+				req:        &authrpc.ListAuthenticationsRequest{},
+				action:     flipt.ActionRead,
+			},
+			{
+				name:       "get authentication",
+				fullMethod: authrpc.AuthenticationService_GetAuthentication_FullMethodName,
+				req:        &authrpc.GetAuthenticationRequest{Id: "victim"},
+				action:     flipt.ActionRead,
+			},
+			{
+				name:       "delete authentication",
+				fullMethod: authrpc.AuthenticationService_DeleteAuthentication_FullMethodName,
+				req:        &authrpc.DeleteAuthenticationRequest{Id: "victim"},
+				action:     flipt.ActionDelete,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name+" denied", func(t *testing.T) {
+				verifier := &mockPolicyVerifier{}
+				ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), principal)
+				info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: tt.fullMethod}
+
+				called := false
+				_, err := AuthorizationRequiredInterceptor(zap.NewNop(), verifier)(ctx, tt.req, info, func(context.Context, any) (any, error) {
+					called = true
+					return nil, nil
+				})
+
+				require.ErrorIs(t, err, errUnauthorized)
+				assert.False(t, called)
+				assert.Equal(t, map[string]any{
+					"scope":  string(flipt.ScopeAuthentication),
+					"action": string(tt.action),
+				}, verifier.input["request"])
+			})
+
+			t.Run(tt.name+" allowed", func(t *testing.T) {
+				verifier := &mockPolicyVerifier{isAllowed: true}
+				ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), adminAuth)
+				info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: tt.fullMethod}
+
+				called := false
+				_, err := AuthorizationRequiredInterceptor(zap.NewNop(), verifier)(ctx, tt.req, info, func(context.Context, any) (any, error) {
+					called = true
+					return nil, nil
+				})
+
+				require.NoError(t, err)
+				assert.True(t, called)
+				assert.Equal(t, map[string]any{
+					"scope":  string(flipt.ScopeAuthentication),
+					"action": string(tt.action),
+				}, verifier.input["request"])
+			})
+		}
+	})
+
+	t.Run("every method is authorized or explicitly skipped", func(t *testing.T) {
+		service := authrpc.File_auth_auth_proto.Services().ByName("AuthenticationService")
+		require.NotNil(t, service)
+
+		methods := service.Methods()
+		for i := range methods.Len() {
+			method := methods.Get(i)
+			fullMethod := fmt.Sprintf("/%s/%s", service.FullName(), method.Name())
+			if _, ok := skippedMethods[fullMethod]; ok {
+				continue
+			}
+
+			msg, err := protoregistry.GlobalTypes.FindMessageByName(method.Input().FullName())
+			require.NoError(t, err)
+			_, ok := msg.New().Interface().(flipt.Requester)
+			assert.True(t, ok, "%s must implement flipt.Requester or be listed in skippedMethods", fullMethod)
+		}
+	})
+
+	t.Run("self methods skip authorization", func(t *testing.T) {
+		tests := []struct {
+			fullMethod string
+			req        any
+		}{
+			{fullMethod: authrpc.AuthenticationService_GetAuthenticationSelf_FullMethodName, req: &emptypb.Empty{}},
+			{fullMethod: authrpc.AuthenticationService_ExpireAuthenticationSelf_FullMethodName, req: &authrpc.ExpireAuthenticationSelfRequest{}},
+			{fullMethod: authrpc.AuthenticationService_RevokeAuthenticationSelf_FullMethodName, req: &authrpc.RevokeAuthenticationSelfRequest{}},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.fullMethod, func(t *testing.T) {
+				verifier := &mockPolicyVerifier{}
+				ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), principal)
+				info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: tt.fullMethod}
+
+				called := false
+				_, err := AuthorizationRequiredInterceptor(zap.NewNop(), verifier)(ctx, tt.req, info, func(context.Context, any) (any, error) {
+					called = true
+					return nil, nil
+				})
+
+				require.NoError(t, err)
+				assert.True(t, called)
+				assert.Nil(t, verifier.input, "policy verifier must not be consulted for self methods")
+			})
+		}
 	})
 }
