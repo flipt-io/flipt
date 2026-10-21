@@ -109,7 +109,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 	assert.Equal(t, int32(1), got.TotalCount)
 }
 
-func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
+func TestListFlags_ServesRequestEnvironment(t *testing.T) {
 	var (
 		store       = &common.StoreMock{}
 		environment = &environments.MockEnvironment{}
@@ -123,21 +123,24 @@ func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	// Test when X-Environment header is present, it should override the request environment
+	// The handler must serve the environment on the request, which is the one
+	// authorized. FliptHeadersUnaryInterceptor applies any X-Flipt-Environment
+	// header to the request before authorization, so a different environment
+	// left on the context must not be served.
 	headerEnvironment := "header-environment"
 	requestEnvironment := "request-environment"
 	namespaceKey := "test-namespace"
 
-	// Set up context with X-Environment header
+	// Set up context with a different environment
 	ctx := common.WithFliptEnvironment(t.Context(), headerEnvironment)
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
-	// The key assertion: verify that the context passed to ListFlags contains the header environment
+	// The key assertion: verify that the context passed to ListFlags contains the request environment
 	store.On("ListFlags", mock.MatchedBy(func(ctx context.Context) bool {
 		env, ok := common.FliptEnvironmentFromContext(ctx)
-		return ok && env == headerEnvironment // This should be the header environment, not the request environment
+		return ok && env == requestEnvironment // This should be the request environment, not the context environment
 	}), storage.ListWithOptions(storage.NewNamespace(namespaceKey))).Return(
 		storage.ResultSet[*core.Flag]{
 			Results: []*core.Flag{
@@ -151,7 +154,7 @@ func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
 
 	store.On("CountFlags", mock.MatchedBy(func(ctx context.Context) bool {
 		env, ok := common.FliptEnvironmentFromContext(ctx)
-		return ok && env == headerEnvironment // This should be the header environment, not the request environment
+		return ok && env == requestEnvironment // This should be the request environment, not the context environment
 	}), mock.Anything).Return(uint64(1), nil)
 
 	// Create request with different environment
@@ -170,7 +173,7 @@ func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
 	assert.Equal(t, "Test Flag", result.Flags[0].Name)
 	assert.Equal(t, int32(1), result.TotalCount)
 
-	// Verify that the context was set with the header environment
+	// Verify that the context was set with the request environment
 	store.AssertExpectations(t)
 }
 

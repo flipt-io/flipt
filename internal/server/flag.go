@@ -14,13 +14,10 @@ import (
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.Debug("list flags", zap.Stringer("request", r))
 
-	// Check for X-Environment header for backward compatibility
-	environmentKey := r.EnvironmentKey
-	if headerEnv, ok := common.FliptEnvironmentFromContext(ctx); ok && headerEnv != "" {
-		environmentKey = headerEnv
-	}
-
-	ctx = common.WithFliptEnvironment(ctx, environmentKey)
+	// Serve the environment on the request, which is the one authorized.
+	// FliptHeadersUnaryInterceptor has already applied any X-Flipt-Environment
+	// header to it for backward compatibility.
+	ctx = common.WithFliptEnvironment(ctx, r.EnvironmentKey)
 	ctx = common.WithFliptNamespace(ctx, r.NamespaceKey)
 
 	store, err := s.getStore(ctx)

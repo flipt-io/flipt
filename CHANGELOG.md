@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Authorization (security)**: The authentication management APIs (`ListAuthentications`, `GetAuthentication`, `DeleteAuthentication`) are now checked against policy when authorization is required. Previously any authenticated caller could list, read, and delete every stored session. Policies must now grant the new `authentication` scope (`read` or `delete`), which has no environment or namespace; global access already covers it. The `*Self` endpoints used by the UI are unaffected
 
+- **Authorization (security)**: `ListFlags` now authorizes the environment it serves. Previously, a request whose `X-Flipt-Environment` header named a different environment from its `environment_key` was authorized against `environment_key` but listed the flags of the header's environment. The header still takes precedence
+
 ## [2.14.0](https://github.com/flipt-io/flipt/releases/tag/v2.14.0) - 2026-10-15
 
 ### Breaking

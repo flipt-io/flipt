@@ -11,6 +11,8 @@ import (
 	cctx "go.flipt.io/flipt/internal/common"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
+	servercommon "go.flipt.io/flipt/internal/server/common"
+	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -19,6 +21,7 @@ import (
 	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -1056,4 +1059,59 @@ func TestAuthorizationRequiredInterceptor_AuthenticationService(t *testing.T) {
 			})
 		}
 	})
+}
+
+// environmentVerifier allows requests only for a single environment.
+type environmentVerifier struct {
+	mockPolicyVerifier
+	environment string
+}
+
+func (v *environmentVerifier) IsAllowed(_ context.Context, input map[string]any) (bool, error) {
+	request, _ := input["request"].(map[string]any)
+	return request["environment"] == v.environment, nil
+}
+
+func TestListFlagsAuthorizesHeaderEnvironment(t *testing.T) {
+	// The X-Flipt-Environment header takes precedence over environment_key on
+	// ListFlags, so it must be applied before authorization. Chain the header
+	// and authorization interceptors in the server's order to guard against
+	// the header environment being served without being authorized.
+	tests := []struct {
+		name    string
+		header  string
+		wantErr error
+	}{
+		{name: "header environment not allowed", header: "production", wantErr: errUnauthorized},
+		{name: "header environment allowed", header: "default"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), &authrpc.Authentication{Id: "caller"})
+			ctx = metadata.NewIncomingContext(ctx, metadata.New(map[string]string{servercommon.HeaderFliptEnvironment: tt.header}))
+			info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: flipt.Flipt_ListFlags_FullMethodName}
+			req := &flipt.ListFlagRequest{EnvironmentKey: "default", NamespaceKey: "default"}
+
+			headers := middlewaregrpc.FliptHeadersUnaryInterceptor(zap.NewNop())
+			authorize := AuthorizationRequiredInterceptor(zap.NewNop(), &environmentVerifier{environment: "default"})
+
+			var served string
+			_, err := headers(ctx, req, info, func(ctx context.Context, req any) (any, error) {
+				return authorize(ctx, req, info, func(_ context.Context, req any) (any, error) {
+					served = req.(*flipt.ListFlagRequest).EnvironmentKey
+					return nil, nil
+				})
+			})
+
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				assert.Empty(t, served, "handler must not be called")
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.header, served)
+		})
+	}
 }
