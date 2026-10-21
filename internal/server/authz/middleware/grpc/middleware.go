@@ -105,8 +105,11 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 					// will return unauthorized error even if user has access to other namespaces.
 					// This is a workaround to allow user to list namespaces in this case.
 					ctx = context.WithValue(ctx, authz.NamespacesKey, namespaces)
+					continue
 				}
-				continue
+
+				// Without any viewable namespaces the handler lists every
+				// namespace, so fall back to the allow decision on the request.
 			}
 
 			if !allowed {
