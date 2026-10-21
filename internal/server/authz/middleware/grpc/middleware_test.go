@@ -7,8 +7,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/server/analytics"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/rpc/flipt"
+	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -145,6 +147,38 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				},
 				"authentication": adminAuth,
 			},
+		},
+		{
+			name:   "analytics allowed",
+			server: analytics.New(zap.NewNop(), nil),
+			authn:  adminAuth,
+			req: &rpcanalytics.GetFlagEvaluationsCountRequest{
+				NamespaceKey: "team-a",
+				FlagKey:      "some_flag",
+			},
+			validatorAllowed: true,
+			wantAllowed:      true,
+			authzInput: map[string]any{
+				"request": flipt.Request{
+					Namespace: "team-a",
+					Resource:  flipt.ResourceFlag,
+					Subject:   flipt.SubjectFlag,
+					Action:    flipt.ActionRead,
+					Status:    flipt.StatusSuccess,
+				},
+				"authentication": adminAuth,
+			},
+		},
+		{
+			name:   "analytics not allowed",
+			server: analytics.New(zap.NewNop(), nil),
+			authn:  adminAuth,
+			req: &rpcanalytics.GetFlagEvaluationsCountRequest{
+				NamespaceKey: "team-a",
+				FlagKey:      "some_flag",
+			},
+			validatorAllowed: false,
+			wantAllowed:      false,
 		},
 	}
 
