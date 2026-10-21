@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	oidctesting "go.flipt.io/flipt/internal/server/authn/method/oidc/testing"
 	"go.flipt.io/flipt/rpc/flipt/auth"
@@ -139,7 +140,7 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+	testOIDCFlow(t, ctx, tp, clientAddress, client, server, false)
 }
 
 func Test_Server_PKCE(t *testing.T) {
@@ -200,7 +201,6 @@ func Test_Server_PKCE(t *testing.T) {
 		ClientID:      &id,
 		ClientSecret:  &secret,
 		ExpectedNonce: &nonce,
-		PKCEVerifier:  authoidc.PKCEVerifier,
 	}))
 
 	defer tp.Stop()
@@ -248,7 +248,7 @@ func Test_Server_PKCE(t *testing.T) {
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+	testOIDCFlow(t, ctx, tp, clientAddress, client, server, true)
 }
 
 func Test_Server_Nonce(t *testing.T) {
@@ -352,65 +352,27 @@ func Test_Server_Nonce(t *testing.T) {
 		Jar: jar,
 	}
 
-	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+	testOIDCFlow(t, ctx, tp, clientAddress, client, server, false)
 }
 
-func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress string, client *http.Client, server *oidctesting.HTTPServer) {
-	var authURL *url.URL
+func testOIDCFlow(t *testing.T, ctx context.Context, tp *oidc.TestProvider, clientAddress string, client *http.Client, server *oidctesting.HTTPServer, pkce bool) {
+	var (
+		tpAddr      = tp.Addr()
+		callbackURL = clientAddress + "/auth/v1/method/oidc/google/callback"
+		authURL     *url.URL
+	)
 
 	t.Run("AuthorizeURL", func(t *testing.T) {
-		authorizeURL := clientAddress + "/auth/v1/method/oidc/google/authorize"
+		authURL = authorizeURL(t, ctx, client, clientAddress)
 
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, authorizeURL, nil)
-		require.NoError(t, err)
-
-		resp, err := client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-
-		body, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-
-		var authorize auth.AuthorizeURLResponse
-		err = protojson.Unmarshal(body, &authorize)
-		require.NoError(t, err)
-
-		authURL, err = url.Parse(authorize.AuthorizeUrl)
-		require.NoError(t, err)
+		expectLogin(t, tp, client, callbackURL, authURL, pkce)
 	})
 
 	t.Log("Navigating to authorize URL:", authURL.String())
 
 	var location string
 	t.Run("Login as Mark", func(t *testing.T) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, authURL.String(), nil)
-		require.NoError(t, err)
-
-		resp, err := client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		values, err := parseLoginFormHiddenValues(resp.Body)
-		require.NoError(t, err)
-
-		// add login credentials
-		values.Set("uname", "mark")
-		values.Set("psw", "phelps")
-
-		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tpAddr+"/login", strings.NewReader(values.Encode()))
-		require.NoError(t, err)
-
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-		resp, err = client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		require.Equal(t, http.StatusFound, resp.StatusCode)
-
-		location = resp.Header.Get("Location")
+		location = loginAsMark(t, ctx, client, authURL, tpAddr)
 	})
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, nil)
@@ -431,6 +393,36 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 
 		req.Header.Set("Cookie", "flipt_client_state=abcdef")
 		// using the default client which has no state cookie
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("Callback (empty state)", func(t *testing.T) {
+		u, err := url.Parse(location)
+		require.NoError(t, err)
+		query := u.Query()
+		query.Del("state")
+		u.RawQuery = query.Encode()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+		require.NoError(t, err)
+
+		// the client sends the state and verifier cookies for this login
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("Callback (missing verifier)", func(t *testing.T) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, nil)
+		require.NoError(t, err)
+
+		req.AddCookie(&http.Cookie{Name: "flipt_client_state", Value: flowCookie(t, client, callbackURL, "flipt_client_state")})
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -485,6 +477,55 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 		// ensure stored auth can be retrieved by cookie abd matches response body auth
 		if diff := cmp.Diff(storedAuth, response.Authentication, protocmp.Transform()); err != nil {
 			t.Errorf("-exp/+got:\n%s", diff)
+		}
+	})
+
+	t.Run("Callback (code injection)", func(t *testing.T) {
+		// An attacker who obtains the code from a victim's fresh login starts
+		// their own login and redeems the code with their own state and cookies.
+		victimAuthURL := authorizeURL(t, ctx, client, clientAddress)
+		expectLogin(t, tp, client, callbackURL, victimAuthURL, pkce)
+		location := loginAsMark(t, ctx, client, victimAuthURL, tpAddr)
+
+		jar, err := cookiejar.New(&cookiejar.Options{})
+		require.NoError(t, err)
+		attacker := &http.Client{
+			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+			Jar:           jar,
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, clientAddress+"/auth/v1/method/oidc/google/authorize", nil)
+		require.NoError(t, err)
+		resp, err := attacker.Do(req)
+		require.NoError(t, err)
+		resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		u, err := url.Parse(location)
+		require.NoError(t, err)
+		query := u.Query()
+		query.Set("state", flowCookie(t, attacker, callbackURL, "flipt_client_state"))
+		u.RawQuery = query.Encode()
+
+		req, err = http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+		require.NoError(t, err)
+		resp, err = attacker.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		// with PKCE the provider rejects the exchange; without it the
+		// id_token carries the victim's nonce, which Flipt rejects
+		require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		if pkce {
+			assert.Contains(t, string(body), "invalid_verifier")
+		} else {
+			assert.Contains(t, string(body), "invalid id_token nonce")
+		}
+		for _, cookie := range resp.Cookies() {
+			assert.NotEqual(t, "flipt_client_token", cookie.Name, "attacker must not get a session")
 		}
 	})
 }
@@ -552,4 +593,99 @@ func parseLoginFormHiddenValues(r io.Reader) (url.Values, error) {
 	}, "form", html.Attribute{Key: "action", Val: "/login"})(doc)
 
 	return values, nil
+}
+
+// flowCookie returns the value of the named login cookie bound to the callback.
+func flowCookie(t *testing.T, client *http.Client, callbackURL, name string) string {
+	t.Helper()
+
+	u, err := url.Parse(callbackURL)
+	require.NoError(t, err)
+
+	for _, cookie := range client.Jar.Cookies(u) {
+		if cookie.Name == name {
+			return cookie.Value
+		}
+	}
+
+	require.FailNow(t, "missing cookie", name)
+	return ""
+}
+
+// authorizeURL starts a login and returns the provider's authorize URL.
+func authorizeURL(t *testing.T, ctx context.Context, client *http.Client, clientAddress string) *url.URL {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, clientAddress+"/auth/v1/method/oidc/google/authorize", nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var authorize auth.AuthorizeURLResponse
+	err = protojson.Unmarshal(body, &authorize)
+	require.NoError(t, err)
+
+	authURL, err := url.Parse(authorize.AuthorizeUrl)
+	require.NoError(t, err)
+
+	return authURL
+}
+
+// expectLogin configures the test provider for the login started by authURL.
+// The nonce and PKCE verifier are derived from a random secret bound to the
+// login, never from configuration or a process-wide value.
+func expectLogin(t *testing.T, tp *oidc.TestProvider, client *http.Client, callbackURL string, authURL *url.URL, pkce bool) {
+	t.Helper()
+
+	secret := flowCookie(t, client, callbackURL, method.VerifierCookieKey)
+	nonce := authURL.Query().Get("nonce")
+	assert.Equal(t, authoidc.NonceFor(secret), nonce)
+	assert.NotContains(t, []string{"", "static", "random-nonce"}, nonce)
+	tp.SetExpectedAuthNonce(nonce)
+
+	if pkce {
+		verifier, err := authoidc.PKCEVerifierFor(secret)
+		require.NoError(t, err)
+		assert.Equal(t, verifier.Challenge(), authURL.Query().Get("code_challenge"))
+		tp.SetPKCEVerifier(verifier)
+	}
+}
+
+// loginAsMark logs in at the provider and returns the callback location.
+func loginAsMark(t *testing.T, ctx context.Context, client *http.Client, authURL *url.URL, tpAddr string) string {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, authURL.String(), nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	values, err := parseLoginFormHiddenValues(resp.Body)
+	require.NoError(t, err)
+
+	// add login credentials
+	values.Set("uname", "mark")
+	values.Set("psw", "phelps")
+
+	req, err = http.NewRequestWithContext(ctx, http.MethodPost, tpAddr+"/login", strings.NewReader(values.Encode()))
+	require.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusFound, resp.StatusCode)
+
+	return resp.Header.Get("Location")
 }

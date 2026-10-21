@@ -111,6 +111,7 @@ import "list"
 			client_id?:        string
 			client_secret?:    string
 			redirect_address?: string
+			// deprecated: ignored, a random nonce is generated for every login
 			nonce?: string
 			scopes?: [...string]
 			use_pkce?: bool

@@ -26,3 +26,19 @@ func CallbackValidateState(ctx context.Context, state string) error {
 
 	return nil
 }
+
+// FlowVerifier returns the secret bound to the current OIDC login by the
+// VerifierCookieKey cookie.
+func FlowVerifier(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", errors.ErrUnauthenticatedf("missing verifier")
+	}
+
+	verifier := md.Get(VerifierCookieKey)
+	if len(verifier) < 1 || verifier[0] == "" {
+		return "", errors.ErrUnauthenticatedf("missing verifier")
+	}
+
+	return verifier[0], nil
+}
