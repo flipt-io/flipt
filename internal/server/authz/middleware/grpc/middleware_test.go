@@ -1115,3 +1115,52 @@ func TestListFlagsAuthorizesHeaderEnvironment(t *testing.T) {
 		})
 	}
 }
+
+func TestBatchEvaluationAuthorizesHeaderEnvironment(t *testing.T) {
+	// A batch item with a blank environment_key is served from the
+	// X-Flipt-Environment header, so it must be authorized against it. Chain
+	// the interceptors in the server's order.
+	tests := []struct {
+		name    string
+		header  string
+		wantErr error
+	}{
+		{name: "header environment not allowed", header: "production", wantErr: errUnauthorized},
+		{name: "header environment allowed", header: "default"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), &authrpc.Authentication{Id: "caller"})
+			ctx = metadata.NewIncomingContext(ctx, metadata.New(map[string]string{servercommon.HeaderFliptEnvironment: tt.header}))
+			info := &grpc.UnaryServerInfo{Server: &mockServer{}, FullMethod: rpcevaluation.EvaluationService_Batch_FullMethodName}
+			req := &rpcevaluation.BatchEvaluationRequest{
+				Requests: []*rpcevaluation.EvaluationRequest{{NamespaceKey: "default", FlagKey: "flag"}},
+			}
+
+			headers := middlewaregrpc.FliptHeadersUnaryInterceptor(zap.NewNop())
+			evaluation := middlewaregrpc.EvaluationUnaryInterceptor()
+			authorize := AuthorizationRequiredInterceptor(zap.NewNop(), &environmentVerifier{environment: "default"})
+
+			called := false
+			_, err := headers(ctx, req, info, func(ctx context.Context, req any) (any, error) {
+				return evaluation(ctx, req, info, func(ctx context.Context, req any) (any, error) {
+					return authorize(ctx, req, info, func(_ context.Context, req any) (any, error) {
+						called = true
+						assert.Equal(t, tt.header, req.(*rpcevaluation.BatchEvaluationRequest).Requests[0].EnvironmentKey)
+						return &rpcevaluation.BatchEvaluationResponse{}, nil
+					})
+				})
+			})
+
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				assert.False(t, called, "handler must not be called")
+				return
+			}
+
+			require.NoError(t, err)
+			assert.True(t, called)
+		})
+	}
+}
