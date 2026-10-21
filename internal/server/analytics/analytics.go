@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/analytics"
 )
 
@@ -27,8 +28,14 @@ func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 		}
 	}
 
+	// a blank namespace is authorized as the default namespace, so query it
+	namespaceKey := req.NamespaceKey
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
+
 	r := &FlagEvaluationsCountRequest{
-		NamespaceKey: req.NamespaceKey,
+		NamespaceKey: namespaceKey,
 		FlagKey:      req.FlagKey,
 		From:         fromTime,
 		To:           toTime,
