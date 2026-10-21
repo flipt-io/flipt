@@ -185,6 +185,10 @@
                   "type": "string",
                   "default": "/var/run/secrets/kubernetes.io/serviceaccount/token"
                 },
+                "audiences": {
+                  "type": ["array", "null"],
+                  "items": { "type": "string" }
+                },
                 "cleanup": {
                   "$ref": "#/definitions/authentication/$defs/authentication_cleanup"
                 }

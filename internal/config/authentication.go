@@ -533,6 +533,11 @@ type AuthenticationMethodKubernetesConfig struct {
 	// ServiceAccountTokenPath is the location on disk to the Flipt instances service account token.
 	// This should be the token issued for the service account associated with Flipt in the environment.
 	ServiceAccountTokenPath string `json:"serviceAccountTokenPath,omitempty" mapstructure:"service_account_token_path" yaml:"service_account_token_path,omitempty"`
+	// Audiences, when set, requires presented service account tokens to carry at
+	// least one of these values in their "aud" claim (exact, case-sensitive match).
+	// Use it with projected tokens minted for Flipt so tokens issued for other
+	// services in the cluster are rejected.
+	Audiences []string `json:"audiences,omitempty" mapstructure:"audiences" yaml:"audiences,omitempty"`
 }
 
 func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]any) {
