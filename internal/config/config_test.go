@@ -587,6 +587,7 @@ func TestLoad(t *testing.T) {
 								DiscoveryURL:            "https://some-other-k8s.namespace.svc",
 								CAPath:                  "/path/to/ca/certificate/ca.pem",
 								ServiceAccountTokenPath: "/path/to/sa/token",
+								Audiences:               []string{"flipt", "flipt-admin"},
 							},
 						},
 						Github: AuthenticationMethod[AuthenticationMethodGithubConfig]{

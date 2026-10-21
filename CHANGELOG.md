@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- **Kubernetes authentication (security)**: Set `authentication.methods.kubernetes.audiences` to accept only service account tokens carrying one of those audiences (an exact, case-sensitive match). Use it with a projected service account token minted for Flipt, so tokens issued to other services in the cluster (for example, for Vault) are rejected. Keep `service_account_token_path` on Flipt's default token. Without `audiences`, any token the cluster issues is accepted as before, and Flipt logs a warning at startup
+
 ### Fixed
 
 - **Authorization (security)**: The authentication management APIs (`ListAuthentications`, `GetAuthentication`, `DeleteAuthentication`) are now checked against policy when authorization is required. Previously any authenticated caller could list, read, and delete every stored session. Policies must now grant the new `authentication` scope (`read` or `delete`), which has no environment or namespace; global access already covers it. The `*Self` endpoints used by the UI are unaffected
