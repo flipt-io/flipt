@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -67,8 +68,10 @@ func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 }
 
 func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
+	// Keys come from the request, so quote them as PromQL string literals
+	// (which use Go escaping) to stop them from altering the query.
 	query := fmt.Sprintf(
-		`sum(increase(flipt_evaluations_requests_total{flipt_environment="%s", flipt_namespace="%s", flipt_flag="%s"}[%dm])) or vector(0)`,
+		`sum(increase(flipt_evaluations_requests_total{flipt_environment=%q, flipt_namespace=%q, flipt_flag=%q}[%dm])) or vector(0)`,
 		req.EnvironmentKey,
 		req.NamespaceKey,
 		req.FlagKey,
@@ -122,11 +125,21 @@ func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.Fl
 
 // GetBatchFlagEvaluationsCount retrieves evaluation counts for multiple flags in a single query
 func (c *client) GetBatchFlagEvaluationsCount(ctx context.Context, req *panalytics.BatchFlagEvaluationsCountRequest) (map[string]panalytics.FlagEvaluationData, error) {
-	// Create a regex pattern matching any of the requested flags
-	flagRegex := strings.Join(req.FlagKeys, "|")
+	if len(req.FlagKeys) == 0 {
+		return map[string]panalytics.FlagEvaluationData{}, nil
+	}
+
+	// Create a regex pattern matching any of the requested flags. Keys come
+	// from the request, so escape regex metacharacters in each key, then quote
+	// every value as a PromQL string literal (which uses Go escaping).
+	flagPatterns := make([]string, len(req.FlagKeys))
+	for i, flagKey := range req.FlagKeys {
+		flagPatterns[i] = regexp.QuoteMeta(flagKey)
+	}
+	flagRegex := strings.Join(flagPatterns, "|")
 
 	query := fmt.Sprintf(
-		`sum(increase(flipt_evaluations_requests_total{flipt_environment="%s", flipt_namespace="%s", flipt_flag=~"%s"}[%dm])) by (flipt_flag) or vector(0)`,
+		`sum(increase(flipt_evaluations_requests_total{flipt_environment=%q, flipt_namespace=%q, flipt_flag=~%q}[%dm])) by (flipt_flag) or vector(0)`,
 		req.EnvironmentKey,
 		req.NamespaceKey,
 		flagRegex,

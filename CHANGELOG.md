@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Authorization (security)**: The authentication management APIs (`ListAuthentications`, `GetAuthentication`, `DeleteAuthentication`) are now checked against policy when authorization is required. Previously any authenticated caller could list, read, and delete every stored session. Policies must now grant the new `authentication` scope (`read` or `delete`), which has no environment or namespace; global access already covers it. The `*Self` endpoints used by the UI are unaffected
+- **Analytics (security)**: Escape environment, namespace, and flag keys in Prometheus analytics queries. Keys from the request were inserted into PromQL unescaped, so a caller could change the query and read any metric the configured Prometheus holds
 
 - **Authorization (security)**: `ListFlags` now authorizes the environment it serves. Previously, a request whose `X-Flipt-Environment` header named a different environment from its `environment_key` was authorized against `environment_key` but listed the flags of the header's environment. The header still takes precedence
 - **Authorization (security)**: Batch evaluation now authorizes the environment it serves. A batch item with a blank `environment_key` was authorized as `default` but evaluated against the `X-Flipt-Environment` header's environment. Blank keys on batch items are now filled from the `X-Flipt-Environment` and `X-Flipt-Namespace` headers before authorization, as they already were for single evaluations

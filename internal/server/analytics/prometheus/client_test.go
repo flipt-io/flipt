@@ -1,9 +1,13 @@
 package prometheus
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -460,5 +464,140 @@ func TestGetBatchFlagEvaluationsCount(t *testing.T) {
 		})
 
 		require.Error(t, err)
+	})
+}
+
+// queryRecorder records the query passed to QueryRange.
+type queryRecorder struct {
+	query string
+	data  model.Value
+}
+
+func (q *queryRecorder) QueryRange(_ context.Context, query string, _ promapi.Range, _ ...promapi.Option) (model.Value, promapi.Warnings, promapi.Infos, error) {
+	q.query = query
+	return q.data, nil, nil, nil
+}
+
+// parseSelector reads the label matchers of the first selector in query,
+// decoding each value as a PromQL string literal, and returns them with the
+// rest of the query after the closing brace.
+func parseSelector(t *testing.T, query string) (map[string]string, string) {
+	t.Helper()
+
+	_, rest, ok := strings.Cut(query, "{")
+	require.True(t, ok, "query has no selector: %s", query)
+
+	matchers := map[string]string{}
+	for {
+		name, after, ok := strings.Cut(rest, "=")
+		require.True(t, ok, "malformed matcher in: %s", rest)
+		op := "="
+		if strings.HasPrefix(after, "~") {
+			op, after = "=~", after[1:]
+		}
+
+		literal, err := strconv.QuotedPrefix(after)
+		require.NoError(t, err)
+		value, err := strconv.Unquote(literal)
+		require.NoError(t, err)
+		matchers[strings.TrimSpace(name)+op] = value
+
+		rest = after[len(literal):]
+		if next, ok := strings.CutPrefix(rest, ", "); ok {
+			rest = next
+			continue
+		}
+
+		rest, ok = strings.CutPrefix(rest, "}")
+		require.True(t, ok, "selector not closed after matchers: %s", rest)
+		return matchers, rest
+	}
+}
+
+func TestQueriesEscapeRequestKeys(t *testing.T) {
+	// Each payload tries to close its label matcher and append a query over
+	// any metric.
+	const (
+		envPayload  = `env"}`
+		nsPayload   = `ns\`
+		flagPayload = `x"}[1m])) or sum(rate(up{job=~".*`
+	)
+
+	from := time.Now().Add(-time.Hour).UTC()
+	to := time.Now().UTC()
+	data := model.Matrix{{Values: []model.SamplePair{{Timestamp: model.Time(from.UnixMilli()), Value: 1}}}}
+
+	t.Run("single flag", func(t *testing.T) {
+		recorder := &queryRecorder{data: data}
+		c := &client{logger: zaptest.NewLogger(t), promClient: recorder}
+		_, _, err := c.GetFlagEvaluationsCount(t.Context(), &panalytics.FlagEvaluationsCountRequest{
+			EnvironmentKey: envPayload,
+			NamespaceKey:   nsPayload,
+			FlagKey:        flagPayload,
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
+		})
+		require.NoError(t, err)
+
+		matchers, rest := parseSelector(t, recorder.query)
+		assert.Equal(t, map[string]string{
+			"flipt_environment=": envPayload,
+			"flipt_namespace=":   nsPayload,
+			"flipt_flag=":        flagPayload,
+		}, matchers)
+		assert.Equal(t, "[1m])) or vector(0)", rest)
+	})
+
+	t.Run("batch flags", func(t *testing.T) {
+		recorder := &queryRecorder{data: model.Matrix{
+			{Values: []model.SamplePair{{Timestamp: model.Time(from.UnixMilli()), Value: 0}}},
+			{
+				Metric: model.Metric{"flipt_flag": "a.b"},
+				Values: []model.SamplePair{{Timestamp: model.Time(from.UnixMilli()), Value: 7}},
+			},
+		}}
+		c := &client{logger: zaptest.NewLogger(t), promClient: recorder}
+		result, err := c.GetBatchFlagEvaluationsCount(t.Context(), &panalytics.BatchFlagEvaluationsCountRequest{
+			EnvironmentKey: envPayload,
+			NamespaceKey:   nsPayload,
+			FlagKeys:       []string{"a.b", flagPayload},
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
+		})
+		require.NoError(t, err)
+
+		matchers, rest := parseSelector(t, recorder.query)
+		assert.Equal(t, envPayload, matchers["flipt_environment="])
+		assert.Equal(t, nsPayload, matchers["flipt_namespace="])
+		assert.Equal(t, "[1m])) by (flipt_flag) or vector(0)", rest)
+
+		// Prometheus regex matchers are fully anchored RE2, so the pattern
+		// must match exactly the requested keys and nothing else.
+		pattern := regexp.MustCompile("^(?:" + matchers["flipt_flag=~"] + ")$")
+		assert.True(t, pattern.MatchString("a.b"))
+		assert.True(t, pattern.MatchString(flagPayload))
+		assert.False(t, pattern.MatchString("axb"), "regex metacharacters must be escaped")
+		assert.False(t, pattern.MatchString("other"))
+
+		// series are mapped back to the raw, unescaped keys
+		assert.Equal(t, []float32{7}, result["a.b"].Values)
+		assert.Equal(t, []float32{0}, result[flagPayload].Values)
+	})
+
+	t.Run("batch without flags", func(t *testing.T) {
+		recorder := &queryRecorder{data: data}
+		c := &client{logger: zaptest.NewLogger(t), promClient: recorder}
+		result, err := c.GetBatchFlagEvaluationsCount(t.Context(), &panalytics.BatchFlagEvaluationsCountRequest{
+			EnvironmentKey: "default",
+			NamespaceKey:   "default",
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
+		})
+		require.NoError(t, err)
+		assert.Empty(t, result)
+		assert.Empty(t, recorder.query, "no query is sent without flags")
 	})
 }
