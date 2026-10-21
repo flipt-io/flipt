@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	cctx "go.flipt.io/flipt/internal/common"
+	"go.flipt.io/flipt/internal/server/analytics"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	servercommon "go.flipt.io/flipt/internal/server/common"
@@ -17,6 +18,7 @@ import (
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
+	rpcanalytics "go.flipt.io/flipt/rpc/v2/analytics"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
@@ -1162,5 +1164,64 @@ func TestBatchEvaluationAuthorizesHeaderEnvironment(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, called)
 		})
+	}
+}
+
+func TestAuthorizationRequiredInterceptor_AnalyticsService(t *testing.T) {
+	t.Run("server does not skip authorization", func(t *testing.T) {
+		assert.False(t, skippedServer(t.Context(), analytics.New(zap.NewNop(), nil)))
+	})
+
+	tests := []struct {
+		name       string
+		fullMethod string
+		req        any
+	}{
+		{
+			name:       "flag evaluations count",
+			fullMethod: rpcanalytics.AnalyticsService_GetFlagEvaluationsCount_FullMethodName,
+			req:        &rpcanalytics.GetFlagEvaluationsCountRequest{EnvironmentKey: "production", NamespaceKey: "team-a", FlagKey: "flag"},
+		},
+		{
+			name:       "batch flag evaluations count",
+			fullMethod: rpcanalytics.AnalyticsService_GetBatchFlagEvaluationsCount_FullMethodName,
+			req:        &rpcanalytics.GetBatchFlagEvaluationsCountRequest{EnvironmentKey: "production", NamespaceKey: "team-a", FlagKeys: []string{"flag"}},
+		},
+	}
+
+	want := map[string]any{
+		"scope":       string(flipt.ScopeNamespace),
+		"action":      string(flipt.ActionRead),
+		"environment": "production",
+		"namespace":   "team-a",
+	}
+
+	for _, tt := range tests {
+		for _, allowed := range []bool{false, true} {
+			name := tt.name + " denied"
+			if allowed {
+				name = tt.name + " allowed"
+			}
+
+			t.Run(name, func(t *testing.T) {
+				verifier := &mockPolicyVerifier{isAllowed: allowed}
+				ctx := authmiddlewaregrpc.ContextWithAuthentication(t.Context(), &authrpc.Authentication{Id: "caller"})
+				info := &grpc.UnaryServerInfo{Server: analytics.New(zap.NewNop(), nil), FullMethod: tt.fullMethod}
+
+				called := false
+				_, err := AuthorizationRequiredInterceptor(zap.NewNop(), verifier)(ctx, tt.req, info, func(context.Context, any) (any, error) {
+					called = true
+					return nil, nil
+				})
+
+				assert.Equal(t, want, verifier.input["request"])
+				assert.Equal(t, allowed, called)
+				if allowed {
+					require.NoError(t, err)
+				} else {
+					require.ErrorIs(t, err, errUnauthorized)
+				}
+			})
+		}
 	}
 }
