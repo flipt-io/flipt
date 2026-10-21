@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -223,4 +225,74 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 
 		require.Error(t, err)
 	})
+}
+
+// queryRecorder records the query passed to QueryRange.
+type queryRecorder struct {
+	query string
+	data  model.Value
+}
+
+func (q *queryRecorder) QueryRange(_ context.Context, query string, _ promapi.Range, _ ...promapi.Option) (model.Value, promapi.Warnings, error) {
+	q.query = query
+	return q.data, nil, nil
+}
+
+// parseSelector reads the label matchers of the first selector in query,
+// decoding each value as a PromQL string literal, and returns them with the
+// rest of the query after the closing brace.
+func parseSelector(t *testing.T, query string) (map[string]string, string) {
+	t.Helper()
+
+	_, rest, ok := strings.Cut(query, "{")
+	require.True(t, ok, "query has no selector: %s", query)
+
+	matchers := map[string]string{}
+	for {
+		name, after, ok := strings.Cut(rest, "=")
+		require.True(t, ok, "malformed matcher in: %s", rest)
+
+		literal, err := strconv.QuotedPrefix(after)
+		require.NoError(t, err)
+		value, err := strconv.Unquote(literal)
+		require.NoError(t, err)
+		matchers[strings.TrimSpace(name)] = value
+
+		rest = after[len(literal):]
+		if next, ok := strings.CutPrefix(rest, ", "); ok {
+			rest = next
+			continue
+		}
+
+		rest, ok = strings.CutPrefix(rest, "}")
+		require.True(t, ok, "selector not closed after matchers: %s", rest)
+		return matchers, rest
+	}
+}
+
+func TestGetFlagEvaluationsCountEscapesRequestKeys(t *testing.T) {
+	// Each payload tries to close its label matcher and append a query over
+	// any metric.
+	const (
+		nsPayload   = `ns"}`
+		flagPayload = `x"}[1m])) or sum(rate(up{job=~".*`
+	)
+
+	from := time.Now().Add(-time.Hour).UTC()
+	to := time.Now().UTC()
+	recorder := &queryRecorder{data: model.Matrix{{Values: []model.SamplePair{{Timestamp: model.Time(from.UnixMilli()), Value: 1}}}}}
+
+	c := &client{logger: zaptest.NewLogger(t), promClient: recorder}
+	_, _, err := c.GetFlagEvaluationsCount(t.Context(), &panalytics.FlagEvaluationsCountRequest{
+		NamespaceKey: nsPayload,
+		FlagKey:      flagPayload,
+		From:         from,
+		To:           to,
+		StepMinutes:  1,
+	})
+	require.NoError(t, err)
+
+	matchers, rest := parseSelector(t, recorder.query)
+	assert.Equal(t, map[string]string{"namespace": nsPayload, "flag": flagPayload}, matchers)
+	assert.Equal(t, "[1m])) or vector(0)", rest)
 }

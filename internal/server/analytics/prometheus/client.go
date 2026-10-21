@@ -43,8 +43,10 @@ func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 }
 
 func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
+	// Keys come from the request, so quote them as PromQL string literals
+	// (which use Go escaping) to stop them from altering the query.
 	query := fmt.Sprintf(
-		`sum(increase(flipt_evaluations_requests_total{namespace="%s", flag="%s"}[%dm])) or vector(0)`,
+		`sum(increase(flipt_evaluations_requests_total{namespace=%q, flag=%q}[%dm])) or vector(0)`,
 		req.NamespaceKey,
 		req.FlagKey,
 		req.StepMinutes,
