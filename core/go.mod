@@ -2,7 +2,7 @@ module go.flipt.io/flipt/core
 
 go 1.26.0
 
-toolchain go1.27.2
+toolchain go1.27.3
 
 require (
 	cuelang.org/go v0.17.1
