@@ -2,6 +2,7 @@ package grpc_middleware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http/httptest"
 	"testing"
@@ -9,11 +10,13 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/server"
+	"go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/authn/method/token"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/blang/semver/v4"
@@ -292,6 +295,91 @@ func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
 
 			assert.NotEmpty(t, resp.GetTimestamp())
 			assert.NotEmpty(t, resp.GetRequestDurationMillis())
+		})
+	}
+}
+
+func TestEvaluationUnaryInterceptor_AnalyticsNamespaceKey(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		req  any
+		resp any
+		want []string
+	}{
+		{
+			name: "variant with blank namespace",
+			req:  &evaluation.EvaluationRequest{FlagKey: "foo"},
+			resp: &evaluation.VariantEvaluationResponse{FlagKey: "foo"},
+			want: []string{flipt.DefaultNamespace},
+		},
+		{
+			name: "boolean with blank namespace",
+			req:  &evaluation.EvaluationRequest{FlagKey: "foo"},
+			resp: &evaluation.BooleanEvaluationResponse{FlagKey: "foo"},
+			want: []string{flipt.DefaultNamespace},
+		},
+		{
+			name: "variant with namespace",
+			req:  &evaluation.EvaluationRequest{NamespaceKey: "bar", FlagKey: "foo"},
+			resp: &evaluation.VariantEvaluationResponse{FlagKey: "foo"},
+			want: []string{"bar"},
+		},
+		{
+			name: "batch with blank and explicit namespaces",
+			req: &evaluation.BatchEvaluationRequest{
+				Requests: []*evaluation.EvaluationRequest{
+					{FlagKey: "foo"},
+					{NamespaceKey: "bar", FlagKey: "baz"},
+				},
+			},
+			resp: &evaluation.BatchEvaluationResponse{
+				Responses: []*evaluation.EvaluationResponse{
+					{
+						Type: evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE,
+						Response: &evaluation.EvaluationResponse_VariantResponse{
+							VariantResponse: &evaluation.VariantEvaluationResponse{FlagKey: "foo"},
+						},
+					},
+					{
+						Type: evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE,
+						Response: &evaluation.EvaluationResponse_BooleanResponse{
+							BooleanResponse: &evaluation.BooleanEvaluationResponse{FlagKey: "baz"},
+						},
+					},
+				},
+			},
+			want: []string{flipt.DefaultNamespace, "bar"},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var (
+				recorder = tracetest.NewSpanRecorder()
+				tp       = sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+				handler  = func(ctx context.Context, r any) (any, error) {
+					return test.resp, nil
+				}
+				info = &grpc.UnaryServerInfo{FullMethod: "FakeMethod"}
+			)
+
+			ctx, span := tp.Tracer("test").Start(context.Background(), "evaluate")
+			_, err := EvaluationUnaryInterceptor(true)(ctx, test.req, info, handler)
+			require.NoError(t, err)
+			span.End()
+
+			spans := recorder.Ended()
+			require.Len(t, spans, 1)
+			events := spans[0].Events()
+			require.Len(t, events, 1)
+			require.Len(t, events[0].Attributes, 1)
+
+			var responses []*analytics.EvaluationResponse
+			require.NoError(t, json.Unmarshal([]byte(events[0].Attributes[0].Value.AsString()), &responses))
+
+			got := make([]string, 0, len(responses))
+			for _, r := range responses {
+				got = append(got, r.NamespaceKey)
+			}
+			assert.Equal(t, test.want, got)
 		})
 	}
 }

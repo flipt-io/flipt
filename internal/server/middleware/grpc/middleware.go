@@ -92,6 +92,15 @@ type ResponseDurationRecordable interface {
 	SetTimestamps(start, end time.Time)
 }
 
+// analyticsNamespaceKey records a blank namespace as the default namespace,
+// which is how blank namespaces are evaluated and queried.
+func analyticsNamespaceKey(key string) string {
+	if key == "" {
+		return flipt.DefaultNamespace
+	}
+	return key
+}
+
 // EvaluationUnaryInterceptor sets required request/response fields.
 // Note: this should be added before any caching interceptor to ensure the request id/response fields are unique.
 func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerInterceptor {
@@ -132,7 +141,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 
 						evaluationResponses := []*analytics.EvaluationResponse{
 							{
-								NamespaceKey:    evaluationRequest.GetNamespaceKey(),
+								NamespaceKey:    analyticsNamespaceKey(evaluationRequest.GetNamespaceKey()),
 								FlagKey:         r.GetFlagKey(),
 								FlagType:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
 								Match:           &r.Match,
@@ -158,7 +167,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 						evaluationValue := fmt.Sprint(r.GetEnabled())
 						evaluationResponses := []*analytics.EvaluationResponse{
 							{
-								NamespaceKey:    evaluationRequest.GetNamespaceKey(),
+								NamespaceKey:    analyticsNamespaceKey(evaluationRequest.GetNamespaceKey()),
 								FlagKey:         r.GetFlagKey(),
 								FlagType:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
 								Reason:          r.GetReason().String(),
@@ -192,7 +201,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 								}
 
 								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
-									NamespaceKey:    batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
+									NamespaceKey:    analyticsNamespaceKey(batchEvaluationRequest.Requests[idx].GetNamespaceKey()),
 									FlagKey:         variantResponse.GetFlagKey(),
 									FlagType:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
 									Match:           &variantResponse.Match,
@@ -205,7 +214,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 								booleanResponse := response.GetBooleanResponse()
 								evaluationValue := fmt.Sprint(booleanResponse.GetEnabled())
 								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
-									NamespaceKey:    batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
+									NamespaceKey:    analyticsNamespaceKey(batchEvaluationRequest.Requests[idx].GetNamespaceKey()),
 									FlagKey:         booleanResponse.GetFlagKey(),
 									FlagType:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
 									Reason:          booleanResponse.GetReason().String(),

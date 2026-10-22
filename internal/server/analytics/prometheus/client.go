@@ -13,6 +13,7 @@ import (
 	"github.com/prometheus/common/model"
 	"go.flipt.io/flipt/internal/config"
 	panalytics "go.flipt.io/flipt/internal/server/analytics"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
@@ -45,9 +46,15 @@ func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
 	// Keys come from the request, so quote them as PromQL string literals
 	// (which use Go escaping) to stop them from altering the query.
+	namespace := fmt.Sprintf("namespace=%q", req.NamespaceKey)
+	if req.NamespaceKey == flipt.DefaultNamespace {
+		// evaluations of a blank namespace are recorded with an empty label
+		namespace = `namespace=~"|default"`
+	}
+
 	query := fmt.Sprintf(
-		`sum(increase(flipt_evaluations_requests_total{namespace=%q, flag=%q}[%dm])) or vector(0)`,
-		req.NamespaceKey,
+		`sum(increase(flipt_evaluations_requests_total{%s, flag=%q}[%dm])) or vector(0)`,
+		namespace,
 		req.FlagKey,
 		req.StepMinutes,
 	)
