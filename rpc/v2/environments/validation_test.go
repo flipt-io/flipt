@@ -38,8 +38,9 @@ func TestValidateNewNamespaceKey(t *testing.T) {
 		wantErr bool
 	}{
 		{key: "default"},
-		{key: "team_a-1,b"},
+		{key: "team_a-1"},
 		{key: "", wantErr: true},
+		{key: "team,a", wantErr: true},
 		{key: "my.namespace", wantErr: true},
 		{key: "a b", wantErr: true},
 		{key: "a/b", wantErr: true},

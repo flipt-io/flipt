@@ -7,10 +7,10 @@ import (
 	"go.flipt.io/flipt/errors"
 )
 
-// newNamespaceKeyPattern is the format required of new namespace keys. It
-// must match the namespace key in the features schema (core/validation/flipt.cue),
-// which the UI and v1 also enforce.
-var newNamespaceKeyPattern = regexp.MustCompile(`^[-_,A-Za-z0-9]+$`)
+// newNamespaceKeyPattern is the format required of new namespace keys. It is a
+// subset of the namespace key in the features schema (core/validation/flipt.cue),
+// which also allows commas; existing keys with commas remain valid.
+var newNamespaceKeyPattern = regexp.MustCompile(`^[-_A-Za-z0-9]+$`)
 
 func (r *GetNamespaceRequest) Validate() error {
 	return ValidateNamespaceKey(r.GetKey())
@@ -69,10 +69,10 @@ func ValidateNamespaceKey(key string) error {
 }
 
 // ValidateNewNamespaceKey requires new namespace keys to contain only letters,
-// numbers, hyphens, underscores and commas.
+// numbers, hyphens and underscores.
 func ValidateNewNamespaceKey(key string) error {
 	if !newNamespaceKeyPattern.MatchString(key) {
-		return errors.ErrInvalidf("namespace key %q must contain only letters, numbers, hyphens, underscores and commas", key)
+		return errors.ErrInvalidf("namespace key %q must contain only letters, numbers, hyphens and underscores", key)
 	}
 
 	return nil
