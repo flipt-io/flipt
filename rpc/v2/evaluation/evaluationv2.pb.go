@@ -221,6 +221,7 @@ const (
 	EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE   EvaluationConstraintComparisonType = 3
 	EvaluationConstraintComparisonType_DATETIME_CONSTRAINT_COMPARISON_TYPE  EvaluationConstraintComparisonType = 4
 	EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE EvaluationConstraintComparisonType = 5
+	EvaluationConstraintComparisonType_SEMVER_CONSTRAINT_COMPARISON_TYPE    EvaluationConstraintComparisonType = 6
 )
 
 // Enum value maps for EvaluationConstraintComparisonType.
@@ -232,6 +233,7 @@ var (
 		3: "BOOLEAN_CONSTRAINT_COMPARISON_TYPE",
 		4: "DATETIME_CONSTRAINT_COMPARISON_TYPE",
 		5: "ENTITY_ID_CONSTRAINT_COMPARISON_TYPE",
+		6: "SEMVER_CONSTRAINT_COMPARISON_TYPE",
 	}
 	EvaluationConstraintComparisonType_value = map[string]int32{
 		"UNKNOWN_CONSTRAINT_COMPARISON_TYPE":   0,
@@ -240,6 +242,7 @@ var (
 		"BOOLEAN_CONSTRAINT_COMPARISON_TYPE":   3,
 		"DATETIME_CONSTRAINT_COMPARISON_TYPE":  4,
 		"ENTITY_ID_CONSTRAINT_COMPARISON_TYPE": 5,
+		"SEMVER_CONSTRAINT_COMPARISON_TYPE":    6,
 	}
 )
 
