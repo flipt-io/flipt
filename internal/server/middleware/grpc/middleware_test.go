@@ -364,6 +364,59 @@ func TestFliptHeadersUnaryInterceptor(t *testing.T) {
 	}
 }
 
+func TestFliptHeadersUnaryInterceptor_ListFlagsEnvironment(t *testing.T) {
+	tests := []struct {
+		name           string
+		md             metadata.MD
+		environmentKey string
+		want           string
+	}{
+		{
+			name:           "header overrides request environment",
+			md:             metadata.New(map[string]string{common.HeaderFliptEnvironment: "production"}),
+			environmentKey: "default",
+			want:           "production",
+		},
+		{
+			name: "header sets blank request environment",
+			md:   metadata.New(map[string]string{common.HeaderFliptEnvironment: "production"}),
+			want: "production",
+		},
+		{
+			name:           "no header keeps request environment",
+			md:             metadata.New(map[string]string{common.HeaderFliptNamespace: "bar"}),
+			environmentKey: "default",
+			want:           "default",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := metadata.NewIncomingContext(t.Context(), tt.md)
+			req := &flipt.ListFlagRequest{EnvironmentKey: tt.environmentKey, NamespaceKey: "default"}
+
+			called := false
+			_, err := FliptHeadersUnaryInterceptor(zap.NewNop())(ctx, req, nil, func(_ context.Context, req any) (any, error) {
+				called = true
+				r, ok := req.(*flipt.ListFlagRequest)
+				require.True(t, ok)
+				assert.Equal(t, tt.want, r.EnvironmentKey)
+
+				// authorization derives its input from Request(), so it must
+				// see the same environment that the handler serves
+				requests := r.Request()
+				require.Len(t, requests, 1)
+				require.NotNil(t, requests[0].Environment)
+				assert.Equal(t, tt.want, *requests[0].Environment)
+				return nil, nil
+			})
+
+			require.NoError(t, err)
+			assert.True(t, called)
+		})
+	}
+}
+
 func TestFliptHeadersStreamInterceptor(t *testing.T) {
 	type want struct {
 		environment string
@@ -560,6 +613,42 @@ func TestEvaluationUnaryInterceptor_EnvironmentAndNamespace(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func TestEvaluationUnaryInterceptor_BatchEnvironmentAndNamespace(t *testing.T) {
+	ctx := cctx.WithFliptEnvironment(t.Context(), "test-environment")
+	ctx = cctx.WithFliptNamespace(ctx, "test-namespace")
+
+	req := &evaluation.BatchEvaluationRequest{
+		Requests: []*evaluation.EvaluationRequest{
+			{FlagKey: "blank"},
+			{EnvironmentKey: "foo-environment", NamespaceKey: "foo-namespace", FlagKey: "set"},
+		},
+	}
+
+	called := false
+	_, err := EvaluationUnaryInterceptor()(ctx, req, &grpc.UnaryServerInfo{FullMethod: "FakeMethod"}, func(_ context.Context, r any) (any, error) {
+		called = true
+		batch, ok := r.(*evaluation.BatchEvaluationRequest)
+		require.True(t, ok)
+		require.Len(t, batch.Requests, 2)
+
+		assert.Equal(t, "test-environment", batch.Requests[0].EnvironmentKey)
+		assert.Equal(t, "test-namespace", batch.Requests[0].NamespaceKey)
+		assert.Equal(t, "foo-environment", batch.Requests[1].EnvironmentKey)
+		assert.Equal(t, "foo-namespace", batch.Requests[1].NamespaceKey)
+
+		// authorization derives its input from Request(), so it must see the
+		// header environment for the blank item
+		requests := batch.Request()
+		require.Len(t, requests, 2)
+		assert.Equal(t, "test-environment", *requests[0].Environment)
+		assert.Equal(t, "foo-environment", *requests[1].Environment)
+		return &evaluation.BatchEvaluationResponse{}, nil
+	})
+
+	require.NoError(t, err)
+	assert.True(t, called)
 }
 
 func TestEvaluationUnaryInterceptor_RequestID(t *testing.T) {

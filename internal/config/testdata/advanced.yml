@@ -74,6 +74,9 @@ authentication:
       discovery_url: "https://some-other-k8s.namespace.svc"
       ca_path: "/path/to/ca/certificate/ca.pem"
       service_account_token_path: "/path/to/sa/token"
+      audiences:
+        - flipt
+        - flipt-admin
       cleanup:
         interval: 2h
         grace_period: 48h

@@ -532,6 +532,15 @@
                 },
                 "service_account_token_path": {
                   "type": "string"
+                },
+                "audiences": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             },

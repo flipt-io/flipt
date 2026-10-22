@@ -125,6 +125,18 @@ func FliptHeadersUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerIntercepto
 		}
 
 		ctx = contextWithMetadata(ctx, md, logger)
+
+		// The X-Flipt-Environment header takes precedence over the environment
+		// key on ListFlags for v1 compatibility. Apply it to the request here,
+		// before authorization, so the environment authorized is the one served.
+		// ListFlags is the only request where the header wins: evaluation
+		// requests only use it to fill a blank key (EvaluationUnaryInterceptor).
+		if r, ok := req.(*flipt.ListFlagRequest); ok {
+			if environment, ok := cctx.FliptEnvironmentFromContext(ctx); ok && environment != "" {
+				r.EnvironmentKey = environment
+			}
+		}
+
 		return handler(ctx, req)
 	}
 }
@@ -174,11 +186,20 @@ func EvaluationUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		startTime := time.Now().UTC()
 
-		if r, ok := req.(*evaluation.EvaluationRequest); ok {
-			environmentKey, _ := cctx.FliptEnvironmentFromContext(ctx)
-			namespaceKey, _ := cctx.FliptNamespaceFromContext(ctx)
+		environmentKey, _ := cctx.FliptEnvironmentFromContext(ctx)
+		namespaceKey, _ := cctx.FliptNamespaceFromContext(ctx)
+
+		switch r := req.(type) {
+		case *evaluation.EvaluationRequest:
 			r.SetEnvironmentKeyIfNotBlank(environmentKey)
 			r.SetNamespaceKeyIfNotBlank(namespaceKey)
+		case *evaluation.BatchEvaluationRequest:
+			// Fill each item before authorization, so a blank key is authorized
+			// as the header environment the handler falls back to serving.
+			for _, r := range r.GetRequests() {
+				r.SetEnvironmentKeyIfNotBlank(environmentKey)
+				r.SetNamespaceKeyIfNotBlank(namespaceKey)
+			}
 		}
 
 		// set request ID if not present

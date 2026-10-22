@@ -184,6 +184,10 @@ func (s *Server) ListNamespaces(ctx context.Context, req *environments.ListNames
 }
 
 func (s *Server) CreateNamespace(ctx context.Context, ns *environments.UpdateNamespaceRequest) (*environments.NamespaceResponse, error) {
+	if err := environments.ValidateNewNamespaceKey(ns.Key); err != nil {
+		return nil, err
+	}
+
 	env, err := s.envs.Get(ctx, ns.EnvironmentKey)
 	if err != nil {
 		return nil, err

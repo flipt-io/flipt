@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/authz"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap/zaptest"
@@ -113,6 +114,34 @@ func TestServer_ListNamespaces_FailsClosedWithoutScope(t *testing.T) {
 				keys = append(keys, namespace.Key)
 			}
 			assert.ElementsMatch(t, tt.wantKeys, keys)
+		})
+	}
+}
+
+func TestServer_CreateNamespace_RejectsInvalidKey(t *testing.T) {
+	// The environment is a mock without expectations: an invalid key must be
+	// rejected before anything is read or written.
+	env := NewMockEnvironment(t)
+	env.On("Key").Return("default")
+	env.On("Default").Return(true)
+	env.On("Configuration").Return(nil).Maybe()
+
+	store, err := NewEnvironmentStore(zaptest.NewLogger(t), env)
+	require.NoError(t, err)
+
+	server, err := NewServer(zaptest.NewLogger(t), store)
+	require.NoError(t, err)
+
+	for _, key := range []string{"a/b", "../secret", ".git", "my.namespace"} {
+		t.Run(key, func(t *testing.T) {
+			_, err := server.CreateNamespace(t.Context(), &rpcenvironments.UpdateNamespaceRequest{
+				EnvironmentKey: "default",
+				Key:            key,
+				Name:           key,
+			})
+
+			var invalid errors.ErrInvalid
+			require.ErrorAs(t, err, &invalid)
 		})
 	}
 }

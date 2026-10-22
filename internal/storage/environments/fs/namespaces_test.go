@@ -396,3 +396,60 @@ func Test_NamespaceStorage_NewNamespaceDefaultsToYAML(t *testing.T) {
 		assert.ErrorIs(t, err, os.ErrNotExist)
 	})
 }
+
+func Test_NamespaceStorage_RejectsUnsafeKeys(t *testing.T) {
+	ctx := t.Context()
+	storage := fs.NewNamespaceStorage(zaptest.NewLogger(t))
+
+	for _, key := range []string{"a/b", "../team_a", ".git", "."} {
+		t.Run(key, func(t *testing.T) {
+			filesystem := filesystem(t)
+
+			var invalid errors.ErrInvalid
+			err := storage.PutNamespace(ctx, filesystem, &rpcenvironments.Namespace{Key: key, Name: key})
+			require.ErrorAs(t, err, &invalid)
+
+			err = storage.DeleteNamespace(ctx, filesystem, key)
+			require.ErrorAs(t, err, &invalid)
+
+			// nothing was created or removed
+			namespaces, err := storage.ListNamespaces(ctx, filesystem)
+			require.NoError(t, err)
+			keys := make([]string, 0, len(namespaces))
+			for _, ns := range namespaces {
+				keys = append(keys, ns.Key)
+			}
+			assert.ElementsMatch(t, []string{"default", "team_a"}, keys)
+		})
+	}
+}
+
+func Test_NamespaceStorage_ExistingKeyCanBeCleanedUp(t *testing.T) {
+	// Namespaces created before keys were validated can still be read,
+	// updated and deleted, even though new namespaces cannot use such keys.
+	ctx := t.Context()
+	storage := fs.NewNamespaceStorage(zaptest.NewLogger(t))
+	filesystem := fstesting.NewFilesystem(
+		t,
+		fstesting.WithDirectory("default", fstesting.WithFile("features.yaml", defaultContents)),
+		fstesting.WithDirectory("my.namespace", fstesting.WithFile("features.yaml", `version: "1.6"
+namespace:
+  key: my.namespace
+  name: My Namespace
+`)),
+	)
+
+	ns, err := storage.GetNamespace(ctx, filesystem, "my.namespace")
+	require.NoError(t, err)
+	assert.Equal(t, "My Namespace", ns.Name)
+
+	require.NoError(t, storage.PutNamespace(ctx, filesystem, &rpcenvironments.Namespace{Key: "my.namespace", Name: "Renamed"}))
+	ns, err = storage.GetNamespace(ctx, filesystem, "my.namespace")
+	require.NoError(t, err)
+	assert.Equal(t, "Renamed", ns.Name)
+
+	require.NoError(t, storage.DeleteNamespace(ctx, filesystem, "my.namespace"))
+	_, err = storage.GetNamespace(ctx, filesystem, "my.namespace")
+	var notFound errors.ErrNotFound
+	require.ErrorAs(t, err, &notFound)
+}

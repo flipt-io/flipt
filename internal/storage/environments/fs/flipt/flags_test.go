@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	fstesting "go.flipt.io/flipt/internal/storage/environments/fs/testing"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
@@ -677,6 +678,24 @@ func TestFlagStorage_DeleteResource(t *testing.T) {
 			// verify flag was deleted
 			_, err = storage.GetResource(ctx, fs, tt.namespace, tt.key)
 			require.Error(t, err)
+		})
+	}
+}
+
+func TestFlagStorage_RejectsUnsafeNamespaceKeys(t *testing.T) {
+	storage := NewFlagStorage(zaptest.NewLogger(t))
+	fs := fstesting.NewFilesystem(t)
+
+	for _, namespace := range []string{"a/b", "team-a/../default", ".git"} {
+		t.Run(namespace, func(t *testing.T) {
+			_, err := storage.GetResource(t.Context(), fs, namespace, "flag")
+			assert.True(t, errors.AsMatch[errors.ErrInvalid](err), "unexpected error: %v", err)
+
+			_, err = storage.ListResources(t.Context(), fs, namespace)
+			assert.True(t, errors.AsMatch[errors.ErrInvalid](err), "unexpected error: %v", err)
+
+			err = storage.DeleteResource(t.Context(), fs, namespace, "flag")
+			assert.True(t, errors.AsMatch[errors.ErrInvalid](err), "unexpected error: %v", err)
 		})
 	}
 }

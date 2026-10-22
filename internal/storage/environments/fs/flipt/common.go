@@ -11,6 +11,7 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 	"go.flipt.io/flipt/rpc/flipt"
+	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"gopkg.in/yaml.v3"
@@ -49,6 +50,10 @@ func getDocsAndNamespace(ctx context.Context, fs environmentsfs.Filesystem, key 
 }
 
 func parseNamespace(_ context.Context, fs environmentsfs.Filesystem, namespace string) (docs []*ext.Document, err error) {
+	if err := rpcenvironments.ValidateNamespaceKey(namespace); err != nil {
+		return nil, err
+	}
+
 	// Try to open features file with both .yaml and .yml extensions
 	fi, _, err := environmentsfs.TryOpenFeaturesFile(fs, namespace)
 	if err != nil {

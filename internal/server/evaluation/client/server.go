@@ -18,19 +18,9 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
-// getEnvironmentFromContext retrieves the environment by key. If environment isn't found by key, it falls back to retrieving it from the context.
+// getCurrentEnvironment retrieves the environment by key. See evaluation.ResolveEnvironment for the fallback rules.
 func (s *Server) getCurrentEnvironment(ctx context.Context, key string) (environments.Environment, error) {
-	env, err := s.envs.Get(ctx, key)
-	if err != nil {
-		// fall back to the environment from the X-Flipt-Environment header, or the
-		// default environment when there is no header. This is for backwards
-		// compatibility with v1 clients which don't set an environment key.
-		// Note: the fallback applies to any lookup failure, so an unknown
-		// environment key is served from the header or default environment
-		// rather than returning an error.
-		return s.envs.GetFromContext(ctx)
-	}
-	return env, nil
+	return evaluation.ResolveEnvironment(ctx, s.envs, key)
 }
 
 var _ rpcevaluation.ClientEvaluationServiceServer = (*Server)(nil)
