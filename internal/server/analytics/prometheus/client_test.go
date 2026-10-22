@@ -145,6 +145,41 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		assert.Equal(t, []float32{1, 0, 0, 4}, values)
 	})
 
+	t.Run("default namespace includes blank namespace label", func(t *testing.T) {
+		data := model.Matrix{
+			{
+				Values: []model.SamplePair{
+					{Timestamp: model.Time(from.UnixMilli()), Value: 3},
+				},
+			},
+		}
+		mock.EXPECT().QueryRange(
+			ctx,
+			`sum(increase(flipt_evaluations_requests_total{namespace=~"|default", flag="foo"}[1m])) or vector(0)`,
+			promapi.Range{
+				Start: from,
+				End:   to.Add(time.Minute),
+				Step:  time.Minute,
+			},
+		).Return(data, nil, nil)
+
+		client := &client{
+			logger:     logger,
+			promClient: mock,
+		}
+
+		_, values, err := client.GetFlagEvaluationsCount(ctx, &panalytics.FlagEvaluationsCountRequest{
+			NamespaceKey: "default",
+			FlagKey:      "foo",
+			From:         from,
+			To:           to,
+			StepMinutes:  1,
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, []float32{3}, values)
+	})
+
 	t.Run("no data type", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
