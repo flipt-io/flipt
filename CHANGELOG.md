@@ -3,6 +3,38 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.62.0](https://github.com/flipt-io/flipt/releases/tag/v1.62.0) - 2026-10-23
+
+### Added
+
+- **Kubernetes authentication (security)**: Set `authentication.methods.kubernetes.audiences` to accept only service account tokens carrying one of those audiences. Use it with a projected service account token minted for Flipt, so tokens issued to other services in the cluster are rejected. Without `audiences`, any token the cluster issues is accepted as before, and Flipt logs a warning at startup
+- **Segments UI**: Show which flags use each segment, and optionally show per-segment flag counts in the segments list (off by default; enable it in Preferences) (#5563)
+- **Object storage**: Skip snapshot rebuilds when the stored files have not changed (#5769)
+
+### Changed
+
+- **Authorization (upgrade note)**: When authorization is enabled, the analytics APIs now need `read` on flags in the requested namespace. Grant it to any callers that read evaluation counts, or they will be denied
+- **OIDC (upgrade note)**: The provider `nonce` setting is deprecated and ignored. A random nonce is now generated for every login
+- **Go 1.27**: Release builds use the latest Go 1.27 patch release
+
+### Fixed
+
+- **Analytics (security)**: Escape namespace and flag keys in Prometheus analytics queries. Keys from the request were inserted into PromQL unescaped, so a caller could change the query and read any metric the configured Prometheus holds
+- **Authorization (security)**: The analytics APIs are now checked against policy when authorization is enabled. Previously any authenticated caller could read evaluation counts for any namespace
+- **Authorization (security)**: `ListNamespaces` now fails closed. Previously a caller with no viewable namespaces received the full namespace list
+- **OIDC (security)**: Use a per-login nonce and PKCE verifier, and always validate state. Previously a process-wide PKCE verifier and a static nonce were used, and an empty state skipped validation, so an intercepted authorization code could be redeemed from another browser
+- **Analytics**: Record and query evaluations of a blank namespace as the `default` namespace, so their counts show up
+- **Evaluation**: Pin one storage snapshot per evaluation request, so each evaluation reads consistent state (#5771)
+- **Audit**: Deliver audit events when audit logging is enabled without tracing. Previously they were silently dropped (#6280)
+- **Validation**: Use `lt` instead of `le` for the less-than operator in the CUE and JSON schemas, so segments with less-than constraints pass validation (#6307)
+- **Config schema**: Correct JSON Schema meta-schema keywords and the formatting of `data` properties (#6492, #5962)
+- **Authentication**: Fix the JSON tag on the authentication `expiration` field (#5907)
+- **UI**: Return to the original page after OIDC login instead of the dashboard (#6518), and improve dark mode inputs and the loading indicator (#5656)
+
+### Dependencies
+
+- Updated many Go and UI dependencies, including security updates to the Go toolchain, `golang.org/x/net`, `golang.org/x/crypto`, `golang.org/x/text`, OpenTelemetry, `moby/go-archive`, and Vite, plus gRPC, OPA, AWS SDK, and Alpine 3.24.3
+
 ## [v1.61.1](https://github.com/flipt-io/flipt/releases/tag/v1.61.1) - 2026-03-06
 
 ### Fixed
