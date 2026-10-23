@@ -34,8 +34,7 @@ jobs:
       - name: Install Quill
         if: matrix.os == 'macos-latest'
         run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
-          echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
+          curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Prep Build
         run: mise prep
