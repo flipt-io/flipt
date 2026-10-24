@@ -126,7 +126,6 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           ANALYTICS_WRITE_KEY: ${{ secrets.ANALYTICS_WRITE_KEY }}
           ANALYTICS_WRITE_ENDPOINT: ${{ secrets.ANALYTICS_WRITE_ENDPOINT }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
