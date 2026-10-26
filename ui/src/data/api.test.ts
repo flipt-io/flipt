@@ -23,7 +23,7 @@ describe('checkResponse', () => {
   });
 
   afterEach(() => {
-    window.location = originalLocation;
+    (window as any).location = originalLocation;
     jest.restoreAllMocks();
   });
 
