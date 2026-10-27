@@ -151,6 +151,27 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("server: cert_key stat ./testdata/ssl_cert_not_exist.key: no such file or directory"),
 		},
 		{
+			name: "server http timeouts",
+			path: "./testdata/server/http_timeouts.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Server.HTTPReadTimeout = 30 * time.Second
+				cfg.Server.HTTPIdleTimeout = 10 * time.Minute
+				cfg.Meta.CheckForUpdates = false
+				return cfg
+			},
+		},
+		{
+			name:    "server negative http read timeout",
+			path:    "./testdata/server/http_read_timeout_negative.yml",
+			wantErr: errors.New("server: http_read_timeout must not be negative"),
+		},
+		{
+			name:    "server negative http idle timeout",
+			path:    "./testdata/server/http_idle_timeout_negative.yml",
+			wantErr: errors.New("server: http_idle_timeout must not be negative"),
+		},
+		{
 			name: "authentication token with provided bootstrap token",
 			path: "./testdata/authentication/token_bootstrap_token.yml",
 			expected: func() *Config {
@@ -499,13 +520,14 @@ func TestLoad(t *testing.T) {
 				}
 
 				cfg.Server = ServerConfig{
-					Host:      "127.0.0.1",
-					Protocol:  HTTPS,
-					HTTPPort:  8081,
-					HTTPSPort: 8080,
-					GRPCPort:  9001,
-					CertFile:  "./testdata/ssl_cert.pem",
-					CertKey:   "./testdata/ssl_key.pem",
+					Host:            "127.0.0.1",
+					Protocol:        HTTPS,
+					HTTPPort:        8081,
+					HTTPSPort:       8080,
+					GRPCPort:        9001,
+					HTTPReadTimeout: 10 * time.Second,
+					CertFile:        "./testdata/ssl_cert.pem",
+					CertKey:         "./testdata/ssl_key.pem",
 				}
 
 				cfg.Storage = StoragesConfig{

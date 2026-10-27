@@ -608,11 +608,12 @@ func Default() *Config {
 		},
 
 		Server: ServerConfig{
-			Host:      "0.0.0.0",
-			Protocol:  HTTP,
-			HTTPPort:  8080,
-			HTTPSPort: 443,
-			GRPCPort:  9000,
+			Host:            "0.0.0.0",
+			Protocol:        HTTP,
+			HTTPPort:        8080,
+			HTTPSPort:       443,
+			GRPCPort:        9000,
+			HTTPReadTimeout: 10 * time.Second,
 		},
 
 		Environments: EnvironmentsConfig{

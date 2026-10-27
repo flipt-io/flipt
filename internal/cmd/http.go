@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
@@ -288,7 +287,8 @@ func NewHTTPServer(
 	server.Server = &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
 		Handler:        r,
-		ReadTimeout:    10 * time.Second,
+		ReadTimeout:    cfg.Server.HTTPReadTimeout,
+		IdleTimeout:    cfg.Server.HTTPIdleTimeout,
 		MaxHeaderBytes: 1 << 20,
 	}
 
