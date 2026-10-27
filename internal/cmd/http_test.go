@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -89,6 +90,44 @@ func TestMetricsEndpointMounted(t *testing.T) {
 				assert.Contains(t, res.Header().Get("Content-Type"), "text/plain",
 					"mounted /metrics must serve a prometheus scrape response")
 			}
+		})
+	}
+}
+
+// TestHTTPServerTimeouts asserts the HTTP listener timeouts come from config,
+// so operators can tune keep-alive windows for load balancers.
+func TestHTTPServerTimeouts(t *testing.T) {
+	tests := []struct {
+		name        string
+		server      config.ServerConfig
+		readTimeout time.Duration
+		idleTimeout time.Duration
+	}{
+		{
+			name: "configured",
+			server: config.ServerConfig{
+				Host:            "localhost",
+				HTTPReadTimeout: 30 * time.Second,
+				HTTPIdleTimeout: 10 * time.Minute,
+			},
+			readTimeout: 30 * time.Second,
+			idleTimeout: 10 * time.Minute,
+		},
+		{
+			name:   "zero values",
+			server: config.ServerConfig{Host: "localhost"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &config.Config{Server: tt.server}
+
+			server, err := NewHTTPServer(t.Context(), zaptest.NewLogger(t), cfg, nil, info.Flipt{})
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.readTimeout, server.ReadTimeout)
+			assert.Equal(t, tt.idleTimeout, server.IdleTimeout)
 		})
 	}
 }

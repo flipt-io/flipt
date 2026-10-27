@@ -324,6 +324,8 @@ JsonPath: string
 		grpc_port?:               int | *9000
 		cert_file?:               string
 		cert_key?:                string
+		http_read_timeout?:       =~#duration | *"10s"
+		http_idle_timeout?:       =~#duration | *"0s"
 		grpc_conn_max_idle_time?: =~#duration
 		grpc_conn_max_age?:       =~#duration
 		grpc_conn_max_age_grace?: =~#duration

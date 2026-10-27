@@ -1372,6 +1372,16 @@
         "cert_key": {
           "type": "string"
         },
+        "http_read_timeout": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+          "default": "10s"
+        },
+        "http_idle_timeout": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+          "default": "0s"
+        },
         "grpc_conn_max_idle_time": {
           "type": "string",
           "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"

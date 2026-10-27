@@ -1,0 +1,2 @@
+server:
+  http_idle_timeout: -1s

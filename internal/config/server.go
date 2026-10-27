@@ -25,6 +25,8 @@ type ServerConfig struct {
 	GRPCConnectionMaxIdleTime time.Duration `json:"-" mapstructure:"grpc_conn_max_idle_time" yaml:"-"`
 	GRPCConnectionMaxAge      time.Duration `json:"-" mapstructure:"grpc_conn_max_age" yaml:"-"`
 	GRPCConnectionMaxAgeGrace time.Duration `json:"-" mapstructure:"grpc_conn_max_age_grace" yaml:"-"`
+	HTTPReadTimeout           time.Duration `json:"httpReadTimeout,omitempty" mapstructure:"http_read_timeout" yaml:"http_read_timeout,omitempty"`
+	HTTPIdleTimeout           time.Duration `json:"httpIdleTimeout,omitempty" mapstructure:"http_idle_timeout" yaml:"http_idle_timeout,omitempty"`
 }
 
 func (c *ServerConfig) setDefaults(v *viper.Viper) error {
@@ -33,10 +35,19 @@ func (c *ServerConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("server.http_port", 8080)
 	v.SetDefault("server.https_port", 443)
 	v.SetDefault("server.grpc_port", 9000)
+	v.SetDefault("server.http_read_timeout", "10s")
 	return nil
 }
 
 func (c *ServerConfig) validate() error {
+	if c.HTTPReadTimeout < 0 {
+		return errString("server", "http_read_timeout must not be negative")
+	}
+
+	if c.HTTPIdleTimeout < 0 {
+		return errString("server", "http_idle_timeout must not be negative")
+	}
+
 	// validate configuration is as expected
 	if c.Protocol == HTTPS {
 		if c.CertFile == "" {

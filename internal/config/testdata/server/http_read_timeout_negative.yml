@@ -1,0 +1,2 @@
+server:
+  http_read_timeout: -1s
