@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/containerd/platforms"
-	"github.com/go-jose/go-jose/v3"
-	jjwt "github.com/go-jose/go-jose/v3/jwt"
+	"github.com/go-jose/go-jose/v4"
+	jjwt "github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/hashicorp/cap/jwt"
@@ -980,7 +980,7 @@ func signJWT(key crypto.PrivateKey, claims interface{}) string {
 
 	raw, err := jjwt.Signed(sig).
 		Claims(claims).
-		CompactSerialize()
+		Serialize()
 	if err != nil {
 		panic(err)
 	}
