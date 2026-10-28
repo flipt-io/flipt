@@ -261,3 +261,139 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 		require.ErrorContains(t, err, "code = Internal desc = failed to fetch list of flags")
 	})
 }
+
+func TestEvaluateFlag_Reference(t *testing.T) {
+	flagKey := "flag-key"
+	namespace := "test-namespace"
+	reference := "release-branch"
+
+	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+		"x-flipt-namespace": namespace,
+		"x-flipt-reference": reference,
+	}))
+
+	bridge := NewMockBridge(t)
+	store := common.NewMockStore(t)
+	s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
+
+	bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{
+		FlagKey:      flagKey,
+		NamespaceKey: namespace,
+		Reference:    reference,
+		EntityId:     "testing-key",
+		Context: map[string]string{
+			ofrepCtxTargetingKey: "testing-key",
+		},
+	}).Return(EvaluationBridgeOutput{
+		FlagKey: flagKey,
+		Reason:  rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON,
+		Variant: "false",
+		Value:   false,
+	}, nil)
+
+	_, err := s.EvaluateFlag(ctx, &ofrep.EvaluateFlagRequest{
+		Key: flagKey,
+		Context: map[string]string{
+			ofrepCtxTargetingKey: "testing-key",
+		},
+	})
+
+	require.NoError(t, err)
+}
+
+func TestEvaluateBulk_Reference(t *testing.T) {
+	flagKey := "flag-key"
+	reference := "release-branch"
+
+	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+		"x-flipt-reference": reference,
+	}))
+
+	bridge := NewMockBridge(t)
+	store := common.NewMockStore(t)
+	s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
+
+	bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{
+		FlagKey:      flagKey,
+		NamespaceKey: "default",
+		Reference:    reference,
+		EntityId:     "targeting",
+		Context: map[string]string{
+			ofrepCtxTargetingKey: "targeting",
+			"flags":              flagKey,
+		},
+	}).Return(EvaluationBridgeOutput{
+		FlagKey: flagKey,
+		Reason:  rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON,
+		Variant: "false",
+		Value:   false,
+	}, nil)
+
+	response, err := s.EvaluateBulk(ctx, &ofrep.EvaluateBulkRequest{
+		Context: map[string]string{
+			ofrepCtxTargetingKey: "targeting",
+			"flags":              flagKey,
+		},
+	})
+
+	require.NoError(t, err)
+	require.Len(t, response.Flags, 1)
+}
+
+func TestEvaluateBulk_ReferenceWithoutFlagList(t *testing.T) {
+	flagKey := "flag-key"
+	reference := "release-branch"
+
+	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+		"x-flipt-reference": reference,
+	}))
+
+	bridge := NewMockBridge(t)
+	store := common.NewMockStore(t)
+	s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
+
+	store.On(
+		"ListFlags",
+		mock.Anything,
+		storage.ListWithOptions(
+			storage.NewNamespace(
+				"default",
+				storage.WithReference(reference),
+			),
+		),
+	).Return(storage.ResultSet[*flipt.Flag]{
+		Results: []*flipt.Flag{
+			{
+				Key:     flagKey,
+				Type:    flipt.FlagType_BOOLEAN_FLAG_TYPE,
+				Enabled: true,
+			},
+		},
+	}, nil)
+
+	bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{
+		FlagKey:      flagKey,
+		NamespaceKey: "default",
+		Reference:    reference,
+		EntityId:     "targeting",
+		Context: map[string]string{
+			ofrepCtxTargetingKey: "targeting",
+		},
+	}).Return(EvaluationBridgeOutput{
+		FlagKey:  flagKey,
+		Reason:   rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON,
+		Variant:  "true",
+		Value:    true,
+		Metadata: map[string]any{},
+	}, nil)
+
+	response, err := s.EvaluateBulk(ctx, &ofrep.EvaluateBulkRequest{
+		Context: map[string]string{
+			ofrepCtxTargetingKey: "targeting",
+		},
+	})
+
+	require.NoError(t, err)
+	require.Len(t, response.Flags, 1)
+	assert.Equal(t, flagKey, response.Flags[0].Key)
+}

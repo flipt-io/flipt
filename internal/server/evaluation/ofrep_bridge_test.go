@@ -17,6 +17,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
+		reference    = "release-branch"
 		store        = NewMockStorer(t)
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
@@ -28,9 +29,25 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
+	store.On(
+		"GetFlag",
+		mock.Anything,
+		storage.NewResource(
+			namespaceKey,
+			flagKey,
+			storage.WithReference(reference),
+		),
+	).Return(flag, nil)
 
-	store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRule{
+	store.On(
+		"GetEvaluationRules",
+		mock.Anything,
+		storage.NewResource(
+			namespaceKey,
+			flagKey,
+			storage.WithReference(reference),
+		),
+	).Return([]*storage.EvaluationRule{
 		{
 			ID:      "1",
 			FlagKey: flagKey,
@@ -44,7 +61,16 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		},
 	}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{
+	store.On(
+		"GetEvaluationDistributions",
+		mock.Anything,
+		storage.NewResource(
+			namespaceKey,
+			flagKey,
+			storage.WithReference(reference),
+		),
+		storage.NewID("1", storage.WithReference(reference)),
+	).Return([]*storage.EvaluationDistribution{
 		{
 			ID:         "4",
 			RuleID:     "1",
@@ -57,6 +83,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	output, err := s.OFREPFlagEvaluation(t.Context(), ofrep.EvaluationBridgeInput{
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
+		Reference:    reference,
 		Context: map[string]string{
 			"hello":        "world",
 			"targetingKey": "12345",

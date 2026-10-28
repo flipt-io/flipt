@@ -17,6 +17,7 @@ import (
 type EvaluationBridgeInput struct {
 	FlagKey      string
 	NamespaceKey string
+	Reference    string
 	EntityId     string
 	Context      map[string]string
 }

@@ -22,7 +22,14 @@ const (
 )
 
 func (s *Server) OFREPFlagEvaluation(ctx context.Context, input ofrep.EvaluationBridgeInput) (ofrep.EvaluationBridgeOutput, error) {
-	flag, err := s.store.GetFlag(ctx, storage.NewResource(input.NamespaceKey, input.FlagKey))
+	flag, err := s.store.GetFlag(
+		ctx,
+		storage.NewResource(
+			input.NamespaceKey,
+			input.FlagKey,
+			storage.WithReference(input.Reference),
+		),
+	)
 	if err != nil {
 		return ofrep.EvaluationBridgeOutput{}, err
 	}
@@ -36,6 +43,7 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, input ofrep.Evaluation
 	req := &rpcevaluation.EvaluationRequest{
 		NamespaceKey: input.NamespaceKey,
 		FlagKey:      input.FlagKey,
+		Reference:    input.Reference,
 		EntityId:     input.EntityId,
 		Context:      input.Context,
 	}
