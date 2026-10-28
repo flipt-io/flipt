@@ -7,7 +7,7 @@ package prometheus
 import (
 	"context"
 
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	mock "github.com/stretchr/testify/mock"
 )
