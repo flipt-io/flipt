@@ -22,13 +22,17 @@ const ofrepCtxTargetingKey = "targetingKey"
 
 func (s *Server) EvaluateFlag(ctx context.Context, r *ofrep.EvaluateFlagRequest) (*ofrep.EvaluatedFlag, error) {
 	s.logger.Debug("ofrep flag", zap.Stringer("request", r))
+
 	if r.Key == "" {
 		return nil, newFlagMissingError()
 	}
+
 	entityId := getTargetingKey(r.Context)
+
 	output, err := s.bridge.OFREPFlagEvaluation(ctx, EvaluationBridgeInput{
 		FlagKey:      r.Key,
 		NamespaceKey: getNamespace(ctx),
+		Reference:    getReference(ctx),
 		EntityId:     entityId,
 		Context:      r.Context,
 	})
@@ -48,20 +52,35 @@ func (s *Server) EvaluateFlag(ctx context.Context, r *ofrep.EvaluateFlagRequest)
 
 func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest) (*ofrep.BulkEvaluationResponse, error) {
 	s.logger.Debug("ofrep bulk", zap.Stringer("request", r))
+
 	entityId := getTargetingKey(r.Context)
 	namespaceKey := getNamespace(ctx)
+	reference := getReference(ctx)
+
 	flagKeys, ok := r.Context["flags"]
 	keys := strings.Split(flagKeys, ",")
+
 	if !ok {
-		flags, err := s.store.ListFlags(ctx, storage.ListWithOptions(storage.NewNamespace(namespaceKey)))
+		flags, err := s.store.ListFlags(
+			ctx,
+			storage.ListWithOptions(
+				storage.NewNamespace(
+					namespaceKey,
+					storage.WithReference(reference),
+				),
+			),
+		)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to fetch list of flags")
 		}
+
 		keys = make([]string, 0, len(flags.Results))
+
 		for _, flag := range flags.Results {
 			switch flag.Type {
 			case flipt.FlagType_BOOLEAN_FLAG_TYPE:
 				keys = append(keys, flag.Key)
+
 			case flipt.FlagType_VARIANT_FLAG_TYPE:
 				if flag.Enabled {
 					keys = append(keys, flag.Key)
@@ -69,12 +88,16 @@ func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest)
 			}
 		}
 	}
+
 	flags := make([]*ofrep.EvaluatedFlag, 0, len(keys))
+
 	for _, key := range keys {
 		key = strings.TrimSpace(key)
+
 		o, err := s.bridge.OFREPFlagEvaluation(ctx, EvaluationBridgeInput{
 			FlagKey:      key,
 			NamespaceKey: namespaceKey,
+			Reference:    reference,
 			EntityId:     entityId,
 			Context:      r.Context,
 		})
@@ -86,12 +109,16 @@ func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest)
 		if err != nil {
 			return nil, transformError(key, err)
 		}
+
 		flags = append(flags, evaluation)
 	}
+
 	resp := &ofrep.BulkEvaluationResponse{
 		Flags: flags,
 	}
+
 	s.logger.Debug("ofrep bulk", zap.Stringer("response", resp))
+
 	return resp, nil
 }
 
@@ -100,6 +127,7 @@ func transformOutput(output EvaluationBridgeOutput) (*ofrep.EvaluatedFlag, error
 	if err != nil {
 		return nil, err
 	}
+
 	metadata, err := structpb.NewStruct(output.Metadata)
 	if err != nil {
 		return nil, err
@@ -119,6 +147,7 @@ func getTargetingKey(context map[string]string) string {
 	if targetingKey, ok := context[ofrepCtxTargetingKey]; ok {
 		return targetingKey
 	}
+
 	return uuid.NewString()
 }
 
@@ -136,14 +165,31 @@ func getNamespace(ctx context.Context) string {
 	return namespace[0]
 }
 
+func getReference(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+
+	reference := md.Get("x-flipt-reference")
+	if len(reference) == 0 {
+		return ""
+	}
+
+	return reference[0]
+}
+
 func transformReason(reason rpcevaluation.EvaluationReason) ofrep.EvaluateReason {
 	switch reason {
 	case rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON:
 		return ofrep.EvaluateReason_DISABLED
+
 	case rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON:
 		return ofrep.EvaluateReason_TARGETING_MATCH
+
 	case rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON:
 		return ofrep.EvaluateReason_DEFAULT
+
 	default:
 		return ofrep.EvaluateReason_UNKNOWN
 	}
@@ -153,10 +199,13 @@ func transformError(key string, err error) error {
 	switch {
 	case flipterrors.AsMatch[flipterrors.ErrInvalid](err):
 		return newBadRequestError(key, err)
+
 	case flipterrors.AsMatch[flipterrors.ErrValidation](err):
 		return newBadRequestError(key, err)
+
 	case flipterrors.AsMatch[flipterrors.ErrNotFound](err):
 		return newFlagNotFoundError(key)
 	}
+
 	return err
 }
