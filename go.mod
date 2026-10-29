@@ -3,7 +3,7 @@ module go.flipt.io/flipt
 go 1.27.0
 
 require (
-	cloud.google.com/go/secretmanager v1.22.0
+	cloud.google.com/go/secretmanager v1.23.0
 	code.gitea.io/sdk/gitea v0.25.1
 	cuelang.org/go v0.17.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -13,7 +13,7 @@ require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.49.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/ProtonMail/go-crypto v1.5.2
-	github.com/aws/aws-sdk-go-v2 v1.47.3
+	github.com/aws/aws-sdk-go-v2 v1.47.4
 	github.com/aws/aws-sdk-go-v2/config v1.33.9
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.114.3
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.50.4
@@ -56,7 +56,7 @@ require (
 	github.com/mattn/go-isatty v0.0.24
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/open-policy-agent/opa v1.21.2
+	github.com/open-policy-agent/opa v1.21.4
 	github.com/prometheus/client_golang v1.25.0
 	github.com/prometheus/common v0.72.1
 	github.com/prometheus/sigv4 v0.5.0
@@ -97,9 +97,9 @@ require (
 	golang.org/x/oauth2 v0.37.0
 	golang.org/x/sync v0.24.0
 	golang.org/x/term v0.47.0
-	google.golang.org/api v0.304.0
+	google.golang.org/api v0.308.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20261012220534-4341edf3f941
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20261005182115-fad411399dd8
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261019180522-ce908d29299b
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
@@ -146,7 +146,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.38.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.43.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.51.4 // indirect
-	github.com/aws/smithy-go v1.28.5 // indirect
+	github.com/aws/smithy-go v1.28.6 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
