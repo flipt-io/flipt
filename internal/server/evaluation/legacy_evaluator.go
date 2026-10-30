@@ -103,7 +103,14 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 		return resp, nil
 	}
 
-	rules, err := e.store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
+	rules, err := e.store.GetEvaluationRules(
+		ctx,
+		storage.NewResource(
+			r.NamespaceKey,
+			r.FlagKey,
+			storage.WithReference(r.Reference),
+		),
+	)
 	if err != nil {
 		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 		return resp, err
@@ -164,7 +171,15 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 			resp.SegmentKeys = segmentKeys
 		}
 
-		distributions, err := e.store.GetEvaluationDistributions(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey), storage.NewID(rule.ID))
+		distributions, err := e.store.GetEvaluationDistributions(
+			ctx,
+			storage.NewResource(
+				r.NamespaceKey,
+				r.FlagKey,
+				storage.WithReference(r.Reference),
+			),
+			storage.NewID(rule.ID, storage.WithReference(r.Reference)),
+		)
 		if err != nil {
 			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, err
