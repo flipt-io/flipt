@@ -639,3 +639,92 @@ func TestCUD(t *testing.T) {
 		})
 	}
 }
+
+
+func TestGetFlag_ReferenceIsolation(t *testing.T) {
+	ctx := context.Background()
+	const namespace = "ns"
+	const mainReference = "main"
+	const releaseReference = "release"
+
+	mainFlag := &flipt.Flag{NamespaceKey: namespace, Key: "flag-1", Description: "main"}
+	releaseFlag := &flipt.Flag{NamespaceKey: namespace, Key: "flag-1", Description: "release"}
+	store := common.NewMockStore(t)
+
+	store.On("GetVersion", ctx, storage.NewNamespace(namespace, storage.WithReference(mainReference))).Return("same-version", nil).Once()
+	store.On("GetVersion", ctx, storage.NewNamespace(namespace, storage.WithReference(releaseReference))).Return("same-version", nil).Once()
+	store.On("GetFlag", ctx, storage.NewResource(namespace, "flag-1", storage.WithReference(mainReference))).Return(mainFlag, nil).Once()
+	store.On("GetFlag", ctx, storage.NewResource(namespace, "flag-1", storage.WithReference(releaseReference))).Return(releaseFlag, nil).Once()
+
+	cache := memory.NewCache(config.CacheConfig{
+		TTL:     time.Minute,
+		Enabled: true,
+		Backend: config.CacheBackendMemory,
+	})
+	cachedStore := NewStore(store, newCacheSpy(cache), zaptest.NewLogger(t))
+
+	actualMain, err := cachedStore.GetFlag(ctx, storage.NewResource(namespace, "flag-1", storage.WithReference(mainReference)))
+	require.NoError(t, err)
+	require.Same(t, mainFlag, actualMain)
+
+	actualRelease, err := cachedStore.GetFlag(ctx, storage.NewResource(namespace, "flag-1", storage.WithReference(releaseReference)))
+	require.NoError(t, err)
+	require.Same(t, releaseFlag, actualRelease)
+
+	store.AssertExpectations(t)
+}
+
+func TestListFlags_ReferenceIsolation(t *testing.T) {
+	ctx := context.Background()
+	const namespace = "ns"
+	const mainReference = "main"
+	const releaseReference = "release"
+
+	mainFlags := storage.ResultSet[*flipt.Flag]{
+		Results: []*flipt.Flag{{NamespaceKey: namespace, Key: "main-only"}},
+	}
+	releaseFlags := storage.ResultSet[*flipt.Flag]{
+		Results: []*flipt.Flag{{NamespaceKey: namespace, Key: "release-only"}},
+	}
+	store := common.NewMockStore(t)
+
+	store.On("GetVersion", ctx, storage.NewNamespace(namespace, storage.WithReference(mainReference))).Return("same-version", nil).Once()
+	store.On("GetVersion", ctx, storage.NewNamespace(namespace, storage.WithReference(releaseReference))).Return("same-version", nil).Once()
+	store.On(
+		"ListFlags",
+		ctx,
+		mock.MatchedBy(func(req *storage.ListRequest[storage.NamespaceRequest]) bool {
+			return req.Predicate.Reference == storage.Reference(mainReference)
+		}),
+	).Return(mainFlags, nil).Once()
+	store.On(
+		"ListFlags",
+		ctx,
+		mock.MatchedBy(func(req *storage.ListRequest[storage.NamespaceRequest]) bool {
+			return req.Predicate.Reference == storage.Reference(releaseReference)
+		}),
+	).Return(releaseFlags, nil).Once()
+
+	cache := memory.NewCache(config.CacheConfig{
+		TTL:     time.Minute,
+		Enabled: true,
+		Backend: config.CacheBackendMemory,
+	})
+	cachedStore := NewStore(store, newCacheSpy(cache), zaptest.NewLogger(t))
+
+	actualMain, err := cachedStore.ListFlags(ctx, storage.ListWithOptions(
+		storage.NewNamespace(namespace, storage.WithReference(mainReference)),
+	))
+	require.NoError(t, err)
+	require.Len(t, actualMain.Results, 1)
+	assert.Equal(t, "main-only", actualMain.Results[0].Key)
+
+	actualRelease, err := cachedStore.ListFlags(ctx, storage.ListWithOptions(
+		storage.NewNamespace(namespace, storage.WithReference(releaseReference)),
+	))
+	require.NoError(t, err)
+	require.Len(t, actualRelease.Results, 1)
+	assert.Equal(t, "release-only", actualRelease.Results[0].Key)
+
+	store.AssertExpectations(t)
+}

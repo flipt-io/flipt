@@ -27,6 +27,7 @@ func (c *CorsConfig) setDefaults(v *viper.Viper) error {
 			"X-Fern-SDK-Name",
 			"X-Fern-SDK-Version",
 			"X-Flipt-Namespace",
+			"X-Flipt-Reference",
 			"X-Flipt-Accept-Server-Version",
 		},
 	})

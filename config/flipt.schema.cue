@@ -188,6 +188,7 @@ import "list"
 			"X-Fern-SDK-Name",
 			"X-Fern-SDK-Version",
 			"X-Flipt-Namespace",
+			"X-Flipt-Reference",
 			"X-Flipt-Accept-Server-Version",
 		]
 	}

@@ -352,6 +352,8 @@ const fliptAcceptServerVersionHeaderKey = "x-flipt-accept-server-version"
 
 const fliptNamespaceHeaderKey = "x-flipt-namespace"
 
+const fliptReferenceHeaderKey = "x-flipt-reference"
+
 type fliptAcceptServerVersionContextKey struct{}
 
 // WithFliptAcceptServerVersion sets the flipt version in the context.
@@ -407,6 +409,12 @@ func ForwardFliptAcceptServerVersion(ctx context.Context, req *http.Request) met
 // and forwards them as grpc metadata entries.
 func ForwardFliptNamespace(ctx context.Context, req *http.Request) metadata.MD {
 	return forwardHeader(ctx, req, fliptNamespaceHeaderKey)
+}
+
+// ForwardFliptReference extracts the "x-flipt-reference" header from an HTTP request
+// and forwards it as gRPC metadata.
+func ForwardFliptReference(ctx context.Context, req *http.Request) metadata.MD {
+	return forwardHeader(ctx, req, fliptReferenceHeaderKey)
 }
 
 func forwardHeader(ctx context.Context, req *http.Request, headerKey string) metadata.MD {

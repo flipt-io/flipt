@@ -1756,3 +1756,16 @@ func TestForwardFliptNamespace(t *testing.T) {
 	md = ForwardFliptNamespace(context.Background(), req)
 	assert.Equal(t, []string{"extra-namespace"}, md.Get(fliptNamespaceHeaderKey))
 }
+
+func TestForwardFliptReference(t *testing.T) {
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "/", nil)
+	md := ForwardFliptReference(context.Background(), req)
+	assert.Empty(t, md.Get(fliptReferenceHeaderKey))
+
+	req.Header.Add(fliptReferenceHeaderKey, "release-branch")
+	ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("key", "value"))
+	md = ForwardFliptReference(ctx, req)
+
+	assert.Equal(t, []string{"release-branch"}, md.Get(fliptReferenceHeaderKey))
+	assert.Equal(t, []string{"value"}, md.Get("key"))
+}

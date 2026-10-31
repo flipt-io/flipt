@@ -264,7 +264,11 @@ func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest
 }
 
 func (s *Store) ListFlags(ctx context.Context, r *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error) {
-	ns := storage.NewResource(r.Predicate.Namespace(), fmt.Sprintf("flags/%s-%d-%d", r.QueryParams.PageToken, r.QueryParams.Offset, r.QueryParams.Limit))
+	ns := storage.NewResource(
+		r.Predicate.Namespace(),
+		fmt.Sprintf("flags/%s-%d-%d", r.QueryParams.PageToken, r.QueryParams.Offset, r.QueryParams.Limit),
+		storage.WithReference(string(r.Predicate.Reference)),
+	)
 	namespaceVersion, _ := s.GetVersion(ctx, ns.NamespaceRequest)
 	var (
 		f        = storage.ResultSet[*flipt.Flag]{}
@@ -407,11 +411,19 @@ func (s *Store) cacheUpdateNamespacedVersion(ctx context.Context, r storage.Name
 }
 
 func (*Store) cacheNsKey(r storage.NamespaceRequest) string {
-	cacheKey := fmt.Sprintf("%s:%s", namespaceCacheKeyPrefix, r.Namespace())
-	return cacheKey
+	// Preserve the existing default-reference key while isolating explicit references.
+	if r.Reference == "" {
+		return fmt.Sprintf("%s:%s", namespaceCacheKeyPrefix, r.Namespace())
+	}
+
+	return fmt.Sprintf("%s:%s:%s", namespaceCacheKeyPrefix, r.Namespace(), string(r.Reference))
 }
 
 func cacheKey(prefix string, r storage.ResourceRequest, version string) string {
-	// <prefix>:<namespaceKey>:<flagKey>
-	return fmt.Sprintf("%s:%s:%s:%s", prefix, r.Namespace(), version, r.Key)
+	// Preserve the existing default-reference key while isolating explicit references.
+	if r.Reference == "" {
+		return fmt.Sprintf("%s:%s:%s:%s", prefix, r.Namespace(), version, r.Key)
+	}
+
+	return fmt.Sprintf("%s:%s:%s:%s:%s", prefix, r.Namespace(), string(r.Reference), version, r.Key)
 }
