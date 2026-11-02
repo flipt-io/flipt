@@ -417,6 +417,18 @@ func ForwardFliptReference(ctx context.Context, req *http.Request) metadata.MD {
 	return forwardHeader(ctx, req, fliptReferenceHeaderKey)
 }
 
+// ForwardFliptNamespaceAndReference forwards both Flipt headers as gRPC metadata.
+func ForwardFliptNamespaceAndReference(ctx context.Context, req *http.Request) metadata.MD {
+	md := ForwardFliptNamespace(ctx, req)
+	referenceMD := ForwardFliptReference(ctx, req)
+
+	if values := referenceMD.Get(fliptReferenceHeaderKey); len(values) > 0 {
+		md[fliptReferenceHeaderKey] = values
+	}
+
+	return md
+}
+
 func forwardHeader(ctx context.Context, req *http.Request, headerKey string) metadata.MD {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {

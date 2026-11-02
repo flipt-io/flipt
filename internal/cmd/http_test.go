@@ -138,7 +138,8 @@ func TestOFREPReferenceHeaderForwarding(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	preflight := httptest.NewRequest(
+	preflight := httptest.NewRequestWithContext(
+		t.Context(),
 		http.MethodOptions,
 		"/ofrep/v1/evaluate/flags/test-flag",
 		nil,
@@ -156,7 +157,8 @@ func TestOFREPReferenceHeaderForwarding(t *testing.T) {
 		"x-flipt-reference",
 	)
 
-	request := httptest.NewRequest(
+	request := httptest.NewRequestWithContext(
+		t.Context(),
 		http.MethodPost,
 		"/ofrep/v1/evaluate/flags/test-flag",
 		strings.NewReader(`{"context":{"targetingKey":"user-1"}}`),
