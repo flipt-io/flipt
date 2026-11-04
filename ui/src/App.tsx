@@ -1,4 +1,4 @@
-import formbricks from '@formbricks/js/website';
+import formbricks from '@formbricks/js';
 import { lazy, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RouterProvider, createHashRouter, redirect } from 'react-router';
@@ -29,9 +29,9 @@ const Namespaces = lazy(() => import('./app/namespaces/Namespaces'));
 const Analytics = lazy(() => import('./app/analytics/Analytics'));
 
 if (typeof window !== 'undefined') {
-  formbricks.init({
-    environmentId: import.meta.env.FLIPT_FORMBRICKS_ENVIRONMENT_ID || '',
-    apiHost: 'https://app.formbricks.com'
+  formbricks.setup({
+    workspaceId: import.meta.env.FLIPT_FORMBRICKS_ENVIRONMENT_ID || '',
+    appUrl: 'https://app.formbricks.com'
   });
 }
 
