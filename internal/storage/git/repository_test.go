@@ -558,6 +558,44 @@ func TestFetch_NoRemote(t *testing.T) {
 	assert.NoError(t, err, "fetch without remote should succeed silently")
 }
 
+func TestFetch_BoundedByPollInterval(t *testing.T) {
+	tempDir := t.TempDir()
+	logger := zap.NewNop()
+
+	// A local repo with a commit, so lenient policy skips the initial
+	// fetch at construction time.
+	plainRepo, err := git.PlainInit(tempDir, false)
+	require.NoError(t, err)
+	worktree, err := plainRepo.Worktree()
+	require.NoError(t, err)
+	testFile := filepath.Join(tempDir, "test.txt")
+	require.NoError(t, os.WriteFile(testFile, []byte("test"), 0o600))
+	_, err = worktree.Add("test.txt")
+	require.NoError(t, err)
+	_, err = worktree.Commit("initial", &git.CommitOptions{
+		Author: &object.Signature{Name: "t", Email: "t@t", When: time.Now()},
+	})
+	require.NoError(t, err)
+
+	repo, _, err := newRepository(
+		t.Context(), logger,
+		WithFilesystemStorage(tempDir),
+		WithRemote("origin", "http://localhost:1/invalid-repo.git"),
+		WithLenientFetchPolicy(),
+	)
+	require.NoError(t, err)
+
+	// Poll interval far shorter than any network round trip: the fetch
+	// context must expire before the unreachable remote's transport-level
+	// timeout, so the exclusive lock is never held indefinitely (#6709).
+	repo.pollInterval = time.Nanosecond
+
+	err = repo.Fetch(t.Context())
+	require.Error(t, err, "fetch with an expired timeout must fail")
+	assert.ErrorIs(t, err, context.DeadlineExceeded,
+		"the timeout added in Fetch must bound the network I/O")
+}
+
 func TestFetch_StrictPolicy_WithConnectionRefused(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()

@@ -411,6 +411,17 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		return nil
 	}
 
+	// Bound the fetch so the exclusive lock is not held indefinitely on a
+	// slow or unresponsive remote (#6709). The timeout matches the poll
+	// interval when polling is enabled; a stuck fetch fails fast and the
+	// next tick retries. Without polling, a reasonable fixed bound applies.
+	timeout := r.pollInterval
+	if timeout == 0 {
+		timeout = 30 * time.Second
+	}
+	fetchCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	updatedRefs := map[string]plumbing.Hash{}
 	r.mu.Lock()
 	defer func() {
@@ -423,7 +434,7 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		heads = r.fetchHeads()
 	}
 
-	return r.fetch(ctx, heads, updatedRefs)
+	return r.fetch(fetchCtx, heads, updatedRefs)
 }
 
 // fetch fetches heads from the configured remote and records each updated
