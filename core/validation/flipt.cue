@@ -156,4 +156,21 @@ close({
 	}
 	description?: string | null
 	operator:     "isoneof" | "isnotoneof"
+} | {
+	type:         "SEMVER_COMPARISON_TYPE"
+	property:     string & =~"^.+$"
+	value?:       string
+	description?: string | null
+	operator:     "eq" | "neq" | "present" | "notpresent" | "lt" | "lte" | "gt" | "gte"
+} | {
+	type:         "SEMVER_COMPARISON_TYPE"
+	property:     string & =~"^.+$"
+	if list.Contains(#versions[:6], version) { // before 1.6
+		value: string
+	}
+	if !list.Contains(#versions[:6], version) { // 1.6 or later
+		value: [...string]
+	}
+	description?: string | null
+	operator:     "isoneof" | "isnotoneof"
 })
