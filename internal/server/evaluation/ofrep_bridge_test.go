@@ -15,6 +15,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.uber.org/zap/zaptest"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -377,7 +378,7 @@ func TestOFREPFlagEvaluationBulkWithEtag(t *testing.T) {
 			metadata: map[string]string{
 				"x-flipt-environment":       "test-environment",
 				"x-flipt-namespace":         "test-namespace",
-				"GrpcGateway-If-None-Match": `W/"7e427de9ffaef7ba"`,
+				"GrpcGateway-If-None-Match": `W/"851941ee07d5ed0"`,
 			},
 			flags: []*core.Flag{{
 				Key:     "test-flag",
@@ -676,4 +677,57 @@ func TestOFREPFlagEvaluationBulk_BooleanDisabledNoRollouts(t *testing.T) {
 	assert.Equal(t, ofrep.EvaluateReason_DISABLED, evaluation.Reason)
 	assert.Equal(t, "false", evaluation.Variant)
 	assert.False(t, evaluation.Value.GetBoolValue())
+}
+
+type etagCapture struct{ md metadata.MD }
+
+func (s *etagCapture) Method() string                  { return "bulk" }
+func (s *etagCapture) SetHeader(md metadata.MD) error  { s.md = metadata.Join(s.md, md); return nil }
+func (s *etagCapture) SendHeader(md metadata.MD) error { return nil }
+func (s *etagCapture) SetTrailer(md metadata.MD) error { return nil }
+
+func TestOFREPFlagEvaluationBulkEtagCoversAttachment(t *testing.T) {
+	etagFor := func(attachment string) string {
+		var (
+			envStore    = NewMockEnvironmentStore(t)
+			environment = environments.NewMockEnvironment(t)
+			store       = storage.NewMockReadOnlyStore(t)
+			s           = New(zaptest.NewLogger(t), envStore)
+			flag        = &core.Flag{Key: "test-flag", Enabled: true, Type: core.FlagType_VARIANT_FLAG_TYPE}
+		)
+
+		environment.On("Key").Return("test-environment")
+		envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
+		environment.On("EvaluationStore").Return(store, nil)
+		store.On("GetFlag", mock.Anything, mock.Anything).Return(flag, nil)
+		store.On("GetEvaluationRules", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{
+			{ID: "1", FlagKey: flag.Key, Rank: 0, Segments: map[string]*storage.EvaluationSegment{
+				"bar": {SegmentKey: "bar", MatchType: core.MatchType_ANY_MATCH_TYPE},
+			}},
+		}, nil)
+		store.On("GetEvaluationDistributions", mock.Anything, mock.Anything, storage.NewID("1")).Return(
+			[]*storage.EvaluationDistribution{
+				{ID: "4", RuleID: "1", VariantID: "5", Rollout: 100, VariantKey: "boz", VariantAttachment: attachment},
+			}, nil)
+
+		capture := &etagCapture{}
+		ctx := grpc.NewContextWithServerTransportStream(
+			metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{
+				"x-flipt-environment": "test-environment",
+				"x-flipt-namespace":   "test-namespace",
+			})), capture)
+
+		resp, err := s.OFREPFlagEvaluationBulk(ctx, &ofrep.EvaluateBulkRequest{
+			Context: map[string]string{"flags": "test-flag", "targetingKey": "12345"},
+		})
+		require.NoError(t, err)
+		require.Len(t, resp.Flags, 1)
+		require.Equal(t, attachment, resp.Flags[0].Metadata.Fields[metaKeyAttachment].GetStringValue())
+
+		vals := capture.md.Get("x-etag")
+		require.Len(t, vals, 1)
+		return vals[0]
+	}
+
+	assert.NotEqual(t, etagFor(`{"colour":"blue"}`), etagFor(`{"colour":"red"}`))
 }
