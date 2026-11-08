@@ -176,8 +176,12 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 	responses := make([]*ofrep.EvaluationResponse, 0, len(keys))
 	hmac := xxhash.New()
 	// xxhash.WriteString doesn't return the error
-	_, _ = hmac.WriteString(env.Key())
-	_, _ = hmac.WriteString(namespaceKey)
+	writeEtagPart := func(s string) {
+		_, _ = hmac.WriteString(s)
+		_, _ = hmac.WriteString("\x00")
+	}
+	writeEtagPart(env.Key())
+	writeEtagPart(namespaceKey)
 	for _, flagKey := range keys {
 		resp, err := s.OFREPFlagEvaluation(ctx, &ofrep.EvaluateFlagRequest{
 			Key:     flagKey,
@@ -187,8 +191,11 @@ func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateB
 			return nil, err
 		}
 		responses = append(responses, resp)
-		_, _ = hmac.WriteString(resp.Key)
-		_, _ = hmac.WriteString(resp.Variant)
+		writeEtagPart(resp.Key)
+		writeEtagPart(resp.Variant)
+		writeEtagPart(resp.Reason.String())
+		writeEtagPart(resp.Metadata.GetFields()[metaKeyAttachment].GetStringValue())
+		writeEtagPart(resp.Metadata.GetFields()[metaKeySegments].GetStringValue())
 	}
 
 	etag := fmt.Sprintf("W/\"%08x\"", hmac.Sum64())
