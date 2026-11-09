@@ -1,7 +1,7 @@
 [tools]
 go = "1.27"
 node = "24"
-golangci-lint = "2.14.0"
+golangci-lint = "2.15.0"
 buf = "1.72.0"
 dagger = "0.21.9"
 
