@@ -4,9 +4,7 @@ runs:
   using: composite
   steps:
     - name: Install mise
-      uses: jdx/mise-action@v4
-      env:
-        MISE_DISABLE_TOOLS: "dagger,mockery,buf"
+      uses: jdx/mise-action@v5
     - name: Export mise tool versions
       shell: bash
       id: mise_versions

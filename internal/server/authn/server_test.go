@@ -252,7 +252,9 @@ func TestServer(t *testing.T) {
 			}()
 			t.Cleanup(func() {
 				oidcServer.Stop()
-				<-oidcErrC
+				if err := <-oidcErrC; err != nil {
+					t.Errorf("oidc server serve: %v", err)
+				}
 			})
 
 			oidcDialer := func(context.Context, string) (net.Conn, error) {
