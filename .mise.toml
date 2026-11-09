@@ -1,9 +1,9 @@
 [tools]
 go = "1.27"
 node = "24"
-golangci-lint = "2.15.0"
-buf = "1.72.0"
-dagger = "0.21.9"
+golangci-lint = { version = "2.15.0", lazy = true }
+buf = { version = "1.72.0", lazy = true }
+dagger = { version = "0.21.9", lazy = true }
 
 [tasks.bootstrap]
 description = "Install required development tools"

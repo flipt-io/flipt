@@ -5,8 +5,6 @@ runs:
   steps:
     - name: Install mise
       uses: jdx/mise-action@v5
-      env:
-        MISE_DISABLE_TOOLS: "dagger,mockery,buf"
     - name: Export mise tool versions
       shell: bash
       id: mise_versions
