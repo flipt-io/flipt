@@ -1,0 +1,17 @@
+authentication:
+  required: true
+  session:
+    domain: "http://localhost:8080"
+    secure: false
+  methods:
+    jwt:
+      enabled: true
+      jwks_url: "https://example.com/.well-known/jwks.json"
+      validate_claims:
+        issuer: https://example.com/
+        custom:
+          - claim: "https://example.com/roles"
+            values: [flipt-admin, flipt-editor]
+          - claim: Team
+            values:
+              - platform

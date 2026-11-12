@@ -638,6 +638,31 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "custom": {
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "claim",
+                          "values"
+                        ],
+                        "properties": {
+                          "claim": {
+                            "type": "string"
+                          },
+                          "values": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 },

@@ -289,3 +289,66 @@ func TestAuthenticationConfig_validate_FrontChannelLogoutRequiresSecureSession(t
 		})
 	}
 }
+
+func TestAuthenticationMethodJWTConfig_validate_CustomClaims(t *testing.T) {
+	newConfig := func(custom ...JWTCustomClaim) AuthenticationMethodJWTConfig {
+		cfg := AuthenticationMethodJWTConfig{JWKSURL: "https://example.com/.well-known/jwks.json"}
+		cfg.ValidateClaims.Custom = custom
+		return cfg
+	}
+
+	tests := []struct {
+		name    string
+		config  AuthenticationMethodJWTConfig
+		wantErr string
+	}{
+		{
+			name:   "no custom claims",
+			config: newConfig(),
+		},
+		{
+			name:   "valid custom claims",
+			config: newConfig(JWTCustomClaim{Claim: "groups", Values: []string{"admins", "users"}}),
+		},
+		{
+			name:    "missing claim name",
+			config:  newConfig(JWTCustomClaim{Values: []string{"admins"}}),
+			wantErr: "authentication: validate_claims.custom[0].claim non-empty value is required",
+		},
+		{
+			name: "missing values",
+			config: newConfig(
+				JWTCustomClaim{Claim: "groups", Values: []string{"admins"}},
+				JWTCustomClaim{Claim: "team"},
+			),
+			wantErr: "authentication: validate_claims.custom[1].values at least one non-empty value is required",
+		},
+		{
+			name:    "only empty values",
+			config:  newConfig(JWTCustomClaim{Claim: "team", Values: []string{""}}),
+			wantErr: "authentication: validate_claims.custom[0].values at least one non-empty value is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.validate()
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+				return
+			}
+
+			assert.EqualError(t, err, tt.wantErr)
+		})
+	}
+}
+
+func TestLoad_JWTCustomClaims(t *testing.T) {
+	res, err := Load(t.Context(), "./testdata/authentication/jwt_custom_claims.yml")
+	require.NoError(t, err)
+
+	assert.Equal(t, []JWTCustomClaim{
+		{Claim: "https://example.com/roles", Values: []string{"flipt-admin", "flipt-editor"}},
+		{Claim: "Team", Values: []string{"platform"}},
+	}, res.Config.Authentication.Methods.JWT.Method.ValidateClaims.Custom)
+}
