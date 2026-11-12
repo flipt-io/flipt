@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -90,6 +91,8 @@ type EvaluationConstraint struct {
 	NumberSet map[float64]struct{} `json:"-"` // populated for number isoneof/isnotoneof constraints; used by matchesNumberSet.
 	Number    *float64             `json:"-"` // populated for scalar number comparisons (eq, neq, lt, lte, gt, gte); used by matchesNumber.
 	Datetime  time.Time            `json:"-"` // populated for scalar datetime comparisons (eq, neq, lt, lte, gt, gte); used by matchesDatetime.
+	Semver    *semver.Version      `json:"-"` // populated for scalar semver comparisons (eq, neq, lt, lte, gt, gte); used by matchesSemver.
+	SemverList []*semver.Version   `json:"-"` // populated for semver isoneof/isnotoneof constraints; used by matchesSemver.
 }
 
 // Pre-parses the Value field to deduplicate JSON deserialization and avoid linear scans.
@@ -115,6 +118,19 @@ func (c *EvaluationConstraint) PrepareForEvaluation() error {
 			for _, v := range values {
 				c.NumberSet[v] = struct{}{}
 			}
+		case core.ComparisonType_SEMVER_COMPARISON_TYPE:
+			var values []string
+			if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+				return fmt.Errorf("constraint %q: parsing semver list: %w", c.Property, err)
+			}
+			c.SemverList = make([]*semver.Version, 0, len(values))
+			for _, v := range values {
+				sv, err := semver.NewVersion(v)
+				if err != nil {
+					return fmt.Errorf("constraint %q: parsing semver: %w", c.Property, err)
+				}
+				c.SemverList = append(c.SemverList, sv)
+			}
 		}
 	case flipt.OpEQ, flipt.OpNEQ, flipt.OpLT, flipt.OpLTE, flipt.OpGT, flipt.OpGTE:
 		switch {
@@ -130,6 +146,12 @@ func (c *EvaluationConstraint) PrepareForEvaluation() error {
 				return fmt.Errorf("constraint %q: %w", c.Property, err)
 			}
 			c.Datetime = d
+		case c.Type == core.ComparisonType_SEMVER_COMPARISON_TYPE && c.Value != "":
+			sv, err := semver.NewVersion(c.Value)
+			if err != nil {
+				return fmt.Errorf("constraint %q: parsing semver: %w", c.Property, err)
+			}
+			c.Semver = sv
 		}
 	}
 	return nil
