@@ -70,10 +70,8 @@ func (c CustomClaim) validate(claims map[string]any) error {
 	}
 
 	if elements, ok := value.([]any); ok {
-		for _, element := range elements {
-			if c.matches(element) {
-				return nil
-			}
+		if slices.ContainsFunc(elements, c.matches) {
+			return nil
 		}
 	} else if c.matches(value) {
 		return nil

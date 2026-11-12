@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"maps"
 	"testing"
 	"time"
 
@@ -132,16 +133,14 @@ func TestValidator_CustomClaims(t *testing.T) {
 				"iat": now.Unix(),
 				"exp": now.Add(time.Hour).Unix(),
 			}
-			for k, v := range tt.claims {
-				claims[k] = v
-			}
+			maps.Copy(claims, tt.claims)
 
 			token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
 
 			got, err := NewValidator(cap, expected, WithCustomClaims(tt.custom)).Validate(t.Context(), token)
 			if tt.wantErr != "" {
 				require.Error(t, err)
-				assert.EqualError(t, err, tt.wantErr)
+				require.EqualError(t, err, tt.wantErr)
 				assert.Nil(t, got)
 				return
 			}
