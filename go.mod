@@ -7,7 +7,7 @@ require (
 	code.gitea.io/sdk/gitea v0.25.1
 	cuelang.org/go v0.17.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.3
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.24.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.15.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.5.1
 	github.com/ClickHouse/clickhouse-go/v2 v2.51.0
@@ -324,7 +324,7 @@ require (
 	go.uber.org/atomic v1.12.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/mod v0.42.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/telemetry v0.0.0-20261009151841-97e8ea77aa2a // indirect
