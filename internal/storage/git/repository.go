@@ -416,7 +416,7 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	// interval when polling is enabled; a stuck fetch fails fast and the
 	// next tick retries. Without polling, a reasonable fixed bound applies.
 	timeout := r.pollInterval
-	if timeout == 0 {
+	if timeout <= 0 {
 		timeout = 30 * time.Second
 	}
 	fetchCtx, cancel := context.WithTimeout(ctx, timeout)
