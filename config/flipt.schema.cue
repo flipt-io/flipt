@@ -125,6 +125,10 @@ JsonPath: string
 					issuer?:  string
 					subject?: string
 					audiences?: [...string]
+					custom?: [...{
+						claim:  string
+						values: [...string]
+					}]
 				}
 				claims_mapping?: {
 					email?:   JsonPath

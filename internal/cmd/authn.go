@@ -185,8 +185,13 @@ func authenticationGRPC(
 			exp.Audiences = authJWT.Method.ValidateClaims.Audiences
 		}
 
+		customClaims := make([]authjwt.CustomClaim, 0, len(authJWT.Method.ValidateClaims.Custom))
+		for _, custom := range authJWT.Method.ValidateClaims.Custom {
+			customClaims = append(customClaims, authjwt.CustomClaim{Name: custom.Claim, Values: custom.Values})
+		}
+
 		// wrap the validator in a method.JWTValidator implementation
-		jwtValidator = authjwt.NewValidator(validator, exp)
+		jwtValidator = authjwt.NewValidator(validator, exp, authjwt.WithCustomClaims(customClaims))
 	}
 
 	// only enable enforcement middleware if authentication required

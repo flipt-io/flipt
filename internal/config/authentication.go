@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -705,6 +706,16 @@ func (a AuthenticationMethodGithubConfig) validate() error {
 	return nil
 }
 
+// JWTCustomClaim declares a claim that must be present in a JWT with one of the
+// supplied values. If the claim in the token is an array, it is enough for one
+// of its elements to match one of the values.
+type JWTCustomClaim struct {
+	// Claim is the name of the top level claim in the JWT payload.
+	Claim string `json:"-" mapstructure:"claim" yaml:"claim"`
+	// Values are the accepted values of the claim.
+	Values []string `json:"-" mapstructure:"values" yaml:"values"`
+}
+
 type AuthenticationMethodJWTConfig struct {
 	// ValidateClaims is used to validate the claims of the JWT token.
 	ValidateClaims struct {
@@ -714,6 +725,11 @@ type AuthenticationMethodJWTConfig struct {
 		Subject string `json:"-" mapstructure:"subject" yaml:"subject,omitempty"`
 		// Audiences is the audience of the JWT token.
 		Audiences []string `json:"-" mapstructure:"audiences" yaml:"audiences,omitempty"`
+		// Custom is a list of additional claims the JWT must carry.
+		// A list is used rather than a map so that claim names, which are
+		// case sensitive and frequently contain dots or slashes
+		// (e.g. https://example.com/roles), are preserved as written.
+		Custom []JWTCustomClaim `json:"-" mapstructure:"custom" yaml:"custom,omitempty"`
 	} `json:"-" mapstructure:"validate_claims" yaml:"validate_claims,omitempty"`
 	// JWKsURL is the URL to the JWKS endpoint.
 	// This is used to fetch the public keys used to validate the JWT token.
@@ -772,6 +788,16 @@ func (a AuthenticationMethodJWTConfig) validate() error {
 	for key := range a.ClaimsMapping {
 		if !slices.Contains(validClaimKeys, key) {
 			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid claim key '%s'", key))
+		}
+	}
+
+	for i, custom := range a.ValidateClaims.Custom {
+		if custom.Claim == "" {
+			return errFieldWrap("authentication", fmt.Sprintf("validate_claims.custom[%d].claim", i), errors.New("non-empty value is required"))
+		}
+
+		if nonEmpty(custom.Values) == 0 {
+			return errFieldWrap("authentication", fmt.Sprintf("validate_claims.custom[%d].values", i), errors.New("at least one non-empty value is required"))
 		}
 	}
 
