@@ -76,7 +76,7 @@ func TestGitAuthenticationSSHInsecureIgnoreHostKey(t *testing.T) {
 		},
 	}
 
-	opt, err := c.GitAuthentication()
+	opt, err := c.GitAuthentication(t.Context())
 	require.NoError(t, err)
 	require.NotNil(t, opt)
 }

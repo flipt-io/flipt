@@ -92,7 +92,7 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 				remoteURL = normalizedURL
 			}
 
-			auth, err := creds.GitAuthentication()
+			auth, err := creds.GitAuthentication(ctx)
 			if err != nil {
 				return nil, err
 			}
@@ -328,7 +328,7 @@ func (f *EnvironmentFactory) createGitHubSCM(ctx context.Context, scmConfig *con
 		if err != nil {
 			return nil, err
 		}
-		apiAuth, err := creds.APIAuthentication()
+		apiAuth, err := creds.APIAuthentication(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -366,7 +366,7 @@ func (f *EnvironmentFactory) createGitLabSCM(ctx context.Context, scmConfig *con
 		if err != nil {
 			return nil, err
 		}
-		apiAuth, err := creds.APIAuthentication()
+		apiAuth, err := creds.APIAuthentication(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -411,7 +411,7 @@ func (f *EnvironmentFactory) createAzureSCM(ctx context.Context, scmConfig *conf
 		if err != nil {
 			return nil, err
 		}
-		apiAuth, err := creds.APIAuthentication()
+		apiAuth, err := creds.APIAuthentication(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -440,7 +440,7 @@ func (f *EnvironmentFactory) createGiteaSCM(ctx context.Context, scmConfig *conf
 		if err != nil {
 			return nil, err
 		}
-		apiAuth, err := creds.APIAuthentication()
+		apiAuth, err := creds.APIAuthentication(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -474,7 +474,7 @@ func (f *EnvironmentFactory) createBitBucketSCM(ctx context.Context, scmConfig *
 		if err != nil {
 			return nil, err
 		}
-		apiAuth, err := creds.APIAuthentication()
+		apiAuth, err := creds.APIAuthentication(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -536,7 +536,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 
 	var (
 		o           storeOptions
-		credentials = credentials.New(logger, cfg.Credentials)
+		credentials = credentials.New(logger, cfg.Credentials, credentials.WithSecretResolver(secretsManager))
 		repoManager = NewRepositoryManager(logger, cfg, secretsManager, licenseManager)
 	)
 	for _, opt := range opts {

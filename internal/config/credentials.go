@@ -84,12 +84,17 @@ func (g *GitHubAppConfig) validate() error {
 	return nil
 }
 
+// CredentialConfig configures a named credential.
+//
+// AccessToken is tagged secret:"deferred": a ${secret:provider:key} reference
+// is not resolved at startup but each time the token is used, so short-lived
+// tokens rotated by an external process are picked up without a restart.
 type CredentialConfig struct {
 	Type        CredentialType   `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
 	Basic       *BasicAuthConfig `json:"basic,omitempty" mapstructure:"basic" yaml:"basic,omitempty"`
 	SSH         *SSHAuthConfig   `json:"-" mapstructure:"ssh,omitempty" yaml:"-"`
 	GitHubApp   *GitHubAppConfig `json:"github_app,omitempty" mapstructure:"github_app,omitempty" yaml:"github_app,omitempty"`
-	AccessToken *string          `json:"-" mapstructure:"access_token" yaml:"-"`
+	AccessToken *string          `json:"-" mapstructure:"access_token" yaml:"-" secret:"deferred"`
 }
 
 func (c *CredentialConfig) validate() error {

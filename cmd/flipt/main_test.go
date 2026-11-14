@@ -404,6 +404,48 @@ environments:
 	assert.Equal(t, "s3cr3t-from-file", cfg.Environments["default"].SCM.Webhook.Secret)
 }
 
+func TestResolveSecretsInConfig_CredentialAccessTokenDeferred(t *testing.T) {
+	secretsDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "git-token"), []byte("short-lived-token\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "git-password"), []byte("p4ssw0rd\n"), 0o600))
+
+	configPath := filepath.Join(t.TempDir(), "config.yml")
+	require.NoError(t, os.WriteFile(configPath, []byte(`
+secrets:
+  providers:
+    file:
+      enabled: true
+      base_path: `+secretsDir+`
+credentials:
+  token:
+    type: access_token
+    access_token: ${secret:file:git-token}
+  basic:
+    type: basic
+    basic:
+      username: flipt
+      password: ${secret:file:git-password}
+`), 0o600))
+
+	res, err := config.Load(t.Context(), configPath)
+	require.NoError(t, err)
+
+	cfg := res.Config
+
+	manager, err := secrets.NewManager(zaptest.NewLogger(t), cfg, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = manager.Close() })
+
+	require.NoError(t, resolveSecretsInConfig(t.Context(), cfg, manager))
+
+	// access tokens are resolved on each use so that rotated tokens are picked up
+	require.NotNil(t, cfg.Credentials["token"].AccessToken)
+	assert.Equal(t, "${secret:file:git-token}", *cfg.Credentials["token"].AccessToken)
+
+	// other credential secrets are still resolved at startup
+	assert.Equal(t, "p4ssw0rd", cfg.Credentials["basic"].Basic.Password)
+}
+
 func TestResolveLicenseSecrets(t *testing.T) {
 	dir := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "license-key"), []byte("file-license-key\n"), 0o600))
