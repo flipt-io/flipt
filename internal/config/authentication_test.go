@@ -352,3 +352,66 @@ func TestLoad_JWTCustomClaims(t *testing.T) {
 		{Claim: "Team", Values: []string{"platform"}},
 	}, res.Config.Authentication.Methods.JWT.Method.ValidateClaims.Custom)
 }
+
+func TestAuthenticationMethodKubernetesConfig_validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  AuthenticationMethodKubernetesConfig
+		wantErr string
+	}{
+		{
+			name: "no allowed namespaces or service accounts",
+		},
+		{
+			name: "valid allowed namespaces and service accounts",
+			config: AuthenticationMethodKubernetesConfig{
+				AllowedNamespaces:      []string{"production", "staging"},
+				AllowedServiceAccounts: []string{"applications/booking", "payments/checkout"},
+			},
+		},
+		{
+			name:    "empty allowed namespace",
+			config:  AuthenticationMethodKubernetesConfig{AllowedNamespaces: []string{"production", ""}},
+			wantErr: "authentication: allowed_namespaces[1] non-empty value is required",
+		},
+		{
+			name:    "service account without namespace",
+			config:  AuthenticationMethodKubernetesConfig{AllowedServiceAccounts: []string{"booking"}},
+			wantErr: `authentication: allowed_service_accounts[0] "booking" must be in the form <namespace>/<name>`,
+		},
+		{
+			name:    "service account with empty namespace",
+			config:  AuthenticationMethodKubernetesConfig{AllowedServiceAccounts: []string{"/booking"}},
+			wantErr: `authentication: allowed_service_accounts[0] "/booking" must be in the form <namespace>/<name>`,
+		},
+		{
+			name: "service account with empty name",
+			config: AuthenticationMethodKubernetesConfig{
+				AllowedServiceAccounts: []string{"applications/booking", "applications/"},
+			},
+			wantErr: `authentication: allowed_service_accounts[1] "applications/" must be in the form <namespace>/<name>`,
+		},
+		{
+			name:    "service account with too many segments",
+			config:  AuthenticationMethodKubernetesConfig{AllowedServiceAccounts: []string{"applications/booking/extra"}},
+			wantErr: `authentication: allowed_service_accounts[0] "applications/booking/extra" must be in the form <namespace>/<name>`,
+		},
+		{
+			name:    "empty service account",
+			config:  AuthenticationMethodKubernetesConfig{AllowedServiceAccounts: []string{""}},
+			wantErr: `authentication: allowed_service_accounts[0] "" must be in the form <namespace>/<name>`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.validate()
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+				return
+			}
+
+			assert.EqualError(t, err, tt.wantErr)
+		})
+	}
+}

@@ -610,6 +610,8 @@ func TestLoad(t *testing.T) {
 								CAPath:                  "/path/to/ca/certificate/ca.pem",
 								ServiceAccountTokenPath: "/path/to/sa/token",
 								Audiences:               []string{"flipt", "flipt-admin"},
+								AllowedNamespaces:       []string{"production"},
+								AllowedServiceAccounts:  []string{"applications/booking"},
 							},
 						},
 						Github: AuthenticationMethod[AuthenticationMethodGithubConfig]{

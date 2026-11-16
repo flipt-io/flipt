@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -131,6 +132,28 @@ func (k *kubernetesOIDCValidator) Validate(ctx context.Context, jwt string) (map
 		return slices.Contains(k.config.Audiences, aud)
 	}) {
 		return nil, fmt.Errorf("service account token audience %q is not accepted", token.Audience)
+	}
+
+	// without configured namespaces or service accounts, accept any service account
+	if len(k.config.AllowedNamespaces) > 0 || len(k.config.AllowedServiceAccounts) > 0 {
+		var c struct {
+			Identity identity `json:"kubernetes.io"`
+		}
+
+		if err := token.Claims(&c); err != nil {
+			return nil, err
+		}
+
+		namespace, name := c.Identity.Namespace, c.Identity.ServiceAccount.Name
+		if namespace == "" || name == "" {
+			return nil, errors.New("service account token does not identify a namespace and service account")
+		}
+
+		serviceAccount := namespace + "/" + name
+		if !slices.Contains(k.config.AllowedNamespaces, namespace) &&
+			!slices.Contains(k.config.AllowedServiceAccounts, serviceAccount) {
+			return nil, fmt.Errorf("service account %q is not allowed", serviceAccount)
+		}
 	}
 
 	claims := map[string]any{
