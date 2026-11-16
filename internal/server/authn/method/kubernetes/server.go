@@ -43,7 +43,8 @@ type identity struct {
 //
 // The method allows services deployed into the same Kubernetes cluster as Flipt to leverage
 // their service account token in order to obtain access to Flipt itself.
-// When enabled, this authentication method grants any service in the same cluster access to Flipt.
+// When enabled, this authentication method grants any service in the same cluster access to Flipt,
+// unless the accepted audiences, namespaces or service accounts are restricted in configuration.
 type Server struct {
 	logger *zap.Logger
 	config config.AuthenticationConfig

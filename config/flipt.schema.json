@@ -541,6 +541,24 @@
                   "items": {
                     "type": "string"
                   }
+                },
+                "allowed_namespaces": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "allowed_service_accounts": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             },

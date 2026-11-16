@@ -104,6 +104,8 @@ JsonPath: string
 				ca_path:                    string
 				service_account_token_path: string
 				audiences?: [...string]
+				allowed_namespaces?: [...string]
+				allowed_service_accounts?: [...string]
 			}
 
 			github?: {

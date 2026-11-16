@@ -77,6 +77,10 @@ authentication:
       audiences:
         - flipt
         - flipt-admin
+      allowed_namespaces:
+        - production
+      allowed_service_accounts:
+        - applications/booking
       cleanup:
         interval: 2h
         grace_period: 48h

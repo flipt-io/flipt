@@ -621,6 +621,17 @@ type AuthenticationMethodKubernetesConfig struct {
 	// Use it with projected tokens minted for Flipt so tokens issued for other
 	// services in the cluster are rejected.
 	Audiences []string `json:"audiences,omitempty" mapstructure:"audiences" yaml:"audiences,omitempty"`
+	// AllowedNamespaces, when set, accepts service account tokens issued to any
+	// service account in one of these Kubernetes namespaces.
+	AllowedNamespaces []string `json:"allowedNamespaces,omitempty" mapstructure:"allowed_namespaces" yaml:"allowed_namespaces,omitempty"`
+	// AllowedServiceAccounts, when set, accepts service account tokens issued to
+	// one of these service accounts, each written as "<namespace>/<name>".
+	// The namespace is required so that a service account with the same name in
+	// another namespace is not accepted.
+	//
+	// When AllowedNamespaces or AllowedServiceAccounts are set, a token is
+	// accepted if its service account matches either list.
+	AllowedServiceAccounts []string `json:"allowedServiceAccounts,omitempty" mapstructure:"allowed_service_accounts" yaml:"allowed_service_accounts,omitempty"`
 }
 
 func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]any) {
@@ -637,7 +648,26 @@ func (a AuthenticationMethodKubernetesConfig) info(_ context.Context) Authentica
 	}
 }
 
-func (a AuthenticationMethodKubernetesConfig) validate() error { return nil }
+func (a AuthenticationMethodKubernetesConfig) validate() error {
+	for i, namespace := range a.AllowedNamespaces {
+		if namespace == "" {
+			return errFieldRequired("authentication", fmt.Sprintf("allowed_namespaces[%d]", i))
+		}
+	}
+
+	for i, serviceAccount := range a.AllowedServiceAccounts {
+		namespace, name, ok := strings.Cut(serviceAccount, "/")
+		if !ok || namespace == "" || name == "" || strings.Contains(name, "/") {
+			return errFieldWrap(
+				"authentication",
+				fmt.Sprintf("allowed_service_accounts[%d]", i),
+				fmt.Errorf("%q must be in the form <namespace>/<name>", serviceAccount),
+			)
+		}
+	}
+
+	return nil
+}
 
 // AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
 // 2.0 flow with GitHub as a provider.
