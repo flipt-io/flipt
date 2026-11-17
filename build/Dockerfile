@@ -8,7 +8,8 @@ LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
 
-RUN mkdir -p /etc/flipt && \
+RUN apk upgrade --no-cache zlib && \
+  mkdir -p /etc/flipt && \
   mkdir -p /var/opt/flipt
 
 COPY $BINARY /
