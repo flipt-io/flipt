@@ -3,6 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.62.1](https://github.com/flipt-io/flipt/releases/tag/v1.62.1) - 2026-11-17
+
+### Fixed
+
+- **OFREP**: Honor the `X-Flipt-Reference` header for single and bulk evaluations, forward it alongside namespace metadata, and isolate cached flags by reference
+
+### Dependencies
+
+- **Brotli (security)**: Update `github.com/andybalholm/brotli` to v1.2.7 to address CVE-2026-111497 (#6719)
+- **Container image (security)**: Update the Alpine base image to 3.24.4 to address the zlib vulnerability reported in #6734 (#6735)
+- Updated Go and UI dependencies, including security updates to `golang.org/x/crypto`, `golang.org/x/net`, OpenTelemetry, `github.com/klauspost/compress`, go-jose, chi, Vite, and Zod
+
 ## [v1.62.0](https://github.com/flipt-io/flipt/releases/tag/v1.62.0) - 2026-10-23
 
 ### Added
