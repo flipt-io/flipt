@@ -1,6 +1,6 @@
 # https://goreleaser.com/docker/
 
-FROM alpine:3.24.3
+FROM alpine:3.24.4
 
 ARG BINARY=flipt
 ARG TARGETPLATFORM
@@ -9,7 +9,8 @@ LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
 
-RUN mkdir -p /etc/flipt && \
+RUN apk upgrade --no-cache zlib && \
+  mkdir -p /etc/flipt && \
   mkdir -p /var/opt/flipt
 
 COPY $TARGETPLATFORM/$BINARY /
