@@ -3,6 +3,13 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.2](https://github.com/flipt-io/flipt/releases/tag/v2.14.2) - 2026-11-18
+
+### Security
+
+- **Brotli**: Update `github.com/andybalholm/brotli` to v1.2.7 to address CVE-2026-111497, backporting the dependency fix from #6724
+- **Container image**: Update Alpine to 3.24.4 and explicitly upgrade zlib to address CVE-2026-4738. The base-image bump alone still ships zlib 1.3.2-r1 (#6734)
+
 ## [2.14.1](https://github.com/flipt-io/flipt/releases/tag/v2.14.1) - 2026-10-22
 
 ### Added
