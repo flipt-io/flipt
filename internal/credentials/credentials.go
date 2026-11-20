@@ -15,17 +15,41 @@ import (
 	"github.com/jferrl/go-githubauth"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/secrets"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
 )
 
+// SecretResolver resolves secret references to their current values.
+type SecretResolver interface {
+	GetSecretValue(ctx context.Context, ref secrets.Reference) ([]byte, error)
+}
+
 type CredentialSource struct {
 	logger  *zap.Logger
 	configs config.CredentialsConfig
+	secrets SecretResolver
 }
 
-func New(logger *zap.Logger, configs config.CredentialsConfig) *CredentialSource {
-	return &CredentialSource{logger, configs}
+// Option configures a CredentialSource.
+type Option func(*CredentialSource)
+
+// WithSecretResolver sets the resolver used for access tokens configured as
+// ${secret:provider:key} references. Such references are resolved each time
+// the token is used, which allows short-lived tokens to be rotated externally.
+func WithSecretResolver(r SecretResolver) Option {
+	return func(s *CredentialSource) {
+		s.secrets = r
+	}
+}
+
+func New(logger *zap.Logger, configs config.CredentialsConfig, opts ...Option) *CredentialSource {
+	s := &CredentialSource{logger: logger, configs: configs}
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
 }
 
 func (s *CredentialSource) Get(name string) (*Credential, error) {
@@ -34,12 +58,67 @@ func (s *CredentialSource) Get(name string) (*Credential, error) {
 		return nil, errors.ErrNotFoundf("credential %q", name)
 	}
 
-	return &Credential{logger: s.logger, config: config}, nil
+	return &Credential{logger: s.logger, config: config, secrets: s.secrets}, nil
 }
 
 type Credential struct {
-	logger *zap.Logger
-	config *config.CredentialConfig
+	logger  *zap.Logger
+	config  *config.CredentialConfig
+	secrets SecretResolver
+}
+
+// accessToken returns the current value of the configured access token.
+// When the token is a ${secret:provider:key} reference it is resolved on
+// every call, so a token rotated in the secret store is used straight away.
+func (c *Credential) accessToken(ctx context.Context) (string, error) {
+	token := *c.config.AccessToken
+
+	ref, ok, err := secrets.ParseReference(token)
+	if err != nil {
+		return "", fmt.Errorf("access token: %w", err)
+	}
+
+	if !ok {
+		return token, nil
+	}
+
+	if c.secrets == nil {
+		return "", fmt.Errorf("access token: no secrets manager available to resolve %q", token)
+	}
+
+	value, err := c.secrets.GetSecretValue(ctx, ref)
+	if err != nil {
+		return "", fmt.Errorf("access token: resolving secret reference %q: %w", token, err)
+	}
+
+	if len(value) == 0 {
+		return "", fmt.Errorf("access token: secret reference %q resolved to an empty value", token)
+	}
+
+	return string(value), nil
+}
+
+var _ client.HTTPAuth = (*accessTokenAuth)(nil)
+
+// accessTokenAuth authenticates Git HTTP requests with an access token that
+// is looked up for every request rather than once at startup.
+type accessTokenAuth struct {
+	credential *Credential
+}
+
+func (a *accessTokenAuth) Authorizer(r *http.Request) error {
+	token, err := a.credential.accessToken(r.Context())
+	if err != nil {
+		return err
+	}
+
+	// Access tokens are sent as HTTP Basic Auth. Different providers have different conventions:
+	// - GitLab: username="oauth2", password=token OR user={anynonemptystring}, password=token
+	// - GitHub: username=token, password="" OR username={anynonemptystring}, password=token
+	// - BitBucket: username="x-token-auth", password=token for repo access tokens
+	// We'll use the BitBucket format as it requires a specific string and the others dont
+	r.SetBasicAuth("x-token-auth", token)
+	return nil
 }
 
 // insecureHostKeyAuth wraps an SSH auth method whose HostKeyCallback has already been
@@ -65,7 +144,7 @@ func (a insecureHostKeyAuth) ClientConfig(ctx context.Context, req *transport.Re
 // GitAuthentication returns the appropriate client.Option for Git operations.
 // This method handles the complexity of converting different credential types
 // to the format expected by Git operations.
-func (c *Credential) GitAuthentication() (client.Option, error) {
+func (c *Credential) GitAuthentication(ctx context.Context) (client.Option, error) {
 	switch c.config.Type {
 	case config.CredentialTypeBasic:
 		return client.WithHTTPAuth(&githttp.BasicAuth{
@@ -123,16 +202,13 @@ func (c *Credential) GitAuthentication() (client.Option, error) {
 
 		return client.WithSSHAuth(method), nil
 	case config.CredentialTypeAccessToken:
-		// For Git operations, access tokens need to be converted to HTTP Basic Auth
-		// Different providers have different conventions:
-		// - GitLab: username="oauth2", password=token OR user={anynonemptystring}, password=token
-		// - GitHub: username=token, password="" OR username={anynonemptystring}, password=token
-		// - BitBucket: username="x-token-auth", password=token for repo access tokens
-		// We'll use the BitBucket format as it requires a specific string and the others dont
-		return client.WithHTTPAuth(&githttp.BasicAuth{
-			Username: "x-token-auth",
-			Password: *c.config.AccessToken,
-		}), nil
+		// Resolve the token once up front so that a misconfigured secret
+		// reference fails at startup rather than on the first fetch.
+		if _, err := c.accessToken(ctx); err != nil {
+			return nil, err
+		}
+
+		return client.WithHTTPAuth(&accessTokenAuth{credential: c}), nil
 	case config.CredentialTypeGithubApp:
 		gha, err := NewGitHubAppCredentials(c.logger, c.config.GitHubApp)
 		if err != nil {
@@ -263,7 +339,9 @@ func (f *failingTokenSource) Token() (*oauth2.Token, error) {
 
 // APIAuthentication returns authentication information for SCM API operations.
 // This provides a clean abstraction for different authentication methods.
-func (c *Credential) APIAuthentication() (*APIAuth, error) {
+// An access token configured as a secret reference is resolved when this is
+// called, so SCM clients built from the result keep the value read at that time.
+func (c *Credential) APIAuthentication(ctx context.Context) (*APIAuth, error) {
 	switch c.config.Type {
 	case config.CredentialTypeBasic:
 		return &APIAuth{
@@ -272,9 +350,14 @@ func (c *Credential) APIAuthentication() (*APIAuth, error) {
 			Password: c.config.Basic.Password,
 		}, nil
 	case config.CredentialTypeAccessToken:
+		token, err := c.accessToken(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 		return &APIAuth{
 			typ:   c.config.Type,
-			Token: *c.config.AccessToken,
+			Token: token,
 		}, nil
 	case config.CredentialTypeSSH:
 		// SSH is not used for API operations, return empty auth

@@ -2,14 +2,19 @@ package credentials
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -19,6 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/secrets"
+	"go.flipt.io/flipt/internal/secrets/file"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/oauth2"
@@ -142,7 +149,7 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				config: tt.config,
 			}
 
-			opt, err := c.GitAuthentication()
+			opt, err := c.GitAuthentication(t.Context())
 			if tt.wantErr {
 				require.Error(t, err)
 				assert.Nil(t, opt)
@@ -152,28 +159,235 @@ func TestCredential_GitAuthentication(t *testing.T) {
 			require.NoError(t, err)
 			assert.NotNil(t, opt)
 			if tt.wantAuth != "" {
-				var s atomic.Value
-				mux := http.NewServeMux()
-				mux.HandleFunc("GET /info/refs", func(w http.ResponseWriter, r *http.Request) {
-					s.Store(r.Header.Get("Authorization"))
-					w.Header().Set("Content-Type", "application/x-git-upload-pack-advertisement")
-					_, _ = w.Write([]byte("001e# service=git-upload-pack\n0000000eversion 2\n0000"))
-				})
-				ts := httptest.NewServer(mux)
-				t.Cleanup(ts.Close)
-				gtc := client.New(opt)
-
-				turl, err := url.Parse(ts.URL)
-				require.NoError(t, err)
-				_, err = gtc.Handshake(t.Context(), &transport.Request{
-					URL:     turl,
-					Command: transport.UploadPackService,
-				})
-				require.NoError(t, err)
-				assert.Equal(t, tt.wantAuth, s.Load())
+				assert.Equal(t, tt.wantAuth, handshakeAuthorization(t, opt))
 			}
 		})
 	}
+}
+
+// handshakeAuthorization performs a Git HTTP handshake against a test server
+// using opt and returns the Authorization header the server received.
+func handshakeAuthorization(t *testing.T, opt client.Option) string {
+	t.Helper()
+
+	var s atomic.Value
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /info/refs", func(w http.ResponseWriter, r *http.Request) {
+		s.Store(r.Header.Get("Authorization"))
+		w.Header().Set("Content-Type", "application/x-git-upload-pack-advertisement")
+		_, _ = w.Write([]byte("001e# service=git-upload-pack\n0000000eversion 2\n0000"))
+	})
+	ts := httptest.NewServer(mux)
+	t.Cleanup(ts.Close)
+	gtc := client.New(opt)
+
+	turl, err := url.Parse(ts.URL)
+	require.NoError(t, err)
+	_, err = gtc.Handshake(t.Context(), &transport.Request{
+		URL:     turl,
+		Command: transport.UploadPackService,
+	})
+	require.NoError(t, err)
+
+	auth, _ := s.Load().(string)
+	return auth
+}
+
+// rotatingResolver is a SecretResolver whose values can be changed between calls.
+type rotatingResolver struct {
+	mu     sync.Mutex
+	values map[secrets.Reference][]byte
+	err    error
+	calls  int
+}
+
+func (r *rotatingResolver) set(ref secrets.Reference, value string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.values[ref] = []byte(value)
+}
+
+func (r *rotatingResolver) GetSecretValue(_ context.Context, ref secrets.Reference) ([]byte, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.calls++
+	if r.err != nil {
+		return nil, r.err
+	}
+	return r.values[ref], nil
+}
+
+func TestCredential_GitAuthentication_AccessTokenSecretReference(t *testing.T) {
+	ref := secrets.Reference{Provider: "file", Path: "git-token", Key: "git-token"}
+	resolver := &rotatingResolver{values: map[secrets.Reference][]byte{}}
+	resolver.set(ref, "first-token")
+
+	cs := New(zap.NewNop(), config.CredentialsConfig{
+		"git": &config.CredentialConfig{
+			Type:        config.CredentialTypeAccessToken,
+			AccessToken: new("${secret:file:git-token}"),
+		},
+	}, WithSecretResolver(resolver))
+
+	c, err := cs.Get("git")
+	require.NoError(t, err)
+
+	opt, err := c.GitAuthentication(t.Context())
+	require.NoError(t, err)
+	assert.Equal(t, 1, resolver.calls, "token should be resolved once to validate the reference")
+
+	assert.Equal(t, accessTokenAuthHeader("first-token"), handshakeAuthorization(t, opt))
+
+	// rotate the token in the secret store: the same client option must pick
+	// up the new value on the next request without being recreated
+	resolver.set(ref, "second-token")
+	assert.Equal(t, accessTokenAuthHeader("second-token"), handshakeAuthorization(t, opt))
+}
+
+func TestCredential_GitAuthentication_AccessTokenFileSecretRotation(t *testing.T) {
+	dir := t.TempDir()
+	tokenPath := filepath.Join(dir, "git-token")
+	require.NoError(t, os.WriteFile(tokenPath, []byte("first-token\n"), 0o600))
+
+	provider, err := file.NewProvider(dir, zap.NewNop())
+	require.NoError(t, err)
+
+	manager, err := secrets.NewManager(zap.NewNop(), &config.Config{}, nil)
+	require.NoError(t, err)
+	require.NoError(t, manager.RegisterProvider("file", provider))
+
+	cs := New(zap.NewNop(), config.CredentialsConfig{
+		"git": &config.CredentialConfig{
+			Type:        config.CredentialTypeAccessToken,
+			AccessToken: new("${secret:file:git-token}"),
+		},
+	}, WithSecretResolver(manager))
+
+	c, err := cs.Get("git")
+	require.NoError(t, err)
+
+	opt, err := c.GitAuthentication(t.Context())
+	require.NoError(t, err)
+	assert.Equal(t, accessTokenAuthHeader("first-token"), handshakeAuthorization(t, opt))
+
+	// simulate a sidecar writing a freshly issued token to the secret file
+	require.NoError(t, os.WriteFile(tokenPath, []byte("second-token\n"), 0o600))
+	assert.Equal(t, accessTokenAuthHeader("second-token"), handshakeAuthorization(t, opt))
+}
+
+func TestCredential_AccessTokenSecretReference_Errors(t *testing.T) {
+	tests := []struct {
+		name     string
+		token    string
+		resolver SecretResolver
+		wantErr  string
+	}{
+		{
+			name:    "no secret resolver",
+			token:   "${secret:file:git-token}",
+			wantErr: `access token: no secrets manager available to resolve "${secret:file:git-token}"`,
+		},
+		{
+			name:     "resolver error",
+			token:    "${secret:file:git-token}",
+			resolver: &rotatingResolver{err: fmt.Errorf("secret not found")},
+			wantErr:  `access token: resolving secret reference "${secret:file:git-token}": secret not found`,
+		},
+		{
+			name:     "empty secret value",
+			token:    "${secret:file:git-token}",
+			resolver: &rotatingResolver{values: map[secrets.Reference][]byte{}},
+			wantErr:  `access token: secret reference "${secret:file:git-token}" resolved to an empty value`,
+		},
+		{
+			name:     "malformed reference",
+			token:    "${secret:file:a:b}",
+			resolver: &rotatingResolver{values: map[secrets.Reference][]byte{}},
+			wantErr:  `access token: invalid secret reference format "file:a:b", expected 'key' or 'provider:key'`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Credential{
+				logger: zap.NewNop(),
+				config: &config.CredentialConfig{
+					Type:        config.CredentialTypeAccessToken,
+					AccessToken: new(tt.token),
+				},
+				secrets: tt.resolver,
+			}
+
+			opt, err := c.GitAuthentication(t.Context())
+			require.EqualError(t, err, tt.wantErr)
+			assert.Nil(t, opt)
+
+			auth, err := c.APIAuthentication(t.Context())
+			require.EqualError(t, err, tt.wantErr)
+			assert.Nil(t, auth)
+		})
+	}
+}
+
+func TestCredential_GitAuthentication_AccessTokenResolveFailsOnRequest(t *testing.T) {
+	ref := secrets.Reference{Provider: "file", Path: "git-token", Key: "git-token"}
+	resolver := &rotatingResolver{values: map[secrets.Reference][]byte{}}
+	resolver.set(ref, "first-token")
+
+	c := &Credential{
+		logger: zap.NewNop(),
+		config: &config.CredentialConfig{
+			Type:        config.CredentialTypeAccessToken,
+			AccessToken: new("${secret:file:git-token}"),
+		},
+		secrets: resolver,
+	}
+
+	opt, err := c.GitAuthentication(t.Context())
+	require.NoError(t, err)
+
+	// the secret disappears after startup: the request must fail rather than
+	// being sent with a stale or empty token
+	resolver.set(ref, "")
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("request should not reach the server, got Authorization %q", r.Header.Get("Authorization"))
+	}))
+	t.Cleanup(ts.Close)
+
+	turl, err := url.Parse(ts.URL)
+	require.NoError(t, err)
+	_, err = client.New(opt).Handshake(t.Context(), &transport.Request{
+		URL:     turl,
+		Command: transport.UploadPackService,
+	})
+	require.ErrorContains(t, err, `secret reference "${secret:file:git-token}" resolved to an empty value`)
+}
+
+func TestCredential_APIAuthentication_AccessTokenSecretReference(t *testing.T) {
+	ref := secrets.Reference{Provider: "file", Path: "api-token", Key: "api-token"}
+	resolver := &rotatingResolver{values: map[secrets.Reference][]byte{}}
+	resolver.set(ref, "glpat-from-secret")
+
+	c := &Credential{
+		logger: zap.NewNop(),
+		config: &config.CredentialConfig{
+			Type:        config.CredentialTypeAccessToken,
+			AccessToken: new("${secret:file:api-token}"),
+		},
+		secrets: resolver,
+	}
+
+	auth, err := c.APIAuthentication(t.Context())
+	require.NoError(t, err)
+	assert.Equal(t, config.CredentialTypeAccessToken, auth.Type())
+	assert.Equal(t, "glpat-from-secret", auth.Token)
+}
+
+// accessTokenAuthHeader returns the Authorization header sent for an access
+// token credential on Git HTTP requests.
+func accessTokenAuthHeader(token string) string {
+	return "Basic " + base64.StdEncoding.EncodeToString([]byte("x-token-auth:"+token))
 }
 
 func TestCredential_Type(t *testing.T) {
@@ -396,7 +610,7 @@ func TestCredential_APIAuthentication(t *testing.T) {
 				config: tt.config,
 			}
 
-			auth, err := c.APIAuthentication()
+			auth, err := c.APIAuthentication(t.Context())
 			require.NoError(t, err)
 			assert.NotNil(t, auth)
 
@@ -449,7 +663,7 @@ func TestGithubAppCredentials(t *testing.T) {
 		},
 	}
 	t.Run("auth token for SCM", func(t *testing.T) {
-		ts, err := c.APIAuthentication()
+		ts, err := c.APIAuthentication(t.Context())
 		require.NoError(t, err)
 		require.NotNil(t, ts)
 		token, err := ts.GitHubAppTokenSource().Token()

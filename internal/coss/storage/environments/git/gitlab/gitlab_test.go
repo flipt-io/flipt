@@ -411,7 +411,7 @@ func TestNewSCM_UnsupportedCredentialType(t *testing.T) {
 	cred, err := creds.Get("ssh")
 	require.NoError(t, err)
 
-	apiAuth, err := cred.APIAuthentication()
+	apiAuth, err := cred.APIAuthentication(t.Context())
 	require.NoError(t, err)
 
 	scm, err := NewSCM(t.Context(), zap.NewNop(), "owner", "repo", WithApiAuth(apiAuth))
