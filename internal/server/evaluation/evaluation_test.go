@@ -282,6 +282,86 @@ func TestVariant_Success(t *testing.T) {
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
+func TestVariant_WithReference(t *testing.T) {
+	var (
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		reference      = "refs/heads/feature"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore, WithMetrics(true))
+		flag           = &core.Flag{
+			Key:     flagKey,
+			Enabled: true,
+			Type:    core.FlagType_VARIANT_FLAG_TYPE,
+		}
+	)
+
+	environment.On("Key").Return(environmentKey)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey, storage.WithReference(reference))).Return(flag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, flagKey, storage.WithReference(reference))).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:      "1",
+				FlagKey: flagKey,
+				Rank:    0,
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  core.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
+					},
+				}),
+			},
+		}, nil,
+	)
+
+	store.On(
+		"GetEvaluationDistributions",
+		mock.Anything,
+		storage.NewResource(namespaceKey, flagKey, storage.WithReference(reference)),
+		storage.NewID("1", storage.WithReference(reference)),
+	).Return([]*storage.EvaluationDistribution{
+		{
+			RuleID:     "1",
+			VariantID:  "variant-1",
+			VariantKey: "test-variant",
+			Rollout:    100,
+		},
+	}, nil)
+
+	res, err := s.Variant(t.Context(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Reference:    reference,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.NoError(t, err)
+	assert.True(t, res.Match)
+	assert.Contains(t, res.SegmentKeys, "bar")
+	assert.Equal(t, "test-variant", res.VariantKey)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+}
+
 func TestVariant_MatchConstraintsError_WithMetrics(t *testing.T) {
 	baseline := collectMetrics(t)
 
@@ -1430,6 +1510,96 @@ func TestBatch_Success(t *testing.T) {
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
 	assert.Equal(t, rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, res.Responses[2].Type)
 	assert.Equal(t, "3", v.VariantResponse.RequestId)
+	assert.Equal(t, variantFlagKey, v.VariantResponse.FlagKey)
+}
+
+func TestBatch_Variant_WithReference(t *testing.T) {
+	var (
+		variantFlagKey = "variant-test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		reference      = "refs/heads/feature"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore, WithMetrics(true))
+	)
+
+	environment.On("Key").Return(environmentKey)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey, storage.WithReference(reference))).Return(&core.Flag{
+		Key:     variantFlagKey,
+		Enabled: true,
+		Type:    core.FlagType_VARIANT_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey, storage.WithReference(reference))).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:      "1",
+				FlagKey: variantFlagKey,
+				Rank:    0,
+				Segments: prepareSegments(t, map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  core.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
+					},
+				}),
+			},
+		}, nil,
+	)
+
+	store.On(
+		"GetEvaluationDistributions",
+		mock.Anything,
+		storage.NewResource(namespaceKey, variantFlagKey, storage.WithReference(reference)),
+		storage.NewID("1", storage.WithReference(reference)),
+	).Return([]*storage.EvaluationDistribution{
+		{
+			RuleID:     "1",
+			VariantID:  "variant-1",
+			VariantKey: "test-variant",
+			Rollout:    100,
+		},
+	}, nil)
+
+	res, err := s.Batch(t.Context(), &rpcevaluation.BatchEvaluationRequest{
+		Reference: reference,
+		Requests: []*rpcevaluation.EvaluationRequest{
+			{
+				RequestId:    "1",
+				FlagKey:      variantFlagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	assert.Len(t, res.Responses, 1)
+
+	v, ok := res.Responses[0].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)
+	assert.True(t, ok, "response should be a variant evaluation response")
+	assert.True(t, v.VariantResponse.Match, "variant response should have matched")
+	assert.Contains(t, v.VariantResponse.SegmentKeys, "bar")
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, res.Responses[0].Type)
+	assert.Equal(t, "1", v.VariantResponse.RequestId)
 	assert.Equal(t, variantFlagKey, v.VariantResponse.FlagKey)
 }
 

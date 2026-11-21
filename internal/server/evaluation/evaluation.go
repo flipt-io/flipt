@@ -169,7 +169,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 		return resp, nil
 	}
 
-	rules, err := store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
+	rules, err := store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)))
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +226,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 		}
 
 		var distributions []*storage.EvaluationDistribution
-		distributions, err = store.GetEvaluationDistributions(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey), storage.NewID(rule.ID))
+		distributions, err = store.GetEvaluationDistributions(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)), storage.NewID(rule.ID, storage.WithReference(r.Reference)))
 		if err != nil {
 			return resp, err
 		}
@@ -486,7 +486,11 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 			return nil, err
 		}
 
-		f, err := store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(b.Reference)))
+		if req.Reference == "" {
+			req.Reference = b.Reference
+		}
+
+		f, err := store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(req.Reference)))
 		if err != nil {
 			reason := rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON
 			if !errs.AsMatch[errs.ErrNotFound](err) {
