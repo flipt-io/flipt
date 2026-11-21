@@ -37,5 +37,5 @@ jobs:
           # Isolated from .agents/pr-review consumers (personas/commands) so the
           # two fleet agents don't read each other's config.
           local-config-dir: .agents/issue-health
-          # Kimi K2.6 on Cloudflare Workers AI — matches the PR reviewer setup.
-          model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6
+          # DeepSeek V4.1 Flash — matches the PR reviewer setup.
+          model: cloudflare-workers-ai/@cf/deepseek-ai/deepseek-v4.1-flash-1017

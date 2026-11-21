@@ -44,6 +44,5 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
           pr-number: ${{ github.event.pull_request.number }}
-          # Kimi K2.6 on Cloudflare Workers AI — 262k context, reasoning,
-          # vision, tool calling. Big enough for non-trivial diffs.
-          model: cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6
+          # DeepSeek V4.1 Flash on Cloudflare Workers AI.
+          model: cloudflare-workers-ai/@cf/deepseek-ai/deepseek-v4.1-flash-1017
