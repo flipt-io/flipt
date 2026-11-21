@@ -1,0 +1,16 @@
+version: "1.2"
+namespace: default
+segments:
+- key: semver-users
+  name: Semver Users
+  description: Users matched with semantic version comparisons.
+  match_type: ALL_MATCH_TYPE
+  constraints:
+  - type: SEMVER_COMPARISON_TYPE
+    property: app_version
+    operator: gte
+    value: "2.1.0-alpha.1"
+  - type: SEMVER_COMPARISON_TYPE
+    property: client_version
+    operator: lt
+    value: "3.0.0"
