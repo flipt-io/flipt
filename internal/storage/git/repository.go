@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
@@ -22,6 +23,7 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/go-git/go-git/v6/plumbing/storer"
 	"github.com/go-git/go-git/v6/plumbing/transport"
+	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/go-git/go-git/v6/storage"
 	gitfilesystem "github.com/go-git/go-git/v6/storage/filesystem"
 	"github.com/go-git/go-git/v6/storage/memory"
@@ -380,11 +382,19 @@ func (r *Repository) fetchHeads() []string {
 	return slices.Collect(maps.Keys(heads))
 }
 
-// IsConnectionRefused checks if the provided error is a connection refused error or DNS resolution error.
+// IsConnectionRefused checks if the provided error means the remote could not serve the request
+// for now: a connection refused, a DNS resolution or timeout error, or an HTTP 5xx or 429 response.
 func (r *Repository) IsConnectionRefused(err error) bool {
 	// Check for DNS errors (e.g., "no such host")
 	if dnsError, ok := errors.As[*net.DNSError](err); ok {
 		return dnsError.IsNotFound || dnsError.IsTemporary
+	}
+
+	// Check for HTTP responses that mean the server cannot serve the request for now (e.g. a
+	// proxy in front of a Git server under maintenance). Client errors such as 401, 403 or 404
+	// point at the configuration and are not covered.
+	if httpErr, ok := errors.As[*githttp.Err](err); ok {
+		return httpErr.Status >= http.StatusInternalServerError || httpErr.Status == http.StatusTooManyRequests
 	}
 
 	// Check for network timeout errors
