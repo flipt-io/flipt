@@ -1,11 +1,12 @@
 import "list"
 
 #versions: ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]
+#versionType: "1.0" | "1.1" | "1.2" | "1.3" | "1.4" | "1.5" | *"1.6"
 
 version: "1.0" | "1.1" | "1.2" | "1.3" | "1.4" | "1.5" | *"1.6"
 
 close({
-	version:    version
+	version:    #versionType
 	namespace?: #Namespace
 	flags: [...#Flag]
 	segments: [...#Segment]
@@ -27,7 +28,7 @@ close({
 	if list.Contains(#versions[1:], version) { // 1.1 or later
 		type: "BOOLEAN_FLAG_TYPE" | *"VARIANT_FLAG_TYPE"
 		if type == "BOOLEAN_FLAG_TYPE" {
-			#FlagBoolean
+			#FlagBoolean...
 		}
 	}
 	if list.Contains(#versions[3:], version) { // 1.3 or later
