@@ -239,8 +239,9 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 			fetchErr := fmt.Errorf("performing initial fetch: %w", err)
 			switch {
 			case r.HasLenientFetchPolicy() && r.IsTransientFetchError(err):
-				// if lenient, we check if the error is connection refused
-				// and there is non-empty repo and flags could be evaluated
+				// if lenient, we check the error is a transient fetch failure
+				// (connection refused, DNS/timeout, or HTTP 5xx/429) and the repo
+				// has existing commits so flags can still be evaluated
 				objs, rerr := r.CommitObjects()
 				if rerr != nil {
 					return nil, empty, fetchErr
