@@ -455,7 +455,7 @@ func TestFetchPolicy_Lenient(t *testing.T) {
 	assert.True(t, repo.lenientFetchPolicyEnabled, "should set fetch policy to lenient")
 }
 
-func TestIsConnectionRefused(t *testing.T) {
+func TestIsTransientFetchError(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
@@ -578,7 +578,7 @@ func TestIsConnectionRefused(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := repo.IsConnectionRefused(tt.err)
+			result := repo.IsTransientFetchError(tt.err)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -728,6 +728,12 @@ func TestFetch_LenientPolicy_WithHTTPServerErrorAndCommits(t *testing.T) {
 			repo, err := newRepositoryWithHTTPStatus(t, status, WithLenientFetchPolicy())
 			require.NoError(t, err, "lenient policy should start on the existing commits")
 			require.NotNil(t, repo)
+
+			head, err := repo.Head()
+			require.NoError(t, err)
+			commit, err := repo.CommitObject(head.Hash())
+			require.NoError(t, err)
+			assert.Equal(t, "Initial commit", commit.Message, "the existing local commit should be served")
 		})
 	}
 }

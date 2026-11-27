@@ -238,7 +238,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 		if err := r.Fetch(ctx); err != nil {
 			fetchErr := fmt.Errorf("performing initial fetch: %w", err)
 			switch {
-			case r.HasLenientFetchPolicy() && r.IsConnectionRefused(err):
+			case r.HasLenientFetchPolicy() && r.IsTransientFetchError(err):
 				// if lenient, we check if the error is connection refused
 				// and there is non-empty repo and flags could be evaluated
 				objs, rerr := r.CommitObjects()
@@ -382,9 +382,9 @@ func (r *Repository) fetchHeads() []string {
 	return slices.Collect(maps.Keys(heads))
 }
 
-// IsConnectionRefused checks if the provided error means the remote could not serve the request
+// IsTransientFetchError checks if the provided error means the remote could not serve the request
 // for now: a connection refused, a DNS resolution or timeout error, or an HTTP 5xx or 429 response.
-func (r *Repository) IsConnectionRefused(err error) bool {
+func (r *Repository) IsTransientFetchError(err error) bool {
 	// Check for DNS errors (e.g., "no such host")
 	if dnsError, ok := errors.As[*net.DNSError](err); ok {
 		return dnsError.IsNotFound || dnsError.IsTemporary
