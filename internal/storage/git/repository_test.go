@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"sync"
@@ -16,10 +18,13 @@ import (
 	"github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
+	"github.com/go-git/go-git/v6/plumbing/transport"
+	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/go-git/go-git/v6/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/containers"
 	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 	"go.uber.org/zap"
 )
@@ -450,7 +455,7 @@ func TestFetchPolicy_Lenient(t *testing.T) {
 	assert.True(t, repo.lenientFetchPolicyEnabled, "should set fetch policy to lenient")
 }
 
-func TestIsConnectionRefused(t *testing.T) {
+func TestIsTransientFetchError(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
@@ -534,11 +539,46 @@ func TestIsConnectionRefused(t *testing.T) {
 			},
 			expected: false,
 		},
+		{
+			name:     "HTTP 503 service unavailable",
+			err:      fmt.Errorf("http transport: %w", &githttp.Err{Status: http.StatusServiceUnavailable}),
+			expected: true,
+		},
+		{
+			name:     "HTTP 502 bad gateway",
+			err:      &githttp.Err{Status: http.StatusBadGateway},
+			expected: true,
+		},
+		{
+			name:     "HTTP 500 internal server error",
+			err:      &githttp.Err{Status: http.StatusInternalServerError},
+			expected: true,
+		},
+		{
+			name:     "HTTP 429 too many requests",
+			err:      &githttp.Err{Status: http.StatusTooManyRequests},
+			expected: true,
+		},
+		{
+			name:     "HTTP 401 authentication required",
+			err:      fmt.Errorf("%w: %w", transport.ErrAuthenticationRequired, &githttp.Err{Status: http.StatusUnauthorized}),
+			expected: false,
+		},
+		{
+			name:     "HTTP 403 authorization failed",
+			err:      fmt.Errorf("%w: %w", transport.ErrAuthorizationFailed, &githttp.Err{Status: http.StatusForbidden}),
+			expected: false,
+		},
+		{
+			name:     "HTTP 404 repository not found",
+			err:      fmt.Errorf("%w: %w", transport.ErrRepositoryNotFound, &githttp.Err{Status: http.StatusNotFound}),
+			expected: false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := repo.IsConnectionRefused(tt.err)
+			result := repo.IsTransientFetchError(tt.err)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -647,6 +687,69 @@ func TestFetch_LenientPolicy_WithConnectionRefusedAndCommits(t *testing.T) {
 
 	err = repo.Fetch(t.Context())
 	assert.Error(t, err)
+}
+
+// newRepositoryWithHTTPStatus creates a repository with one local commit whose remote answers
+// every request with the given HTTP status.
+func newRepositoryWithHTTPStatus(t *testing.T, status int, opts ...containers.Option[Repository]) (*Repository, error) {
+	t.Helper()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(status)
+		_, _ = w.Write([]byte(http.StatusText(status)))
+	}))
+	t.Cleanup(server.Close)
+
+	tempDir := t.TempDir()
+	plainRepo, err := git.PlainInit(tempDir, false)
+	require.NoError(t, err)
+	worktree, err := plainRepo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "test.txt"), []byte("test content"), 0o600))
+	_, err = worktree.Add("test.txt")
+	require.NoError(t, err)
+	_, err = worktree.Commit("Initial commit", &git.CommitOptions{
+		Author: &object.Signature{Name: "Test User", Email: "test@example.com", When: time.Now()},
+	})
+	require.NoError(t, err)
+
+	opts = append([]containers.Option[Repository]{
+		WithFilesystemStorage(tempDir),
+		WithRemote("origin", server.URL+"/repo.git"),
+	}, opts...)
+	repo, _, err := newRepository(t.Context(), zap.NewNop(), opts...)
+	return repo, err
+}
+
+func TestFetch_LenientPolicy_WithHTTPServerErrorAndCommits(t *testing.T) {
+	for _, status := range []int{http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusTooManyRequests} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			repo, err := newRepositoryWithHTTPStatus(t, status, WithLenientFetchPolicy())
+			require.NoError(t, err, "lenient policy should start on the existing commits")
+			require.NotNil(t, repo)
+
+			head, err := repo.Head()
+			require.NoError(t, err)
+			commit, err := repo.CommitObject(head.Hash())
+			require.NoError(t, err)
+			assert.Equal(t, "Initial commit", commit.Message, "the existing local commit should be served")
+		})
+	}
+}
+
+func TestFetch_StrictPolicy_WithHTTPServerError(t *testing.T) {
+	_, err := newRepositoryWithHTTPStatus(t, http.StatusServiceUnavailable)
+	require.Error(t, err)
+}
+
+func TestFetch_LenientPolicy_WithHTTPClientError(t *testing.T) {
+	for _, status := range []int{http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			_, err := newRepositoryWithHTTPStatus(t, status, WithLenientFetchPolicy())
+			require.Error(t, err, "a client error points at the configuration and must not be ignored")
+		})
+	}
 }
 
 func TestFetch_LenientPolicy_WithConnectionRefusedAndNoCommits(t *testing.T) {

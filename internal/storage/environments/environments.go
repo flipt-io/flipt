@@ -607,10 +607,12 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 
 	// perform an extra fetch before proceeding to ensure any
 	// branched environments have been added
-	for _, repo := range repoManager.repos {
+	for storage, repo := range repoManager.repos {
 		if err := repo.Fetch(ctx); err != nil {
 			switch {
-			case repo.HasLenientFetchPolicy() && repo.IsConnectionRefused(err):
+			case repo.HasLenientFetchPolicy() && repo.IsTransientFetchError(err):
+				logger.Warn("fetch failed but lenient fetch policy is enabled, continuing with local state",
+					zap.String("storage", storage), zap.Error(err))
 				continue
 			case errors.Is(err, transport.ErrEmptyRemoteRepository) || errors.Is(err, git.ErrRemoteRefNotFound):
 				continue
