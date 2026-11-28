@@ -10,9 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"runtime"
-	"strings"
 	"syscall"
 	"text/template"
 	"time"
@@ -60,8 +58,6 @@ var (
 	keygenVerifyKey    string
 	keygenAccountID    string
 	keygenProductID    string
-	// Secret reference pattern for config resolution
-	secretReference = regexp.MustCompile(`^\${secret:([a-zA-Z0-9_:/-]+)}$`)
 )
 
 var (
@@ -608,34 +604,13 @@ func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager s
 	case reflect.String:
 		if v.CanSet() {
 			str := v.String()
-			// Check if this is a secret reference using the regex
-			if secretReference.MatchString(str) {
-				// Extract the reference: ${secret:reference} -> reference
-				reference := secretReference.ReplaceAllString(str, `$1`)
 
-				// Parse the reference format: either "key" or "provider:key"
-				parts := strings.Split(reference, ":")
+			secretRef, ok, err := secrets.ParseReference(str)
+			if err != nil {
+				return err
+			}
 
-				var secretRef secrets.Reference
-				switch {
-				case len(parts) == 1:
-					// Simple format: "key-name" - no provider, so Reference.Validate rejects it
-					secretRef = secrets.Reference{
-						Provider: "",
-						Path:     parts[0],
-						Key:      parts[0],
-					}
-				case len(parts) == 2:
-					// Simple format: "provider:key"
-					secretRef = secrets.Reference{
-						Provider: parts[0],
-						Path:     parts[1],
-						Key:      parts[1],
-					}
-				default:
-					return fmt.Errorf("invalid secret reference format %q, expected 'key' or 'provider:key'", reference)
-				}
-
+			if ok {
 				// Resolve the secret
 				secretValue, err := secretsManager.GetSecretValue(ctx, secretRef)
 				if err != nil {
@@ -648,7 +623,13 @@ func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager s
 		}
 
 	case reflect.Struct:
-		for _, field := range v.Fields() {
+		for sf, field := range v.Fields() {
+			// Fields tagged secret:"deferred" keep their reference so that the
+			// consuming component can resolve the current value on each use.
+			if sf.Tag.Get("secret") == "deferred" {
+				continue
+			}
+
 			if err := walkConfigForSecrets(ctx, field, secretsManager); err != nil {
 				return err
 			}
