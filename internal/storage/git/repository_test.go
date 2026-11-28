@@ -20,7 +20,6 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/go-git/go-git/v6/plumbing/transport"
 	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
-	"github.com/go-git/go-git/v6/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
@@ -1274,15 +1273,13 @@ func TestUpdateAndPush_NonFastForwardRetry_BareRepo_Shallows(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, repo.isNormalRepo, "should be bare repository")
 
-	// Clear shallows so go-git's client-side isFastForward check can detect divergence.
-	// When shallows are present, isFastForward conservatively assumes fast-forward upon
-	// hitting a shallow boundary, which would mask the non-fast-forward condition we need
-	// to trigger the retry path.
-	require.NoError(t, repo.Storer.SetShallow(nil))
-
+	// The depth=1 fetch leaves the remote head as a shallow boundary. When
+	// shallows are present, go-git's client-side isFastForward check assumes a
+	// fast-forward upon hitting a shallow boundary, so only the lease on the
+	// head the commit was built on detects that the remote moved (#6752).
 	shallows, err := repo.Storer.Shallow()
 	require.NoError(t, err)
-	require.Empty(t, shallows, "shallows must be cleared for this test")
+	require.NotEmpty(t, shallows, "depth=1 fetch must leave shallow boundaries")
 
 	// Advance the remote behind our back with an interfering commit
 	interferingDir := t.TempDir()
@@ -1467,11 +1464,10 @@ func commitAndPush(t *testing.T, repo *git.Repository, dir, file, message string
 //	    +----  flipt/main/target
 //
 // A commit D on top of B is a fast-forward of flipt/main/target and the push
-// must succeed. The bundled go-git release rejects it with a false
-// "non-fast-forward update" error because B was ignored during the ancestry
-// walk (go-git#2367); UpdateAndPush detects that false positive with a
-// corrected local ancestry check and pushes the same commit instead of
-// rebasing (see #6478).
+// must succeed. The client-side fast-forward check of the bundled go-git
+// release rejects it with a false "non-fast-forward update" error because B
+// was ignored during the ancestry walk (go-git#2367). UpdateAndPush leases the
+// push on B instead, which skips that check, so D is pushed without rebasing.
 func TestUpdateAndPush_BranchAfterBaseAdvances_BareRepo_Shallows(t *testing.T) {
 	const (
 		base   = "main"
@@ -1561,36 +1557,6 @@ func TestUpdateAndPush_BranchAfterBaseAdvances_BareRepo_Shallows(t *testing.T) {
 	assert.Equal(t, baseHead, baseRef.Hash(), "base branch must be untouched")
 }
 
-// TestIsFastForwardLocal_SkipsMissingShallowMarker pins the missing-marker
-// guard in isFastForwardLocal: a stale shallow marker naming a commit we no
-// longer hold must not make the walk fail with object not found (go-git#207).
-func TestIsFastForwardLocal_SkipsMissingShallowMarker(t *testing.T) {
-	st := memory.NewStorage()
-	repo, err := git.Init(st, git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")))
-	require.NoError(t, err)
-
-	missing := plumbing.NewHash("0000000000000000000000000000000000000001")
-
-	boundary := &object.Commit{ParentHashes: []plumbing.Hash{missing}}
-	encodedBoundary := st.NewEncodedObject()
-	require.NoError(t, boundary.Encode(encodedBoundary))
-	boundaryHash, err := st.SetEncodedObject(encodedBoundary)
-	require.NoError(t, err)
-
-	child := &object.Commit{ParentHashes: []plumbing.Hash{boundaryHash}}
-	encodedChild := st.NewEncodedObject()
-	require.NoError(t, child.Encode(encodedChild))
-	childHash, err := st.SetEncodedObject(encodedChild)
-	require.NoError(t, err)
-
-	require.NoError(t, st.SetShallow([]plumbing.Hash{boundaryHash, missing}))
-
-	r := &Repository{Repository: repo}
-	fastForward, err := r.isFastForwardLocal(missing, childHash)
-	require.NoError(t, err)
-	assert.True(t, fastForward)
-}
-
 // TestUpdateAndPush_NonFastForward_IfHeadMatches ensures that when the remote
 // has advanced past the revision the caller last observed, the update returns
 // a conflict instead of re-applying the change over commits it has not seen.
@@ -1666,6 +1632,108 @@ func TestUpdateAndPush_NonFastForward_IfHeadMatches(t *testing.T) {
 	contents, err := file.Contents()
 	require.NoError(t, err)
 	assert.Equal(t, "fresh writer", contents)
+}
+
+// TestUpdateAndPush_StaleHead_BareRepo_Shallows is a regression test for
+// https://github.com/flipt-io/flipt/issues/6752.
+//
+// Two instances share a remote. Instance B pushes a commit while instance A
+// still tracks the previous head. A's next write is built on its stale head and
+// the push must not move the remote branch off B's commit, even though A's
+// depth=1 shallow history makes go-git's client-side fast-forward check accept
+// it. A caller which observed the stale head gets a conflict; a caller without
+// an expected revision gets its change rebased on top of B's commit.
+func TestUpdateAndPush_StaleHead_BareRepo_Shallows(t *testing.T) {
+	write := func(contents string) func(envsfs.Filesystem) (string, error) {
+		return func(fs envsfs.Filesystem) (string, error) {
+			fi, err := fs.OpenFile("flipt.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+			if err != nil {
+				return "", err
+			}
+			if _, err := fi.Write([]byte(contents)); err != nil {
+				return "", err
+			}
+			return contents, fi.Close()
+		}
+	}
+
+	setup := func(t *testing.T) (remoteRepo *git.Repository, stale *Repository, staleHead, otherHead plumbing.Hash) {
+		t.Helper()
+
+		remoteDir := t.TempDir()
+		remoteRepo, err := git.PlainInit(
+			remoteDir, true,
+			git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+		)
+		require.NoError(t, err)
+
+		bootstrapDir := t.TempDir()
+		bootstrapRepo, err := git.PlainInit(
+			bootstrapDir, false,
+			git.WithDefaultBranch(plumbing.NewBranchReferenceName("main")),
+		)
+		require.NoError(t, err)
+		_, err = bootstrapRepo.CreateRemote(&config.RemoteConfig{Name: "origin", URLs: []string{remoteDir}})
+		require.NoError(t, err)
+		commitAndPush(t, bootstrapRepo, bootstrapDir, "init.txt", "initial commit")
+
+		newInstance := func() *Repository {
+			repo, _, err := newRepository(
+				t.Context(), zap.NewNop(),
+				WithFilesystemStorage(t.TempDir()),
+				WithRemote("origin", remoteDir),
+				WithSignature("test", "test@test.com"),
+			)
+			require.NoError(t, err)
+			require.False(t, repo.isNormalRepo, "should be bare repository")
+			return repo
+		}
+
+		stale, other := newInstance(), newInstance()
+
+		staleHead, err = stale.Resolve("main")
+		require.NoError(t, err)
+
+		otherHead, err = other.UpdateAndPush(t.Context(), "main", write("other instance"))
+		require.NoError(t, err)
+
+		shallows, err := stale.Storer.Shallow()
+		require.NoError(t, err)
+		require.Contains(t, shallows, staleHead, "stale head must be a shallow boundary")
+
+		return remoteRepo, stale, staleHead, otherHead
+	}
+
+	t.Run("caller observed the stale head", func(t *testing.T) {
+		remoteRepo, stale, staleHead, otherHead := setup(t)
+
+		_, err := stale.UpdateAndPush(t.Context(), "main", write("stale instance"), UpdateIfHeadMatches(&staleHead))
+		require.True(t, errors.AsMatch[errors.ErrConflict](err), "expected conflict, got %v", err)
+
+		remoteHead, err := remoteRepo.Reference(plumbing.NewBranchReferenceName("main"), true)
+		require.NoError(t, err)
+		assert.Equal(t, otherHead, remoteHead.Hash(), "the other instance's commit must stay on the branch")
+
+		current, err := stale.Resolve("main")
+		require.NoError(t, err)
+		assert.Equal(t, otherHead, current, "the conflict must leave the instance tracking the new head")
+	})
+
+	t.Run("caller without an expected head", func(t *testing.T) {
+		remoteRepo, stale, _, otherHead := setup(t)
+
+		hash, err := stale.UpdateAndPush(t.Context(), "main", write("stale instance"))
+		require.NoError(t, err)
+
+		remoteHead, err := remoteRepo.Reference(plumbing.NewBranchReferenceName("main"), true)
+		require.NoError(t, err)
+		assert.Equal(t, hash, remoteHead.Hash(), "remote should point to the rebased commit")
+
+		commit, err := remoteRepo.CommitObject(hash)
+		require.NoError(t, err)
+		assert.Equal(t, "stale instance", commit.Message)
+		assert.Equal(t, []plumbing.Hash{otherHead}, commit.ParentHashes, "the commit must be rebased on the other instance's commit")
+	})
 }
 
 // TestUpdateAndPush_IfHeadMatches_CallerAheadOfLocal ensures that when the
